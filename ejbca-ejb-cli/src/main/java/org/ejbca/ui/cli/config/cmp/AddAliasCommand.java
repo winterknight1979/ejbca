@@ -27,9 +27,11 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class AddAliasCommand extends BaseCmpConfigCommand {
 
+    /** Param. */
   private static final String ALIAS_KEY = "--alias";
 
-  private static final Logger log = Logger.getLogger(AddAliasCommand.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(AddAliasCommand.class);
 
   {
     registerParameter(
@@ -53,19 +55,19 @@ public class AddAliasCommand extends BaseCmpConfigCommand {
     // We check first because it is unnecessary to call saveConfiguration when
     // it is not needed
     if (getCmpConfiguration().aliasExists(alias)) {
-      log.info("Alias '" + alias + "' already exists.");
+      LOG.info("Alias '" + alias + "' already exists.");
       return CommandResult.FUNCTIONAL_FAILURE;
     }
     getCmpConfiguration().addAlias(alias);
     try {
       getGlobalConfigurationSession()
           .saveConfiguration(getAuthenticationToken(), getCmpConfiguration());
-      log.info("Added CMP alias: " + alias);
+      LOG.info("Added CMP alias: " + alias);
       getGlobalConfigurationSession()
           .flushConfigurationCache(CmpConfiguration.CMP_CONFIGURATION_ID);
       return CommandResult.SUCCESS;
     } catch (AuthorizationDeniedException e) {
-      log.info(
+      LOG.info(
           "Failed to add alias '" + alias + "': " + e.getLocalizedMessage());
       return CommandResult.AUTHORIZATION_FAILURE;
     }
@@ -83,6 +85,6 @@ public class AddAliasCommand extends BaseCmpConfigCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

@@ -36,18 +36,23 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class FindEndEntityCommand extends BaseRaCommand {
 
-  private static final Logger log =
+      /** Param. */
+  private static final Logger LOG =
       Logger.getLogger(FindEndEntityCommand.class);
 
+  /** Param. */
   private static final String COMMAND = "findendentity";
+  /** Param. */
   private static final String OLD_COMMAND = "finduser";
 
+  /** Param. */
   private static final Set<String> ALIASES = new HashSet<String>();
 
   static {
     ALIASES.add(OLD_COMMAND);
   }
 
+  /** Param. */
   private static final String USERNAME_KEY = "--username";
 
   {
@@ -143,6 +148,6 @@ public class FindEndEntityCommand extends BaseRaCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

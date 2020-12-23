@@ -27,16 +27,19 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
 import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 
 /**
- * Adds a new admin role
+ * Adds a new admin role.
  *
  * @version $Id: AddRoleCommand.java 28334 2018-02-20 15:48:29Z henriks $
  */
 public class AddRoleCommand extends BaseRolesCommand {
 
-  private static final Logger log = Logger.getLogger(AddRoleCommand.class);
+      /** Param. */
+  private static final Logger LOG = Logger.getLogger(AddRoleCommand.class);
 
+  /** Param. */
   private static final String NAME_KEY = "--role";
 
+  /** Param. */
   private static final String NAMESPACE_KEY = "--namespace";
 
   {
@@ -76,10 +79,10 @@ public class AddRoleCommand extends BaseRolesCommand {
           .persistRole(getAuthenticationToken(), role);
       return CommandResult.SUCCESS;
     } catch (RoleExistsException e) {
-      log.error("ERROR: Role of name " + roleName + " already exists.");
+      LOG.error("ERROR: Role of name " + roleName + " already exists.");
       return CommandResult.FUNCTIONAL_FAILURE;
     } catch (AuthorizationDeniedException e) {
-      log.error("ERROR: CLI user not authorized to add role.");
+      LOG.error("ERROR: CLI user not authorized to add role.");
       return CommandResult.FUNCTIONAL_FAILURE;
     }
   }
@@ -96,6 +99,6 @@ public class AddRoleCommand extends BaseRolesCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

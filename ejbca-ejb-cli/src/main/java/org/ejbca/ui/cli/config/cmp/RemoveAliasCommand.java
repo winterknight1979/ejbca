@@ -25,9 +25,11 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 /** @version $Id: RemoveAliasCommand.java 28025 2018-01-19 10:42:09Z anatom $ */
 public class RemoveAliasCommand extends BaseCmpConfigCommand {
 
+    /** Param. */
   private static final String ALIAS_KEY = "--alias";
 
-  private static final Logger log = Logger.getLogger(RemoveAliasCommand.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(RemoveAliasCommand.class);
 
   {
     registerParameter(
@@ -51,19 +53,19 @@ public class RemoveAliasCommand extends BaseCmpConfigCommand {
     // We check first because it is unnecessary to call saveConfiguration when
     // it is not needed
     if (!getCmpConfiguration().aliasExists(alias)) {
-      log.info("Alias '" + alias + "' does not exist");
+      LOG.info("Alias '" + alias + "' does not exist");
       return CommandResult.FUNCTIONAL_FAILURE;
     }
     getCmpConfiguration().removeAlias(alias);
     try {
       getGlobalConfigurationSession()
           .saveConfiguration(getAuthenticationToken(), getCmpConfiguration());
-      log.info("Removed CMP alias: " + alias);
+      LOG.info("Removed CMP alias: " + alias);
       getGlobalConfigurationSession()
           .flushConfigurationCache(CmpConfiguration.CMP_CONFIGURATION_ID);
       return CommandResult.SUCCESS;
     } catch (AuthorizationDeniedException e) {
-      log.info(
+      LOG.info(
           "Failed to remove alias '" + alias + "': " + e.getLocalizedMessage());
       return CommandResult.AUTHORIZATION_FAILURE;
     }
@@ -81,6 +83,6 @@ public class RemoveAliasCommand extends BaseCmpConfigCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

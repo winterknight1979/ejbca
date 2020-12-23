@@ -36,15 +36,18 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
 import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 
 /**
- * Lists admins in a role
+ * Lists admins in a role.
  *
  * @version $Id: ListAdminsCommand.java 29197 2018-06-11 09:28:26Z jeklund $
  */
 public class ListAdminsCommand extends BaseRolesCommand {
 
-  private static final Logger log = Logger.getLogger(ListAdminsCommand.class);
+      /** Param. */
+  private static final Logger LOG = Logger.getLogger(ListAdminsCommand.class);
 
+  /** Param. */
   private static final String ROLE_NAME_KEY = "--role";
+  /** Param. */
   private static final String ROLE_NAMESPACE_KEY = "--namespace";
 
   {
@@ -200,6 +203,6 @@ public class ListAdminsCommand extends BaseRolesCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

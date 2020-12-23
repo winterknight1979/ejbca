@@ -43,9 +43,12 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class SetSubjectDNCommand extends BaseRaCommand {
 
-  private static final Logger log = Logger.getLogger(SetSubjectDNCommand.class);
+      /** Param. */
+  private static final Logger LOG = Logger.getLogger(SetSubjectDNCommand.class);
 
+  /** Param. */
   private static final String USERNAME_KEY = "--username";
+  /** Param. */
   private static final String DN_KEY = "--dn";
 
   {
@@ -143,6 +146,6 @@ public class SetSubjectDNCommand extends BaseRaCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

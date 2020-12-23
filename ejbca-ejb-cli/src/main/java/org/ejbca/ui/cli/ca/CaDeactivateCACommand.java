@@ -38,9 +38,11 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class CaDeactivateCACommand extends BaseCaAdminCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CaDeactivateCACommand.class);
 
+  /** PAram. */
   private static final String CA_NAME_KEY = "--caname";
 
   {
@@ -72,7 +74,7 @@ public class CaDeactivateCACommand extends BaseCaAdminCommand {
               .getRemoteSession(CaSessionRemote.class)
               .getCAInfo(getAuthenticationToken(), caname);
       if (cainfo == null) {
-        log.error("CA " + caname + " cannot be found");
+        LOG.error("CA " + caname + " cannot be found");
         return CommandResult.FUNCTIONAL_FAILURE;
       }
       final CryptoTokenManagementSessionRemote cryptoTokenManagementSession =
@@ -93,21 +95,21 @@ public class CaDeactivateCACommand extends BaseCaAdminCommand {
             throw new IllegalStateException(
                 "CA was not found though just retrieved.");
           }
-          log.info("CA Service deactivated.");
+          LOG.info("CA Service deactivated.");
         }
         if (tokenOnline) {
           cryptoTokenManagementSession.deactivate(
               getAuthenticationToken(), cryptoTokenId);
-          log.info("CA CryptoToken deactivated.");
+          LOG.info("CA CryptoToken deactivated.");
         }
       } else {
-        log.error(
+        LOG.error(
             "CA Service or CryptoToken must be active for this command to do"
                 + " anything.");
         return CommandResult.FUNCTIONAL_FAILURE;
       }
     } catch (AuthorizationDeniedException e) {
-      log.error("CLI User was not authorized to CA " + caname);
+      LOG.error("CLI User was not authorized to CA " + caname);
       return CommandResult.AUTHORIZATION_FAILURE;
     }
     return CommandResult.SUCCESS;
@@ -125,6 +127,6 @@ public class CaDeactivateCACommand extends BaseCaAdminCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

@@ -31,12 +31,16 @@ import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
  */
 public class ListNewEndEntitiesCommand extends BaseRaCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(ListNewEndEntitiesCommand.class);
 
+  /** Param. */
   private static final String COMMAND = "listnewendentities";
+  /** Param. */
   private static final String OLD_COMMAND = "listnewusers";
 
+  /** Param. */
   private static final Set<String> ALIASES = new HashSet<String>();
 
   static {
@@ -50,8 +54,8 @@ public class ListNewEndEntitiesCommand extends BaseRaCommand {
 
   @Override
   public CommandResult execute(final ParameterContainer parameters) {
-    for (EndEntityInformation data :
-        EjbRemoteHelper.INSTANCE
+    for (EndEntityInformation data
+        : EjbRemoteHelper.INSTANCE
             .getRemoteSession(EndEntityAccessSessionRemote.class)
             .findAllUsersByStatus(
                 getAuthenticationToken(), EndEntityConstants.STATUS_NEW)) {
@@ -87,6 +91,6 @@ public class ListNewEndEntitiesCommand extends BaseRaCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

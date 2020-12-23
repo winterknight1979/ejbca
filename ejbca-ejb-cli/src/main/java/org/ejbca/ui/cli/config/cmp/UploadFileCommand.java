@@ -34,10 +34,12 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class UploadFileCommand extends BaseCmpConfigCommand {
 
+    /** Param. */
   private static final String ALIAS_KEY = "--alias";
+  /** Param. */
   private static final String FILE_KEY = "--file";
-
-  private static final Logger log = Logger.getLogger(UploadFileCommand.class);
+/** Logger. */
+  private static final Logger LOG = Logger.getLogger(UploadFileCommand.class);
 
   {
     registerParameter(
@@ -76,9 +78,9 @@ public class UploadFileCommand extends BaseCmpConfigCommand {
       pc.setReloadingStrategy(new FileChangedReloadingStrategy());
       config = new CompositeConfiguration();
       config.addConfiguration(pc);
-      log.info("Reading CMP configuration from file: " + f.getAbsolutePath());
+      LOG.info("Reading CMP configuration from file: " + f.getAbsolutePath());
     } catch (ConfigurationException e) {
-      log.error(
+      LOG.error(
           "Failed to load configuration from file " + f.getAbsolutePath());
       return CommandResult.FUNCTIONAL_FAILURE;
     }
@@ -135,7 +137,7 @@ public class UploadFileCommand extends BaseCmpConfigCommand {
         populated = true;
         String value = config.getString(key);
         getCmpConfiguration().setValue(key, value, alias);
-        log.info("Setting value: " + key + "=" + value);
+        LOG.info("Setting value: " + key + "=" + value);
       }
     }
 
@@ -144,20 +146,20 @@ public class UploadFileCommand extends BaseCmpConfigCommand {
       try {
         getGlobalConfigurationSession()
             .saveConfiguration(getAuthenticationToken(), getCmpConfiguration());
-        log.info("\nNew configurations saved successfully.");
-        log.info(
+        LOG.info("\nNew configurations saved successfully.");
+        LOG.info(
             "If there are any issues with the configurations, check them in"
                 + " the AdminGUI and click 'Save'");
         getGlobalConfigurationSession()
             .flushConfigurationCache(CmpConfiguration.CMP_CONFIGURATION_ID);
       } catch (AuthorizationDeniedException e) {
-        log.error(
+        LOG.error(
             "Failed to save configuration from file: "
                 + e.getLocalizedMessage());
       }
     } else {
       getCmpConfiguration().removeAlias(alias);
-      log.info(
+      LOG.info(
           "No relevent CMP configurations found with alias '"
               + alias
               + "' in the file.");
@@ -166,6 +168,6 @@ public class UploadFileCommand extends BaseCmpConfigCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

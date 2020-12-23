@@ -61,14 +61,21 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class CaRenewCACommand extends BaseCaAdminCommand {
 
-  private static final Logger log = Logger.getLogger(CaRenewCACommand.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CaRenewCACommand.class);
 
+  /** Param. */
   private static final String NEWLINE = System.getProperty("line.separator");
 
+  /** Param. */
   private static final String CA_NAME_KEY = "--caname";
+  /** Param. */
   private static final String REGENERATE_KEYS_KEY = "-R";
+  /** Param. */
   private static final String AUTHORIZATION_CODE_KEY = "--auth";
+  /** Param. */
   private static final String CUSTOM_NOT_BEFORE_KEY = "--notbefore";
+  /** Param. */
   private static final String EXPLICIT_ECC_KEY = "-explicitecc";
 
   {
@@ -115,7 +122,7 @@ public class CaRenewCACommand extends BaseCaAdminCommand {
                 + " only be used when renewing a CSCA for ePassports, and it"
                 + " will persist in the Crypto Token for future renewals."));
   }
-
+/** Param. */
   private SimpleDateFormat simpleDateFormat = null;
 
   private SimpleDateFormat getSimpleDateFormat() {
@@ -254,7 +261,7 @@ public class CaRenewCACommand extends BaseCaAdminCommand {
                 customNotBefore,
                 regenerateKeys);
       } catch (CryptoTokenOfflineException e) {
-        log.error(
+        LOG.error(
             "ERROR: Could not create keys, crypto token was unavailable: "
                 + e.getMessage());
       }
@@ -264,7 +271,7 @@ public class CaRenewCACommand extends BaseCaAdminCommand {
               .getRemoteSession(CaSessionRemote.class)
               .getCAInfo(getAuthenticationToken(), caname);
       if (cainfo == null) {
-        log.error("CA of name " + caname + " does not exist.");
+        LOG.error("CA of name " + caname + " does not exist.");
         return CommandResult.FUNCTIONAL_FAILURE;
       }
 
@@ -278,32 +285,32 @@ public class CaRenewCACommand extends BaseCaAdminCommand {
         return CommandResult.FUNCTIONAL_FAILURE;
       }
     } catch (AuthorizationDeniedException e1) {
-      log.error(
+      LOG.error(
           "ERROR: Current CLI user isn't authorized to renew CA " + caname);
       return CommandResult.AUTHORIZATION_FAILURE;
     } catch (CADoesntExistsException e) {
-      log.error("ERROR: No CA of name " + caname + " exists.");
+      LOG.error("ERROR: No CA of name " + caname + " exists.");
       return CommandResult.FUNCTIONAL_FAILURE;
     } catch (CryptoTokenOfflineException e) {
-      log.error("ERROR: Crypto Token is off-line for CA: " + caname);
+      LOG.error("ERROR: Crypto Token is off-line for CA: " + caname);
       return CommandResult.FUNCTIONAL_FAILURE;
     } catch (CryptoTokenAuthenticationFailedException e) {
-      log.error(
+      LOG.error(
           "ERROR: Invalid Crypto Token authentication code for CA: " + caname);
       return CommandResult.FUNCTIONAL_FAILURE;
     } catch (CryptoTokenNameInUseException e) {
-      log.error(
+      LOG.error(
           "ERROR: Crypto Token name collision for CA: "
               + caname
               + ". This should not be possible to happen.");
-      log.error("Exception: ", e);
+      LOG.error("Exception: ", e);
       return CommandResult.FUNCTIONAL_FAILURE;
     } catch (NoSuchSlotException e) {
-      log.error(
+      LOG.error(
           "ERROR: Existing Crypto Token claims the slot is not available."
               + " Check the Crypto Token for CA: "
               + caname);
-      log.error("Error message: " + e.getMessage());
+      LOG.error("Error message: " + e.getMessage());
       return CommandResult.FUNCTIONAL_FAILURE;
     }
   }
@@ -423,6 +430,6 @@ public class CaRenewCACommand extends BaseCaAdminCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

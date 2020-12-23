@@ -25,7 +25,8 @@ import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
  */
 public class DumpAllConfigCommand extends BaseEstConfigCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(DumpAllConfigCommand.class);
 
   @Override
@@ -43,13 +44,13 @@ public class DumpAllConfigCommand extends BaseEstConfigCommand {
                   getAuthenticationToken(),
                   EstConfiguration.EST_CONFIGURATION_ID);
     } catch (AuthorizationDeniedException e) {
-      log.error("CLI user is not authorized to dump configuration.");
+      LOG.error("CLI user is not authorized to dump configuration.");
       return CommandResult.AUTHORIZATION_FAILURE;
     }
     Enumeration<Object> enumeration = properties.keys();
     while (enumeration.hasMoreElements()) {
       String key = (String) enumeration.nextElement();
-      log.info(" " + key + " = " + properties.getProperty(key));
+      LOG.info(" " + key + " = " + properties.getProperty(key));
     }
     return CommandResult.SUCCESS;
   }
@@ -66,6 +67,6 @@ public class DumpAllConfigCommand extends BaseEstConfigCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

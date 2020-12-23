@@ -21,7 +21,7 @@ import org.ejbca.core.model.hardtoken.HardTokenInformation;
 
 /**
  * A abstract base class that should be used by all File based hard token data
- * importers
+ * importers.
  *
  * <p>It have a protected field fileReader that can be used by the
  * implementation of readHardTokenData()
@@ -31,6 +31,7 @@ import org.ejbca.core.model.hardtoken.HardTokenInformation;
  */
 public abstract class FileReadHardTokenImporter implements IHardTokenImporter {
 
+    /** Oaram. */
   protected BufferedReader bufferedReader = null;
 
   /**

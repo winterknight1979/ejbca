@@ -43,9 +43,12 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class KeyRecoveryCommand extends BaseRaCommand {
 
-  private static final Logger log = Logger.getLogger(KeyRecoveryCommand.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(KeyRecoveryCommand.class);
 
+  /** Param. */
   private static final String SERIAL_NUMBER_KEY = "-s";
+  /** Param. */
   private static final String DN_KEY = "--dn";
 
   {
@@ -149,15 +152,15 @@ public class KeyRecoveryCommand extends BaseRaCommand {
                     + " recovery.");
       }
     } catch (AuthorizationDeniedException e) {
-      log.error(
+      LOG.error(
           "ERROR: CLI use not authorized to perform key recovery on user "
               + username);
     } catch (ApprovalException e) {
-      log.error("ERROR: " + e.getMessage());
+      LOG.error("ERROR: " + e.getMessage());
     } catch (WaitingForApprovalException e) {
-      log.error("ERROR: " + e.getMessage());
+      LOG.error("ERROR: " + e.getMessage());
     } catch (CADoesntExistsException e) {
-      log.error("ERROR: " + e.getMessage());
+      LOG.error("ERROR: " + e.getMessage());
     }
     return CommandResult.FUNCTIONAL_FAILURE;
   }
@@ -174,6 +177,6 @@ public class KeyRecoveryCommand extends BaseRaCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

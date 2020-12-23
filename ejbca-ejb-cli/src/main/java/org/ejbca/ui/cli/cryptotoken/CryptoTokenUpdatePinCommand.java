@@ -32,12 +32,17 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class CryptoTokenUpdatePinCommand extends BaseCryptoTokenCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CryptoTokenUpdatePinCommand.class);
 
+  /** Param. */
   private static final String SWITCH_UPDATE_ONLY_KEY = "--update";
+  /** Param. */
   private static final String SWITCH_REMOVE_AUTO_KEY = "--remove";
+  /** Param. */
   private static final String OLD_PIN_KEY = "--oldpin";
+  /** Param. */
   private static final String NEW_PIN_KEY = "--newpin";
 
   {
@@ -134,6 +139,6 @@ public class CryptoTokenUpdatePinCommand extends BaseCryptoTokenCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

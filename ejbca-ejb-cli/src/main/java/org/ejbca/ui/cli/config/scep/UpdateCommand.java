@@ -34,11 +34,15 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 /** @version $Id: UpdateCommand.java 21160 2015-04-28 09:46:42Z aveen4711 $ */
 public class UpdateCommand extends BaseScepConfigCommand {
 
+      /** Param. */
   private static final String ALIAS_KEY = "--alias";
+  /** Param. */
   private static final String KEY_KEY = "--key"; // Hue hue hue
+  /** Param. */
   private static final String VALUE_KEY = "--value";
 
-  private static final Logger log = Logger.getLogger(UpdateCommand.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(UpdateCommand.class);
 
   {
     registerParameter(
@@ -92,13 +96,13 @@ public class UpdateCommand extends BaseScepConfigCommand {
       key = alias + "." + key;
     }
 
-    log.info(
+    LOG.info(
         "Configuration was: " + key + "=" + scepConfig.getValue(key, alias));
     scepConfig.setValue(key, value, alias);
     try {
       getGlobalConfigurationSession()
           .saveConfiguration(getAuthenticationToken(), scepConfig);
-      log.info(
+      LOG.info(
           "Configuration updated: "
               + key
               + "="
@@ -107,7 +111,7 @@ public class UpdateCommand extends BaseScepConfigCommand {
           .flushConfigurationCache(ScepConfiguration.SCEP_CONFIGURATION_ID);
       return CommandResult.SUCCESS;
     } catch (AuthorizationDeniedException e) {
-      log.info("Failed to update configuration: " + e.getLocalizedMessage());
+      LOG.info("Failed to update configuration: " + e.getLocalizedMessage());
       return CommandResult.AUTHORIZATION_FAILURE;
     }
   }
@@ -145,8 +149,8 @@ public class UpdateCommand extends BaseScepConfigCommand {
             .getRemoteSession(EndEntityProfileSessionRemote.class)
             .getEndEntityProfileIdToNameMap();
     StringBuilder existingEeps = new StringBuilder();
-    for (Integer profileId :
-        EjbRemoteHelper.INSTANCE
+    for (Integer profileId
+       :  EjbRemoteHelper.INSTANCE
             .getRemoteSession(EndEntityProfileSessionRemote.class)
             .getAuthorizedEndEntityProfileIds(
                 getAuthenticationToken(),
@@ -167,8 +171,8 @@ public class UpdateCommand extends BaseScepConfigCommand {
             .getRemoteSession(CertificateProfileSessionRemote.class)
             .getCertificateProfileIdToNameMap();
     StringBuilder existingCps = new StringBuilder();
-    for (Integer profileId :
-        EjbRemoteHelper.INSTANCE
+    for (Integer profileId
+        : EjbRemoteHelper.INSTANCE
             .getRemoteSession(CertificateProfileSessionRemote.class)
             .getAuthorizedCertificateProfileIds(
                 getAuthenticationToken(),
@@ -186,8 +190,8 @@ public class UpdateCommand extends BaseScepConfigCommand {
             + "\n");
 
     StringBuilder existingCas = new StringBuilder();
-    for (String ca :
-        EjbRemoteHelper.INSTANCE
+    for (String ca
+        : EjbRemoteHelper.INSTANCE
             .getRemoteSession(CaSessionRemote.class)
             .getActiveCANames(getAuthenticationToken())) {
       existingCas.append((existingCas.length() == 0 ? "" : divider) + ca);
@@ -256,6 +260,6 @@ public class UpdateCommand extends BaseScepConfigCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

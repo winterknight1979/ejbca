@@ -46,20 +46,32 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class CryptoTokenCreateCommand extends EjbcaCliUserCommandBase {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CryptoTokenCreateCommand.class);
 
+  /** Param. */
   private static final String CRYPTOTOKEN_NAME_KEY = "--token";
+  /** Param. */
   private static final String PIN_KEY = "--pin";
+  /** Param. */
   private static final String AUTOACTIVATE_KEY = "--autoactivate";
+  /** Param. */
   private static final String TYPE_KEY = "--type";
+  /** Param. */
   private static final String PRIVATE_KEY_EXPORT_KEY = "--exportkey";
+  /** Param. */
   private static final String USE_EXPLICIT_KEY_PARAMETERS =
       "--explicitkeyparams";
+  /** Param. */
   private static final String PKCS11_LIB_KEY = "--lib";
+  /** Param. */
   private static final String SLOT_REFERENCE_TYPE_KEY = "--slotlabeltype";
+  /** Param. */
   private static final String SLOT_REFERENCE_KEY = "--slotlabel";
+  /** Param. */
   private static final String PKCS11_ATTR_FILE_KEY = "--attr";
+  /** Param. */
   private static final String PKCS11_SLOTCOLLIDE_IGNORE = "--forceusedslots";
 
   {
@@ -185,7 +197,7 @@ public class CryptoTokenCreateCommand extends EjbcaCliUserCommandBase {
     return "create";
   }
 
-  @Override
+  @Override // TODO: length.
   public CommandResult execute(final ParameterContainer parameters) {
 
     final String cryptoTokenName = parameters.get(CRYPTOTOKEN_NAME_KEY);
@@ -398,7 +410,7 @@ public class CryptoTokenCreateCommand extends EjbcaCliUserCommandBase {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 
   /**

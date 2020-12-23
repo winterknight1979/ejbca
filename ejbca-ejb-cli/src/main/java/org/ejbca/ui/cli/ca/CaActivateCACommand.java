@@ -42,9 +42,12 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class CaActivateCACommand extends BaseCaAdminCommand {
 
-  private static final Logger log = Logger.getLogger(CaActivateCACommand.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CaActivateCACommand.class);
 
+  /** Param. */
   private static final String CA_NAME_KEY = "--caname";
+  /** Param. */
   private static final String AUTHORIZATION_CODE_KEY = "--code";
 
   {
@@ -88,7 +91,7 @@ public class CaActivateCACommand extends BaseCaAdminCommand {
       String caname = parameters.get(CA_NAME_KEY);
       String authorizationcode = parameters.get(AUTHORIZATION_CODE_KEY);
       if (authorizationcode == null) {
-        log.info("Enter authorization code: ");
+        LOG.info("Enter authorization code: ");
         // Read the password, but mask it so we don't display it on the
         // console
         authorizationcode = String.valueOf(System.console().readPassword());
@@ -100,7 +103,7 @@ public class CaActivateCACommand extends BaseCaAdminCommand {
               .getRemoteSession(CaSessionRemote.class)
               .getCAInfo(getAuthenticationToken(), caname);
       if (cainfo == null) {
-        log.error("Error: CA " + caname + " cannot be found");
+        LOG.error("Error: CA " + caname + " cannot be found");
         return CommandResult.FUNCTIONAL_FAILURE;
       }
       // Check that CA has correct status.
@@ -117,19 +120,19 @@ public class CaActivateCACommand extends BaseCaAdminCommand {
             EjbRemoteHelper.INSTANCE
                 .getRemoteSession(CAAdminSessionRemote.class)
                 .activateCAService(getAuthenticationToken(), cainfo.getCAId());
-            log.info("CA Service activated.");
+            LOG.info("CA Service activated.");
           }
           if (tokenOffline) {
             cryptoTokenManagementSession.activate(
                 getAuthenticationToken(),
                 cryptoTokenId,
                 authorizationcode.toCharArray());
-            log.info("CA's CryptoToken activated.");
+            LOG.info("CA's CryptoToken activated.");
           }
           return CommandResult.SUCCESS;
         } catch (CryptoTokenAuthenticationFailedException e) {
-          log.error("CA Token authentication failed.");
-          log.error(e.getMessage());
+          LOG.error("CA Token authentication failed.");
+          LOG.error(e.getMessage());
           Throwable t = e.getCause();
           while (t != null) {
             if (t instanceof FailedLoginException) {
@@ -139,30 +142,30 @@ public class CaActivateCACommand extends BaseCaAdminCommand {
               // want that.
               t = t.getCause();
               if (t != null) {
-                log.error(t.getMessage());
+                LOG.error(t.getMessage());
                 break;
               }
             } else {
               t = t.getCause();
             }
           }
-          log.debug("Exception: ", e);
+          LOG.debug("Exception: ", e);
         } catch (ApprovalException e) {
-          log.error("CA Token activation approval request already exists.");
+          LOG.error("CA Token activation approval request already exists.");
         } catch (WaitingForApprovalException e) {
-          log.error(
+          LOG.error(
               "CA requires an approval to be activated. A request have been"
                   + " sent to authorized admins.");
         } catch (CryptoTokenOfflineException e) {
-          log.error(
+          LOG.error(
               "Cryptotoken with ID " + cryptoTokenId + " was not available.",
               e);
         }
       } else {
-        log.error("CA or CAToken must be offline to be activated.");
+        LOG.error("CA or CAToken must be offline to be activated.");
       }
     } catch (AuthorizationDeniedException e) {
-      log.error("CLI user was not authorized to perform this operation", e);
+      LOG.error("CLI user was not authorized to perform this operation", e);
       return CommandResult.AUTHORIZATION_FAILURE;
     } catch (CADoesntExistsException e) {
       // Ignore, can not happen since we have already checked for CA existence.
@@ -172,6 +175,6 @@ public class CaActivateCACommand extends BaseCaAdminCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

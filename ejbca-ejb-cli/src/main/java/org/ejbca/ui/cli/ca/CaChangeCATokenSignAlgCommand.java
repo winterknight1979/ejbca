@@ -36,10 +36,13 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class CaChangeCATokenSignAlgCommand extends BaseCaAdminCommand {
 
+      /** Param. */
   private static final String CA_NAME_KEY = "--caname";
+  /** Param. */
   private static final String SIGALG_KEY = "--sigalg";
 
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CaChangeCATokenSignAlgCommand.class);
 
   {
@@ -68,7 +71,7 @@ public class CaChangeCATokenSignAlgCommand extends BaseCaAdminCommand {
 
   @Override
   public CommandResult execute(final ParameterContainer parameters) {
-    log.trace(">execute()");
+    LOG.trace(">execute()");
 
     CryptoProviderTools.installBCProvider(); // need this for CVC certificate
     String caName = parameters.get(CA_NAME_KEY);
@@ -78,27 +81,27 @@ public class CaChangeCATokenSignAlgCommand extends BaseCaAdminCommand {
               .getRemoteSession(CaSessionRemote.class)
               .getCAInfo(getAuthenticationToken(), caName);
       if (cainfo == null) {
-        log.error("No such CA with by name " + caName);
-        log.error(getCaList());
+        LOG.error("No such CA with by name " + caName);
+        LOG.error(getCaList());
         return CommandResult.FUNCTIONAL_FAILURE;
       }
       String signAlg = parameters.get(SIGALG_KEY);
-      log.info("Setting new signature algorithm: " + signAlg);
+      LOG.info("Setting new signature algorithm: " + signAlg);
       final CAToken caToken = cainfo.getCAToken();
       caToken.setSignatureAlgorithm(signAlg);
       cainfo.setCAToken(caToken);
       EjbRemoteHelper.INSTANCE
           .getRemoteSession(CAAdminSessionRemote.class)
           .editCA(getAuthenticationToken(), cainfo);
-      log.info("CA token signature algorithm for CA changed.");
-      log.trace("<execute()");
+      LOG.info("CA token signature algorithm for CA changed.");
+      LOG.trace("<execute()");
     } catch (AuthorizationDeniedException e) {
-      log.error("CLI User was not authorized to modify CA " + caName);
-      log.trace("<execute()");
+      LOG.error("CLI User was not authorized to modify CA " + caName);
+      LOG.trace("<execute()");
       return CommandResult.AUTHORIZATION_FAILURE;
     }
 
-    log.trace("<execute()");
+    LOG.trace("<execute()");
     return CommandResult.SUCCESS;
   }
 
@@ -119,6 +122,6 @@ public class CaChangeCATokenSignAlgCommand extends BaseCaAdminCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

@@ -48,9 +48,11 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class SetDefaultOcspResponderCommand extends EjbcaCliUserCommandBase {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(SetDefaultOcspResponderCommand.class);
 
+  /** Param. */
   private static final String DN_KEY = "--dn";
 
   {
@@ -88,9 +90,9 @@ public class SetDefaultOcspResponderCommand extends EjbcaCliUserCommandBase {
     try {
       globalConfigurationSession.saveConfiguration(
           getAuthenticationToken(), conf);
-      log.info("Setting '" + reference + "' as the default responder.");
+      LOG.info("Setting '" + reference + "' as the default responder.");
     } catch (AuthorizationDeniedException e) {
-      log.error(
+      LOG.error(
           "ERROR: Current CLI user wasn't authorized to edit configuration.");
       return CommandResult.AUTHORIZATION_FAILURE;
     }
@@ -126,8 +128,8 @@ public class SetDefaultOcspResponderCommand extends EjbcaCliUserCommandBase {
             CertificateStoreSessionRemote.class);
     List<String[]> ikbContents = new ArrayList<String[]>();
     Set<String> knownDNs = new HashSet<String>();
-    for (InternalKeyBindingInfo info :
-        internalKeyBindingMgmtSession.getInternalKeyBindingInfos(
+    for (InternalKeyBindingInfo info
+        : internalKeyBindingMgmtSession.getInternalKeyBindingInfos(
             getAuthenticationToken(), OcspKeyBinding.IMPLEMENTATION_ALIAS)) {
       if (info.getStatus().equals(InternalKeyBindingStatus.ACTIVE)) {
         Certificate certificate =
@@ -152,8 +154,8 @@ public class SetDefaultOcspResponderCommand extends EjbcaCliUserCommandBase {
     CaSessionRemote caSession =
         EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class);
     List<String[]> caContents = new ArrayList<String[]>();
-    for (CAInfo caInfo :
-        caSession.getAuthorizedAndEnabledCaInfos(getAuthenticationToken())) {
+    for (CAInfo caInfo
+        : caSession.getAuthorizedAndEnabledCaInfos(getAuthenticationToken())) {
       final String caSubjectDn =
           CertTools.getSubjectDN(
               new ArrayList<Certificate>(caInfo.getCertificateChain()).get(0));
@@ -186,6 +188,6 @@ public class SetDefaultOcspResponderCommand extends EjbcaCliUserCommandBase {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

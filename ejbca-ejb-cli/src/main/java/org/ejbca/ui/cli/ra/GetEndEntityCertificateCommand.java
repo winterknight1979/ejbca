@@ -39,18 +39,23 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class GetEndEntityCertificateCommand extends BaseRaCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(GetEndEntityCertificateCommand.class);
 
+  /** Param. */
   private static final String COMMAND = "getendentitycert";
+  /** Param. */
   private static final String OLD_COMMAND = "getusercert";
 
+  /** Param. */
   private static final Set<String> ALIASES = new HashSet<String>();
 
   static {
     ALIASES.add(OLD_COMMAND);
   }
 
+  /** Param. */
   private static final String USERNAME_KEY = "--username";
 
   {
@@ -113,6 +118,6 @@ public class GetEndEntityCertificateCommand extends BaseRaCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

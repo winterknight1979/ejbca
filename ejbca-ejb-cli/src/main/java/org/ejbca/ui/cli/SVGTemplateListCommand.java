@@ -22,13 +22,14 @@ import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
 import org.ejbca.util.PrinterManager;
 
 /**
- * Class used to list printers when creating hard token visual layout templates
+ * Class used to list printers when creating hard token visual layout templates.
  *
  * @version $Id: SVGTemplateListCommand.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public class SVGTemplateListCommand extends EjbcaCommandBase {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(SVGTemplateListCommand.class);
 
   @Override
@@ -51,14 +52,14 @@ public class SVGTemplateListCommand extends EjbcaCommandBase {
   @Override
   public CommandResult execute(final ParameterContainer parameters) {
     String[] printerNames = PrinterManager.listPrinters();
-    log.info(
+    LOG.info(
         "Found "
             + printerNames.length
             + " printer"
             + (printerNames.length > 1 ? "s" : "")
             + ":");
     for (String printerName : printerNames) {
-      log.info("  " + printerName);
+      LOG.info("  " + printerName);
     }
     return CommandResult.SUCCESS;
   }
@@ -75,6 +76,6 @@ public class SVGTemplateListCommand extends EjbcaCommandBase {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

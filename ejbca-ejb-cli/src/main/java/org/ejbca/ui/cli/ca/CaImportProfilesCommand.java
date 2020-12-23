@@ -56,10 +56,13 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class CaImportProfilesCommand extends BaseCaAdminCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CaImportProfilesCommand.class);
 
+  /** Param. */
   private static final String DIRECTORY_KEY = "-d";
+  /** Param. */
   private static final String CA_NAME_KEY = "--caname";
 
   {
@@ -253,7 +256,7 @@ public class CaImportProfilesCommand extends BaseCaAdminCommand {
                             + " file directory",
                         e);
                   } catch (IOException e) {
-                    log.error(
+                    LOG.error(
                         "Failed to parse profile XML in '"
                             + infiles[i]
                             + "': "
@@ -272,8 +275,8 @@ public class CaImportProfilesCommand extends BaseCaAdminCommand {
                     // getLogger().debug("Debug: Org - AVAILCERTPROFILES " +
                     // eprofile.getValue(EndEntityProfile.AVAILCERTPROFILES,0) +
                     // " DEFAULTCERTPROFILE "+defaultCertProfile);
-                    for (int currentCertProfileId :
-                        eprofile.getAvailableCertificateProfileIds()) {
+                    for (int currentCertProfileId
+                        : eprofile.getAvailableCertificateProfileIds()) {
                       Integer replacementCertProfileId =
                           certificateProfileIdMapping.get(currentCertProfileId);
                       if (replacementCertProfileId != null) {
@@ -570,7 +573,7 @@ public class CaImportProfilesCommand extends BaseCaAdminCommand {
         }
       }
     } catch (AuthorizationDeniedException e) {
-      log.error(
+      LOG.error(
           "Current CLI user doesn't have sufficient privileges to import"
               + " profiles.");
       return CommandResult.AUTHORIZATION_FAILURE;
@@ -590,6 +593,6 @@ public class CaImportProfilesCommand extends BaseCaAdminCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

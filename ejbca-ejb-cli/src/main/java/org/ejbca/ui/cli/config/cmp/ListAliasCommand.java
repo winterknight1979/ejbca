@@ -22,7 +22,8 @@ import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
  */
 public class ListAliasCommand extends BaseCmpConfigCommand {
 
-  private static final Logger log = Logger.getLogger(ListAliasCommand.class);
+    /** Loger. */
+  private static final Logger LOG = Logger.getLogger(ListAliasCommand.class);
 
   @Override
   public String getMainCommand() {
@@ -33,7 +34,7 @@ public class ListAliasCommand extends BaseCmpConfigCommand {
   public CommandResult execute(final ParameterContainer parameters) {
     List<String> aliaslist = getCmpConfiguration().getSortedAliasList();
     for (String alias : aliaslist) {
-      log.info(alias);
+      LOG.info(alias);
     }
     return CommandResult.SUCCESS;
   }
@@ -50,6 +51,6 @@ public class ListAliasCommand extends BaseCmpConfigCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

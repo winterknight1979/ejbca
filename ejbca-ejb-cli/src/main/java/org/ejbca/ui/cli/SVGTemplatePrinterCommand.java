@@ -35,19 +35,23 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 import org.ejbca.util.PrinterManager;
 
 /**
- * Class used as a help tool when creating hard token visual layout templates
+ * Class used as a help tool when creating hard token visual layout templates.
  *
  * @version $Id: SVGTemplatePrinterCommand.java 19902 2014-09-30 14:32:24Z
  *     anatom $
  */
 public class SVGTemplatePrinterCommand extends EjbcaCommandBase {
 
-  private static final Logger log =
+      /** Param. */
+  private static final Logger LOG =
       Logger.getLogger(SVGTemplatePrinterCommand.class);
 
+  /** Param. */
   private static final String USERDATAFILENAME =
       "src/cli/svgtemplateprinttester.properties";
+  /** Param. */
   private static final String TEMPLATEFILENAME_KEYWORD = "-t";
+  /** Param. */
   private static final String PRINTERNAME_KEYWORD = "-p";
 
   // Register parameters
@@ -96,7 +100,7 @@ public class SVGTemplatePrinterCommand extends EjbcaCommandBase {
       try {
         data.load(new FileInputStream(USERDATAFILENAME));
       } catch (FileNotFoundException e) {
-        log.error(
+        LOG.error(
             "File "
                 + USERDATAFILENAME
                 + " does not exist, command cannot run.");
@@ -132,7 +136,7 @@ public class SVGTemplatePrinterCommand extends EjbcaCommandBase {
       try {
         fis = new FileInputStream(templatefilename);
       } catch (FileNotFoundException e) {
-        log.error(
+        LOG.error(
             "File "
                 + templatefilename
                 + " could not be found, command cannot run.");
@@ -156,7 +160,7 @@ public class SVGTemplatePrinterCommand extends EjbcaCommandBase {
               hardtokensn,
               copyofhardtokensn);
         } catch (PrinterException e) {
-          log.error("Printing failed, see associated stack trace.", e);
+          LOG.error("Printing failed, see associated stack trace.", e);
         }
       } finally {
         fis.close();
@@ -182,6 +186,6 @@ public class SVGTemplatePrinterCommand extends EjbcaCommandBase {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

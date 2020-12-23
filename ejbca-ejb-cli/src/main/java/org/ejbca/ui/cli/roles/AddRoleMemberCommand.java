@@ -44,15 +44,23 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class AddRoleMemberCommand extends BaseRolesCommand {
 
-  private static final Logger log =
+      /** Param. */
+  private static final Logger LOG =
       Logger.getLogger(AddRoleMemberCommand.class);
+  /** Param. */
 
   private static final String ROLE_NAME_KEY = "--role";
+  /** Param. */
   private static final String CA_NAME_KEY = "--caname";
+  /** Param. */
   private static final String MATCH_WITH_KEY = "--with";
+  /** Param. */
   private static final String MATCH_TYPE_KEY = "--type";
+  /** Param. */
   private static final String MATCH_VALUE_KEY = "--value";
+  /** Param. */
   private static final String DESCRIPTION_KEY = "--description";
+  /** Param. */
   private static final String ROLE_NAMESPACE_KEY = "--namespace";
 
   {
@@ -280,8 +288,8 @@ public class AddRoleMemberCommand extends BaseRolesCommand {
     }
     sb.append("Available Roles: " + availableRoles + "\n");
     String availableCas = "";
-    for (final String caName :
-        EjbRemoteHelper.INSTANCE
+    for (final String caName
+        : EjbRemoteHelper.INSTANCE
             .getRemoteSession(CaSessionRemote.class)
             .getAuthorizedCaNames(getAuthenticationToken())) {
       availableCas +=
@@ -289,13 +297,13 @@ public class AddRoleMemberCommand extends BaseRolesCommand {
     }
     sb.append("Available CAs: " + availableCas + "\n");
     String availableAccessMatchValues = "";
-    for (final String tokenType :
-        AccessMatchValueReverseLookupRegistry.INSTANCE.getAllTokenTypes()) {
+    for (final String tokenType
+       : AccessMatchValueReverseLookupRegistry.INSTANCE.getAllTokenTypes()) {
       final AuthenticationTokenMetaData authenticationTokenMetaData =
           AccessMatchValueReverseLookupRegistry.INSTANCE.getMetaData(tokenType);
       if (authenticationTokenMetaData.isUserConfigurable()) {
-        for (final String accessMatchValueName :
-            authenticationTokenMetaData.getAccessMatchValueNameMap().keySet()) {
+        for (final String accessMatchValueName
+          : authenticationTokenMetaData.getAccessMatchValueNameMap().keySet()) {
           availableAccessMatchValues +=
               (availableAccessMatchValues.isEmpty() ? "" : ", ")
                   + tokenType
@@ -314,6 +322,6 @@ public class AddRoleMemberCommand extends BaseRolesCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

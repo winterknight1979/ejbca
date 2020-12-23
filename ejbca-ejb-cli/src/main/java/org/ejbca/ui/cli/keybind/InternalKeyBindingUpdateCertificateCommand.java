@@ -32,7 +32,8 @@ import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
 public class InternalKeyBindingUpdateCertificateCommand
     extends RudInternalKeyBindingCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(InternalKeyBindingUpdateCertificateCommand.class);
 
   @Override
@@ -83,7 +84,7 @@ public class InternalKeyBindingUpdateCertificateCommand
       }
       return CommandResult.SUCCESS;
     } catch (CertificateImportException e) {
-      log.error("Could not update certificate: " + e.getMessage());
+      LOG.error("Could not update certificate: " + e.getMessage());
       return CommandResult.FUNCTIONAL_FAILURE;
     }
   }
@@ -104,6 +105,6 @@ public class InternalKeyBindingUpdateCertificateCommand
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

@@ -31,9 +31,11 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class CaRemoveKeyStoreCommand extends BaseCaAdminCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CaRemoveKeyStoreCommand.class);
 
+  /** Param. */
   private static final String CA_NAME_KEY = "--caname";
 
   {
@@ -73,6 +75,6 @@ public class CaRemoveKeyStoreCommand extends BaseCaAdminCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

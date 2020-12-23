@@ -23,14 +23,14 @@ import org.ejbca.ui.cli.infrastructure.command.EjbcaCliUserCommandBase;
 import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
 
 /**
- * CLI subcommand that lists all available services
+ * CLI subcommand that lists all available services.
  *
  * @version $Id: ServiceListCommand.java 21860 2015-09-15 14:45:06Z mikekushner
  *     $
  */
 public class ServiceListCommand extends EjbcaCliUserCommandBase {
-
-  private static final Logger log = Logger.getLogger(ServiceListCommand.class);
+/** Logger. */
+  private static final Logger LOG = Logger.getLogger(ServiceListCommand.class);
 
   @Override
   public String[] getCommandPath() {
@@ -44,7 +44,7 @@ public class ServiceListCommand extends EjbcaCliUserCommandBase {
 
   @Override
   public CommandResult execute(final ParameterContainer parameters) {
-
+    final int left = 15;
     final ServiceSessionRemote serviceSession =
         EjbRemoteHelper.INSTANCE.getRemoteSession(ServiceSessionRemote.class);
     Collection<Integer> availableServicesIds =
@@ -60,7 +60,8 @@ public class ServiceListCommand extends EjbcaCliUserCommandBase {
                 + " Action           ");
     getLogger()
         .info(
-            "----+-----------------+------------------+------------------+------------------");
+            "----+-----------------+------------------+"
+            + "------------------+------------------");
     for (Integer serviceId : availableServicesIds) {
       StringBuilder row = new StringBuilder();
       ServiceConfiguration serviceConfig =
@@ -73,7 +74,7 @@ public class ServiceListCommand extends EjbcaCliUserCommandBase {
       row.append(' ');
       String serviceName = serviceSession.getServiceName(serviceId.intValue());
       row.append(
-          StringUtils.rightPad(StringUtils.abbreviate(serviceName, 15), 16));
+          StringUtils.rightPad(StringUtils.abbreviate(serviceName, left), 16));
       row.append('|');
 
       // Class paths
@@ -89,9 +90,12 @@ public class ServiceListCommand extends EjbcaCliUserCommandBase {
   }
 
   private void addClassPath(final StringBuilder row, final String classPath) {
+
+        final int right = 17;
     row.append(' ');
     final String className = classPath.replaceFirst("^.*\\.", "");
-    row.append(StringUtils.rightPad(StringUtils.abbreviate(className, 16), 17));
+    row.append(StringUtils.rightPad(StringUtils.abbreviate(className, 16),
+            right));
   }
 
   @Override
@@ -106,6 +110,6 @@ public class ServiceListCommand extends EjbcaCliUserCommandBase {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

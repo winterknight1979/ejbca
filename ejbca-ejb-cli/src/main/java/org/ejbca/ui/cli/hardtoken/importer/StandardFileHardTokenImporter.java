@@ -62,20 +62,33 @@ import org.ejbca.core.model.hardtoken.types.SwedishEIDHardToken;
  */
 public class StandardFileHardTokenImporter extends FileReadHardTokenImporter {
 
+      /** Param. */
   public static final String PROPERTY_SEPARATOR = "separator";
+  /** Param. */
   public static final String PROPERTY_COLUMNORDER = "columnorder";
+  /** Param. */
   public static final String PROPERTY_TOKENTYPE = "tokentype";
 
+  /** Param. */
   private static final int COLUMN_TOKENSN = 1;
+  /** Param. */
   private static final int COLUMN_PIN1 = 2;
+  /** Param. */
   private static final int COLUMN_PIN2 = 3;
+  /** Param. */
   private static final int COLUMN_BOTHPIN = 4;
+  /** Param. */
   private static final int COLUMN_PUK1 = 5;
+  /** Param. */
   private static final int COLUMN_PUK2 = 6;
+  /** Param. */
   private static final int COLUMN_BOTHPUK = 7;
 
+  /** Param. */
   private String columnSeparator;
+  /** Param. */
   private int[] columns = null;
+  /** Param. */
   private String hardTokenType = null;
 
   @Override

@@ -43,7 +43,8 @@ import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
  */
 public class InternalKeyBindingListCommand extends EjbcaCliUserCommandBase {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(InternalKeyBindingListCommand.class);
 
   @Override
@@ -155,8 +156,8 @@ public class InternalKeyBindingListCommand extends EjbcaCliUserCommandBase {
         sb.append(", properties={");
         final Collection<DynamicUiProperty<? extends Serializable>> properties =
             internalKeyBinding.getCopyOfProperties().values();
-        for (final DynamicUiProperty<? extends Serializable> property :
-            properties) {
+        for (final DynamicUiProperty<? extends Serializable> property
+            : properties) {
           sb.append("\n\t")
               .append(property.getName())
               .append('=')
@@ -177,8 +178,8 @@ public class InternalKeyBindingListCommand extends EjbcaCliUserCommandBase {
         if (internalKeyBindingTrustEntries.isEmpty()) {
           sb.append("\n\tANY certificate issued by a known CA");
         } else {
-          for (final InternalKeyBindingTrustEntry internalKeyBindingTrustEntry :
-              internalKeyBindingTrustEntries) {
+          for (final InternalKeyBindingTrustEntry internalKeyBindingTrustEntry
+              : internalKeyBindingTrustEntries) {
             final String caSubject =
                 caSession
                     .getCAInfo(
@@ -200,7 +201,7 @@ public class InternalKeyBindingListCommand extends EjbcaCliUserCommandBase {
         sb.append("\n }");
         getLogger().info(sb);
       } catch (AuthorizationDeniedException e) {
-        log.error("CLI user not authorized to view key bindings.");
+        LOG.error("CLI user not authorized to view key bindings.");
         return CommandResult.AUTHORIZATION_FAILURE;
       }
     }
@@ -219,6 +220,6 @@ public class InternalKeyBindingListCommand extends EjbcaCliUserCommandBase {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

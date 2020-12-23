@@ -44,9 +44,11 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class CaExportProfilesCommand extends BaseCaAdminCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CaExportProfilesCommand.class);
 
+  /** Param. */
   private static final String DIRECTORY_KEY = "-d";
 
   {
@@ -69,7 +71,7 @@ public class CaExportProfilesCommand extends BaseCaAdminCommand {
   public CommandResult execute(final ParameterContainer parameters) {
     String outpath = parameters.get(DIRECTORY_KEY);
     if (!new File(outpath).isDirectory()) {
-      log.error("Error: '" + outpath + "' is not a directory.");
+      LOG.error("Error: '" + outpath + "' is not a directory.");
       return CommandResult.FUNCTIONAL_FAILURE;
     }
     Collection<Integer> certprofids =
@@ -82,14 +84,14 @@ public class CaExportProfilesCommand extends BaseCaAdminCommand {
             .getAuthorizedEndEntityProfileIds(
                 getAuthenticationToken(), AccessRulesConstants.VIEW_END_ENTITY);
 
-    log.info("Exporting non-fixed certificate profiles: ");
+    LOG.info("Exporting non-fixed certificate profiles: ");
     try {
       for (int profileid : certprofids) {
         if (profileid
             == CertificateProfileConstants
                 .CERTPROFILE_NO_PROFILE) { // Certificate profile not found i
                                            // database.
-          log.error(
+          LOG.error(
               "Couldn't find certificate profile '"
                   + profileid
                   + "' in database.");
@@ -107,7 +109,7 @@ public class CaExportProfilesCommand extends BaseCaAdminCommand {
                   .getRemoteSession(CertificateProfileSessionRemote.class)
                   .getCertificateProfile(profileid);
           if (profile == null) {
-            log.error(
+            LOG.error(
                 "Couldn't find certificate profile '"
                     + profilename
                     + "'-"
@@ -128,21 +130,21 @@ public class CaExportProfilesCommand extends BaseCaAdminCommand {
                     + "-"
                     + profileid
                     + ".xml";
-            log.info(outfile + ".");
+            LOG.info(outfile + ".");
             XMLEncoder encoder = new XMLEncoder(new FileOutputStream(outfile));
             encoder.writeObject(profile.saveData());
             encoder.close();
           }
         }
       }
-      log.info("Exporting non-fixed end entity profiles: ");
+      LOG.info("Exporting non-fixed end entity profiles: ");
 
       for (int profileid : endentityprofids) {
         if (profileid
             == EndEntityConstants
                 .NO_END_ENTITY_PROFILE) { // Entity profile not found i
                                           // database.
-          log.error(
+          LOG.error(
               "Error : Couldn't find entity profile '"
                   + profileid
                   + "' in database.");
@@ -159,7 +161,7 @@ public class CaExportProfilesCommand extends BaseCaAdminCommand {
                   .getRemoteSession(EndEntityProfileSessionRemote.class)
                   .getEndEntityProfile(profileid);
           if (profile == null) {
-            log.error(
+            LOG.error(
                 "Error : Couldn't find entity profile '"
                     + profilename
                     + "'-"
@@ -180,7 +182,7 @@ public class CaExportProfilesCommand extends BaseCaAdminCommand {
                     + "-"
                     + profileid
                     + ".xml";
-            log.info(outfile + ".");
+            LOG.info(outfile + ".");
             XMLEncoder encoder = new XMLEncoder(new FileOutputStream(outfile));
             encoder.writeObject(profile.saveData());
             encoder.close();
@@ -188,7 +190,7 @@ public class CaExportProfilesCommand extends BaseCaAdminCommand {
         }
       }
     } catch (FileNotFoundException e) {
-      log.error("Could not create export files", e);
+      LOG.error("Could not create export files", e);
       return CommandResult.FUNCTIONAL_FAILURE;
     }
     return CommandResult.SUCCESS;
@@ -206,6 +208,6 @@ public class CaExportProfilesCommand extends BaseCaAdminCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

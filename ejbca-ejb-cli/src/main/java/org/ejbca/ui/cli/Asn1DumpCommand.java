@@ -34,13 +34,15 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
 import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 
 /**
- * Dumps PEM or DER file as readable ASN1'
+ * Dumps PEM or DER file as readable ASN1'.
  *
  * @version $Id: Asn1DumpCommand.java 22553 2016-01-11 13:06:46Z mikekushner $
  */
 public class Asn1DumpCommand extends EjbcaCommandBase {
 
-  private static final Logger log = Logger.getLogger(Asn1DumpCommand.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(Asn1DumpCommand.class);
+  /** Param. */
   private static final String FILENAME_KEY = "-f";
 
   // Register all parameters
@@ -84,11 +86,11 @@ public class Asn1DumpCommand extends EjbcaCommandBase {
           ASN1Primitive obj = ais.readObject();
           ais.close();
           String dump = ASN1Dump.dumpAsString(obj);
-          log.info(dump);
+          LOG.info(dump);
 
         } catch (IOException e) {
           // None of the above.
-          log.error(
+          LOG.error(
               "File "
                   + filename
                   + " does not seem to contain either a PEM or DER encoded"
@@ -98,11 +100,11 @@ public class Asn1DumpCommand extends EjbcaCommandBase {
       } else {
         for (Certificate cert : coll) {
           String dump = ASN1Dump.dumpAsString(cert);
-          log.info(dump);
+          LOG.info(dump);
         }
       }
     } catch (FileNotFoundException e) {
-      log.error("Error: No such file " + filename);
+      LOG.error("Error: No such file " + filename);
       return CommandResult.FUNCTIONAL_FAILURE;
     }
     return CommandResult.SUCCESS;
@@ -120,6 +122,6 @@ public class Asn1DumpCommand extends EjbcaCommandBase {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

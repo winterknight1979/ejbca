@@ -47,25 +47,36 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
 import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 
 /**
- * Imports a keystore and creates a new X509 CA from it
+ * Imports a keystore and creates a new X509 CA from it.
  *
  * @version $Id: CaImportCACommand.java 24602 2016-10-31 13:26:34Z anatom $
  */
 public class CaImportCACommand extends BaseCaAdminCommand {
 
-  private static final Logger log = Logger.getLogger(CaImportCACommand.class);
+    /** Param. */
+  private static final Logger LOG = Logger.getLogger(CaImportCACommand.class);
 
+  /** Param. */
   private static final String CA_NAME_KEY = "--caname";
+  /** Param. */
   private static final String HARD_SWITCH_KEY = "--hard";
   // P12
+  /** Param. */
   private static final String P12_FILE_KEY = "--p12";
+  /** Param. */
   public static final String KEYSTORE_PASSWORD_KEY = "-kspassword";
+  /** Param. */
   private static final String SIGNATURE_ALIAS_KEY = "--signalias";
+  /** Param. */
   private static final String ENCRYPTION_ALIAS_KEY = "--encalias";
   // CACert
+  /** Param. */
   private static final String CA_TOKEN_CLASSPATH_KEY = "--cp";
+  /** Param. */
   private static final String CA_TOKEN_PASSWORD_KEY = "--ctpassword";
+  /** Param. */
   private static final String CA_TOKEN_PROPERTIES_FILE_KEY = "--prop";
+  /** Param. */
   private static final String CA_CERTIFICATE_FILE_KEY = "--cert";
 
   {
@@ -177,16 +188,16 @@ public class CaImportCACommand extends BaseCaAdminCommand {
     boolean importHardToken = parameters.get(HARD_SWITCH_KEY) != null;
     if (!importHardToken) {
       // Import soft keystore
-      log.info("Importing soft token.");
+      LOG.info("Importing soft token.");
       String kspwd = parameters.get(KEYSTORE_PASSWORD_KEY);
       if (kspwd == null) {
-        log.info("Enter keystore password: ");
+        LOG.info("Enter keystore password: ");
         // Read the password, but mask it so we don't display it on the console
         kspwd = String.valueOf(System.console().readPassword());
       }
       String p12file = parameters.get(P12_FILE_KEY);
       if (p12file == null) {
-        log.error(
+        LOG.error(
             "P12 file needs to be specified for soft keys, use "
                 + P12_FILE_KEY
                 + " switch.");
@@ -217,16 +228,16 @@ public class CaImportCACommand extends BaseCaAdminCommand {
           try {
             ks.load(fis, kspwd.toCharArray());
           } catch (NoSuchAlgorithmException e) {
-            log.error("Keystore were created with an unknown algorithm", e);
+            LOG.error("Keystore were created with an unknown algorithm", e);
             return CommandResult.FUNCTIONAL_FAILURE;
           } catch (CertificateException e) {
-            log.error(
+            LOG.error(
                 "Certificates in keystore could not be loaded for unknown"
                     + " reason");
             return CommandResult.FUNCTIONAL_FAILURE;
           } catch (IOException e) {
             if (e.getCause() instanceof UnrecoverableKeyException) {
-              log.error("Incorrect password to the PKCS#12 keystore inputed.");
+              LOG.error("Incorrect password to the PKCS#12 keystore inputed.");
               return CommandResult.FUNCTIONAL_FAILURE;
             } else {
               throw new IllegalStateException(
@@ -247,16 +258,16 @@ public class CaImportCACommand extends BaseCaAdminCommand {
           int length = 0;
           while (aliases.hasMoreElements()) {
             alias = (String) aliases.nextElement();
-            log.info("Keystore contains alias: " + alias);
+            LOG.info("Keystore contains alias: " + alias);
             length++;
           }
           if (length > 1) {
-            log.info(
+            LOG.info(
                 "Keystore contains more than one alias, alias must be provided"
                     + " as argument.");
             return CommandResult.FUNCTIONAL_FAILURE;
           } else if (length < 1) {
-            log.info(
+            LOG.info(
                 "Keystore does not contain any aliases. It can not be used for"
                     + " a CA.");
             return CommandResult.FUNCTIONAL_FAILURE;
@@ -264,7 +275,7 @@ public class CaImportCACommand extends BaseCaAdminCommand {
           // else alias already contains the only alias, so we can use that
         }
       } catch (FileNotFoundException e) {
-        log.error("File " + p12file + " not found.");
+        LOG.error("File " + p12file + " not found.");
         return CommandResult.FUNCTIONAL_FAILURE;
       }
       EjbRemoteHelper.INSTANCE
@@ -282,7 +293,7 @@ public class CaImportCACommand extends BaseCaAdminCommand {
       // Import HSM keystore
       // "Usage2: CA importca <CA name> <catokenclasspath> <catokenpassword>
       // <catokenproperties> <ca-certificate-file>\n" +
-      log.info("Importing hard token.");
+      LOG.info("Importing hard token.");
       String tokenclasspath = parameters.get(CA_TOKEN_CLASSPATH_KEY);
       String tokenpwd = parameters.get(CA_TOKEN_PASSWORD_KEY);
       String catokenproperties;
@@ -292,7 +303,7 @@ public class CaImportCACommand extends BaseCaAdminCommand {
                 FileTools.readFiletoBuffer(
                     parameters.get(CA_TOKEN_PROPERTIES_FILE_KEY)));
       } catch (FileNotFoundException e) {
-        log.error(
+        LOG.error(
             "No such file: " + parameters.get(CA_TOKEN_PROPERTIES_FILE_KEY));
         return CommandResult.FUNCTIONAL_FAILURE;
       }
@@ -302,13 +313,13 @@ public class CaImportCACommand extends BaseCaAdminCommand {
             CertTools.getCertsFromPEM(
                 parameters.get(CA_CERTIFICATE_FILE_KEY), Certificate.class);
       } catch (CertificateException e) {
-        log.error(
+        LOG.error(
             "File "
                 + parameters.get(CA_CERTIFICATE_FILE_KEY)
                 + " was not a correctly formatted PEM file.");
         return CommandResult.FUNCTIONAL_FAILURE;
       } catch (FileNotFoundException e) {
-        log.error("No such file: " + parameters.get(CA_CERTIFICATE_FILE_KEY));
+        LOG.error("No such file: " + parameters.get(CA_CERTIFICATE_FILE_KEY));
         return CommandResult.FUNCTIONAL_FAILURE;
       }
       Certificate[] cacertarray =
@@ -325,21 +336,21 @@ public class CaImportCACommand extends BaseCaAdminCommand {
                 catokenproperties);
         return CommandResult.SUCCESS;
       } catch (CryptoTokenOfflineException e) {
-        log.error("Crypto Token was offline.");
+        LOG.error("Crypto Token was offline.");
       } catch (CryptoTokenAuthenticationFailedException e) {
-        log.error("Authentication to the crypto token failed.");
+        LOG.error("Authentication to the crypto token failed.");
       } catch (IllegalCryptoTokenException e) {
-        log.error("The certificate chain was incomplete.");
+        LOG.error("The certificate chain was incomplete.");
       } catch (CAExistsException e) {
-        log.error("CA already exists in database.");
+        LOG.error("CA already exists in database.");
       } catch (CAOfflineException e) {
-        log.error("Could not set CA to online and thus unable to publish CRL.");
+        LOG.error("Could not set CA to online and thus unable to publish CRL.");
       } catch (AuthorizationDeniedException e) {
-        log.error(
+        LOG.error(
             "Imported CA was signed by a CA that current CLI user does not"
                 + " have authorization to.");
       } catch (NoSuchSlotException e) {
-        log.error(
+        LOG.error(
             "Slot defined in: "
                 + parameters.get(CA_TOKEN_PROPERTIES_FILE_KEY)
                 + " does not exist on HSM.");
@@ -375,7 +386,7 @@ public class CaImportCACommand extends BaseCaAdminCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 
   @Override

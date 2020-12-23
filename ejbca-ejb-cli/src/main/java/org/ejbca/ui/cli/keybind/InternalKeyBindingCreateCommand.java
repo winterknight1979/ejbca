@@ -43,14 +43,21 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 public class InternalKeyBindingCreateCommand
     extends BaseInternalKeyBindingCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(InternalKeyBindingCreateCommand.class);
 
+  /** Param. */
   private static final String TYPE_KEY = "--type";
+  /** Param. */
   private static final String STATUS_KEY = "--status";
+  /** Param. */
   private static final String CERTIFICATE_FINGERPRINT_KEY = "--cert";
+  /** Param. */
   private static final String CRYPTO_TOKEN_KEY = "--token";
+  /** Param. */
   private static final String KEYPAIR_ALIAS_KEY = "--alias";
+  /** Param. */
   private static final String SIGNATURE_ALGORITHM_KEY = "--sigalg";
 
   {
@@ -112,8 +119,8 @@ public class InternalKeyBindingCreateCommand
                 .getAvailableTypesAndProperties();
     for (Entry<String, Map<String, DynamicUiProperty<? extends Serializable>>>
         entry : typesAndProperties.entrySet()) {
-      for (DynamicUiProperty<? extends Serializable> property :
-          entry.getValue().values()) {
+      for (DynamicUiProperty<? extends Serializable> property
+         : entry.getValue().values()) {
         if (isParameterRegistered("-" + property.getName())) {
           // Different properties could contain the same keyword. Simply use the
           // same one.
@@ -183,7 +190,7 @@ public class InternalKeyBindingCreateCommand
             .getRemoteSession(CryptoTokenManagementSessionRemote.class)
             .getIdFromName(parameters.get(CRYPTO_TOKEN_KEY));
     if (cryptoTokenId == null) {
-      log.error(
+      LOG.error(
           "ERROR: CryptoToken  "
               + parameters.get(CRYPTO_TOKEN_KEY)
               + " was not found.");
@@ -206,16 +213,16 @@ public class InternalKeyBindingCreateCommand
               validatedProperties,
               null);
     } catch (CryptoTokenOfflineException e) {
-      log.error(
+      LOG.error(
           "ERROR: CryptoToken  "
               + parameters.get(CRYPTO_TOKEN_KEY)
               + " was offline.");
       return CommandResult.FUNCTIONAL_FAILURE;
     } catch (InternalKeyBindingNameInUseException e) {
-      log.error("ERROR: Keybinding of name " + name + " already exists,");
+      LOG.error("ERROR: Keybinding of name " + name + " already exists,");
       return CommandResult.FUNCTIONAL_FAILURE;
     } catch (InvalidAlgorithmException e) {
-      log.error("ERROR: " + signatureAlgorithm + " was not a valid algorithm.");
+      LOG.error("ERROR: " + signatureAlgorithm + " was not a valid algorithm.");
       return CommandResult.FUNCTIONAL_FAILURE;
     } catch (AuthorizationDeniedException e) {
       return CommandResult.AUTHORIZATION_FAILURE;
@@ -250,6 +257,6 @@ public class InternalKeyBindingCreateCommand
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

@@ -52,12 +52,22 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class CARepublishCommand extends BaseCaAdminCommand {
 
-  private static final Logger log = Logger.getLogger(CARepublishCommand.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CARepublishCommand.class);
+
+  /** Param. */
 
   private static final String CA_NAME_KEY = "--caname";
+  /** Param. */
+
   private static final String ALL_KEY = "-all";
+  /** Param. */
+
   private static final String CACERT_KEY = "-cacert";
+  /** Param. */
+
   private static final String CACRL_KEY = "-cacrl";
+  /** Param. */
   private static final String EECERT_KEY = "-eecert";
 
   {
@@ -107,7 +117,9 @@ public class CARepublishCommand extends BaseCaAdminCommand {
       // If no mode is give we will enable all modes (backwards compatibility
       // for when there were no modes)
       if (!cacertmode && !cacrlmode && !eecertmode) {
-        cacertmode = cacrlmode = eecertmode = true;
+        cacertmode = true;
+        cacrlmode = true;
+        eecertmode = true;
       }
       getLogger()
           .info(
@@ -292,7 +304,7 @@ public class CARepublishCommand extends BaseCaAdminCommand {
       } // if (eecertmode)
       return CommandResult.SUCCESS;
     } catch (AuthorizationDeniedException e) {
-      log.error("CLI user was not authorized to CA " + caname);
+      LOG.error("CLI user was not authorized to CA " + caname);
       return CommandResult.AUTHORIZATION_FAILURE;
     }
   }
@@ -352,6 +364,6 @@ public class CARepublishCommand extends BaseCaAdminCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

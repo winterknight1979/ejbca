@@ -31,26 +31,32 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 
 /**
  * Changes status for an end entity in the database, status is defined in
- * org.cesecore.certificates.endentity.EndEntityConstants
+ * org.cesecore.certificates.endentity.EndEntityConstants.
  *
  * @version $Id: SetEndEntityStatusCommand.java 24892 2016-12-13 20:22:21Z
  *     mikekushner $
  */
 public class SetEndEntityStatusCommand extends BaseRaCommand {
 
-  private static final Logger log =
+      /** Param. */
+  private static final Logger LOG =
       Logger.getLogger(SetEndEntityStatusCommand.class);
 
+  /** Param. */
   private static final String COMMAND = "setendentitystatus";
+  /** Param. */
   private static final String OLD_COMMAND = "setuserstatus";
 
+  /** Param. */
   private static final Set<String> ALIASES = new HashSet<String>();
 
   static {
     ALIASES.add(OLD_COMMAND);
   }
 
+  /** Param. */
   private static final String USERNAME_KEY = "--username";
+  /** Param. */
   private static final String STATUS_KEY = "-S";
 
   {
@@ -90,7 +96,7 @@ public class SetEndEntityStatusCommand extends BaseRaCommand {
     try {
       status = Integer.parseInt(parameters.get(STATUS_KEY));
     } catch (NumberFormatException e) {
-      log.error("ERROR: " + parameters.get(STATUS_KEY) + " was not a number.");
+      LOG.error("ERROR: " + parameters.get(STATUS_KEY) + " was not a number.");
       return CommandResult.FUNCTIONAL_FAILURE;
     }
     try {
@@ -105,7 +111,7 @@ public class SetEndEntityStatusCommand extends BaseRaCommand {
     } catch (WaitingForApprovalException e) {
       getLogger().info("Status change request has been sent for approval.");
     } catch (NoSuchEndEntityException e) {
-      log.error("ERROR: " + e.getMessage());
+      LOG.error("ERROR: " + e.getMessage());
     } catch (ApprovalException e) {
       getLogger().error("Status change already requested.");
     }
@@ -126,6 +132,6 @@ public class SetEndEntityStatusCommand extends BaseRaCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

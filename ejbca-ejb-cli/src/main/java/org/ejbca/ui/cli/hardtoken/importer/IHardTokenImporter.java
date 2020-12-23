@@ -19,7 +19,7 @@ import org.ejbca.core.model.hardtoken.HardTokenInformation;
 
 /**
  * Interface used to customize the hard token data import, from an existing
- * datasource or file
+ * datasource or file.
  *
  * @author Philip Vendil 2007 apr 23
  * @version $Id: IHardTokenImporter.java 19902 2014-09-30 14:32:24Z anatom $

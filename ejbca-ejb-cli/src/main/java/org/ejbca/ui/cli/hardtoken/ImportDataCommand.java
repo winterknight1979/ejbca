@@ -50,9 +50,12 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class ImportDataCommand extends EjbcaCliUserCommandBase {
 
-  private static final Logger log = Logger.getLogger(ImportDataCommand.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(ImportDataCommand.class);
 
+  /** Param. */
   private static final String FORCE_KEY = "-force";
+  /** Param. */
   private static final String FILE_KEY = "-f";
 
   {
@@ -89,12 +92,12 @@ public class ImportDataCommand extends EjbcaCliUserCommandBase {
       try {
         props.load(new FileInputStream(filename));
       } catch (FileNotFoundException e) {
-        log.error("ERROR: File " + filename + " not found.");
+        LOG.error("ERROR: File " + filename + " not found.");
         return CommandResult.FUNCTIONAL_FAILURE;
       }
       // Read the significant issuer dn and check that it exists
       if (props.getProperty("significantissuerdn") == null) {
-        log.error(
+        LOG.error(
             "ERROR: The property significantissuerdn isn't set in the"
                 + " propertyfile "
                 + filename);
@@ -105,7 +108,7 @@ public class ImportDataCommand extends EjbcaCliUserCommandBase {
       if (!EjbRemoteHelper.INSTANCE
           .getRemoteSession(CaSessionRemote.class)
           .existsCa(cAId)) {
-        log.error(
+        LOG.error(
             "ERROR: the property significantissuerdn '"
                 + significantIssuerDN
                 + "' does not exist as CA in the system.");
@@ -113,7 +116,7 @@ public class ImportDataCommand extends EjbcaCliUserCommandBase {
       }
       // Create the importer
       if (props.getProperty("importer.classpath") == null) {
-        log.error(
+        LOG.error(
             "ERROR: the property importer.classpath isn't set in the"
                 + " propertyfile "
                 + filename);
@@ -129,14 +132,14 @@ public class ImportDataCommand extends EjbcaCliUserCommandBase {
                     .getConstructor()
                     .newInstance();
       } catch (InstantiationException | InvocationTargetException e) {
-        log.error(
+        LOG.error(
             "ERROR: Class "
                 + props.getProperty("importer.classpath")
                 + " defined by 'importer.classpath' could not be"
                 + " instantiated.");
         return CommandResult.FUNCTIONAL_FAILURE;
       } catch (IllegalAccessException e) {
-        log.error(
+        LOG.error(
             "ERROR: Class "
                 + props.getProperty("importer.classpath")
                 + " defined by 'importer.classpath' could not be instantiated"
@@ -144,7 +147,7 @@ public class ImportDataCommand extends EjbcaCliUserCommandBase {
             e);
         return CommandResult.FUNCTIONAL_FAILURE;
       } catch (ClassNotFoundException | NoSuchMethodException e) {
-        log.error(
+        LOG.error(
             "ERROR: Class "
                 + props.getProperty("importer.classpath")
                 + " defined by 'importer.classpath' could not be found.");
@@ -235,6 +238,6 @@ public class ImportDataCommand extends EjbcaCliUserCommandBase {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

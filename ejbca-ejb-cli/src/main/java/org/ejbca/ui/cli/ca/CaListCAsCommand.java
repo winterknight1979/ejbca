@@ -33,7 +33,8 @@ import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
  */
 public class CaListCAsCommand extends BaseCaAdminCommand {
 
-  private static final Logger log = Logger.getLogger(CaListCAsCommand.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CaListCAsCommand.class);
 
   @Override
   public String getMainCommand() {
@@ -72,7 +73,7 @@ public class CaListCAsCommand extends BaseCaAdminCommand {
       }
       return CommandResult.SUCCESS;
     } catch (AuthorizationDeniedException e) {
-      log.error("CLI user not authorized to view CAs");
+      LOG.error("CLI user not authorized to view CAs");
       return CommandResult.AUTHORIZATION_FAILURE;
     }
   }
@@ -89,6 +90,6 @@ public class CaListCAsCommand extends BaseCaAdminCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

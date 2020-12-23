@@ -82,10 +82,16 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  * @version $Id: CaInitCommand.java 28099 2018-01-25 12:08:32Z henriks $
  */
 enum CaType {
+      /** Type. */
   X509("x509"),
+  /** Type. */
   CVC("cvc");
 
+
+      /** Param. */
   private static Map<String, CaType> lookupMap;
+
+  /** Param. */
   private final String typeName;
 
   static {
@@ -95,7 +101,7 @@ enum CaType {
     }
   }
 
-  private CaType(final String name) {
+  CaType(final String name) {
     this.typeName = name;
   }
 
@@ -120,25 +126,43 @@ enum CaType {
 
 public class CaInitCommand extends BaseCaAdminCommand {
 
-  private static final Logger log = Logger.getLogger(CaInitCommand.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CaInitCommand.class);
 
+  /** Param. */
   private static final String CA_NAME_KEY = "--caname";
+  /** Param. */
   private static final String DN_KEY = "--dn";
+  /** Param. */
   private static final String ALT_NAME_KEY = "--subjectaltname";
+  /** Param. */
   private static final String TOKEN_TYPE_KEY = "--tokenType";
+  /** Param. */
   private static final String TOKEN_PASSWORD_KEY = "--tokenPass";
+  /** Param. */
   private static final String KEY_SPEC_KEY = "--keyspec";
+  /** Param. */
   private static final String KEY_TYPE_KEY = "--keytype";
+  /** Param. */
   private static final String VALIDITY_KEY = "-v";
+  /** Param. */
   private static final String POLICY_ID_KEY = "--policy";
+  /** Param. */
   private static final String SIGNING_ALGORITHM_KEY = "-s";
 
+  /** Param. */
   private static final String CA_TOKEN_PROPERTIES_KEY = "--tokenprop";
+  /** Param. */
   private static final String CERTIFICATE_PROFILE_KEY = "-certprofile";
+  /** Param. */
   private static final String SUPERADMIN_CN_KEY = "-superadmincn";
+  /** Param. */
   private static final String TYPE_KEY = "-type";
+  /** Param. */
   private static final String EXPLICIT_ECC_KEY = "-explicitecc";
+  /** Param. */
   private static final String SIGNED_BY = "--signedby";
+  /** Param. */
   private static final String EXTERNAL_CHAIN_KEY = "-externalcachain";
 
   {
@@ -350,7 +374,7 @@ public class CaInitCommand extends BaseCaAdminCommand {
     if (parameters.get(TYPE_KEY) != null) {
       type = CaType.lookupCaType(parameters.get(TYPE_KEY));
       if (type == null) {
-        log.error(
+        LOG.error(
             "CA type of name "
                 + parameters.get(TYPE_KEY)
                 + " unknown. Available types: "
@@ -371,7 +395,7 @@ public class CaInitCommand extends BaseCaAdminCommand {
         CertTools.stringToBCDNString(StringTools.strip(parameters.get(DN_KEY)));
     final String subjectAltName = parameters.get(ALT_NAME_KEY);
     if (subjectAltName != null && !checkSubjectAltName(subjectAltName)) {
-      log.error("Invalid Subject Alternative Name");
+      LOG.error("Invalid Subject Alternative Name");
       return CommandResult.FUNCTIONAL_FAILURE;
     }
     final String catokentype = parameters.get(TOKEN_TYPE_KEY);
@@ -408,20 +432,20 @@ public class CaInitCommand extends BaseCaAdminCommand {
     Properties cryptoTokenProperties = new Properties();
     String caTokenPropertiesFile = parameters.get(CA_TOKEN_PROPERTIES_KEY);
     if (caTokenPropertiesFile != null && "soft".equals(catokentype)) {
-      log.error("Can't define a CAToken properties file for a soft token.");
+      LOG.error("Can't define a CAToken properties file for a soft token.");
       return CommandResult.FUNCTIONAL_FAILURE;
     } else if (caTokenPropertiesFile != null) {
       if ((caTokenPropertiesFile != null)
           && (!caTokenPropertiesFile.equalsIgnoreCase("null"))) {
         File file = new File(caTokenPropertiesFile);
         if (!file.exists()) {
-          log.error(
+          LOG.error(
               "CA Token propoerties file "
                   + caTokenPropertiesFile
                   + " does not exist.");
           return CommandResult.FUNCTIONAL_FAILURE;
         } else if (file.isDirectory()) {
-          log.error(
+          LOG.error(
               "CA Token propoerties file "
                   + caTokenPropertiesFile
                   + " is a directory.");
@@ -449,7 +473,7 @@ public class CaInitCommand extends BaseCaAdminCommand {
       if (StringUtils.equalsIgnoreCase("External", parameters.get(SIGNED_BY))) {
         signedByCAId = CAInfo.SIGNEDBYEXTERNALCA;
         if (extcachainName == null) {
-          log.error(
+          LOG.error(
               "Signing by external CA requires parameter "
                   + EXTERNAL_CHAIN_KEY);
           return CommandResult.FUNCTIONAL_FAILURE;
@@ -522,8 +546,9 @@ public class CaInitCommand extends BaseCaAdminCommand {
                   + " documented in the Installation guide.");
       getLogger().warn("Sleeping 10 seconds...");
       getLogger().warn("");
+      final int tenSecs = 10000;
       try {
-        Thread.sleep(10000);
+        Thread.sleep(tenSecs);
       } catch (InterruptedException e) {
         throw new IllegalStateException(
             "Thread.sleep was interrupted for unknown reason.", e);
@@ -721,14 +746,14 @@ public class CaInitCommand extends BaseCaAdminCommand {
           }
         }
       } catch (NoSuchSlotException e) {
-        log.error(
+        LOG.error(
             "Slot as defined in the file "
                 + caTokenPropertiesFile
                 + " was not found: "
                 + e.getMessage());
         return CommandResult.FUNCTIONAL_FAILURE;
       } catch (CryptoTokenAuthenticationFailedException e) {
-        log.error("Authentication to crypto token failed: " + e.getMessage());
+        LOG.error("Authentication to crypto token failed: " + e.getMessage());
         return CommandResult.FUNCTIONAL_FAILURE;
       }
       // Create the CA Token
@@ -749,13 +774,13 @@ public class CaInitCommand extends BaseCaAdminCommand {
               signKeyAlias,
               signKeySpecification);
         } catch (InvalidAlgorithmParameterException e) {
-          log.error(
+          LOG.error(
               signKeySpecification
                   + " was not a valid alias: "
                   + e.getMessage());
           return CommandResult.FUNCTIONAL_FAILURE;
         } catch (InvalidKeyException e) {
-          log.error(
+          LOG.error(
               "Key generation for alias "
                   + signKeyAlias
                   + " failed."
@@ -775,13 +800,13 @@ public class CaInitCommand extends BaseCaAdminCommand {
               defaultKeyAlias,
               defaultKeySpecification);
         } catch (InvalidAlgorithmParameterException e) {
-          log.error(
+          LOG.error(
               defaultKeySpecification
                   + " was not a valid alias: "
                   + e.getMessage());
           return CommandResult.FUNCTIONAL_FAILURE;
         } catch (InvalidKeyException e) {
-          log.error(
+          LOG.error(
               "Key generation for alias "
                   + defaultKeyAlias
                   + " failed: "
@@ -827,7 +852,8 @@ public class CaInitCommand extends BaseCaAdminCommand {
           if (keytype.equals(AlgorithmConstants.KEYALGORITHM_RSA)) {
             // Never use larger keys than 2048 bit RSA for OCSP signing
             int len = Integer.parseInt(extendedServiceKeySpec);
-            if (len > 2048) {
+            final int max = 2048;
+            if (len > max) {
               extendedServiceKeySpec = "2048";
             }
           }
@@ -865,14 +891,14 @@ public class CaInitCommand extends BaseCaAdminCommand {
           cachain =
               CertTools.getCertsFromPEM(extcachainName, Certificate.class);
         } catch (CertificateException e) {
-          log.error(
+          LOG.error(
               "Certificate file "
                   + extcachainName
                   + " did not contain a correct certificate.");
           return CommandResult.FUNCTIONAL_FAILURE;
         }
         if (cachain == null || cachain.isEmpty()) {
-          log.error(
+          LOG.error(
               extcachainName
                   + " does not seem to exist or contain any certificates in"
                   + " PEM format.");
@@ -884,10 +910,10 @@ public class CaInitCommand extends BaseCaAdminCommand {
             .getRemoteSession(CAAdminSessionRemote.class)
             .createCA(getAuthenticationToken(), cainfo);
       } catch (CAExistsException e) {
-        log.error("CA " + caname + " already exists.");
+        LOG.error("CA " + caname + " already exists.");
         return CommandResult.FUNCTIONAL_FAILURE;
       } catch (InvalidAlgorithmException e) {
-        log.error("Algorithm was not valid: " + e.getMessage());
+        LOG.error("Algorithm was not valid: " + e.getMessage());
         return CommandResult.FUNCTIONAL_FAILURE;
       }
       if (StringUtils.equalsIgnoreCase(explicitEcc, "true")) {
@@ -917,7 +943,7 @@ public class CaInitCommand extends BaseCaAdminCommand {
                 .getRemoteSession(CaSessionRemote.class)
                 .getCAInfo(getAuthenticationToken(), caname);
         if (info.getStatus() != CAConstants.CA_WAITING_CERTIFICATE_RESPONSE) {
-          log.error(
+          LOG.error(
               "Creating a CA signed by an external CA should result in CA"
                   + " having status, CA_WAITING_CERTIFICATE_RESPONSE."
                   + " Terminating process, please troubleshoot.");
@@ -936,7 +962,7 @@ public class CaInitCommand extends BaseCaAdminCommand {
                           .getAliasFromPurpose(
                               CATokenConstants.CAKEYPURPOSE_CERTSIGN));
         } catch (CertPathValidatorException e) {
-          log.error(
+          LOG.error(
               "Error creating certificate request for CA:" + e.getMessage());
           return CommandResult.FUNCTIONAL_FAILURE;
         }
@@ -960,11 +986,11 @@ public class CaInitCommand extends BaseCaAdminCommand {
               "Note that any open browser sessions must be restarted to"
                   + " interact with this CA.");
     } catch (AuthorizationDeniedException e) {
-      log.error(
+      LOG.error(
           "Current CLI user not authorized to create CA: " + e.getMessage());
       return CommandResult.AUTHORIZATION_FAILURE;
     } catch (CryptoTokenOfflineException e) {
-      log.error("Crypto token was unavailable: " + e.getMessage());
+      LOG.error("Crypto token was unavailable: " + e.getMessage());
       return CommandResult.FUNCTIONAL_FAILURE;
     } catch (IOException e) {
       throw new IllegalStateException("Unknown IOException was caught.", e);
@@ -1052,6 +1078,6 @@ public class CaInitCommand extends BaseCaAdminCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

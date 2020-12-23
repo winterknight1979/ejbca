@@ -28,7 +28,8 @@ import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
  */
 public class CryptoTokenDeleteCommand extends BaseCryptoTokenCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CryptoTokenDeleteCommand.class);
 
   @Override
@@ -67,6 +68,6 @@ public class CryptoTokenDeleteCommand extends BaseCryptoTokenCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

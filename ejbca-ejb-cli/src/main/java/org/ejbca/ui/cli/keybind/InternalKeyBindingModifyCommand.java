@@ -45,13 +45,18 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 public class InternalKeyBindingModifyCommand
     extends RudInternalKeyBindingCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(InternalKeyBindingModifyCommand.class);
 
+  /** Param. */
   private static final String NEXTKEYPAIR_KEY = "--nextkeypair";
+  /** Param. */
   private static final String ADDTRUST_KEY = "--addtrust";
+  /** Param. */
   private static final String REMOVETRUST_KEY = "--removetrust";
 
+  /** Param. */
   private static final String TRUSTARGUMENT_SEPARATOR = ",";
 
   // TODO: Implement escape characters for the trusts. Both ',' and ';' are
@@ -75,10 +80,10 @@ public class InternalKeyBindingModifyCommand
             StandaloneMode.FORBID,
             ParameterMode.ARGUMENT,
             "Adds trust entries to the given keybinding. Trust entries can be"
-                + " of the form <CAName[;CertificateSerialNumber]> where the"
-                + " serialnumber is in hex and optional. Multiple trust"
-                + " entries can be added by separating them with a ',' i.e."
-                + " <CA1[;CertificateSerialNumber],CA2[;CertificateSerialNumber]>"));
+        + " of the form <CAName[;CertificateSerialNumber]> where the"
+        + " serialnumber is in hex and optional. Multiple trust"
+        + " entries can be added by separating them with a ',' i.e."
+        + " <CA1[;CertificateSerialNumber],CA2[;CertificateSerialNumber]>"));
     registerParameter(
         new Parameter(
             REMOVETRUST_KEY,
@@ -87,10 +92,10 @@ public class InternalKeyBindingModifyCommand
             StandaloneMode.FORBID,
             ParameterMode.ARGUMENT,
             "Removes trust entries to the given keybinding. Trust entries can"
-                + " be of the form <CAName[;CertificateSerialNumber]> where"
-                + " the serialnumber is in hex and optional. Multiple trust"
-                + " entries can be added by separating them with a ',' i.e."
-                + " <CA1[;CertificateSerialNumber],CA2[;CertificateSerialNumber]>"));
+        + " be of the form <CAName[;CertificateSerialNumber]> where"
+        + " the serialnumber is in hex and optional. Multiple trust"
+        + " entries can be added by separating them with a ',' i.e."
+        + " <CA1[;CertificateSerialNumber],CA2[;CertificateSerialNumber]>"));
     // Register type specific properties dynamically
     Map<String, Map<String, DynamicUiProperty<? extends Serializable>>>
         typesAndProperties =
@@ -99,8 +104,8 @@ public class InternalKeyBindingModifyCommand
                 .getAvailableTypesAndProperties();
     for (Entry<String, Map<String, DynamicUiProperty<? extends Serializable>>>
         entry : typesAndProperties.entrySet()) {
-      for (DynamicUiProperty<? extends Serializable> property :
-          entry.getValue().values()) {
+      for (DynamicUiProperty<? extends Serializable> property
+          : entry.getValue().values()) {
         if (isParameterRegistered("-" + property.getName())) {
           // Different properties could contain the same keyword. Simply use the
           // same one.
@@ -146,8 +151,8 @@ public class InternalKeyBindingModifyCommand
             EjbRemoteHelper.INSTANCE
                 .getRemoteSession(InternalKeyBindingMgmtSessionRemote.class)
                 .getAvailableTypesAndProperties();
-    for (String propertyName :
-        typesAndProperties
+    for (String propertyName
+        : typesAndProperties
             .get(internalKeyBinding.getImplementationAlias())
             .keySet()) {
       if (parameters.containsKey("-" + propertyName)) {
@@ -159,8 +164,8 @@ public class InternalKeyBindingModifyCommand
         new ArrayList<InternalKeyBindingTrustEntry>();
     final String removeTrustArguments = parameters.get(REMOVETRUST_KEY);
     if (removeTrustArguments != null) {
-      for (String trustArgument :
-          removeTrustArguments.split(TRUSTARGUMENT_SEPARATOR)) {
+      for (String trustArgument
+          : removeTrustArguments.split(TRUSTARGUMENT_SEPARATOR)) {
         String value;
         String key;
         int indexOfEqualsSign = trustArgument.indexOf(';');
@@ -206,8 +211,8 @@ public class InternalKeyBindingModifyCommand
         new ArrayList<InternalKeyBindingTrustEntry>();
     final String addTrustArguments = parameters.get(ADDTRUST_KEY);
     if (addTrustArguments != null) {
-      for (String trustArgument :
-          addTrustArguments.split(TRUSTARGUMENT_SEPARATOR)) {
+      for (String trustArgument
+          : addTrustArguments.split(TRUSTARGUMENT_SEPARATOR)) {
         String value;
         String key;
         int indexOfEqualsSign = trustArgument.indexOf(';');
@@ -294,8 +299,8 @@ public class InternalKeyBindingModifyCommand
     // Perform trust changes
     final List<InternalKeyBindingTrustEntry> internalKeyBindingTrustEntries =
         internalKeyBinding.getTrustedCertificateReferences();
-    for (final InternalKeyBindingTrustEntry internalKeyBindingTrustEntry :
-        removeTrustList) {
+    for (final InternalKeyBindingTrustEntry internalKeyBindingTrustEntry
+        : removeTrustList) {
       if (!internalKeyBindingTrustEntries.remove(
           internalKeyBindingTrustEntry)) {
         getLogger()
@@ -310,8 +315,8 @@ public class InternalKeyBindingModifyCommand
         modified = true;
       }
     }
-    for (final InternalKeyBindingTrustEntry internalKeyBindingTrustEntry :
-        addTrustList) {
+    for (final InternalKeyBindingTrustEntry internalKeyBindingTrustEntry
+        : addTrustList) {
       if (internalKeyBindingTrustEntries.contains(
           internalKeyBindingTrustEntry)) {
         getLogger()
@@ -391,6 +396,6 @@ public class InternalKeyBindingModifyCommand
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

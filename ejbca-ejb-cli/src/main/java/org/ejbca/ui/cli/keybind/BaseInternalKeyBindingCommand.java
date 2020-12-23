@@ -36,6 +36,7 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 public abstract class BaseInternalKeyBindingCommand
     extends EjbcaCliUserCommandBase {
 
+    /** Param. */
   protected static final String KEYBINDING_NAME_KEY = "--name";
 
   {
@@ -54,6 +55,11 @@ public abstract class BaseInternalKeyBindingCommand
     return new String[] {"keybind"};
   }
 
+  /**
+   * @param type Type
+   * @param dataMap Map
+   * @return Validated
+   */
   protected Map<String, Serializable> validateProperties(
       final String type, final Map<String, String> dataMap) {
     InternalKeyBindingPropertyValidationWrapper validatedProperties =
@@ -75,8 +81,8 @@ public abstract class BaseInternalKeyBindingCommand
       }
       if (validatedProperties.getInvalidValues().size() > 0) {
         stringBuffer.append("The following values were invalid:\n");
-        for (Entry<String, Class<?>> entry :
-            validatedProperties.getInvalidValues().entrySet()) {
+        for (Entry<String, Class<?>> entry
+            : validatedProperties.getInvalidValues().entrySet()) {
           stringBuffer.append(
               "Value '"
                   + dataMap.get(entry.getKey())
@@ -95,7 +101,7 @@ public abstract class BaseInternalKeyBindingCommand
   }
 
   /**
-   * Lists available types and their properties
+   * Lists available types and their properties.
    *
    * @return Props
    */
@@ -113,8 +119,8 @@ public abstract class BaseInternalKeyBindingCommand
     for (Entry<String, Map<String, DynamicUiProperty<? extends Serializable>>>
         entry : typesAndProperties.entrySet()) {
       sb.append(' ').append(entry.getKey()).append(":\n");
-      for (DynamicUiProperty<? extends Serializable> property :
-          entry.getValue().values()) {
+      for (DynamicUiProperty<? extends Serializable> property
+          : entry.getValue().values()) {
         sb.append("    " + property.getName()).append(",\n");
       }
       if (sb.charAt(sb.length() - 2) == ',') {
@@ -125,16 +131,22 @@ public abstract class BaseInternalKeyBindingCommand
     return sb.toString();
   }
 
+  /**
+   * @return Statuses
+   */
   protected String showStatuses() {
     final StringBuilder sb = new StringBuilder("Status is one of ");
-    for (InternalKeyBindingStatus internalKeyBindingStatus :
-        InternalKeyBindingStatus.values()) {
+    for (InternalKeyBindingStatus internalKeyBindingStatus
+        : InternalKeyBindingStatus.values()) {
       sb.append(internalKeyBindingStatus.name()).append(',');
     }
     sb.deleteCharAt(sb.length() - 1);
     return sb.append('\n').toString();
   }
 
+  /**
+   * @return Algorithms
+   */
   protected String showSigAlgs() {
     final StringBuilder sbAlg =
         new StringBuilder("Signature algorithm is one of ");

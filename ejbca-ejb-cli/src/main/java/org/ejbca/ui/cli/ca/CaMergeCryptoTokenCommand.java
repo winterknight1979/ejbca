@@ -42,9 +42,12 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class CaMergeCryptoTokenCommand extends BaseCaAdminCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CaMergeCryptoTokenCommand.class);
+  /** Param. */
   private static final String CA_NAME_KEY = "--caname";
+  /** Param. */
   private static final String EXECUTE_KEY = "--execute";
 
   {
@@ -69,7 +72,7 @@ public class CaMergeCryptoTokenCommand extends BaseCaAdminCommand {
 
   @Override
   public CommandResult execute(final ParameterContainer parameters) {
-    log.trace(">execute()");
+    LOG.trace(">execute()");
     CryptoProviderTools.installBCProvider(); // need this for CVC certificate
     final String caName = parameters.get(CA_NAME_KEY);
     final boolean force = parameters.containsKey(EXECUTE_KEY);
@@ -88,24 +91,24 @@ public class CaMergeCryptoTokenCommand extends BaseCaAdminCommand {
       if (!cryptoTokenInfo
           .getType()
           .equals(PKCS11CryptoToken.class.getSimpleName())) {
-        log.error(
+        LOG.error(
             "CA with name "
                 + caName
                 + " does not reference a PKCS#11 Crypto Token. Merge is not"
                 + " possible.");
         return CommandResult.FUNCTIONAL_FAILURE;
       }
-      log.info(
+      LOG.info(
           "CA '"
               + caInfo.getName()
               + "' references crypto token '"
               + cryptoTokenInfo.getName()
               + "'");
-      log.info(" PKCS#11 Library: " + cryptoTokenInfo.getP11Library());
-      log.info(" SlotLabelType:   " + cryptoTokenInfo.getP11SlotLabelType());
-      log.info(" SlotLabel:       " + cryptoTokenInfo.getP11Slot());
-      log.info(" Attribute file:  " + cryptoTokenInfo.getP11AttributeFile());
-      log.info("");
+      LOG.info(" PKCS#11 Library: " + cryptoTokenInfo.getP11Library());
+      LOG.info(" SlotLabelType:   " + cryptoTokenInfo.getP11SlotLabelType());
+      LOG.info(" SlotLabel:       " + cryptoTokenInfo.getP11Slot());
+      LOG.info(" Attribute file:  " + cryptoTokenInfo.getP11AttributeFile());
+      LOG.info("");
       int mergeCount = 0;
       final List<Integer> caIds =
           caSession.getAuthorizedCaIds(getAuthenticationToken());
@@ -150,7 +153,7 @@ public class CaMergeCryptoTokenCommand extends BaseCaAdminCommand {
           // Skip when the same slot isn't referenced
           continue;
         }
-        log.info(
+        LOG.info(
             (force ? "Merging " : "Would merge")
                 + " CA '"
                 + currentCaInfo.getName()
@@ -159,52 +162,52 @@ public class CaMergeCryptoTokenCommand extends BaseCaAdminCommand {
                 + "' to instead reference '"
                 + cryptoTokenInfo.getName()
                 + "'.");
-        log.info(
+        LOG.info(
             " Current PKCS#11 Library: "
                 + currentCryptoTokenInfo.getP11Library());
-        log.info(
+        LOG.info(
             " Current SlotLabelType:   "
                 + currentCryptoTokenInfo.getP11SlotLabelType());
-        log.info(
+        LOG.info(
             " Current SlotLabel:       " + currentCryptoTokenInfo.getP11Slot());
-        log.info(
+        LOG.info(
             " Current Attribute file:  "
                 + currentCryptoTokenInfo.getP11AttributeFile());
         if (!currentCryptoTokenInfo
             .getP11AttributeFile()
             .equals(cryptoTokenInfo.getP11AttributeFile())) {
-          log.warn(" Ignoring that attribute file is different.");
+          LOG.warn(" Ignoring that attribute file is different.");
         }
         if (force) {
           final CAToken currentCaToken = currentCaInfo.getCAToken();
           currentCaToken.setCryptoTokenId(cryptoTokenId);
           caSession.editCA(getAuthenticationToken(), currentCaInfo);
-          log.info(" Merged.");
+          LOG.info(" Merged.");
         }
-        log.info("");
+        LOG.info("");
         mergeCount++;
       }
       if (force) {
-        log.info("Modified referenced CryptoToken for " + mergeCount + " CAs.");
+        LOG.info("Modified referenced CryptoToken for " + mergeCount + " CAs.");
       } else {
-        log.info(
+        LOG.info(
             "Will modify referenced CryptoToken for "
                 + mergeCount
                 + " CAs if '"
                 + EXECUTE_KEY
                 + "' option is used.");
       }
-      log.trace("<execute()");
+      LOG.trace("<execute()");
     } catch (AuthorizationDeniedException e) {
-      log.error("CLI User was not authorized to modify CA " + caName);
-      log.trace("<execute()");
+      LOG.error("CLI User was not authorized to modify CA " + caName);
+      LOG.trace("<execute()");
       return CommandResult.AUTHORIZATION_FAILURE;
     } catch (CADoesntExistsException e) {
-      log.error("No such CA with by name " + caName);
-      log.error(getCaList());
+      LOG.error("No such CA with by name " + caName);
+      LOG.error(getCaList());
       return CommandResult.FUNCTIONAL_FAILURE;
     }
-    log.trace("<execute()");
+    LOG.trace("<execute()");
     return CommandResult.SUCCESS;
   }
 
@@ -230,6 +233,6 @@ public class CaMergeCryptoTokenCommand extends BaseCaAdminCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

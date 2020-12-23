@@ -39,9 +39,11 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class CaListExpiredCommand extends EjbcaCommandBase {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CaListExpiredCommand.class);
 
+  /** Param. */
   private static final String DAYS_KEY = "-d";
 
   {
@@ -72,11 +74,12 @@ public class CaListExpiredCommand extends EjbcaCommandBase {
     try {
       days = Long.parseLong(parameters.get(DAYS_KEY));
     } catch (NumberFormatException e) {
-      log.error(parameters.get(DAYS_KEY) + " was not a number.");
+      LOG.error(parameters.get(DAYS_KEY) + " was not a number.");
       return CommandResult.FUNCTIONAL_FAILURE;
     }
     Date findDate = new Date();
-    long millis = (days * 24 * 60 * 60 * 1000);
+    final long oneDay = 24 * 3600 * 1000;
+    long millis = (days * oneDay);
     findDate.setTime(findDate.getTime() + millis);
     getLogger()
         .info("Looking for certificates that expire before " + findDate + ".");
@@ -139,6 +142,6 @@ public class CaListExpiredCommand extends EjbcaCommandBase {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

@@ -25,9 +25,11 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 /** @version $Id: DumpAliasCommand.java 19902 2014-09-30 14:32:24Z anatom $ */
 public class DumpAliasCommand extends BaseCmpConfigCommand {
 
+    /** PAram. */
   private static final String ALIAS_KEY = "--alias";
 
-  private static final Logger log = Logger.getLogger(DumpAliasCommand.class);
+  /** Param. */
+  private static final Logger LOG = Logger.getLogger(DumpAliasCommand.class);
 
   {
     registerParameter(
@@ -53,11 +55,11 @@ public class DumpAliasCommand extends BaseCmpConfigCommand {
       Enumeration<Object> enumeration = properties.keys();
       while (enumeration.hasMoreElements()) {
         String key = (String) enumeration.nextElement();
-        log.info(" " + key + " = " + properties.getProperty(key));
+        LOG.info(" " + key + " = " + properties.getProperty(key));
       }
       return CommandResult.SUCCESS;
     } else {
-      log.error("ERROR: Could not find alias: " + alias);
+      LOG.error("ERROR: Could not find alias: " + alias);
       return CommandResult.FUNCTIONAL_FAILURE;
     }
   }
@@ -74,6 +76,6 @@ public class DumpAliasCommand extends BaseCmpConfigCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

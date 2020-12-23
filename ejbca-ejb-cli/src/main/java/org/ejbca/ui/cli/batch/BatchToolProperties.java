@@ -25,22 +25,28 @@ import org.ejbca.core.model.InternalEjbcaResources;
  * @version $Id: BatchToolProperties.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public class BatchToolProperties {
-
+      /** Param. */
   private static final String PROPERTY_KEYSPEC = "keys.spec";
+  /** Param. */
   private static final String PROPERTY_KEYALG = "keys.alg";
+  /** Param. */
+  private Properties batchToolProperties = new Properties();
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(BatchToolProperties.class);
 
-  Properties batchToolProperties = new Properties();
-  private static final Logger log = Logger.getLogger(BatchToolProperties.class);
-
+  /** Param. */
   private final Logger logger;
 
-  public BatchToolProperties(final Logger logger) {
-    this.logger = logger;
+  /**
+   * @param alogger log
+   */
+  public BatchToolProperties(final Logger alogger) {
+    this.logger = alogger;
     load();
   }
 
   /**
-   * Returns the configured keysize Default is 2048
+   * Returns the configured keysize Default is 2048.
    *
    * @return spec
    */
@@ -49,7 +55,7 @@ public class BatchToolProperties {
   }
 
   /**
-   * Returns the configured key algorithm Default is RSA, can be ECDSA
+   * Returns the configured key algorithm Default is RSA, can be ECDSA.
    *
    * @return Alg
    */
@@ -87,11 +93,11 @@ public class BatchToolProperties {
           && !tryLoadFile("conf/batchtool.properties")) {
         // Not found
         if (tryLoadFile("bin/batchtool.properties")) {
-          log.info(
+          LOG.info(
               "The batchtool.properties file exists in bin/. It should be"
                   + " moved to conf/");
         } else {
-          log.debug(
+          LOG.debug(
               "Could not find any batchtool property file, default values will"
                   + " be used.");
           logger.info(
@@ -100,8 +106,8 @@ public class BatchToolProperties {
         }
       }
     } catch (IOException e) {
-      log.error("Error reading batchtool property file ");
-      log.debug(e);
+      LOG.error("Error reading batchtool property file ");
+      LOG.debug(e);
     }
   }
 }

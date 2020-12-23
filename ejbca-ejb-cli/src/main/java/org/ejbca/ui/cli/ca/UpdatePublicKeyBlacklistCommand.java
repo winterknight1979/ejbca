@@ -41,7 +41,7 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
 import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 
 /**
- * Imports certificate files to the database for a given CA
+ * Imports certificate files to the database for a given CA.
  *
  * @version $Id: UpdatePublicKeyBlacklistCommand.java 26401 2017-08-23 20:07:11Z
  *     mikekushner $
@@ -49,19 +49,29 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 public class UpdatePublicKeyBlacklistCommand extends BaseCaAdminCommand {
 
   /** Class logger. */
-  private static final Logger log =
+  private static final Logger LOG =
       Logger.getLogger(UpdatePublicKeyBlacklistCommand.class);
 
+  /** Param. */
   public static final String COMMAND_KEY = "--command";
+  /** Param. */
   public static final String KEY_SPECIFICATIONS_KEY = "--keyspecs";
+  /** Param. */
   public static final String KEY_GENERATION_SOURCES_KEY = "--sources";
+  /** Param. */
   public static final String DIRECTORY_KEY = "--dir";
+  /** Param. */
   public static final String UPDATE_MODE_KEY = "--mode";
+  /** Param. */
   public static final String RESUME_ON_ERROR_KEY = "--resumeonerror";
 
+  /** Param. */
   public static final String COMMAND_ADD = "add";
+  /** Param. */
   public static final String COMMAND_REMOVE = "remove";
+  /** Param. */
   public static final String UPDATE_MODE_FINGERPINT = "fingerprint";
+  /** Param. */
   public static final String CSV_SEPARATOR = ",";
 
   {
@@ -119,10 +129,15 @@ public class UpdatePublicKeyBlacklistCommand extends BaseCaAdminCommand {
                 + " first one. Default is stop."));
   }
 
+  /** Param. */
   private static final int STATUS_OK = 0;
+  /** Param. */
   private static final int STATUS_READ_ERROR = 1;
+  /** Param. */
   private static final int STATUS_REDUNDANT = 2;
+  /** Param. */
   private static final int STATUS_CONSTRAINTVIOLATION = 3;
+  /** Param. */
   private static final int STATUS_GENERALIMPORTERROR = 4;
 
   @Override
@@ -133,7 +148,7 @@ public class UpdatePublicKeyBlacklistCommand extends BaseCaAdminCommand {
   // @SuppressWarnings("unchecked")
   @Override
   public CommandResult execute(final ParameterContainer parameters) {
-    log.trace(">execute()");
+    LOG.trace(">execute()");
 
     CryptoProviderTools.installBCProviderIfNotAvailable();
 
@@ -156,12 +171,12 @@ public class UpdatePublicKeyBlacklistCommand extends BaseCaAdminCommand {
       // blacklist.
       final File importDir = new File(importDirString);
       if (!importDir.isDirectory()) {
-        log.error("'" + importDirString + "' is not a directory.");
+        LOG.error("'" + importDirString + "' is not a directory.");
         return CommandResult.CLI_FAILURE;
       }
-      final File files[] = importDir.listFiles();
+      final File[] files = importDir.listFiles();
       if (files == null || files.length < 1) {
-        log.info(
+        LOG.info(
             "No files in directory '"
                 + importDir.getCanonicalPath()
                 + "'. Nothing to do.");
@@ -189,11 +204,11 @@ public class UpdatePublicKeyBlacklistCommand extends BaseCaAdminCommand {
         try {
           keySpecification = null;
           path = file.getAbsolutePath();
-          log.debug("Read file " + path);
+          LOG.debug("Read file " + path);
 
           if (COMMAND_ADD.equals(command)) {
             if (!byFingerprint) {
-              log.info("Read public key file " + path);
+              LOG.info("Read public key file " + path);
               asn1Encodedbytes =
                   KeyTools.getBytesFromPublicKeyFile(
                       FileTools.readFiletoBuffer(path));
@@ -205,7 +220,7 @@ public class UpdatePublicKeyBlacklistCommand extends BaseCaAdminCommand {
                 state = addPublicKeyToBlacklist(publicKey);
               }
             } else {
-              log.info("Read public key fingerprints file " + path);
+              LOG.info("Read public key fingerprints file " + path);
               reader = new FileReader(file);
               lines = IOUtils.readLines(reader);
               IOUtils.closeQuietly(reader);
@@ -225,7 +240,7 @@ public class UpdatePublicKeyBlacklistCommand extends BaseCaAdminCommand {
                       addPublicKeyFingerprintToBlacklist(
                           fingerprint, keySpecification);
                   if (STATUS_OK != state) {
-                    log.info(
+                    LOG.info(
                         "Update public key blacklist failed on fingerprint: "
                             + fingerprint);
                     break;
@@ -235,7 +250,7 @@ public class UpdatePublicKeyBlacklistCommand extends BaseCaAdminCommand {
             }
           } else if (COMMAND_REMOVE.equals(command)) {
             if (!byFingerprint) {
-              log.info("Remove public key by file " + path);
+              LOG.info("Remove public key by file " + path);
               asn1Encodedbytes =
                   KeyTools.getBytesFromPublicKeyFile(
                       FileTools.readFiletoBuffer(path));
@@ -247,7 +262,7 @@ public class UpdatePublicKeyBlacklistCommand extends BaseCaAdminCommand {
                 state = removePublicKeyToBlacklist(publicKey);
               }
             } else {
-              log.info(
+              LOG.info(
                   "Remove public keys by fingerprints listed in file " + path);
               reader = new FileReader(file);
               lines = IOUtils.readLines(reader);
@@ -257,7 +272,7 @@ public class UpdatePublicKeyBlacklistCommand extends BaseCaAdminCommand {
                 tokens = line.split(CSV_SEPARATOR);
                 if (tokens.length > 0) {
                   fingerprint = tokens[0];
-                  log.info(
+                  LOG.info(
                       "Try to remove public key from public key blacklist"
                           + " (fingerprint="
                           + fingerprint
@@ -270,7 +285,7 @@ public class UpdatePublicKeyBlacklistCommand extends BaseCaAdminCommand {
                     // Do nothing, it was already printed to info
                   }
                   if (STATUS_OK != state) {
-                    log.info(
+                    LOG.info(
                         "remove public key blacklist failed on fingerprint: "
                             + fingerprint);
                   }
@@ -305,22 +320,22 @@ public class UpdatePublicKeyBlacklistCommand extends BaseCaAdminCommand {
                     + resumeOnError);
           }
         } catch (BlacklistExistsException e) {
-          log.error("Update public key blacklist failed: " + e.getMessage());
+          LOG.error("Update public key blacklist failed: " + e.getMessage());
           if (!resumeOnError) {
             return CommandResult.FUNCTIONAL_FAILURE;
           }
         } catch (BlacklistDoesntExistsException e) {
-          log.info("Update public key blacklist failed: " + e.getMessage());
+          LOG.info("Update public key blacklist failed: " + e.getMessage());
           if (!resumeOnError) {
             return CommandResult.FUNCTIONAL_FAILURE;
           }
         } catch (AuthorizationDeniedException e) {
-          log.info("Not authorized to update blacklist: " + e.getMessage());
+          LOG.info("Not authorized to update blacklist: " + e.getMessage());
           if (!resumeOnError) {
             return CommandResult.FUNCTIONAL_FAILURE;
           }
         } catch (Exception e) {
-          log.info("Update public key blacklist failed: " + e.getMessage(), e);
+          LOG.info("Update public key blacklist failed: " + e.getMessage(), e);
           if (!resumeOnError) {
             return CommandResult.FUNCTIONAL_FAILURE;
           }
@@ -335,10 +350,10 @@ public class UpdatePublicKeyBlacklistCommand extends BaseCaAdminCommand {
           generalImportError,
           command);
     } catch (Exception e) {
-      log.error("Update public key blacklist aborted: " + e.getMessage(), e);
+      LOG.error("Update public key blacklist aborted: " + e.getMessage(), e);
       return CommandResult.FUNCTIONAL_FAILURE;
     }
-    log.trace("<execute()");
+    LOG.trace("<execute()");
     return CommandResult.SUCCESS;
   }
 
@@ -365,7 +380,7 @@ public class UpdatePublicKeyBlacklistCommand extends BaseCaAdminCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 
   /**
@@ -379,18 +394,18 @@ public class UpdatePublicKeyBlacklistCommand extends BaseCaAdminCommand {
    */
   private int addPublicKeyToBlacklist(final PublicKey publicKey)
       throws Exception {
-    log.trace(">addPublicKeyToBlacklist()");
+    LOG.trace(">addPublicKeyToBlacklist()");
     int result = STATUS_GENERALIMPORTERROR;
     final PublicKeyBlacklistEntry entry = new PublicKeyBlacklistEntry();
     entry.setFingerprint(
         publicKey); // sets the fingerprint in proper format from the public key
     entry.setKeyspec(AlgorithmTools.getKeySpecification(publicKey));
-    log.info(
+    LOG.info(
         "Try to add public key into public key blacklist (fingerprint="
             + entry.getFingerprint()
             + ").");
     result = addToBlacklist(entry);
-    log.trace("<addPublicKeyToBlacklist()");
+    LOG.trace("<addPublicKeyToBlacklist()");
     return result;
   }
 
@@ -409,18 +424,18 @@ public class UpdatePublicKeyBlacklistCommand extends BaseCaAdminCommand {
   private int addPublicKeyFingerprintToBlacklist(
       final String fingerprint, final String keySpecification)
       throws Exception {
-    log.trace(">addPublicKeyFingerprintToBlacklist()");
+    LOG.trace(">addPublicKeyFingerprintToBlacklist()");
     int result = STATUS_GENERALIMPORTERROR;
     final PublicKeyBlacklistEntry entry = new PublicKeyBlacklistEntry();
     entry.setFingerprint(fingerprint);
     entry.setKeyspec(keySpecification);
-    log.info(
+    LOG.info(
         "Try to add public key into public key blacklist by fingerprint"
             + " (fingerprint="
             + fingerprint
             + ").");
     result = addToBlacklist(entry);
-    log.trace("<addPublicKeyFingerprintToBlacklist()");
+    LOG.trace("<addPublicKeyFingerprintToBlacklist()");
     return result;
   }
 
@@ -435,16 +450,16 @@ public class UpdatePublicKeyBlacklistCommand extends BaseCaAdminCommand {
    */
   private int removePublicKeyToBlacklist(final PublicKey publicKey)
       throws Exception {
-    log.trace(">removePublicKeyFromBlacklist()");
+    LOG.trace(">removePublicKeyFromBlacklist()");
     int result = STATUS_GENERALIMPORTERROR;
     final String fingerprint =
         PublicKeyBlacklistEntry.createFingerprint(publicKey);
-    log.info(
+    LOG.info(
         "Try to remove public key from public key blacklist (fingerprint="
             + fingerprint
             + ").");
     result = removeFromBlacklist(PublicKeyBlacklistEntry.TYPE, fingerprint);
-    log.trace("<removePublicKeyFromBlacklist()");
+    LOG.trace("<removePublicKeyFromBlacklist()");
     return result;
   }
 
@@ -460,7 +475,7 @@ public class UpdatePublicKeyBlacklistCommand extends BaseCaAdminCommand {
    */
   private int addToBlacklist(final PublicKeyBlacklistEntry entry)
       throws Exception {
-    log.trace(">addToBlacklist()");
+    LOG.trace(">addToBlacklist()");
     int result = STATUS_GENERALIMPORTERROR;
     final BlacklistSessionRemote blacklistSession =
         EjbRemoteHelper.INSTANCE.getRemoteSession(BlacklistSessionRemote.class);
@@ -469,21 +484,21 @@ public class UpdatePublicKeyBlacklistCommand extends BaseCaAdminCommand {
       result = STATUS_OK;
     } catch (BlacklistExistsException e) {
       result = STATUS_CONSTRAINTVIOLATION;
-      log.info(
+      LOG.info(
           "Public key blacklist entry with public key fingerprint "
               + entry.getFingerprint()
               + " already exists.");
       throw e;
     } catch (AuthorizationDeniedException e) {
       result = STATUS_GENERALIMPORTERROR;
-      log.info("Authorization denied to add public key to blacklist.");
+      LOG.info("Authorization denied to add public key to blacklist.");
       throw e;
     } catch (Exception e) {
       result = STATUS_GENERALIMPORTERROR;
-      log.info("Error while adding public key to blacklist: " + e.getMessage());
+      LOG.info("Error while adding public key to blacklist: " + e.getMessage());
       throw e;
     }
-    log.trace("<addToBlacklist()");
+    LOG.trace("<addToBlacklist()");
     return result;
   }
 
@@ -499,7 +514,7 @@ public class UpdatePublicKeyBlacklistCommand extends BaseCaAdminCommand {
    */
   private int removeFromBlacklist(final String type, final String value)
       throws Exception {
-    log.trace(">removeFromBlacklist()");
+    LOG.trace(">removeFromBlacklist()");
     int result = STATUS_GENERALIMPORTERROR;
     final BlacklistSessionRemote blacklistSession =
         EjbRemoteHelper.INSTANCE.getRemoteSession(BlacklistSessionRemote.class);
@@ -509,22 +524,22 @@ public class UpdatePublicKeyBlacklistCommand extends BaseCaAdminCommand {
       result = STATUS_OK;
     } catch (BlacklistDoesntExistsException e) {
       result = STATUS_CONSTRAINTVIOLATION;
-      log.info(
+      LOG.info(
           "Public key blacklist entry with public key fingerprint "
               + value
               + " does not exist.");
       throw e;
     } catch (AuthorizationDeniedException e) {
       result = STATUS_GENERALIMPORTERROR;
-      log.info("Authorization denied to remove public key from blacklist.");
+      LOG.info("Authorization denied to remove public key from blacklist.");
       throw e;
     } catch (Exception e) {
       result = STATUS_GENERALIMPORTERROR;
-      log.info(
+      LOG.info(
           "Error while removing public key from blacklist: " + e.getMessage());
       throw e;
     }
-    log.trace("<removeFromBlacklist()");
+    LOG.trace("<removeFromBlacklist()");
     return result;
   }
 
@@ -538,7 +553,7 @@ public class UpdatePublicKeyBlacklistCommand extends BaseCaAdminCommand {
    * @param generalImportError general import error counter
    * @param command command
    */
-  private final void printSummary(
+  private void printSummary(
       final int importOk,
       final int readError,
       final int redundant,
@@ -546,31 +561,31 @@ public class UpdatePublicKeyBlacklistCommand extends BaseCaAdminCommand {
       final int generalImportError,
       final String command) {
     // Print resulting statistics
-    log.info("\n" + command + " summary:");
-    log.info(
+    LOG.info("\n" + command + " summary:");
+    LOG.info(
         importOk
             + " public key blacklist entries were processed with success"
             + " (STATUS_OK)");
     if (readError > 0) {
-      log.info(
+      LOG.info(
           readError
               + " public key blacklist entries could not be parsed"
               + " (STATUS_READERROR)");
     }
     if (redundant > 0) {
-      log.info(
+      LOG.info(
           redundant
               + " public key blacklist entries were already present in the"
               + " database (STATUS_REDUNDANT)");
     }
     if (constraintViolation > 0) {
-      log.info(
+      LOG.info(
           constraintViolation
               + " public key blacklist entries could not be stored"
               + " (STATUS_CONSTRAINTVIOLATION)");
     }
     if (generalImportError > 0) {
-      log.info(
+      LOG.info(
           generalImportError
               + " public key blacklist entries were not imported due to other"
               + " errors (STATUS_GENERALIMPORTERROR)");

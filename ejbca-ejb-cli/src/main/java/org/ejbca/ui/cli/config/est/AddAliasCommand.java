@@ -25,9 +25,11 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 /** @version $Id: AddAliasCommand.java 27965 2018-01-15 16:20:53Z anatom $ */
 public class AddAliasCommand extends BaseEstConfigCommand {
 
+    /** PAram. */
   private static final String ALIAS_KEY = "--alias";
 
-  private static final Logger log = Logger.getLogger(AddAliasCommand.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(AddAliasCommand.class);
 
   {
     registerParameter(
@@ -51,19 +53,19 @@ public class AddAliasCommand extends BaseEstConfigCommand {
     // We check first because it is unnecessary to call saveConfiguration when
     // it is not needed
     if (getEstConfiguration().aliasExists(alias)) {
-      log.info("Alias '" + alias + "' already exists.");
+      LOG.info("Alias '" + alias + "' already exists.");
       return CommandResult.FUNCTIONAL_FAILURE;
     }
     getEstConfiguration().addAlias(alias);
     try {
       getGlobalConfigurationSession()
           .saveConfiguration(getAuthenticationToken(), getEstConfiguration());
-      log.info("Added EST alias: " + alias);
+      LOG.info("Added EST alias: " + alias);
       getGlobalConfigurationSession()
           .flushConfigurationCache(EstConfiguration.EST_CONFIGURATION_ID);
       return CommandResult.SUCCESS;
     } catch (AuthorizationDeniedException e) {
-      log.info(
+      LOG.info(
           "Failed to add alias '" + alias + "': " + e.getLocalizedMessage());
       return CommandResult.AUTHORIZATION_FAILURE;
     }
@@ -81,6 +83,6 @@ public class AddAliasCommand extends BaseEstConfigCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

@@ -39,10 +39,14 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class CaEditCaCommand extends BaseCaAdminCommand {
 
-  private static final Logger log = Logger.getLogger(CaEditCaCommand.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CaEditCaCommand.class);
 
+  /** Pram. */
   private static final String CA_NAME_KEY = "--caname";
+  /** Pram. */
   private static final String FIELD_KEY = "--field";
+  /** Pram. */
   private static final String VALUE_KEY = "--value";
 
   {
@@ -79,9 +83,8 @@ public class CaEditCaCommand extends BaseCaAdminCommand {
 
   @Override
   public CommandResult execute(final ParameterContainer parameters) {
-    FieldEditor fieldEditor = new FieldEditor(log);
+    FieldEditor fieldEditor = new FieldEditor(LOG);
     CryptoProviderTools.installBCProviderIfNotAvailable();
-    ;
     final String name = parameters.get(CA_NAME_KEY);
     final String field = parameters.get(FIELD_KEY);
     final String value = parameters.get(VALUE_KEY);
@@ -100,19 +103,19 @@ public class CaEditCaCommand extends BaseCaAdminCommand {
             EjbRemoteHelper.INSTANCE
                 .getRemoteSession(CaSessionRemote.class)
                 .renameCA(getAuthenticationToken(), cainfo.getName(), value);
-            log.info(
+            LOG.info(
                 "Renamed CA by the name  '"
                     + cainfo.getName()
                     + "' to '"
                     + value
                     + "'");
           } catch (CAExistsException e) {
-            log.error("A CA by the name of " + value + " already exists.");
+            LOG.error("A CA by the name of " + value + " already exists.");
             return CommandResult.FUNCTIONAL_FAILURE;
           }
         } else {
           fieldEditor.setValue(name, field, value, cainfo);
-          log.info("Storing modified CA info for CA '" + name + "'...");
+          LOG.info("Storing modified CA info for CA '" + name + "'...");
           EjbRemoteHelper.INSTANCE
               .getRemoteSession(CAAdminSessionRemote.class)
               .editCA(getAuthenticationToken(), cainfo);
@@ -120,7 +123,7 @@ public class CaEditCaCommand extends BaseCaAdminCommand {
           // If the CA Subject DN was changed, then the CA Id might have changed
           // at this point,
           // so we have to do the lookup by name!
-          log.info("Reading modified value for verification...");
+          LOG.info("Reading modified value for verification...");
           final CAInfo cainfomod =
               EjbRemoteHelper.INSTANCE
                   .getRemoteSession(CaSessionRemote.class)
@@ -130,14 +133,14 @@ public class CaEditCaCommand extends BaseCaAdminCommand {
         }
         return CommandResult.SUCCESS;
       } catch (FieldNotFoundException e) {
-        log.error(e.getMessage());
+        LOG.error(e.getMessage());
         return CommandResult.FUNCTIONAL_FAILURE;
       }
     } catch (CADoesntExistsException e) {
-      log.info("CA '" + name + "' does not exist.");
+      LOG.info("CA '" + name + "' does not exist.");
       return CommandResult.FUNCTIONAL_FAILURE;
     } catch (AuthorizationDeniedException e) {
-      log.error("CLI User was not authorized to CA " + name);
+      LOG.error("CLI User was not authorized to CA " + name);
       return CommandResult.AUTHORIZATION_FAILURE;
     }
   }
@@ -160,6 +163,6 @@ public class CaEditCaCommand extends BaseCaAdminCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

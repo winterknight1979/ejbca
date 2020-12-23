@@ -28,15 +28,18 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
 import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 
 /**
- * Lists access rules for a role
+ * Lists access rules for a role.
  *
  * @version $Id: ListRulesCommand.java 29197 2018-06-11 09:28:26Z jeklund $
  */
 public class ListRulesCommand extends BaseRolesCommand {
 
-  private static final Logger log = Logger.getLogger(ListRulesCommand.class);
+      /** Param. */
+  private static final Logger LOG = Logger.getLogger(ListRulesCommand.class);
 
+  /** Param. */
   private static final String ROLE_NAME_KEY = "--role";
+  /** Param. */
   private static final String ROLE_NAMESPACE_KEY = "--namespace";
 
   {
@@ -80,8 +83,8 @@ public class ListRulesCommand extends BaseRolesCommand {
                     + ".");
         return CommandResult.FUNCTIONAL_FAILURE;
       }
-      for (final Entry<String, Boolean> entry :
-          AccessRulesHelper.getAsListSortedByKey(role.getAccessRules())) {
+      for (final Entry<String, Boolean> entry
+          : AccessRulesHelper.getAsListSortedByKey(role.getAccessRules())) {
         final String resource = entry.getKey();
         final String resourceName =
             super.getResourceToResourceNameMap().get(resource);
@@ -110,6 +113,6 @@ public class ListRulesCommand extends BaseRolesCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

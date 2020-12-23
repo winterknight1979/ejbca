@@ -40,9 +40,11 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 public class InternalKeyBindingImportCertificateCommand
     extends RudInternalKeyBindingCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(InternalKeyBindingImportCertificateCommand.class);
 
+  /** Param. */
   private static final String PEM_FILE_KEY = "-f";
 
   {
@@ -104,7 +106,7 @@ public class InternalKeyBindingImportCertificateCommand
               + "\". "
               + e.getMessage());
     } catch (CertificateException e) {
-      log.error(
+      LOG.error(
           "Failed to read PEM format certificate from \""
               + filename
               + "\". "
@@ -126,6 +128,6 @@ public class InternalKeyBindingImportCertificateCommand
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

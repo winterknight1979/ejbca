@@ -36,8 +36,10 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class CaInfoCommand extends BaseCaAdminCommand {
 
-  private static final Logger log = Logger.getLogger(CaInfoCommand.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CaInfoCommand.class);
 
+  /** Param. */
   private static final String CA_NAME_KEY = "--caname";
 
   {
@@ -158,6 +160,6 @@ public class CaInfoCommand extends BaseCaAdminCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

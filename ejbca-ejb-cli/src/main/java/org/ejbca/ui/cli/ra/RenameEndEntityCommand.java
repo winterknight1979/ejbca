@@ -32,11 +32,15 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class RenameEndEntityCommand extends BaseRaCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(RenameEndEntityCommand.class);
 
+  /** Param. */
   private static final String SUBCOMMAND = "renameendentity";
+  /** Param. */
   private static final String USERNAME_CURRENT_KEY = "--current";
+  /** Param. */
   private static final String USERNAME_NEW_KEY = "--new";
 
   {
@@ -108,6 +112,6 @@ public class RenameEndEntityCommand extends BaseRaCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

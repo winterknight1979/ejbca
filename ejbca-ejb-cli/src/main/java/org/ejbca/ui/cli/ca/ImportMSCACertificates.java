@@ -27,10 +27,13 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class ImportMSCACertificates extends CaImportCertCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(ImportMSCACertificates.class);
 
+  /** Param. */
   private static final String CA_NAME_KEY = "--caname";
+  /** Param. */
   private static final String INPUT_FILE = "-f";
 
   {
@@ -75,11 +78,14 @@ public class ImportMSCACertificates extends CaImportCertCommand {
     * runs the import-CLI
          o Username: UPN-TempateName
          o Password: foo123
-         o Ca name: From the command line of the script. Should be the name of the imported MS CA.
+         o Ca name: From the command line of the script. Should be the name
+             of the imported MS CA.
          o status: ACTIVE if issued and REVOKED if revoked
          o filename: the temporary file
-         o EndEntityProfile: TemplateName (this of course have to exist.. maybe easily importable from this page)
-         o CertificateProfile: TemplateName (this of course have to exist.. maybe easily importable from this page)
+         o EndEntityProfile: TemplateName (this of course have to exist..
+            maybe easily importable from this page)
+         o CertificateProfile: TemplateName (this of course have to exist..
+            maybe easily importable from this page)
     * Start over until there are no more "Row"s
     */
     FileInputStream fstream;
@@ -146,7 +152,7 @@ public class ImportMSCACertificates extends CaImportCertCommand {
       fstream.close();
       return CommandResult.SUCCESS;
     } catch (FileNotFoundException e) {
-      log.error("File " + infile.getName() + " not found.");
+      LOG.error("File " + infile.getName() + " not found.");
       return CommandResult.FUNCTIONAL_FAILURE;
     } catch (IOException e) {
       throw new IllegalStateException("Unknown IOException was caught.", e);
@@ -171,6 +177,6 @@ public class ImportMSCACertificates extends CaImportCertCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

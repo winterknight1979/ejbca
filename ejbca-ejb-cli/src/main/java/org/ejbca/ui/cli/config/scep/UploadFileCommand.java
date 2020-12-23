@@ -33,10 +33,13 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 /** @version $Id: UploadFileCommand.java 26057 2017-06-22 08:08:34Z anatom $ */
 public class UploadFileCommand extends BaseScepConfigCommand {
 
+      /** Param. */
   private static final String ALIAS_KEY = "--alias";
+  /** Param. */
   private static final String FILE_KEY = "--file";
 
-  private static final Logger log = Logger.getLogger(UploadFileCommand.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(UploadFileCommand.class);
 
   {
     registerParameter(
@@ -75,9 +78,9 @@ public class UploadFileCommand extends BaseScepConfigCommand {
       pc.setReloadingStrategy(new FileChangedReloadingStrategy());
       config = new CompositeConfiguration();
       config.addConfiguration(pc);
-      log.info("Reading SCEP configuration from file: " + f.getAbsolutePath());
+      LOG.info("Reading SCEP configuration from file: " + f.getAbsolutePath());
     } catch (ConfigurationException e) {
-      log.error(
+      LOG.error(
           "Failed to load configuration from file " + f.getAbsolutePath());
       return CommandResult.FUNCTIONAL_FAILURE;
     }
@@ -156,7 +159,7 @@ public class UploadFileCommand extends BaseScepConfigCommand {
       if (keys.contains(key)) {
         populated = true;
         scepConfig.setValue(key, value, alias);
-        log.info("Setting value: " + key + "=" + value);
+        LOG.info("Setting value: " + key + "=" + value);
       }
     }
 
@@ -165,20 +168,20 @@ public class UploadFileCommand extends BaseScepConfigCommand {
       try {
         getGlobalConfigurationSession()
             .saveConfiguration(getAuthenticationToken(), scepConfig);
-        log.info("\nNew configurations saved successfully.");
-        log.info(
+        LOG.info("\nNew configurations saved successfully.");
+        LOG.info(
             "If there are any issues with the configurations, check them in"
                 + " the AdminGUI and click 'Save'");
         getGlobalConfigurationSession()
             .flushConfigurationCache(ScepConfiguration.SCEP_CONFIGURATION_ID);
       } catch (AuthorizationDeniedException e) {
-        log.error(
+        LOG.error(
             "Failed to save configuration from file: "
                 + e.getLocalizedMessage());
       }
     } else {
       scepConfig.removeAlias(alias);
-      log.info(
+      LOG.info(
           "No relevent CMP configurations found with alias '"
               + alias
               + "' in the file.");
@@ -187,6 +190,6 @@ public class UploadFileCommand extends BaseScepConfigCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

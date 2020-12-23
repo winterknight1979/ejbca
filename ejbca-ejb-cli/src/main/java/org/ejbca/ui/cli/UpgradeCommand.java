@@ -25,16 +25,21 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
 import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 
 /**
- * Implements call to the upgrade function
+ * Implements call to the upgrade function.
  *
  * @version $Id: UpgradeCommand.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public class UpgradeCommand extends EjbcaCommandBase {
 
-  private static final Logger log = Logger.getLogger(UpgradeCommand.class);
 
+      /** Param. */
+  private static final Logger LOG = Logger.getLogger(UpgradeCommand.class);
+
+  /** Param. */
   private static final String DATABASE_KEY = "-d";
+  /** Param. */
   private static final String FROM_VERSION_KEY = "-v";
+  /** Param. */
   private static final String IS_POST_UPGRADE = "--post";
 
   {
@@ -74,7 +79,7 @@ public class UpgradeCommand extends EjbcaCommandBase {
     final String database = parameters.get(DATABASE_KEY);
     final String upgradeFromVersion = parameters.get(FROM_VERSION_KEY);
     final boolean isPost = parameters.get(IS_POST_UPGRADE) != null;
-    log.debug(
+    LOG.debug(
         getMainCommand()
             + " ejbcaDB='"
             + database
@@ -89,9 +94,9 @@ public class UpgradeCommand extends EjbcaCommandBase {
             .getRemoteSession(UpgradeSessionRemote.class)
             .upgrade(database, upgradeFromVersion, isPost);
     if (ret) {
-      log.info("Upgrade completed.");
+      LOG.info("Upgrade completed.");
     } else {
-      log.error("Upgrade not performed, see server log for details.");
+      LOG.error("Upgrade not performed, see server log for details.");
       return CommandResult.FUNCTIONAL_FAILURE;
     }
     return CommandResult.SUCCESS;
@@ -110,6 +115,6 @@ public class UpgradeCommand extends EjbcaCommandBase {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

@@ -38,10 +38,13 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class CaChangeCertProfileCommand extends BaseCaAdminCommand {
 
+      /** Param. */
   private static final String CA_NAME_KEY = "--caname";
+  /** Param. */
   private static final String CERTIFICATE_PROFILE_NAME = "--certprofile";
 
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CaChangeCertProfileCommand.class);
 
   {
@@ -70,25 +73,25 @@ public class CaChangeCertProfileCommand extends BaseCaAdminCommand {
 
   @Override
   public CommandResult execute(final ParameterContainer parameters) {
-    log.trace(">execute()");
+    LOG.trace(">execute()");
     CryptoProviderTools.installBCProvider(); // need this for CVC certificate
 
     try {
       final String caName = parameters.get(CA_NAME_KEY);
-      {
-        final CAInfo cainfo =
+
+        CAInfo cainfo =
             EjbRemoteHelper.INSTANCE
                 .getRemoteSession(CaSessionRemote.class)
                 .getCAInfo(getAuthenticationToken(), caName);
         final String certProfileName = parameters.get(CERTIFICATE_PROFILE_NAME);
-        log.debug("Searching for Certificate Profile " + certProfileName);
+        LOG.debug("Searching for Certificate Profile " + certProfileName);
         final int certificateprofileid =
             EjbRemoteHelper.INSTANCE
                 .getRemoteSession(CertificateProfileSessionRemote.class)
                 .getCertificateProfileId(certProfileName);
         if (certificateprofileid
             == CertificateProfileConstants.CERTPROFILE_NO_PROFILE) {
-          log.error(
+          LOG.error(
               "Certificate Profile " + certProfileName + " does not exist.");
           throw new Exception(
               "Certificate Profile '" + certProfileName + "' does not exist.");
@@ -97,26 +100,26 @@ public class CaChangeCertProfileCommand extends BaseCaAdminCommand {
         EjbRemoteHelper.INSTANCE
             .getRemoteSession(CAAdminSessionRemote.class)
             .editCA(getAuthenticationToken(), cainfo);
-      }
-      {
-        final CAInfo cainfo =
+
+
+        cainfo =
             EjbRemoteHelper.INSTANCE
                 .getRemoteSession(CaSessionRemote.class)
                 .getCAInfo(getAuthenticationToken(), caName);
-        log.info("Certificate profile for CA changed:");
-        log.info("CA Name: " + caName);
-        log.info(
+        LOG.info("Certificate profile for CA changed:");
+        LOG.info("CA Name: " + caName);
+        LOG.info(
             "Certificate Profile: "
                 + EjbRemoteHelper.INSTANCE
                     .getRemoteSession(CertificateProfileSessionRemote.class)
                     .getCertificateProfileName(
                         cainfo.getCertificateProfileId()));
-      }
+
     } catch (Exception e) {
-      log.error(e.getMessage());
+      LOG.error(e.getMessage());
       return CommandResult.FUNCTIONAL_FAILURE;
     }
-    log.trace("<execute()");
+    LOG.trace("<execute()");
     return CommandResult.SUCCESS;
   }
 
@@ -169,6 +172,6 @@ public class CaChangeCertProfileCommand extends BaseCaAdminCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

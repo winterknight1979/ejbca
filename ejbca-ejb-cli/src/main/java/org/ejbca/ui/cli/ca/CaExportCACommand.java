@@ -28,20 +28,28 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
 import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 
 /**
- * Exports CA as a PKCS#12 or PKCS#8 file
+ * Exports CA as a PKCS#12 or PKCS#8 file.
  *
  * @version $Id: CaExportCACommand.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public class CaExportCACommand extends BaseCaAdminCommand {
 
-  private static final Logger log = Logger.getLogger(CaExportCACommand.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CaExportCACommand.class);
 
+  /** Param. */
   private static final String CA_NAME_KEY = "--caname";
+  /** Param. */
   private static final String FILE_KEY = "-f";
+  /** Param. */
   private static final String KEYSTORE_PASSWORD_KEY = "-kspassword";
+  /** Param. */
   private static final String SIGNATURE_ALIAS_KEY = "--signalias";
+  /** Param. */
   private static final String ENCRYPTION_ALIAS_KEY = "--encryptalias";
+  /** Param. */
   private static final String SIGNATURE_ALIAS_DEFAULT = "SignatureKeyAlias";
+  /** Param. */
   private static final String ENCRYPTION_ALIAS_DEFAULT = "EncryptionKeyAlias";
 
   {
@@ -114,30 +122,30 @@ public class CaExportCACommand extends BaseCaAdminCommand {
             && parameters.isStandalone(SIGNATURE_ALIAS_KEY))) {
       // only one of the values was set and implicitly, kinda scary. Let's warn
       // about that.
-      log.error(
+      LOG.error(
           "Do not set only one of SignatureKeyAlias or EncryptionKeyAlias"
               + " implicitely (without a switch).");
       return CommandResult.FUNCTIONAL_FAILURE;
     }
     if (signatureKeyAlias == null) {
-      log.info("Setting SignatureKeyAlias to " + SIGNATURE_ALIAS_DEFAULT);
+      LOG.info("Setting SignatureKeyAlias to " + SIGNATURE_ALIAS_DEFAULT);
       signatureKeyAlias = SIGNATURE_ALIAS_DEFAULT;
     }
     if (encryptionKeyAlias == null) {
-      log.info("Setting EncryptionKeyAlias to " + ENCRYPTION_ALIAS_DEFAULT);
+      LOG.info("Setting EncryptionKeyAlias to " + ENCRYPTION_ALIAS_DEFAULT);
       encryptionKeyAlias = ENCRYPTION_ALIAS_DEFAULT;
     }
 
     if (kspwd == null) {
-      log.info("Enter keystore password: ");
+      LOG.info("Enter keystore password: ");
       // Read the password, but mask it so we don't display it on the console
       kspwd = String.valueOf(System.console().readPassword());
     } else {
-      log.info("Keystore password was supplied on the command line.");
+      LOG.info("Keystore password was supplied on the command line.");
     }
     if (StringUtils.isEmpty(kspwd)) {
       // Can not export CA keystore with empty password.
-      log.error("Export a token without password protection is not allowed.");
+      LOG.error("Export a token without password protection is not allowed.");
       return CommandResult.FUNCTIONAL_FAILURE;
     }
     byte[] keyStoreBytes =
@@ -155,7 +163,7 @@ public class CaExportCACommand extends BaseCaAdminCommand {
       fos.write(keyStoreBytes);
       fos.close();
     } catch (FileNotFoundException e) {
-      log.error(e.getMessage());
+      LOG.error(e.getMessage());
       return CommandResult.FUNCTIONAL_FAILURE;
     } catch (IOException e) {
       throw new IllegalStateException(
@@ -185,6 +193,6 @@ public class CaExportCACommand extends BaseCaAdminCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

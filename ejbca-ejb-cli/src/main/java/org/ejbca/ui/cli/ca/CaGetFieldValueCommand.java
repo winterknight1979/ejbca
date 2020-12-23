@@ -36,10 +36,13 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class CaGetFieldValueCommand extends BaseCaAdminCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CaGetFieldValueCommand.class);
 
+  /** Param. **/
   private static final String CA_NAME_KEY = "--caname";
+  /** Param. **/
   private static final String FIELD_KEY = "--field";
 
   {
@@ -68,9 +71,8 @@ public class CaGetFieldValueCommand extends BaseCaAdminCommand {
 
   @Override
   public CommandResult execute(final ParameterContainer parameters) {
-    FieldEditor fieldEditor = new FieldEditor(log);
+    FieldEditor fieldEditor = new FieldEditor(LOG);
     CryptoProviderTools.installBCProviderIfNotAvailable();
-    ;
     final String name = parameters.get(CA_NAME_KEY);
     final String field = parameters.get(FIELD_KEY);
     try {
@@ -79,16 +81,16 @@ public class CaGetFieldValueCommand extends BaseCaAdminCommand {
               .getRemoteSession(CaSessionRemote.class)
               .getCAInfo(getAuthenticationToken(), name);
       if (cainfo == null) {
-        log.info("CA '" + name + "' does not exist.");
+        LOG.info("CA '" + name + "' does not exist.");
         return CommandResult.FUNCTIONAL_FAILURE;
       }
       fieldEditor.getBeanValue(field, cainfo);
       return CommandResult.SUCCESS;
     } catch (AuthorizationDeniedException e) {
-      log.error("CLI User was not authorized to CA " + name);
+      LOG.error("CLI User was not authorized to CA " + name);
       return CommandResult.AUTHORIZATION_FAILURE;
     } catch (FieldNotFoundException e) {
-      log.error(e.getMessage());
+      LOG.error(e.getMessage());
       return CommandResult.FUNCTIONAL_FAILURE;
     }
   }
@@ -108,6 +110,6 @@ public class CaGetFieldValueCommand extends BaseCaAdminCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

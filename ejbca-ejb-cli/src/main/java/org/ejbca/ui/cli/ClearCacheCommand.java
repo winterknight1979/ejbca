@@ -45,15 +45,25 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class ClearCacheCommand extends EjbcaCommandBase {
 
-  private static final Logger log = Logger.getLogger(ClearCacheCommand.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(ClearCacheCommand.class);
+  /** Param. */
   private static final String ALL = "-all";
+  /** Param. */
   private static final String GLOBAL_CONFIGURATION = "-globalconf";
+  /** Param. */
   private static final String EE_PROFILES = "-eeprofile";
+  /** Param. */
   private static final String CERTIFICATE_PROFILE = "-certprofile";
+  /** Param. */
   private static final String AUTHORIZATION = "-authorization";
+  /** Param. */
   private static final String CA_CACHE = "-ca";
+  /** Param. */
   private static final String CT_CACHE = "-ct";
+  /** Param. */
   private static final String APPROVAL_PROFILE_CACHE = "--approvalprofile";
+  /** Param. */
   private static final String VALIDATOR_CACHE = "--validators";
 
   // Register parameters
@@ -174,7 +184,7 @@ public class ClearCacheCommand extends EjbcaCommandBase {
         || ctcache
         || approvalProfileCache
         || validatorCache)) {
-      log.error(
+      LOG.error(
           "ERROR: No caches were flushed because no parameters were"
               + " specified.");
       return CommandResult.FUNCTIONAL_FAILURE;
@@ -184,37 +194,37 @@ public class ClearCacheCommand extends EjbcaCommandBase {
       GlobalConfigurationSessionRemote globalConfigurationSession =
           EjbRemoteHelper.INSTANCE.getRemoteSession(
               GlobalConfigurationSessionRemote.class);
-      log.info("Flushing Global Configuration cache.");
+      LOG.info("Flushing Global Configuration cache.");
       // Flush GlobalConfiguration
       globalConfigurationSession.flushConfigurationCache(
           GlobalConfiguration.GLOBAL_CONFIGURATION_ID);
 
-      log.info("Flushing CMP configuration cache.");
+      LOG.info("Flushing CMP configuration cache.");
       // Flush CMPConfiguration
       globalConfigurationSession.flushConfigurationCache(
           CmpConfiguration.CMP_CONFIGURATION_ID);
 
-      log.info("Flushing SCEP configuration cache.");
+      LOG.info("Flushing SCEP configuration cache.");
       // Flush SCEP Configuration
       globalConfigurationSession.flushConfigurationCache(
           ScepConfiguration.SCEP_CONFIGURATION_ID);
     }
     if (eeprofile) {
-      log.info("Flushing End Entity Profile cache.");
+      LOG.info("Flushing End Entity Profile cache.");
       // Flush End Entity profiles
       EjbRemoteHelper.INSTANCE
           .getRemoteSession(EndEntityProfileSessionRemote.class)
           .flushProfileCache();
     }
     if (certprofile) {
-      log.info("Flushing Certificate Profile cache.");
+      LOG.info("Flushing Certificate Profile cache.");
       // Flush Certificate profiles
       EjbRemoteHelper.INSTANCE
           .getRemoteSession(CertificateProfileSessionRemote.class)
           .flushProfileCache();
     }
     if (authorization) {
-      log.info("Flushing Authorization cache.");
+      LOG.info("Flushing Authorization cache.");
       // Flush access control
       EjbRemoteHelper.INSTANCE
           .getRemoteSession(AuthorizationSessionRemote.class)
@@ -229,12 +239,12 @@ public class ClearCacheCommand extends EjbcaCommandBase {
           .forceCacheExpire();
     }
     if (cacache) {
-      log.info("Flushing CA cache.");
+      LOG.info("Flushing CA cache.");
       // Flush CAs
       EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class);
     }
     if (ctcache) {
-      log.info("Flushing CT caches.");
+      LOG.info("Flushing CT caches.");
       // Flush CT OCSP response extension cache and CT fast fail URL cache.
       final OcspResponseGeneratorSessionRemote ocspResponseGeneratorSession =
           EjbRemoteHelper.INSTANCE.getRemoteSession(
@@ -243,14 +253,14 @@ public class ClearCacheCommand extends EjbcaCommandBase {
       ocspResponseGeneratorSession.clearCTFailFastCache();
     }
     if (approvalProfileCache) {
-      log.info("Flushing Approval Profile Cache");
+      LOG.info("Flushing Approval Profile Cache");
       final ApprovalProfileSessionRemote approvalProfileSession =
           EjbRemoteHelper.INSTANCE.getRemoteSession(
               ApprovalProfileSessionRemote.class);
       approvalProfileSession.forceProfileCacheRebuild();
     }
     if (validatorCache) {
-      log.info("Flushing Validator Cache");
+      LOG.info("Flushing Validator Cache");
       final KeyValidatorSessionRemote keyValidatorSession =
           EjbRemoteHelper.INSTANCE.getRemoteSession(
               KeyValidatorSessionRemote.class);
@@ -262,6 +272,6 @@ public class ClearCacheCommand extends EjbcaCommandBase {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

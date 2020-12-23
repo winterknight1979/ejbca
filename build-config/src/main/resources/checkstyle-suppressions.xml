@@ -490,4 +490,45 @@
 	<!-- CLI-util -->
 	<suppress checks="MethodLengthCheck"
 		files="ParameterHandler.java" lines="121 " />
+		
+	<!-- ejbca-ejb-cli -->
+	<suppress checks="ParameterNumberCheck"
+		files="BatchMakeP12Command.java" lines="296 " />
+	<suppress checks="MethodLengthCheck"
+		files="CaChangeCryptoTokenCommand.java" lines="108 " />
+	<suppress checks="MethodLengthCheck"
+		files="CaImportCACertCommand.java" lines="114 " />
+	<suppress checks="MethodLengthCheck"
+		files="CaImportCACommand.java" lines="184 " />
+	<suppress checks="MethodLengthCheck"
+		files="CaImportCertCommand.java" lines="212 " />
+	<suppress checks="MethodLengthCheck"
+		files="CaImportCertDirCommand.java" lines="181 " />
+	<suppress checks="MethodLengthCheck"
+		files="CaImportCRLCommand.java" lines="134 " />
+	<suppress checks="MethodLengthCheck"
+		files="CaImportProfilesCommand.java" lines="92 " />
+	<suppress checks="MethodLengthCheck"
+		files="CaInitCommand.java" lines="365 " />
+	<suppress checks="ParameterNumberCheck"
+		files="CaInitCommand.java" lines="1006 " />
+	<suppress checks="MethodLengthCheck"
+		files="CaRenewCACommand.java" lines="140 " />
+	<suppress checks="MethodLengthCheck"
+		files="CARepublishCommand.java" lines="99 " />
+	<suppress checks="MethodLengthCheck"
+		files="UpdatePublicKeyBlacklistCommand.java" lines="149 " />
+	<suppress checks="InnerAssignmentCheck"
+		files="UpdatePublicKeyBlacklistCommand.java" lines="216, 258" />
+	<suppress checks="MethodLengthCheck"
+		files="UpdateCommand.java" lines="123 " />
+	<suppress checks="MethodLengthCheck"
+		files="CryptoTokenCreateCommand.java" lines="200 " />
+	<suppress checks="MethodLengthCheck"
+		files="InternalKeyBindingModifyCommand.java" lines="133 " />
+	<suppress checks="MethodLengthCheck"
+		files="AddEndEntityCommand.java" lines="252 " />
+	<suppress checks="MethodLengthCheck"
+		files="RemoveAdminCommand.java" lines="120 " />
+	
 </suppressions>

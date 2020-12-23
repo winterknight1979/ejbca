@@ -32,10 +32,13 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 /** @version $Id: UploadFileCommand.java 27965 2018-01-15 16:20:53Z anatom $ */
 public class UploadFileCommand extends BaseEstConfigCommand {
 
+      /** Param. */
   private static final String ALIAS_KEY = "--alias";
+  /** Param. */
   private static final String FILE_KEY = "--file";
 
-  private static final Logger log = Logger.getLogger(UploadFileCommand.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(UploadFileCommand.class);
 
   {
     registerParameter(
@@ -74,9 +77,9 @@ public class UploadFileCommand extends BaseEstConfigCommand {
       pc.setReloadingStrategy(new FileChangedReloadingStrategy());
       config = new CompositeConfiguration();
       config.addConfiguration(pc);
-      log.info("Reading CMP configuration from file: " + f.getAbsolutePath());
+      LOG.info("Reading CMP configuration from file: " + f.getAbsolutePath());
     } catch (ConfigurationException e) {
-      log.error(
+      LOG.error(
           "Failed to load configuration from file " + f.getAbsolutePath());
       return CommandResult.FUNCTIONAL_FAILURE;
     }
@@ -132,7 +135,7 @@ public class UploadFileCommand extends BaseEstConfigCommand {
         populated = true;
         String value = config.getString(key);
         getEstConfiguration().setValue(key, value, alias);
-        log.info("Setting value: " + key + "=" + value);
+        LOG.info("Setting value: " + key + "=" + value);
       }
     }
 
@@ -141,20 +144,20 @@ public class UploadFileCommand extends BaseEstConfigCommand {
       try {
         getGlobalConfigurationSession()
             .saveConfiguration(getAuthenticationToken(), getEstConfiguration());
-        log.info("\nNew configurations saved successfully.");
-        log.info(
+        LOG.info("\nNew configurations saved successfully.");
+        LOG.info(
             "If there are any issues with the configurations, check them in"
                 + " the AdminGUI and click 'Save'");
         getGlobalConfigurationSession()
             .flushConfigurationCache(EstConfiguration.EST_CONFIGURATION_ID);
       } catch (AuthorizationDeniedException e) {
-        log.error(
+        LOG.error(
             "Failed to save configuration from file: "
                 + e.getLocalizedMessage());
       }
     } else {
       getEstConfiguration().removeAlias(alias);
-      log.info(
+      LOG.info(
           "No relevent EST configurations found with alias '"
               + alias
               + "' in the file.");
@@ -163,6 +166,6 @@ public class UploadFileCommand extends BaseEstConfigCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

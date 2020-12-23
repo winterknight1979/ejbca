@@ -33,9 +33,11 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class CryptoTokenActivateCommand extends BaseCryptoTokenCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CryptoTokenActivateCommand.class);
 
+  /** Param. */
   private static final String PIN_KEY = "--pin";
 
   {
@@ -119,6 +121,6 @@ public class CryptoTokenActivateCommand extends BaseCryptoTokenCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

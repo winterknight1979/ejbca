@@ -51,18 +51,23 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class UnRevokeEndEntityCommand extends BaseRaCommand {
 
-  private static final Logger log =
+      /** Param. */
+  private static final Logger LOG =
       Logger.getLogger(UnRevokeEndEntityCommand.class);
 
+  /** Param. */
   private static final String COMMAND = "unrevokeendentity";
+  /** Param. */
   private static final String OLD_COMMAND = "unrevokeuser";
 
+  /** Param. */
   private static final Set<String> ALIASES = new HashSet<String>();
 
   static {
     ALIASES.add(OLD_COMMAND);
   }
 
+  /** Param. */
   private static final String USERNAME_KEY = "--username";
 
   {
@@ -101,12 +106,12 @@ public class UnRevokeEndEntityCommand extends BaseRaCommand {
       data =
           endEntityAccessSession.findUser(getAuthenticationToken(), username);
     } catch (AuthorizationDeniedException e1) {
-      log.error("ERROR: Not authorized to revoke end entity.");
+      LOG.error("ERROR: Not authorized to revoke end entity.");
       return CommandResult.FUNCTIONAL_FAILURE;
     }
 
     if (data == null) {
-      log.error("ERROR: No such end entity: " + username);
+      LOG.error("ERROR: No such end entity: " + username);
       return CommandResult.FUNCTIONAL_FAILURE;
     }
 
@@ -215,6 +220,6 @@ public class UnRevokeEndEntityCommand extends BaseRaCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

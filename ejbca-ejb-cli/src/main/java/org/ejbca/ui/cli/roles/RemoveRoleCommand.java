@@ -32,9 +32,12 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class RemoveRoleCommand extends BaseRolesCommand {
 
-  private static final Logger log = Logger.getLogger(RemoveRoleCommand.class);
+      /** Param. */
+  private static final Logger LOG = Logger.getLogger(RemoveRoleCommand.class);
 
+  /** Param. */
   private static final String ROLE_NAME_KEY = "--role";
+  /** Param. */
   private static final String ROLE_NAMESPACE_KEY = "--namespace";
 
   {
@@ -109,6 +112,6 @@ public class RemoveRoleCommand extends BaseRolesCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

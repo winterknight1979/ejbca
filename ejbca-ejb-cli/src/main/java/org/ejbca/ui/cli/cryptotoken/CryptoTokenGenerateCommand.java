@@ -32,10 +32,13 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class CryptoTokenGenerateCommand extends BaseCryptoTokenCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CryptoTokenGenerateCommand.class);
 
+  /** Param. */
   private static final String KEY_PAIR_ALIAS_KEY = "--alias";
+  /** Param. */
   private static final String KEY_SPECIFICATION_KEY = "--keyspec";
 
   {
@@ -102,6 +105,6 @@ public class CryptoTokenGenerateCommand extends BaseCryptoTokenCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

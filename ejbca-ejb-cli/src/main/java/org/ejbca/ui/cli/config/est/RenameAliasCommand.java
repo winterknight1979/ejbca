@@ -25,10 +25,13 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 /** @version $Id: RenameAliasCommand.java 27965 2018-01-15 16:20:53Z anatom $ */
 public class RenameAliasCommand extends BaseEstConfigCommand {
 
+    /** PAram. */
   private static final String OLD_ALIAS_KEY = "--oldalias";
+  /** Param. */
   private static final String NEW_ALIAS_KEY = "--newalias";
 
-  private static final Logger log = Logger.getLogger(RenameAliasCommand.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(RenameAliasCommand.class);
 
   {
     registerParameter(
@@ -61,19 +64,19 @@ public class RenameAliasCommand extends BaseEstConfigCommand {
     // We check first because it is unnecessary to call saveConfiguration when
     // it is not needed
     if (!getEstConfiguration().aliasExists(oldalias)) {
-      log.info("Alias '" + oldalias + "' does not exist");
+      LOG.info("Alias '" + oldalias + "' does not exist");
       return CommandResult.FUNCTIONAL_FAILURE;
     }
     getEstConfiguration().renameAlias(oldalias, newalias);
     try {
       getGlobalConfigurationSession()
           .saveConfiguration(getAuthenticationToken(), getEstConfiguration());
-      log.info("Renamed EST alias '" + oldalias + "' to '" + newalias + "'");
+      LOG.info("Renamed EST alias '" + oldalias + "' to '" + newalias + "'");
       getGlobalConfigurationSession()
           .flushConfigurationCache(EstConfiguration.EST_CONFIGURATION_ID);
       return CommandResult.SUCCESS;
     } catch (AuthorizationDeniedException e) {
-      log.info(
+      LOG.info(
           "Failed to rename alias '"
               + oldalias
               + "' to '"
@@ -96,6 +99,6 @@ public class RenameAliasCommand extends BaseEstConfigCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

@@ -24,13 +24,14 @@ import org.ejbca.ui.cli.infrastructure.command.CommandResult;
 import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
 
 /**
- * Shows the current server configuration
+ * Shows the current server configuration.
  *
  * @version $Id: ConfigDumpCommand.java 19968 2014-10-09 13:13:58Z mikekushner $
  */
 public class ConfigDumpCommand extends ConfigBaseCommand {
 
-  private static final Logger log = Logger.getLogger(ConfigDumpCommand.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(ConfigDumpCommand.class);
 
   @Override
   public String getMainCommand() {
@@ -39,7 +40,7 @@ public class ConfigDumpCommand extends ConfigBaseCommand {
 
   @Override
   public CommandResult execute(final ParameterContainer parameters) {
-    log.info("Trying to fetch currently used server properties...");
+    LOG.info("Trying to fetch currently used server properties...");
 
     Properties properties;
     try {
@@ -50,13 +51,13 @@ public class ConfigDumpCommand extends ConfigBaseCommand {
                   getAuthenticationToken(),
                   GlobalConfiguration.GLOBAL_CONFIGURATION_ID);
     } catch (AuthorizationDeniedException e) {
-      log.error("CLI user not authorized to retrieve global configuration.");
+      LOG.error("CLI user not authorized to retrieve global configuration.");
       return CommandResult.AUTHORIZATION_FAILURE;
     }
     Enumeration<Object> enumeration = properties.keys();
     while (enumeration.hasMoreElements()) {
       String key = (String) enumeration.nextElement();
-      log.info(" " + key + " = " + properties.getProperty(key));
+      LOG.info(" " + key + " = " + properties.getProperty(key));
     }
     return CommandResult.SUCCESS;
   }
@@ -73,6 +74,6 @@ public class ConfigDumpCommand extends ConfigBaseCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

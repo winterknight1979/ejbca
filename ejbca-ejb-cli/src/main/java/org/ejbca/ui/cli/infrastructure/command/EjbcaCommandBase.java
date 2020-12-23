@@ -13,7 +13,7 @@
 package org.ejbca.ui.cli.infrastructure.command;
 
 /**
- * Base class for EJBCA commands that don't use the CLI user
+ * Base class for EJBCA commands that don't use the CLI user.
  *
  * @version $Id: EjbcaCommandBase.java 19902 2014-09-30 14:32:24Z anatom $
  */

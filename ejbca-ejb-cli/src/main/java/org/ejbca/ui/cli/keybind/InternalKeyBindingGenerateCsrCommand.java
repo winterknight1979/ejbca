@@ -41,12 +41,17 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 public class InternalKeyBindingGenerateCsrCommand
     extends RudInternalKeyBindingCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(InternalKeyBindingGenerateCsrCommand.class);
 
+  /** Param. */
   private static final String GENKEYPAIR_KEY = "--genkeypair";
+  /** Param. */
   private static final String CSR_FILE_KEY = "-f";
+  /** Param. */
   private static final String SUBJECTDN_KEY = "--subjectdn";
+  /** Param. */
   private static final String SUBJECTDN_ORDER_KEY = "--x500dnorder";
 
   {
@@ -185,6 +190,6 @@ public class InternalKeyBindingGenerateCsrCommand
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

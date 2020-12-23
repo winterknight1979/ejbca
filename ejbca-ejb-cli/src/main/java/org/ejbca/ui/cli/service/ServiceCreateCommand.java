@@ -31,9 +31,10 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class ServiceCreateCommand extends BaseServiceModificationCommand {
 
-  private static final Logger log =
+/** Param. */
+  private static final Logger LOG =
       Logger.getLogger(ServiceCreateCommand.class);
-
+/** Param. */
   private static final String ARGS_KEY = "--properties";
 
   {
@@ -60,7 +61,7 @@ public class ServiceCreateCommand extends BaseServiceModificationCommand {
 
     final ServiceSessionRemote serviceSession =
         EjbRemoteHelper.INSTANCE.getRemoteSession(ServiceSessionRemote.class);
-    final String serviceName = parameters.get(SERVICE_NAME_KEY);
+    final String serviceName = parameters.get(serviceNameKey);
 
     ServiceConfiguration serviceConfig = new ServiceConfiguration();
     final boolean wasActive = false;
@@ -106,18 +107,20 @@ public class ServiceCreateCommand extends BaseServiceModificationCommand {
             + " fields in the Admin Web.\n\n");
     sb.append(
         "Example usage: service create DailyCRLUpdate"
-            + " workerClassPath=org.ejbca.core.model.services.workers.CRLUpdateWorker"
+            + " workerClassPath=org.ejbca.core.model."
+            + "services.workers.CRLUpdateWorker"
             + " worker.caidstocheck=1"
-            + " intervalClassPath=org.ejbca.core.model.services.intervals.PeriodicalInterval"
+            + " intervalClassPath=org.ejbca.core.model."
+            + "services.intervals.PeriodicalInterval"
             + " interval.periodical.unit=DAYS interval.periodical.value=1"
             + " actionClassPath=org.ejbca.core.model.services.actions.NoAction"
             + " active=true");
-    sb.append("\n\n").append(FIELDS_HELP + "\n\n");
+    sb.append("\n\n").append(fieldsHelp + "\n\n");
     return sb.toString();
   }
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

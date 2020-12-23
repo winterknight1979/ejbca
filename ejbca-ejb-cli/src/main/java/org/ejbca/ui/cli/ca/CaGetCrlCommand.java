@@ -38,12 +38,18 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class CaGetCrlCommand extends BaseCaAdminCommand {
 
-  private static final Logger log = Logger.getLogger(CaGetCrlCommand.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CaGetCrlCommand.class);
 
+  /** Param. */
   private static final String CA_NAME_KEY = "--caname";
+  /** Param. */
   private static final String DELTA_KEY = "-delta";
+  /** Param. */
   private static final String PEM_KEY = "-pem";
+  /** Param. */
   private static final String FILE_KEY = "-f";
+  /** Param. */
   private static final String CRLNUMBER_KEY = "-crlnumber";
 
   {
@@ -107,7 +113,7 @@ public class CaGetCrlCommand extends BaseCaAdminCommand {
     if (crlnumber != null) {
       if (!StringUtils.isNumeric(crlnumber)
           || (Integer.valueOf(crlnumber) < 0)) {
-        log.error("CRL Number must be a positive number");
+        LOG.error("CRL Number must be a positive number");
         return CommandResult.FUNCTIONAL_FAILURE;
       }
     }
@@ -133,7 +139,7 @@ public class CaGetCrlCommand extends BaseCaAdminCommand {
           fos.write(crl);
         }
         fos.close();
-        log.info(
+        LOG.info(
             "Wrote "
                 + (crlnumber == null ? "latest" : ("crlNumber " + crlnumber))
                 + (deltaSelector ? "delta" : "")
@@ -143,7 +149,7 @@ public class CaGetCrlCommand extends BaseCaAdminCommand {
                 + (pem ? "PEM" : "DER")
                 + " format");
       } else {
-        log.info(
+        LOG.info(
             "No "
                 + (deltaSelector ? "delta " : "")
                 + "CRL "
@@ -156,11 +162,11 @@ public class CaGetCrlCommand extends BaseCaAdminCommand {
       }
       return CommandResult.SUCCESS;
     } catch (AuthorizationDeniedException e) {
-      log.error("CLI User was not authorized to CA " + caname);
+      LOG.error("CLI User was not authorized to CA " + caname);
     } catch (CADoesntExistsException e) {
-      log.info("CA '" + caname + "' does not exist.");
+      LOG.info("CA '" + caname + "' does not exist.");
     } catch (FileNotFoundException e) {
-      log.error("Could not create export file", e);
+      LOG.error("Could not create export file", e);
     } catch (IOException e) {
       throw new IllegalStateException(
           "Could not write to file for unknown reason", e);
@@ -181,6 +187,6 @@ public class CaGetCrlCommand extends BaseCaAdminCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

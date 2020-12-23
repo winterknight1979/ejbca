@@ -26,13 +26,15 @@ import org.ejbca.ui.cli.infrastructure.command.CommandResult;
 import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
 
 /**
- * Lists admin roles
+ * Lists admin roles.
  *
  * @version $Id: ListRolesCommand.java 29175 2018-06-08 13:38:23Z jeklund $
  */
 public class ListRolesCommand extends BaseRolesCommand {
 
-  private static final Logger log = Logger.getLogger(ListRolesCommand.class);
+
+      /** Param. */
+  private static final Logger LOG = Logger.getLogger(ListRolesCommand.class);
 
   @Override
   public String getMainCommand() {
@@ -88,6 +90,6 @@ public class ListRolesCommand extends BaseRolesCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

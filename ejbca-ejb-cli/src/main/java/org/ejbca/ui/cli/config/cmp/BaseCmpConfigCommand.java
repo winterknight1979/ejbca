@@ -17,13 +17,14 @@ import org.ejbca.config.CmpConfiguration;
 import org.ejbca.ui.cli.config.ConfigBaseCommand;
 
 /**
- * Shows the current server configuration
+ * Shows the current server configuration.
  *
  * @version $Id: BaseCmpConfigCommand.java 19968 2014-10-09 13:13:58Z
  *     mikekushner $
  */
 public abstract class BaseCmpConfigCommand extends ConfigBaseCommand {
 
+    /** Param. */
   private CmpConfiguration cmpConfiguration = null;
 
   @Override
@@ -31,6 +32,9 @@ public abstract class BaseCmpConfigCommand extends ConfigBaseCommand {
     return new String[] {super.getCommandPath()[0], "cmp"};
   }
 
+  /**
+   * @return Config
+   */
   protected CmpConfiguration getCmpConfiguration() {
     if (cmpConfiguration == null) {
       cmpConfiguration =

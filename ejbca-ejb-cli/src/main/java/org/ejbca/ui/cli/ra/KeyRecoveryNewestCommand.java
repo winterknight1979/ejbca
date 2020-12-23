@@ -33,16 +33,18 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
 import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 
 /**
- * Set status to key recovery for an end entity's newest certificate
+ * Set status to key recovery for an end entity's newest certificate.
  *
  * @version $Id: KeyRecoveryNewestCommand.java 23397 2016-05-11 14:53:14Z
  *     aveen4711 $
  */
 public class KeyRecoveryNewestCommand extends BaseRaCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(KeyRecoveryNewestCommand.class);
 
+  /** Param. */
   private static final String USERNAME_KEY = "--username";
 
   {
@@ -113,15 +115,15 @@ public class KeyRecoveryNewestCommand extends BaseRaCommand {
                     + " certificate for recovery.");
       }
     } catch (AuthorizationDeniedException e) {
-      log.error(
+      LOG.error(
           "ERROR: CLI use not authorized to perform key recovery on user "
               + username);
     } catch (ApprovalException e) {
-      log.error("ERROR: " + e.getMessage());
+      LOG.error("ERROR: " + e.getMessage());
     } catch (WaitingForApprovalException e) {
-      log.error("ERROR: " + e.getMessage());
+      LOG.error("ERROR: " + e.getMessage());
     } catch (CADoesntExistsException e) {
-      log.error("ERROR: " + e.getMessage());
+      LOG.error("ERROR: " + e.getMessage());
     }
     return CommandResult.FUNCTIONAL_FAILURE;
   }
@@ -138,6 +140,6 @@ public class KeyRecoveryNewestCommand extends BaseRaCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

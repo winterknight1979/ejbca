@@ -40,11 +40,15 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class RevokeCertificateCommand extends BaseRaCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(RevokeCertificateCommand.class);
 
+  /** Param. */
   private static final String SERIAL_NUMBER_KEY = "-s";
+  /** Param. */
   private static final String DN_KEY = "--dn";
+  /** Param. */
   private static final String REASON_KEY = "-r";
 
   {
@@ -93,7 +97,7 @@ public class RevokeCertificateCommand extends BaseRaCommand {
     try {
       serno = new BigInteger(certserno, 16);
     } catch (NumberFormatException e) {
-      log.error(
+      LOG.error(
           "ERROR: Invalid hexadecimal certificate serial number string: "
               + certserno);
       return CommandResult.FUNCTIONAL_FAILURE;
@@ -102,10 +106,11 @@ public class RevokeCertificateCommand extends BaseRaCommand {
     try {
       reason = Integer.parseInt(parameters.get(REASON_KEY));
     } catch (NumberFormatException e) {
-      log.error("ERROR: " + parameters.get(REASON_KEY) + " was not a number.");
+      LOG.error("ERROR: " + parameters.get(REASON_KEY) + " was not a number.");
       return CommandResult.FUNCTIONAL_FAILURE;
     }
-    if ((reason == 7) || (reason < 0) || (reason > 10)) {
+    final int invalid = 7;
+    if ((reason == invalid) || (reason < 0) || (reason > 10)) {
       getLogger()
           .error("ERROR: Reason must be an integer between 0 and 10 except 7.");
       return CommandResult.FUNCTIONAL_FAILURE;
@@ -130,16 +135,16 @@ public class RevokeCertificateCommand extends BaseRaCommand {
                 .getRemoteSession(EndEntityManagementSessionRemote.class)
                 .revokeCert(getAuthenticationToken(), serno, issuerDN, reason);
           } catch (ApprovalException e) {
-            log.error(e.getMessage(), e);
+            LOG.error(e.getMessage(), e);
             return CommandResult.FUNCTIONAL_FAILURE;
           } catch (AuthorizationDeniedException e) {
-            log.error("ERROR: CLI user not authorized to revoke certificate.");
+            LOG.error("ERROR: CLI user not authorized to revoke certificate.");
             return CommandResult.FUNCTIONAL_FAILURE;
           } catch (NoSuchEndEntityException e) {
-            log.error("ERROR: " + e.getMessage());
+            LOG.error("ERROR: " + e.getMessage());
             return CommandResult.FUNCTIONAL_FAILURE;
           } catch (WaitingForApprovalException e) {
-            log.error("ERROR: " + e.getMessage());
+            LOG.error("ERROR: " + e.getMessage());
             return CommandResult.FUNCTIONAL_FAILURE;
           }
           getLogger()
@@ -199,6 +204,6 @@ public class RevokeCertificateCommand extends BaseRaCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

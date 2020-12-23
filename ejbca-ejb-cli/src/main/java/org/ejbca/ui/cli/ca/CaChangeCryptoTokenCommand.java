@@ -43,11 +43,16 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class CaChangeCryptoTokenCommand extends BaseCaAdminCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CaChangeCryptoTokenCommand.class);
+  /** Param. */
   private static final String CA_NAME_KEY = "--caname";
+  /** Param. */
   private static final String CRYPTOTOKEN_NAME_KEY = "--cryptotoken";
+  /** Param. */
   private static final String EXECUTE_KEY = "--execute";
+  /** Param. */
   private static final String CA_TOKEN_PROPERTIES_KEY = "--tokenprop";
 
   {
@@ -102,7 +107,7 @@ public class CaChangeCryptoTokenCommand extends BaseCaAdminCommand {
 
   @Override
   public CommandResult execute(final ParameterContainer parameters) {
-    log.trace(">execute()");
+    LOG.trace(">execute()");
     CryptoProviderTools.installBCProvider(); // need this for CVC certificate
     final String caName = parameters.get(CA_NAME_KEY);
     final String cryptoTokenName = parameters.get(CRYPTOTOKEN_NAME_KEY);
@@ -128,7 +133,7 @@ public class CaChangeCryptoTokenCommand extends BaseCaAdminCommand {
                       + " is a directory.");
           return CommandResult.FUNCTIONAL_FAILURE;
         } else {
-          try (final FileInputStream fis =
+          try (FileInputStream fis =
               new FileInputStream(caTokenPropertiesFile)) {
             caTokenProperties.load(fis);
           } catch (FileNotFoundException e) {
@@ -309,17 +314,17 @@ public class CaChangeCryptoTokenCommand extends BaseCaAdminCommand {
                     + EXECUTE_KEY
                     + "' option is used.");
       }
-      log.trace("<execute()");
+      LOG.trace("<execute()");
     } catch (AuthorizationDeniedException e) {
       getLogger().error("CLI User was not authorized to modify CA " + caName);
-      log.trace("<execute()");
+      LOG.trace("<execute()");
       return CommandResult.AUTHORIZATION_FAILURE;
     } catch (CADoesntExistsException e) {
       getLogger().error("No such CA with by name " + caName);
       getLogger().error(getCaList());
       return CommandResult.FUNCTIONAL_FAILURE;
     }
-    log.trace("<execute()");
+    LOG.trace("<execute()");
     return CommandResult.SUCCESS;
   }
 
@@ -346,6 +351,6 @@ public class CaChangeCryptoTokenCommand extends BaseCaAdminCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

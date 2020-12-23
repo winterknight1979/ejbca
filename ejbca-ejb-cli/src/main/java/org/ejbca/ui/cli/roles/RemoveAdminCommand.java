@@ -36,19 +36,26 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
 import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 
 /**
- * Removes an admin
+ * Removes an admin.
  *
  * @version $Id: RemoveAdminCommand.java 29199 2018-06-11 11:13:01Z jeklund $
  */
 public class RemoveAdminCommand extends BaseRolesCommand {
 
-  private static final Logger log = Logger.getLogger(RemoveAdminCommand.class);
+      /** Param. */
+  private static final Logger LOG = Logger.getLogger(RemoveAdminCommand.class);
 
+  /** Param. */
   private static final String ROLE_NAME_KEY = "--role";
+  /** Param. */
   private static final String CA_NAME_KEY = "--caname";
+  /** Param. */
   private static final String MATCH_WITH_KEY = "--with";
+  /** Param. */
   private static final String MATCH_TYPE_KEY = "--type";
+  /** Param. */
   private static final String MATCH_VALUE_KEY = "--value";
+  /** Param. */
   private static final String ROLE_NAMESPACE_KEY = "--namespace";
 
   {
@@ -234,8 +241,8 @@ public class RemoveAdminCommand extends BaseRolesCommand {
             RoleMemberSessionRemote.class);
     try {
       boolean foundMatch = false;
-      for (final RoleMember roleMember :
-          roleMemberSession.getRoleMembersByRoleId(
+      for (final RoleMember roleMember
+          : roleMemberSession.getRoleMembersByRoleId(
               getAuthenticationToken(), role.getRoleId())) {
         if (tokenType.equals(roleMember.getTokenType())
             && tokenIssuerId == roleMember.getTokenIssuerId()
@@ -292,6 +299,6 @@ public class RemoveAdminCommand extends BaseRolesCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

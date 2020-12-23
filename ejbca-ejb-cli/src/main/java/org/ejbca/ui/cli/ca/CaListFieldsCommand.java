@@ -35,8 +35,10 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class CaListFieldsCommand extends BaseCaAdminCommand {
 
-  private static final Logger log = Logger.getLogger(CaListFieldsCommand.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CaListFieldsCommand.class);
 
+  /** Param. */
   private static final String CA_NAME_KEY = "--caname";
 
   {
@@ -57,9 +59,8 @@ public class CaListFieldsCommand extends BaseCaAdminCommand {
 
   @Override
   public CommandResult execute(final ParameterContainer parameters) {
-    FieldEditor fieldEditor = new FieldEditor(log);
+    FieldEditor fieldEditor = new FieldEditor(LOG);
     CryptoProviderTools.installBCProviderIfNotAvailable();
-    ;
     final String name = parameters.get(CA_NAME_KEY);
     try {
       final CAInfo cainfo =
@@ -67,14 +68,14 @@ public class CaListFieldsCommand extends BaseCaAdminCommand {
               .getRemoteSession(CaSessionRemote.class)
               .getCAInfo(getAuthenticationToken(), name);
       if (cainfo == null) {
-        log.info("CA '" + name + "' does not exist.");
+        LOG.info("CA '" + name + "' does not exist.");
         return CommandResult.FUNCTIONAL_FAILURE;
       }
       // List fields
       fieldEditor.listSetMethods(cainfo);
       return CommandResult.SUCCESS;
     } catch (AuthorizationDeniedException e) {
-      log.error("CLI User was not authorized to CA " + name);
+      LOG.error("CLI User was not authorized to CA " + name);
       return CommandResult.AUTHORIZATION_FAILURE;
     }
   }
@@ -91,6 +92,6 @@ public class CaListFieldsCommand extends BaseCaAdminCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

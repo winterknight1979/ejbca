@@ -72,18 +72,25 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  *     $
  */
 public class CaImportCRLCommand extends BaseCaAdminCommand {
+/** Logger. */
+  private static final Logger LOG = Logger.getLogger(CaImportCRLCommand.class);
 
-  private static final Logger log = Logger.getLogger(CaImportCRLCommand.class);
-
+  /** Param. */
   public static final String MISSING_USERNAME_PREFIX =
       "*** Missing During CRL Import to: ";
 
+  /** Param. */
   private static final String STRICT_OP = "STRICT";
+  /** Param. */
   private static final String LENIENT_OP = "LENIENT";
+  /** Param. */
   private static final String ADAPTIVE_OP = "ADAPTIVE";
 
+  /** Param. */
   private static final String CA_NAME_KEY = "--caname";
+  /** Param. */
   private static final String CRL_FILE_KEY = "-f";
+  /** Param. */
   private static final String OPERATION_KEY = "-o";
 
   {
@@ -126,13 +133,13 @@ public class CaImportCRLCommand extends BaseCaAdminCommand {
 
   @Override
   public CommandResult execute(final ParameterContainer parameters) {
-    log.trace(">execute()");
+    LOG.trace(">execute()");
     CryptoProviderTools.installBCProvider();
 
     try {
       // Parse arguments
       final String caname = parameters.get(CA_NAME_KEY);
-      final String crl_file = parameters.get(CRL_FILE_KEY);
+      final String crlFile = parameters.get(CRL_FILE_KEY);
       final String operationsMode = parameters.get(OPERATION_KEY);
       final boolean strict = operationsMode.equalsIgnoreCase(STRICT_OP);
       final boolean adaptive = operationsMode.equalsIgnoreCase(ADAPTIVE_OP);
@@ -140,7 +147,7 @@ public class CaImportCRLCommand extends BaseCaAdminCommand {
           && !adaptive
           && !operationsMode.equalsIgnoreCase(LENIENT_OP)) {
         // None of the above.
-        log.error(
+        LOG.error(
             "Operations mode must be one of "
                 + STRICT_OP
                 + ", "
@@ -153,33 +160,33 @@ public class CaImportCRLCommand extends BaseCaAdminCommand {
       // Fetch CA and related info
       final CAInfo cainfo = getCAInfo(getAuthenticationToken(), caname);
       if (cainfo == null) {
-        log.error("CA by name of " + caname + " could not be found.");
+        LOG.error("CA by name of " + caname + " could not be found.");
         return CommandResult.FUNCTIONAL_FAILURE;
       }
       final X509Certificate cacert =
           (X509Certificate) cainfo.getCertificateChain().iterator().next();
       final String issuer =
           CertTools.stringToBCDNString(cacert.getSubjectDN().toString());
-      log.info("CA: " + issuer);
+      LOG.info("CA: " + issuer);
       // Read the supplied CRL and verify that it is issued by the specified CA
       final X509CRL x509crl =
           (X509CRL)
               CertTools.getCertificateFactory()
-                  .generateCRL(new FileInputStream(crl_file));
+                  .generateCRL(new FileInputStream(crlFile));
       if (!x509crl
           .getIssuerX500Principal()
           .equals(cacert.getSubjectX500Principal())) {
         throw new IOException("CRL wasn't issued by this CA");
       }
       x509crl.verify(cacert.getPublicKey());
-      int crl_no = CrlExtensions.getCrlNumber(x509crl).intValue();
-      log.info("Processing CRL #" + crl_no);
-      int miss_count = 0; // Number of certs not already in database
+      int crlNo = CrlExtensions.getCrlNumber(x509crl).intValue();
+      LOG.info("Processing CRL #" + crlNo);
+      int missCount = 0; // Number of certs not already in database
       int revoked = 0; // Number of certs activly revoked by this algorithm
-      int already_revoked =
+      int alreadyRevoked =
           0; // Number of certs already revoked in database and ignored in
              // non-strict mode
-      final String missing_user_name = MISSING_USERNAME_PREFIX + caname;
+      final String missingUserName = MISSING_USERNAME_PREFIX + caname;
       @SuppressWarnings("unchecked")
       Set<X509CRLEntry> entries =
           (Set<X509CRLEntry>) x509crl.getRevokedCertificates();
@@ -194,24 +201,24 @@ public class CaImportCRLCommand extends BaseCaAdminCommand {
           // If this certificate exists and has an assigned username, we keep
           // using that. Otherwise we create this coupling to a user.
           if (username == null) {
-            log.info("Certificate '" + serialHex + "' missing in the database");
+            LOG.info("Certificate '" + serialHex + "' missing in the database");
             if (strict) {
               throw new IOException(
                   "Aborted! Running in strict mode and is missing certificate"
                       + " in database.");
             }
-            miss_count++;
+            missCount++;
             if (!adaptive) {
               continue;
             }
             final Date time =
                 new Date(); // time from which certificate is valid
-            final KeyPair key_pair =
+            final KeyPair keyPair =
                 KeyTools.genKeys("2048", AlgorithmConstants.KEYALGORITHM_RSA);
 
             final SubjectPublicKeyInfo pkinfo =
                 SubjectPublicKeyInfo.getInstance(
-                    key_pair.getPublic().getEncoded());
+                    keyPair.getPublic().getEncoded());
             final X500Name dnName =
                 new X500Name(
                     "CN=Dummy Missing in Imported CRL, serialNumber="
@@ -233,7 +240,7 @@ public class CaImportCRLCommand extends BaseCaAdminCommand {
                 new BufferingContentSigner(
                     new JcaContentSignerBuilder("SHA1withRSA")
                         .setProvider(BouncyCastleProvider.PROVIDER_NAME)
-                        .build(key_pair.getPrivate()),
+                        .build(keyPair.getPrivate()),
                     20480);
             final X509CertificateHolder certHolder = certbuilder.build(signer);
             final X509Certificate certificate =
@@ -247,13 +254,13 @@ public class CaImportCRLCommand extends BaseCaAdminCommand {
             final EndEntityInformation missingUserEndEntityInformation =
                 EjbRemoteHelper.INSTANCE
                     .getRemoteSession(EndEntityAccessSessionRemote.class)
-                    .findUser(getAuthenticationToken(), missing_user_name);
+                    .findUser(getAuthenticationToken(), missingUserName);
             if (missingUserEndEntityInformation == null) {
               // Add the user and change status to REVOKED
-              log.debug("Loading/updating user " + missing_user_name);
+              LOG.debug("Loading/updating user " + missingUserName);
               final EndEntityInformation userdataNew =
                   new EndEntityInformation(
-                      missing_user_name,
+                      missingUserName,
                       CertTools.getSubjectDN(certificate),
                       cainfo.getCAId(),
                       null,
@@ -271,21 +278,21 @@ public class CaImportCRLCommand extends BaseCaAdminCommand {
               EjbRemoteHelper.INSTANCE
                   .getRemoteSession(EndEntityManagementSessionRemote.class)
                   .addUser(getAuthenticationToken(), userdataNew, false);
-              log.info("User '" + missing_user_name + "' has been added.");
+              LOG.info("User '" + missingUserName + "' has been added.");
               EjbRemoteHelper.INSTANCE
                   .getRemoteSession(EndEntityManagementSessionRemote.class)
                   .setUserStatus(
                       getAuthenticationToken(),
-                      missing_user_name,
+                      missingUserName,
                       EndEntityConstants.STATUS_REVOKED);
-              log.info("User '" + missing_user_name + "' has been updated.");
+              LOG.info("User '" + missingUserName + "' has been updated.");
             }
             EjbRemoteHelper.INSTANCE
                 .getRemoteSession(CertificateStoreSessionRemote.class)
                 .storeCertificateRemote(
                     getAuthenticationToken(),
                     EJBTools.wrap(certificate),
-                    missing_user_name,
+                    missingUserName,
                     fingerprint,
                     CertificateConstants.CERT_ACTIVE,
                     CertificateConstants.CERTTYPE_ENDENTITY,
@@ -293,7 +300,7 @@ public class CaImportCRLCommand extends BaseCaAdminCommand {
                     EndEntityConstants.NO_END_ENTITY_PROFILE,
                     null,
                     new Date().getTime());
-            log.info("Dummy certificate  '" + serialHex + "' has been stored.");
+            LOG.info("Dummy certificate  '" + serialHex + "' has been stored.");
           }
           // This check will not catch a certificate with status
           // CertificateConstants.CERT_ARCHIVED
@@ -301,11 +308,11 @@ public class CaImportCRLCommand extends BaseCaAdminCommand {
               && EjbRemoteHelper.INSTANCE
                   .getRemoteSession(CertificateStoreSessionRemote.class)
                   .isRevoked(issuer, serialNr)) {
-            log.info("Certificate '" + serialHex + "' is already revoked");
-            already_revoked++;
+            LOG.info("Certificate '" + serialHex + "' is already revoked");
+            alreadyRevoked++;
             continue;
           }
-          log.info(
+          LOG.info(
               "Revoking '"
                   + serialHex
                   + "' "
@@ -314,7 +321,7 @@ public class CaImportCRLCommand extends BaseCaAdminCommand {
                   + ")");
           try {
             int reason = getCRLReasonValue(entry);
-            log.info("Reason code: " + reason);
+            LOG.info("Reason code: " + reason);
             EjbRemoteHelper.INSTANCE
                 .getRemoteSession(EndEntityManagementSessionRemote.class)
                 .revokeCert(
@@ -326,8 +333,8 @@ public class CaImportCRLCommand extends BaseCaAdminCommand {
                     false);
             revoked++;
           } catch (AlreadyRevokedException e) {
-            already_revoked++;
-            log.warn(
+            alreadyRevoked++;
+            LOG.warn(
                 "Failed to revoke '"
                     + serialHex
                     + "'. (Status might be 'Archived'.) Error message was: "
@@ -338,14 +345,14 @@ public class CaImportCRLCommand extends BaseCaAdminCommand {
       if (EjbRemoteHelper.INSTANCE
               .getRemoteSession(CrlStoreSessionRemote.class)
               .getLastCRLNumber(issuer, false)
-          < crl_no) {
+          < crlNo) {
         EjbRemoteHelper.INSTANCE
             .getRemoteSession(CrlStoreSessionRemote.class)
             .storeCRL(
                 getAuthenticationToken(),
                 x509crl.getEncoded(),
                 CertTools.getFingerprintAsString(cacert),
-                crl_no,
+                crlNo,
                 issuer,
                 x509crl.getThisUpdate(),
                 x509crl.getNextUpdate(),
@@ -353,36 +360,36 @@ public class CaImportCRLCommand extends BaseCaAdminCommand {
       } else {
         if (strict) {
           throw new IOException(
-              "CRL #" + crl_no + " or higher is already in the database");
+              "CRL #" + crlNo + " or higher is already in the database");
         }
       }
-      log.info("\nSummary:\nRevoked " + revoked + " certificates");
-      if (already_revoked > 0) {
-        log.info(already_revoked + " certificates were already revoked");
+      LOG.info("\nSummary:\nRevoked " + revoked + " certificates");
+      if (alreadyRevoked > 0) {
+        LOG.info(alreadyRevoked + " certificates were already revoked");
       }
-      if (miss_count > 0) {
-        log.info(
+      if (missCount > 0) {
+        LOG.info(
             "There were "
-                + miss_count
+                + missCount
                 + (adaptive
                     ? " dummy certificates added to"
                     : " certificates missing in")
                 + " the database");
       }
-      log.info("CRL #" + crl_no + " stored in the database");
+      LOG.info("CRL #" + crlNo + " stored in the database");
     } catch (Exception e) {
       // FIXME: This is all kinds of suboptimal.
-      log.info("Error: " + e.getMessage());
+      LOG.info("Error: " + e.getMessage());
       return CommandResult.FUNCTIONAL_FAILURE;
     }
-    log.trace("<execute()");
+    LOG.trace("<execute()");
     return CommandResult.SUCCESS;
   }
 
   /**
    * Return a CRL reason code from a CRL entry, or
    * RevokedCertInfo.REVOCATION_REASON_UNSPECIFIED if a reson code extension
-   * does not exist
+   * does not exist.
    *
    * @param entry Entry
    * @return Value
@@ -405,7 +412,7 @@ public class CaImportCRLCommand extends BaseCaAdminCommand {
             reason = ext.getValue().intValue();
           } catch (ClassCastException e) {
             // this was not a reason code, very strange
-            log.info(
+            LOG.info(
                 "Reason code extension did not contain DEREnumerated, is this"
                     + " CRL corrupt?. "
                     + obj.getClass().getName());
@@ -449,6 +456,6 @@ public class CaImportCRLCommand extends BaseCaAdminCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

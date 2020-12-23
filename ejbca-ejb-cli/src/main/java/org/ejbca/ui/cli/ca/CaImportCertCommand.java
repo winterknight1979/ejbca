@@ -72,21 +72,35 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class CaImportCertCommand extends BaseCaAdminCommand {
 
-  private static final Logger log = Logger.getLogger(CaImportCertCommand.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CaImportCertCommand.class);
 
+  /** Param. */
   private static final String ENDENTITY_USERNAME_KEY = "--username";
+  /** Param. */
   private static final String ENDENTITY_PASSWORD_KEY = "--password";
+  /** Param. */
   private static final String CA_NAME_KEY = "--caname";
+  /** Param. */
   private static final String ACTIVE_KEY = "-a";
+  /** Param. */
   private static final String E_MAIL_KEY = "--email";
+  /** Param. */
   private static final String FILE_KEY = "-f";
+  /** Param. */
   private static final String EE_PROFILE_KEY = "--eeprofile";
+  /** Param. */
   private static final String CERT_PROFILE_KEY = "--certprofile";
+  /** Param. */
   private static final String OVERRIDE_EXISTING_ENDENTITY = "--overwrite";
+  /** Param. */
   private static final String REVOCATION_REASON = "--revocation-reason";
+  /** Param. */
   private static final String REVOCATION_TIME = "--revocation-time";
 
+  /** Param. */
   private static final String ACTIVE = "ACTIVE";
+  /** Param. */
   private static final String REVOKED = "REVOKED";
 
   {
@@ -197,7 +211,7 @@ public class CaImportCertCommand extends BaseCaAdminCommand {
 
   @Override
   public CommandResult execute(final ParameterContainer parameters) {
-    log.trace(">execute()");
+    LOG.trace(">execute()");
 
     CryptoProviderTools.installBCProviderIfNotAvailable();
     String username = parameters.get(ENDENTITY_USERNAME_KEY);
@@ -218,12 +232,12 @@ public class CaImportCertCommand extends BaseCaAdminCommand {
     if (ACTIVE.equalsIgnoreCase(active)) {
       status = CertificateConstants.CERT_ACTIVE;
       if (revocationReasonString != null) {
-        log.warn(
+        LOG.warn(
             "Revocation reason has been set in spite of certificates being"
                 + " imported as active. Ignoring.");
       }
       if (revocationTimeString != null) {
-        log.warn(
+        LOG.warn(
             "Revocation time has been set in spite of certificates being"
                 + " imported as active. Ignoring.");
       }
@@ -235,7 +249,7 @@ public class CaImportCertCommand extends BaseCaAdminCommand {
             RevocationReasons.getFromCliValue(
                 revocationReasonString.toUpperCase());
         if (revocationReason == null) {
-          log.error(
+          LOG.error(
               "ERROR: "
                   + revocationReasonString
                   + " is not a valid revocation reason.");
@@ -250,7 +264,7 @@ public class CaImportCertCommand extends BaseCaAdminCommand {
               new SimpleDateFormat(CaImportCertDirCommand.DATE_FORMAT)
                   .parse(revocationTimeString);
         } catch (ParseException e) {
-          log.error(
+          LOG.error(
               "ERROR: "
                   + revocationTimeString
                   + " was not a valid revocation time.");
@@ -273,13 +287,13 @@ public class CaImportCertCommand extends BaseCaAdminCommand {
     try {
       certificate = loadcert(certfile);
     } catch (FileNotFoundException e) {
-      log.error("File " + certfile + " was not found.");
+      LOG.error("File " + certfile + " was not found.");
       return CommandResult.FUNCTIONAL_FAILURE;
     } catch (CertificateException e) {
-      log.error("PEM in file " + certfile + " could not be read.");
+      LOG.error("PEM in file " + certfile + " could not be read.");
       return CommandResult.FUNCTIONAL_FAILURE;
     } catch (IOException e) {
-      log.error(
+      LOG.error(
           "File "
               + certfile
               + " does not seem to contain a PEM encoded certificate.");
@@ -310,7 +324,7 @@ public class CaImportCertCommand extends BaseCaAdminCommand {
               .getRemoteSession(EndEntityAccessSessionRemote.class)
               .findUser(getAuthenticationToken(), username);
     } catch (AuthorizationDeniedException e) {
-      log.error("ERROR: CLI user not authorized to manage end entities.");
+      LOG.error("ERROR: CLI user not authorized to manage end entities.");
       return CommandResult.AUTHORIZATION_FAILURE;
     }
     if ((userdata != null)
@@ -330,7 +344,7 @@ public class CaImportCertCommand extends BaseCaAdminCommand {
 
     int endentityprofileid = EndEntityConstants.EMPTY_END_ENTITY_PROFILE;
     if (eeprofile != null) {
-      log.debug("Searching for End Entity Profile " + eeprofile);
+      LOG.debug("Searching for End Entity Profile " + eeprofile);
       try {
         endentityprofileid =
             EjbRemoteHelper.INSTANCE
@@ -345,14 +359,14 @@ public class CaImportCertCommand extends BaseCaAdminCommand {
     int certificateprofileid =
         CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER;
     if (certificateprofile != null) {
-      log.debug("Searching for Certificate Profile " + certificateprofile);
+      LOG.debug("Searching for Certificate Profile " + certificateprofile);
       certificateprofileid =
           EjbRemoteHelper.INSTANCE
               .getRemoteSession(CertificateProfileSessionRemote.class)
               .getCertificateProfileId(certificateprofile);
       if (certificateprofileid
           == CertificateProfileConstants.CERTPROFILE_NO_PROFILE) {
-        log.error(
+        LOG.error(
             "Certificate Profile " + certificateprofile + " does not exist.");
         errorString.append(
             "Certificate Profile '"
@@ -363,28 +377,28 @@ public class CaImportCertCommand extends BaseCaAdminCommand {
 
     CAInfo cainfo = getCAInfo(getAuthenticationToken(), caname);
     if (cainfo == null) {
-      log.error("CA with name " + caname + " does not exist.");
+      LOG.error("CA with name " + caname + " does not exist.");
       errorString.append("CA with name '" + caname + "' does not exist.\n");
     }
 
     if (errorString.length() > 0) {
-      log.error(errorString.toString());
+      LOG.error(errorString.toString());
       return CommandResult.FUNCTIONAL_FAILURE;
     }
 
     final Certificate cacert = cainfo.getCertificateChain().iterator().next();
-    log.info("Trying to add user:");
-    log.info("Username: " + username);
-    log.info("Password (hashed only): " + password);
-    log.info("Email: " + email);
-    log.info("DN: " + CertTools.getSubjectDN(certificate));
-    log.info("CA Name: " + caname);
-    log.info(
+    LOG.info("Trying to add user:");
+    LOG.info("Username: " + username);
+    LOG.info("Password (hashed only): " + password);
+    LOG.info("Email: " + email);
+    LOG.info("DN: " + CertTools.getSubjectDN(certificate));
+    LOG.info("CA Name: " + caname);
+    LOG.info(
         "Certificate Profile: "
             + EjbRemoteHelper.INSTANCE
                 .getRemoteSession(CertificateProfileSessionRemote.class)
                 .getCertificateProfileName(certificateprofileid));
-    log.info(
+    LOG.info(
         "End Entity Profile: "
             + EjbRemoteHelper.INSTANCE
                 .getRemoteSession(EndEntityProfileSessionRemote.class)
@@ -392,11 +406,11 @@ public class CaImportCertCommand extends BaseCaAdminCommand {
 
     String subjectAltName = CertTools.getSubjectAlternativeName(certificate);
     if (subjectAltName != null) {
-      log.info("SubjectAltName: " + subjectAltName);
+      LOG.info("SubjectAltName: " + subjectAltName);
     }
-    log.info("Type: " + endEntityType.getHexValue());
+    LOG.info("Type: " + endEntityType.getHexValue());
 
-    log.debug("Loading/updating user " + username);
+    LOG.debug("Loading/updating user " + username);
     EndEntityManagementSessionRemote endEntityManagementSession =
         EjbRemoteHelper.INSTANCE.getRemoteSession(
             EndEntityManagementSessionRemote.class);
@@ -419,7 +433,7 @@ public class CaImportCertCommand extends BaseCaAdminCommand {
               SecConst.NO_HARDTOKENISSUER,
               cainfo.getCAId());
         } catch (EndEntityExistsException e) {
-          log.error(
+          LOG.error(
               "End entity with username " + username + " already exists.");
           return CommandResult.FUNCTIONAL_FAILURE;
         }
@@ -440,7 +454,7 @@ public class CaImportCertCommand extends BaseCaAdminCommand {
               "Newly added end entity could not be located", e);
         }
 
-        log.info("End Entity '" + username + "' has been added.");
+        LOG.info("End Entity '" + username + "' has been added.");
       } else {
         EndEntityInformation endEntityInformation =
             new EndEntityInformation(
@@ -465,35 +479,35 @@ public class CaImportCertCommand extends BaseCaAdminCommand {
           endEntityManagementSession.changeUser(
               getAuthenticationToken(), endEntityInformation, false);
         } catch (NoSuchEndEntityException e) {
-          log.error("No such end entity.");
+          LOG.error("No such end entity.");
           return CommandResult.FUNCTIONAL_FAILURE;
         }
 
-        log.info("User '" + username + "' has been updated.");
+        LOG.info("User '" + username + "' has been updated.");
       }
     } catch (CADoesntExistsException e) {
-      log.error("No such CA " + caname);
+      LOG.error("No such CA " + caname);
       return CommandResult.FUNCTIONAL_FAILURE;
     } catch (AuthorizationDeniedException e) {
-      log.error("CLI user not authorized to create end entity.");
+      LOG.error("CLI user not authorized to create end entity.");
       return CommandResult.FUNCTIONAL_FAILURE;
     } catch (EndEntityProfileValidationException e) {
-      log.error("User doesn't fulfill End Entity Profile ");
+      LOG.error("User doesn't fulfill End Entity Profile ");
       return CommandResult.FUNCTIONAL_FAILURE;
     } catch (WaitingForApprovalException e) {
-      log.error("Approval is required to add End Entity.");
+      LOG.error("Approval is required to add End Entity.");
       return CommandResult.FUNCTIONAL_FAILURE;
     } catch (CertificateSerialNumberException e) {
-      log.error(e.getMessage());
+      LOG.error(e.getMessage());
       return CommandResult.FUNCTIONAL_FAILURE;
     } catch (IllegalNameException e) {
-      log.error(e.getMessage());
+      LOG.error(e.getMessage());
       return CommandResult.FUNCTIONAL_FAILURE;
     } catch (ApprovalException e) {
-      log.error(e.getMessage());
+      LOG.error(e.getMessage());
       return CommandResult.FUNCTIONAL_FAILURE;
     } catch (CustomFieldException e) {
-      log.error(e.getMessage());
+      LOG.error(e.getMessage());
       return CommandResult.FUNCTIONAL_FAILURE;
     }
 
@@ -522,28 +536,28 @@ public class CaImportCertCommand extends BaseCaAdminCommand {
               revocationReason.getDatabaseValue(),
               false);
         } catch (ApprovalException e) {
-          log.error(e.getMessage());
+          LOG.error(e.getMessage());
           return CommandResult.FUNCTIONAL_FAILURE;
         } catch (AlreadyRevokedException e) {
-          log.error(e.getMessage());
+          LOG.error(e.getMessage());
           return CommandResult.FUNCTIONAL_FAILURE;
         } catch (RevokeBackDateNotAllowedForProfileException e) {
-          log.error(e.getMessage());
+          LOG.error(e.getMessage());
           return CommandResult.FUNCTIONAL_FAILURE;
         } catch (NoSuchEndEntityException e) {
-          log.error(e.getMessage());
+          LOG.error(e.getMessage());
           return CommandResult.FUNCTIONAL_FAILURE;
         } catch (WaitingForApprovalException e) {
-          log.error(e.getMessage());
+          LOG.error(e.getMessage());
           return CommandResult.FUNCTIONAL_FAILURE;
         }
       }
     } catch (AuthorizationDeniedException e) {
-      log.error("CLI user not authorized to import certificate.");
+      LOG.error("CLI user not authorized to import certificate.");
       return CommandResult.FUNCTIONAL_FAILURE;
     }
 
-    log.info(
+    LOG.info(
         "Certificate number '"
             + CertTools.getSerialNumberAsString(certificate)
             + "' has been added.");
@@ -662,6 +676,6 @@ public class CaImportCertCommand extends BaseCaAdminCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

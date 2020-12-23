@@ -21,7 +21,8 @@ import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
 /** @version $Id: ListAliasCommand.java 26057 2017-06-22 08:08:34Z anatom $ */
 public class ListAliasCommand extends BaseScepConfigCommand {
 
-  private static final Logger log = Logger.getLogger(ListAliasCommand.class);
+    /** Ligger. */
+  private static final Logger LOG = Logger.getLogger(ListAliasCommand.class);
 
   @Override
   public String getMainCommand() {
@@ -33,7 +34,7 @@ public class ListAliasCommand extends BaseScepConfigCommand {
     Set<String> aliaslist = getScepConfiguration().getAliasList();
     Iterator<String> itr = aliaslist.iterator();
     while (itr.hasNext()) {
-      log.info(itr.next());
+      LOG.info(itr.next());
     }
     return CommandResult.SUCCESS;
   }
@@ -50,6 +51,6 @@ public class ListAliasCommand extends BaseScepConfigCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

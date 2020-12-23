@@ -39,11 +39,16 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class GetCaCertCommand extends BaseCaAdminCommand {
 
-  private static final Logger log = Logger.getLogger(GetCaCertCommand.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(GetCaCertCommand.class);
 
+  /** Param. */
   private static final String CA_NAME_KEY = "--caname";
+  /** Param. */
   private static final String FILE_KEY = "-f";
+  /** Param. */
   private static final String DER_KEY = "-der";
+  /** Param. */
   private static final String FULL_CERT_CHAIN_KEY = "--include-full-chain";
 
   {
@@ -108,7 +113,7 @@ public class GetCaCertCommand extends BaseCaAdminCommand {
         try {
           fos = new FileOutputStream(filename);
         } catch (FileNotFoundException e) {
-          log.error("Could not create export file", e);
+          LOG.error("Could not create export file", e);
           return CommandResult.FUNCTIONAL_FAILURE;
         }
         if (pem) {
@@ -121,13 +126,13 @@ public class GetCaCertCommand extends BaseCaAdminCommand {
         } else {
           fos.write(caCert.getEncoded());
           if (fullChain) {
-            log.info(
+            LOG.info(
                 "Full certificate chain not available in DER format. Writing"
                     + " only CA certificate.");
           }
         }
         fos.close();
-        log.info(
+        LOG.info(
             "Wrote CA certificate "
                 + (pem && fullChain ? "with full certificate chain " : "")
                 + "to '"
@@ -137,7 +142,7 @@ public class GetCaCertCommand extends BaseCaAdminCommand {
                 + " encoding.");
         return CommandResult.SUCCESS;
       } else {
-        log.error("No CA certificate found.");
+        LOG.error("No CA certificate found.");
         return CommandResult.FUNCTIONAL_FAILURE;
       }
     } catch (IOException e) {
@@ -160,6 +165,6 @@ public class GetCaCertCommand extends BaseCaAdminCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

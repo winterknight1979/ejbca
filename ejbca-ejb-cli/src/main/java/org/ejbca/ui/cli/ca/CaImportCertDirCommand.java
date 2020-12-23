@@ -44,30 +44,44 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
 import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 
 /**
- * Imports certificate files to the database for a given CA
+ * Imports certificate files to the database for a given CA.
  *
  * @version $Id: CaImportCertDirCommand.java 30251 2018-10-29 07:47:17Z bastianf
  *     $
  */
 public class CaImportCertDirCommand extends BaseCaAdminCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CaImportCertDirCommand.class);
 
+  /** Param. */
   public static final String DATE_FORMAT = "yyyy.MM.dd-HH:mm";
 
+  /** Param. */
   private static final String USERNAME_FILTER_KEY = "--filter";
+  /** Param. */
   private static final String CA_NAME_KEY = "--caname";
+  /** Param. */
   private static final String ACTIVE_KEY = "-a";
+  /** Param. */
   private static final String RESUME_ON_ERROR_KEY = "-resumeonerror";
+  /** Param. */
   private static final String DIRECTORY_KEY = "--dir";
+  /** Param. */
   private static final String EE_PROFILE_KEY = "--eeprofile";
+  /** Param. */
   private static final String CERT_PROFILE_KEY = "--certprofile";
+  /** Param. */
   private static final String REVOCATION_REASON = "--revocation-reason";
+  /** Param. */
   private static final String REVOCATION_TIME = "--revocation-time";
+  /** Param. */
   private static final String THREAD_COUNT = "--threads";
 
+  /** Param. */
   private static final String ACTIVE = "ACTIVE";
+  /** Param. */
   private static final String REVOKED = "REVOKED";
 
   {
@@ -166,7 +180,7 @@ public class CaImportCertDirCommand extends BaseCaAdminCommand {
 
   @Override
   public CommandResult execute(final ParameterContainer parameters) {
-    log.trace(">execute()");
+    LOG.trace(">execute()");
 
     CryptoProviderTools.installBCProviderIfNotAvailable();
 
@@ -186,7 +200,7 @@ public class CaImportCertDirCommand extends BaseCaAdminCommand {
             : Integer.valueOf(StringUtils.strip(parameters.get(THREAD_COUNT)));
 
     if (threadCount > 1 && !usernameFilter.equalsIgnoreCase("FILE")) {
-      log.error(
+      LOG.error(
           "If more than one thread is being used, filename must be used as"
               + " filter (use the argument --filter FILE).");
       return CommandResult.CLI_FAILURE;
@@ -207,12 +221,12 @@ public class CaImportCertDirCommand extends BaseCaAdminCommand {
       if ("ACTIVE".equalsIgnoreCase(active)) {
         status = CertificateConstants.CERT_ACTIVE;
         if (revocationReasonString != null) {
-          log.warn(
+          LOG.warn(
               "Revocation reason has been set in spite of certificates being"
                   + " imported as active. Ignoring.");
         }
         if (revocationTimeString != null) {
-          log.warn(
+          LOG.warn(
               "Revocation time has been set in spite of certificates being"
                   + " imported as active. Ignoring.");
         }
@@ -223,7 +237,7 @@ public class CaImportCertDirCommand extends BaseCaAdminCommand {
               RevocationReasons.getFromCliValue(
                   revocationReasonString.toUpperCase());
           if (revocationReason == null) {
-            log.error(
+            LOG.error(
                 "ERROR: "
                     + revocationReasonString
                     + " is not a valid revocation reason.");
@@ -237,7 +251,7 @@ public class CaImportCertDirCommand extends BaseCaAdminCommand {
             revocationTime =
                 new SimpleDateFormat(DATE_FORMAT).parse(revocationTimeString);
           } catch (ParseException e) {
-            log.error(
+            LOG.error(
                 "ERROR: "
                     + revocationTimeString
                     + " was not a valid revocation time.");
@@ -248,13 +262,13 @@ public class CaImportCertDirCommand extends BaseCaAdminCommand {
         }
 
       } else {
-        log.error("Invalid certificate status.");
+        LOG.error("Invalid certificate status.");
         return CommandResult.CLI_FAILURE;
       }
       if (!usernameFilter.equalsIgnoreCase("DN")
           && !usernameFilter.equalsIgnoreCase("CN")
           && !usernameFilter.equalsIgnoreCase("FILE")) {
-        log.error(
+        LOG.error(
             usernameFilter
                 + "is not a valid option. Currently only \"DN\", \"CN\" and"
                 + " \"FILE\" username-source are implemented");
@@ -267,22 +281,22 @@ public class CaImportCertDirCommand extends BaseCaAdminCommand {
           (X509Certificate) caInfo.getCertificateChain().iterator().next();
       final String issuer =
           CertTools.stringToBCDNString(cacert.getSubjectDN().toString());
-      log.info("CA: " + issuer);
+      LOG.info("CA: " + issuer);
       // Fetch End Entity Profile info
-      log.debug("Searching for End Entity Profile " + eeProfile);
+      LOG.debug("Searching for End Entity Profile " + eeProfile);
       final int endEntityProfileId =
           EjbRemoteHelper.INSTANCE
               .getRemoteSession(EndEntityProfileSessionRemote.class)
               .getEndEntityProfileId(eeProfile);
       // Fetch Certificate Profile info
-      log.debug("Searching for Certificate Profile " + certificateProfile);
+      LOG.debug("Searching for Certificate Profile " + certificateProfile);
       final int certificateProfileId =
           EjbRemoteHelper.INSTANCE
               .getRemoteSession(CertificateProfileSessionRemote.class)
               .getCertificateProfileId(certificateProfile);
       if (certificateProfileId
           == CertificateProfileConstants.CERTPROFILE_NO_PROFILE) {
-        log.error(
+        LOG.error(
             "ERROR: Certificate Profile "
                 + certificateProfile
                 + " does not exist.");
@@ -293,12 +307,12 @@ public class CaImportCertDirCommand extends BaseCaAdminCommand {
       // import each as a certificate
       final File dir = new File(certificateDir);
       if (!dir.isDirectory()) {
-        log.error("'" + certificateDir + "' is not a directory.");
+        LOG.error("'" + certificateDir + "' is not a directory.");
         return CommandResult.CLI_FAILURE;
       }
-      final File files[] = dir.listFiles();
+      final File[] files = dir.listFiles();
       if (files == null || files.length < 1) {
-        log.error(
+        LOG.error(
             "No files in directory '"
                 + dir.getCanonicalPath()
                 + "'. Nothing to do.");
@@ -363,41 +377,41 @@ public class CaImportCertDirCommand extends BaseCaAdminCommand {
       final double seconds = (stopTime - startTime) / 1000;
 
       // Print resulting statistics
-      log.info("\nImport summary:");
-      log.info(importOk + " certificates were imported successfully.");
-      log.info(
+      LOG.info("\nImport summary:");
+      LOG.info(importOk + " certificates were imported successfully.");
+      LOG.info(
           "Time: "
               + seconds
               + " seconds ("
               + (files.length / seconds)
               + " tps)");
       if (redundant > 0) {
-        log.info(
+        LOG.info(
             redundant + " certificates were already present in the database.");
       }
       if (caMismatch > 0) {
-        log.info(
+        LOG.info(
             caMismatch + " certificates were not issued by the specified CA.");
       }
       if (readError > 0) {
-        log.info(readError + " certificates could not be read.");
+        LOG.info(readError + " certificates could not be read.");
       }
       if (constraintViolation > 0) {
-        log.info(
+        LOG.info(
             constraintViolation
                 + " certificates violated the end entity constraints.");
       }
       if (generalImportError > 0) {
-        log.info(
+        LOG.info(
             generalImportError
                 + " certificates were not imported due to other errors.");
       }
     } catch (Exception e) {
-      log.error("ERROR: " + e.getMessage());
+      LOG.error("ERROR: " + e.getMessage());
       return CommandResult.FUNCTIONAL_FAILURE;
     } finally {
       executorService.shutdown();
-      log.trace("<execute()");
+      LOG.trace("<execute()");
     }
     return CommandResult.SUCCESS;
   }
@@ -447,6 +461,6 @@ public class CaImportCertDirCommand extends BaseCaAdminCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

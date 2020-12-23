@@ -37,19 +37,25 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class DeleteEndEntityCommand extends BaseRaCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(DeleteEndEntityCommand.class);
 
+  /** Param. */
   private static final String OLD_COMMAND = "deluser";
+  /** Param. */
   private static final String COMMAND = "delendentity";
 
+  /** Param. */
   private static final Set<String> ALIASES = new HashSet<String>();
 
   static {
     ALIASES.add(OLD_COMMAND);
   }
 
+  /** Param. */
   private static final String USERNAME_KEY = "--username";
+  /** Param. */
   private static final String FORCE_KEY = "-force";
 
   {
@@ -83,7 +89,9 @@ public class DeleteEndEntityCommand extends BaseRaCommand {
 
     try {
       String username = parameters.get(USERNAME_KEY);
-      int inp = 121;
+      final int y = 121;
+      final int cy = 89;
+      int inp = y;
       if (!force) {
         getLogger().info("Have you revoked the end entity [y/N]? ");
         try {
@@ -92,7 +100,7 @@ public class DeleteEndEntityCommand extends BaseRaCommand {
           throw new IllegalStateException("Could not read console input.");
         }
       }
-      if ((inp == 121) || (inp == 89)) {
+      if ((inp == y) || (inp == cy)) {
         try {
           EjbRemoteHelper.INSTANCE
               .getRemoteSession(EndEntityManagementSessionRemote.class)
@@ -140,6 +148,6 @@ public class DeleteEndEntityCommand extends BaseRaCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

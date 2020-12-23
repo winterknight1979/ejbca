@@ -41,17 +41,21 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
 import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 
 /**
- * Issue a certificate for a user based on a CSR
+ * Issue a certificate for a user based on a CSR.
  *
  * @version $Id: CreateCertCommand.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public class CreateCertCommand extends EjbcaCliUserCommandBase {
+/** Logger. */
+  private static final Logger LOG = Logger.getLogger(CreateCertCommand.class);
 
-  private static final Logger log = Logger.getLogger(CreateCertCommand.class);
-
+  /** Param. */
   private static final String ENTITY_NAME = "--username";
+  /** Param. */
   private static final String ENTITY_PASSWORD = "--password";
+  /** Param. */
   private static final String CSR = "-c";
+  /** Param. */
   private static final String DESTINATION_FILE = "-f";
 
   // Register parameters
@@ -116,7 +120,7 @@ public class CreateCertCommand extends EjbcaCliUserCommandBase {
     try {
       bytes = FileTools.readFiletoBuffer(csr);
     } catch (FileNotFoundException e) {
-      log.error("File " + csr + " not found.");
+      LOG.error("File " + csr + " not found.");
       return CommandResult.FUNCTIONAL_FAILURE;
     }
     RequestMessage req = RequestMessageUtils.parseRequestMessage(bytes);
@@ -125,7 +129,7 @@ public class CreateCertCommand extends EjbcaCliUserCommandBase {
       p10req.setUsername(username);
       p10req.setPassword(password);
     } else {
-      log.error("Input file '" + csr + "' is not a PKCS#10 request.");
+      LOG.error("Input file '" + csr + "' is not a PKCS#10 request.");
       return CommandResult.FUNCTIONAL_FAILURE;
     }
     final SignSessionRemote signSession =
@@ -137,19 +141,19 @@ public class CreateCertCommand extends EjbcaCliUserCommandBase {
           signSession.createCertificate(
               getAuthenticationToken(), req, X509ResponseMessage.class, null);
     } catch (EjbcaException e) {
-      log.error("Could not create certificate: " + e.getMessage());
+      LOG.error("Could not create certificate: " + e.getMessage());
       return CommandResult.FUNCTIONAL_FAILURE;
     } catch (CesecoreException e) {
-      log.error("Could not create certificate: " + e.getMessage());
+      LOG.error("Could not create certificate: " + e.getMessage());
       return CommandResult.FUNCTIONAL_FAILURE;
     } catch (AuthorizationDeniedException ee) {
-      log.error(
+      LOG.error(
           "CLI user with username "
               + parameters.get(USERNAME_KEY)
               + " was not authorized to create a certificate.");
       return CommandResult.AUTHORIZATION_FAILURE;
     } catch (CertificateExtensionException e) {
-      log.error(
+      LOG.error(
           "CSR specified extensions which were invalid: " + e.getMessage());
       return CommandResult.FUNCTIONAL_FAILURE;
     }
@@ -170,19 +174,19 @@ public class CreateCertCommand extends EjbcaCliUserCommandBase {
       fos.write(pembytes);
       fos.close();
     } catch (IOException e) {
-      log.error(
+      LOG.error(
           "Could not write to certificate file "
               + certf
               + ". "
               + e.getMessage());
       return CommandResult.FUNCTIONAL_FAILURE;
     }
-    log.info("PEM certificate written to file '" + certf + "'");
+    LOG.info("PEM certificate written to file '" + certf + "'");
     return CommandResult.SUCCESS;
   }
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

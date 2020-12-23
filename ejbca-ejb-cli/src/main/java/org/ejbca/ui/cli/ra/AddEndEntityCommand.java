@@ -60,24 +60,34 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class AddEndEntityCommand extends BaseRaCommand {
 
-  private static final Logger log = Logger.getLogger(AddEndEntityCommand.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(AddEndEntityCommand.class);
 
+  /** Param. */
   private static final String USERGENERATED = "USERGENERATED";
+  /** Param. */
   private static final String P12 = "P12";
+  /** Param. */
   private static final String JKS = "JKS";
+  /** Param. */
   private static final String PEM = "PEM";
+  /** Param. */
   private static final String OLD_SUBCOMMAND = "adduser";
+  /** Param. */
   private static final String SUBCOMMAND = "addendentity";
 
+  /** Param. */
   private static final String[] SOFT_TOKEN_NAMES = {
     USERGENERATED, P12, JKS, PEM
   };
+  /** Param. */
   private static final int[] SOFT_TOKEN_IDS = {
     SecConst.TOKEN_SOFT_BROWSERGEN,
     SecConst.TOKEN_SOFT_P12,
     SecConst.TOKEN_SOFT_JKS,
     SecConst.TOKEN_SOFT_PEM
   };
+  /** Param. */
 
   private static final Set<String> ALIASES = new HashSet<String>();
 
@@ -85,19 +95,31 @@ public class AddEndEntityCommand extends BaseRaCommand {
     ALIASES.add(OLD_SUBCOMMAND);
   }
 
+  /** Param. */
   private static final String USERNAME_KEY = "--username";
+  /** Param. */
   private static final String PASSWORD_KEY = "--password";
+  /** Param. */
   private static final String DN_KEY = "--dn";
+  /** Param. */
   private static final String CA_NAME_KEY = "--caname";
+  /** Param. */
   private static final String TYPE_KEY = "--type";
+  /** Param. */
   private static final String TOKEN_KEY = "--token";
+  /** Param. */
   private static final String SUBJECT_ALT_NAME_KEY = "--altname";
+  /** Param. */
   private static final String EMAIL_KEY = "--email";
+  /** Param. */
   private static final String CERT_PROFILE_KEY = "--certprofile";
+  /** Param. */
   private static final String EE_PROFILE_KEY = "--eeprofile";
 
+  /** Param. */
   private static final String HARDTOKEN_ISSUER_KEY = "--hardtokenissuer";
 
+  /** Param. */
   private final GlobalConfiguration globalConfiguration =
       (GlobalConfiguration)
           EjbRemoteHelper.INSTANCE
@@ -105,6 +127,7 @@ public class AddEndEntityCommand extends BaseRaCommand {
               .getCachedConfiguration(
                   GlobalConfiguration.GLOBAL_CONFIGURATION_ID);
 
+  /** Param. */
   private final boolean usehardtokens =
       globalConfiguration.getIssueHardwareTokens();
 
@@ -243,7 +266,7 @@ public class AddEndEntityCommand extends BaseRaCommand {
               EndEntityTypes.getTypesFromHexCode(
                   Integer.parseInt(tokenString)));
     } catch (NumberFormatException e) {
-      log.error("ERROR: Invalid type: " + tokenString);
+      LOG.error("ERROR: Invalid type: " + tokenString);
       return CommandResult.FUNCTIONAL_FAILURE;
     }
     String tokenname = parameters.get(TOKEN_KEY);
@@ -263,7 +286,7 @@ public class AddEndEntityCommand extends BaseRaCommand {
         caid = caInfo.getCAId();
       }
     } catch (AuthorizationDeniedException e) {
-      log.error("CLI user not authorized to CA " + caname);
+      LOG.error("CLI user not authorized to CA " + caname);
       error = true;
     }
     int certificatetypeid =
@@ -433,7 +456,7 @@ public class AddEndEntityCommand extends BaseRaCommand {
       } catch (ApprovalException e) {
         getLogger().error("\nApproval exception: " + e.getMessage());
       } catch (EndEntityExistsException e) {
-        log.error("ERROR: End entity already exists.");
+        LOG.error("ERROR: End entity already exists.");
       } catch (CADoesntExistsException e) {
         throw new IllegalStateException(
             "Should not happen, CA has already been checked.", e);
@@ -450,13 +473,13 @@ public class AddEndEntityCommand extends BaseRaCommand {
    * Returns the tokenid type of the user, returns 0 if invalid tokenname.
    *
    * @param tokenname Name
-   * @param usehardtokens bool
+   * @param dousehardtokens bool
    * @param hardtokensession Session
    * @return ID
    */
   private int getTokenId(
       final String tokenname,
-      final boolean usehardtokens,
+      final boolean dousehardtokens,
       final HardTokenSessionRemote hardtokensession) {
     int returnval = 0;
     // First check for soft token type
@@ -466,7 +489,7 @@ public class AddEndEntityCommand extends BaseRaCommand {
         break;
       }
     }
-    if (returnval == 0 && usehardtokens) {
+    if (returnval == 0 && dousehardtokens) {
       returnval = hardtokensession.getHardTokenProfileId(tokenname);
     }
     return returnval;
@@ -484,8 +507,8 @@ public class AddEndEntityCommand extends BaseRaCommand {
     StringBuilder existingCas = new StringBuilder();
     // The below require quite a few database operations, so shouldn't be run
     // unless the help text has been called upon.
-    for (String caName :
-        EjbRemoteHelper.INSTANCE
+    for (String caName
+        : EjbRemoteHelper.INSTANCE
             .getRemoteSession(CaSessionRemote.class)
             .getActiveCANames(getAuthenticationToken())) {
       existingCas.append((existingCas.length() == 0 ? "" : ", ") + caName);
@@ -497,8 +520,8 @@ public class AddEndEntityCommand extends BaseRaCommand {
             .getRemoteSession(CertificateProfileSessionRemote.class)
             .getCertificateProfileIdToNameMap();
     StringBuilder existingCps = new StringBuilder();
-    for (Integer id :
-        EjbRemoteHelper.INSTANCE
+    for (Integer id
+        : EjbRemoteHelper.INSTANCE
             .getRemoteSession(CertificateProfileSessionRemote.class)
             .getAuthorizedCertificateProfileIds(
                 getAuthenticationToken(),
@@ -514,8 +537,8 @@ public class AddEndEntityCommand extends BaseRaCommand {
         EjbRemoteHelper.INSTANCE
             .getRemoteSession(HardTokenSessionRemote.class)
             .getHardTokenProfileIdToNameMap();
-    for (Integer id :
-        EjbRemoteHelper.INSTANCE
+    for (Integer id
+        : EjbRemoteHelper.INSTANCE
             .getRemoteSession(HardTokenSessionRemote.class)
             .getAuthorizedHardTokenProfileIds(getAuthenticationToken())) {
       hardTokenString.append(
@@ -541,8 +564,8 @@ public class AddEndEntityCommand extends BaseRaCommand {
         EjbRemoteHelper.INSTANCE
             .getRemoteSession(EndEntityProfileSessionRemote.class)
             .getEndEntityProfileIdToNameMap();
-    for (Integer id :
-        EjbRemoteHelper.INSTANCE
+    for (Integer id
+        : EjbRemoteHelper.INSTANCE
             .getRemoteSession(EndEntityProfileSessionRemote.class)
             .getAuthorizedEndEntityProfileIds(
                 getAuthenticationToken(),
@@ -555,8 +578,8 @@ public class AddEndEntityCommand extends BaseRaCommand {
 
     if (usehardtokens) {
       StringBuilder existingHtis = new StringBuilder();
-      for (String alias :
-          EjbRemoteHelper.INSTANCE
+      for (String alias
+          : EjbRemoteHelper.INSTANCE
               .getRemoteSession(HardTokenSessionRemote.class)
               .getHardTokenIssuerAliases(getAuthenticationToken())
               .toArray(new String[0])) {
@@ -570,7 +593,7 @@ public class AddEndEntityCommand extends BaseRaCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 
   private String getAuthenticationCode(final String commandLineArgument) {

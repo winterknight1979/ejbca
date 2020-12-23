@@ -35,10 +35,13 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class SetCleartextPasswordCommand extends BaseRaCommand {
 
-  private static final Logger log =
+      /** Param. */
+  private static final Logger LOG =
       Logger.getLogger(SetCleartextPasswordCommand.class);
 
+  /** Param. */
   private static final String USERNAME_KEY = "--username";
+  /** Param. */
   private static final String PASSWORD_KEY = "--password";
 
   {
@@ -71,7 +74,7 @@ public class SetCleartextPasswordCommand extends BaseRaCommand {
     String username = parameters.get(USERNAME_KEY);
     String password = parameters.get(PASSWORD_KEY);
     if (password == null) {
-      log.info("Enter password: ");
+      LOG.info("Enter password: ");
       // Read the password, but mask it so we don't display it on the console
       password = String.valueOf(System.console().readPassword());
     }
@@ -107,6 +110,6 @@ public class SetCleartextPasswordCommand extends BaseRaCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

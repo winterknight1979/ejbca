@@ -32,8 +32,10 @@ import org.ejbca.ui.cli.roles.ListRolesCommand;
  */
 public class ServiceEditCommand extends BaseServiceModificationCommand {
 
-  private static final Logger log = Logger.getLogger(ListRolesCommand.class);
+/** Param. */
+  private static final Logger LOG = Logger.getLogger(ListRolesCommand.class);
 
+/** Param. */
   private static final String ARGS_KEY = "--properties";
 
   {
@@ -87,12 +89,12 @@ public class ServiceEditCommand extends BaseServiceModificationCommand {
   public String getFullHelpText() {
     StringBuilder sb = new StringBuilder();
     sb.append(getCommandDescription());
-    sb.append("\n\n").append(FIELDS_HELP + "\n\n");
+    sb.append("\n\n").append(fieldsHelp + "\n\n");
     return sb.toString();
   }
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

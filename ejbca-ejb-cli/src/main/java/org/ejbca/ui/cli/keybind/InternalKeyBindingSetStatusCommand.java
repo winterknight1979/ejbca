@@ -33,15 +33,17 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 public class InternalKeyBindingSetStatusCommand
     extends RudInternalKeyBindingCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(InternalKeyBindingModifyCommand.class);
 
+/** Param. */
   private static final String VALUE_KEY = "-v";
 
   {
     StringBuilder values = new StringBuilder();
-    for (final InternalKeyBindingStatus status :
-        InternalKeyBindingStatus.values()) {
+    for (final InternalKeyBindingStatus status
+       : InternalKeyBindingStatus.values()) {
       values.append((values.length() > 0 ? " | " : "") + status);
     }
     registerParameter(
@@ -101,6 +103,6 @@ public class InternalKeyBindingSetStatusCommand
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

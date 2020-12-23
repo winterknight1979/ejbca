@@ -27,17 +27,21 @@ import org.ejbca.core.ejb.authorization.AuthorizationSystemSessionRemote;
 import org.ejbca.ui.cli.infrastructure.command.EjbcaCliUserCommandBase;
 
 /**
- * Base for Roles commands, contains common functions for Roles operations
+ * Base for Roles commands, contains common functions for Roles operations.
  *
  * @version $Id: BaseRolesCommand.java 29175 2018-06-08 13:38:23Z jeklund $
  */
 public abstract class BaseRolesCommand extends EjbcaCliUserCommandBase {
 
-  private static final Logger log = Logger.getLogger(BaseRolesCommand.class);
+      /** Param. */
+  private static final Logger LOG = Logger.getLogger(BaseRolesCommand.class);
 
+  /** Param. */
   private Map<String, String> resourceNameToResourceMap = null;
+  /** Param. */
   private Map<String, String> resourceToResourceNameMap = null;
 
+  /** Param. */
   private static Set<String[]> commandAliases = new HashSet<String[]>();
 
   static {
@@ -46,7 +50,7 @@ public abstract class BaseRolesCommand extends EjbcaCliUserCommandBase {
       Class.forName(X500PrincipalAccessMatchValue.class.getName());
       Class.forName(CliUserAccessMatchValue.class.getName());
     } catch (ClassNotFoundException e) {
-      log.error("Failure during match value initialization", e);
+      LOG.error("Failure during match value initialization", e);
     }
   }
 
@@ -74,8 +78,8 @@ public abstract class BaseRolesCommand extends EjbcaCliUserCommandBase {
               .getRemoteSession(AuthorizationSystemSessionRemote.class)
               .getAllResources(getAuthenticationToken(), false);
       resourceNameToResourceMap = new HashMap<>();
-      for (final Entry<String, String> entry :
-          authorizedResourcesMap.entrySet()) {
+      for (final Entry<String, String> entry
+          : authorizedResourcesMap.entrySet()) {
         resourceNameToResourceMap.put(entry.getValue(), entry.getKey());
       }
     }

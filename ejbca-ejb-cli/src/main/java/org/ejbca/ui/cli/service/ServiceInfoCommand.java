@@ -29,7 +29,8 @@ import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
  */
 public class ServiceInfoCommand extends BaseServiceCommand {
 
-  private static final Logger log = Logger.getLogger(ServiceInfoCommand.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(ServiceInfoCommand.class);
 
   @Override
   public String getMainCommand() {
@@ -73,18 +74,21 @@ public class ServiceInfoCommand extends BaseServiceCommand {
   }
 
   /**
-   * Displays "name: value" with proper alignment
+   * Displays "name: value" with proper alignment.
    *
    * @param name Name
-   * @param value Value
+   * @param ovalue Value
    */
-  private void info(final String name, String value) {
+  private void info(final String name, final String ovalue) {
+    String value = ovalue;
     if (value == null) {
       value = "null";
     }
 
-    value = value.replaceAll("\r?\n", "\n" + StringUtils.repeat(" ", 15));
-    getLogger().info(StringUtils.rightPad(name, 13) + ": " + value);
+    final int left = 13;
+    final int right = left + 2;
+    value = value.replaceAll("\r?\n", "\n" + StringUtils.repeat(" ", right));
+    getLogger().info(StringUtils.rightPad(name, left) + ": " + value);
   }
 
   private void info(final String name, final int value) {
@@ -134,6 +138,6 @@ public class ServiceInfoCommand extends BaseServiceCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

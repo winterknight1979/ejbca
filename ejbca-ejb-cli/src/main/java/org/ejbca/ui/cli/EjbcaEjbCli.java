@@ -18,12 +18,17 @@ import org.ejbca.ui.cli.infrastructure.command.CommandResult;
 import org.ejbca.ui.cli.infrastructure.library.CommandLibrary;
 
 /**
- * Main entry point for the EJBCA EJB CLI
+ * Main entry point for the EJBCA EJB CLI.
  *
  * @version $Id: EjbcaEjbCli.java 19902 2014-09-30 14:32:24Z anatom $
  */
-public class EjbcaEjbCli {
+public final class EjbcaEjbCli {
 
+    private EjbcaEjbCli() { }
+
+    /**
+     * @param args Arguments
+     */
   public static void main(final String[] args) {
     if (args.length == 0 || !CommandLibrary.INSTANCE.doesCommandExist(args)) {
       CommandLibrary.INSTANCE.listRootCommands();

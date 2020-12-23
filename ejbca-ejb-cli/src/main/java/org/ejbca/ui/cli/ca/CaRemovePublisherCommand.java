@@ -44,12 +44,17 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class CaRemovePublisherCommand extends BaseCaAdminCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CaRemovePublisherCommand.class);
 
+  /** Param. */
   private static final String PUBL_NAME_KEY = "--name";
+  /** Param. */
   private static final String LIST_REF_KEY = "--listref";
+  /** Param. */
   private static final String REMOVE_REF_KEY = "--removeref";
+  /** Param. */
   private static final String REMOVE_ALL_KEY = "--removeall";
 
   {
@@ -141,7 +146,7 @@ public class CaRemovePublisherCommand extends BaseCaAdminCommand {
             }
           }
         } catch (CADoesntExistsException e) {
-          log.error("CA with id " + caid + "suddenly disappeared...ignoring.");
+          LOG.error("CA with id " + caid + "suddenly disappeared...ignoring.");
         }
       }
       final CertificateProfileSessionRemote cpSession =
@@ -182,7 +187,7 @@ public class CaRemovePublisherCommand extends BaseCaAdminCommand {
       // Only remove publisher if we are not only listing or removing references
       if (!removerefmode && !listrefmode) {
         if (caContains || cpContains) {
-          log.error(
+          LOG.error(
               "Unable to remove publisher that still has references in CAs or"
                   + " Certificate Profiles.");
           return CommandResult.FUNCTIONAL_FAILURE;
@@ -191,7 +196,7 @@ public class CaRemovePublisherCommand extends BaseCaAdminCommand {
         if (caAdminSession.exitsPublisherInCAs(publisherId)
             || certificateProfileSession.existsPublisherIdInCertificateProfiles(
                 publisherId)) {
-          log.error(
+          LOG.error(
               "Unable to remove publisher that still still has references in"
                   + " CAs or Certificate Profiles.");
           return CommandResult.FUNCTIONAL_FAILURE;
@@ -200,10 +205,10 @@ public class CaRemovePublisherCommand extends BaseCaAdminCommand {
         getLogger().info("Removed publisher '" + name + "'.");
       }
     } catch (AuthorizationDeniedException e1) {
-      log.error("CLI User was not authorized to remove publishers.");
+      LOG.error("CLI User was not authorized to remove publishers.");
       return CommandResult.AUTHORIZATION_FAILURE;
     } catch (ReferencesToItemExistException e1) {
-      log.error("The publisher is in use. " + e1.getMessage());
+      LOG.error("The publisher is in use. " + e1.getMessage());
       return CommandResult.AUTHORIZATION_FAILURE;
     }
     return CommandResult.SUCCESS;
@@ -229,6 +234,6 @@ public class CaRemovePublisherCommand extends BaseCaAdminCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

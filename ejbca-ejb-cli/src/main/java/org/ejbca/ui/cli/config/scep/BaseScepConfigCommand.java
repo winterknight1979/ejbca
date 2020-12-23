@@ -17,12 +17,13 @@ import org.ejbca.config.ScepConfiguration;
 import org.ejbca.ui.cli.config.ConfigBaseCommand;
 
 /**
- * Shows the current server configuration
+ * Shows the current server configuration.
  *
  * @version $Id: BaseScepConfigCommand.java 26057 2017-06-22 08:08:34Z anatom $
  */
 public abstract class BaseScepConfigCommand extends ConfigBaseCommand {
 
+    /** Param. */
   private ScepConfiguration scepConfiguration = null;
 
   @Override
@@ -30,6 +31,9 @@ public abstract class BaseScepConfigCommand extends ConfigBaseCommand {
     return new String[] {super.getCommandPath()[0], "scep"};
   }
 
+  /**
+   * @return Config.
+   */
   protected ScepConfiguration getScepConfiguration() {
     if (scepConfiguration == null) {
       scepConfiguration =

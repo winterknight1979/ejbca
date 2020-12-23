@@ -34,11 +34,15 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 /** @version $Id: UpdateCommand.java 27965 2018-01-15 16:20:53Z anatom $ */
 public class UpdateCommand extends BaseEstConfigCommand {
 
+      /** Param. */
   private static final String ALIAS_KEY = "--alias";
+  /** Param. */
   private static final String KEY_KEY = "--key"; // Hue hue hue
+  /** Param. */
   private static final String VALUE_KEY = "--value";
 
-  private static final Logger log = Logger.getLogger(UpdateCommand.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(UpdateCommand.class);
 
   {
     registerParameter(
@@ -85,7 +89,7 @@ public class UpdateCommand extends BaseEstConfigCommand {
     }
 
     key = alias + "." + key;
-    log.info(
+    LOG.info(
         "Configuration was: "
             + key
             + "="
@@ -94,7 +98,7 @@ public class UpdateCommand extends BaseEstConfigCommand {
     try {
       getGlobalConfigurationSession()
           .saveConfiguration(getAuthenticationToken(), getEstConfiguration());
-      log.info(
+      LOG.info(
           "Configuration updated: "
               + key
               + "="
@@ -103,7 +107,7 @@ public class UpdateCommand extends BaseEstConfigCommand {
           .flushConfigurationCache(EstConfiguration.EST_CONFIGURATION_ID);
       return CommandResult.SUCCESS;
     } catch (AuthorizationDeniedException e) {
-      log.info("Failed to update configuration: " + e.getLocalizedMessage());
+      LOG.info("Failed to update configuration: " + e.getLocalizedMessage());
       return CommandResult.AUTHORIZATION_FAILURE;
     }
   }
@@ -120,8 +124,8 @@ public class UpdateCommand extends BaseEstConfigCommand {
     sb.append("The key could be any of the following:\n");
     StringBuilder existingCas = new StringBuilder();
     final String divider = " | ";
-    for (String ca :
-        EjbRemoteHelper.INSTANCE
+    for (String ca
+        : EjbRemoteHelper.INSTANCE
             .getRemoteSession(CaSessionRemote.class)
             .getActiveCANames(getAuthenticationToken())) {
       existingCas.append((existingCas.length() == 0 ? "" : divider) + ca);
@@ -137,8 +141,8 @@ public class UpdateCommand extends BaseEstConfigCommand {
             .getRemoteSession(EndEntityProfileSessionRemote.class)
             .getEndEntityProfileIdToNameMap();
     StringBuilder existingEeps = new StringBuilder();
-    for (Integer profileId :
-        EjbRemoteHelper.INSTANCE
+    for (Integer profileId
+        : EjbRemoteHelper.INSTANCE
             .getRemoteSession(EndEntityProfileSessionRemote.class)
             .getAuthorizedEndEntityProfileIds(
                 getAuthenticationToken(),
@@ -161,8 +165,8 @@ public class UpdateCommand extends BaseEstConfigCommand {
             .getRemoteSession(CertificateProfileSessionRemote.class)
             .getCertificateProfileIdToNameMap();
     StringBuilder existingCps = new StringBuilder();
-    for (Integer profileId :
-        EjbRemoteHelper.INSTANCE
+    for (Integer profileId
+        : EjbRemoteHelper.INSTANCE
             .getRemoteSession(CertificateProfileSessionRemote.class)
             .getAuthorizedCertificateProfileIds(
                 getAuthenticationToken(),
@@ -207,6 +211,6 @@ public class UpdateCommand extends BaseEstConfigCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

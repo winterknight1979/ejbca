@@ -40,9 +40,11 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 public class InternalKeyBindingExportCertificateCommand
     extends RudInternalKeyBindingCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(InternalKeyBindingExportCertificateCommand.class);
 
+  /** PAram. */
   private static final String PEM_FILE_KEY = "-f";
 
   {
@@ -127,6 +129,6 @@ public class InternalKeyBindingExportCertificateCommand
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

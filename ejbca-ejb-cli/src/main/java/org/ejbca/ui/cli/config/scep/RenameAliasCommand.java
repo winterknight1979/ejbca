@@ -25,10 +25,13 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 /** @version $Id: RenameAliasCommand.java 26057 2017-06-22 08:08:34Z anatom $ */
 public class RenameAliasCommand extends BaseScepConfigCommand {
 
+    /** Logger. */
   private static final String OLD_ALIAS_KEY = "--oldalias";
+  /** Logger. */
   private static final String NEW_ALIAS_KEY = "--newalias";
 
-  private static final Logger log = Logger.getLogger(RenameAliasCommand.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(RenameAliasCommand.class);
 
   {
     registerParameter(
@@ -62,19 +65,19 @@ public class RenameAliasCommand extends BaseScepConfigCommand {
     // We check first because it is unnecessary to call saveConfiguration when
     // it is not needed
     if (!scepConfig.aliasExists(oldalias)) {
-      log.info("Alias '" + oldalias + "' does not exist");
+      LOG.info("Alias '" + oldalias + "' does not exist");
       return CommandResult.FUNCTIONAL_FAILURE;
     }
     scepConfig.renameAlias(oldalias, newalias);
     try {
       getGlobalConfigurationSession()
           .saveConfiguration(getAuthenticationToken(), scepConfig);
-      log.info("Renamed SCEP alias '" + oldalias + "' to '" + newalias + "'");
+      LOG.info("Renamed SCEP alias '" + oldalias + "' to '" + newalias + "'");
       getGlobalConfigurationSession()
           .flushConfigurationCache(ScepConfiguration.SCEP_CONFIGURATION_ID);
       return CommandResult.SUCCESS;
     } catch (AuthorizationDeniedException e) {
-      log.info(
+      LOG.info(
           "Failed to rename alias '"
               + oldalias
               + "' to '"
@@ -97,6 +100,6 @@ public class RenameAliasCommand extends BaseScepConfigCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

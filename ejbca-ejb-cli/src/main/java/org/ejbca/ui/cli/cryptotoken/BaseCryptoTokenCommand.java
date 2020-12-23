@@ -34,6 +34,7 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public abstract class BaseCryptoTokenCommand extends EjbcaCliUserCommandBase {
 
+    /** Param. */
   protected static final String CRYPTOTOKEN_NAME_KEY = "--token";
 
   {

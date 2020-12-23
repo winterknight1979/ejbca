@@ -24,28 +24,32 @@ import org.apache.log4j.Logger;
 /** @version $Id: FieldEditor.java 23457 2016-05-16 17:18:31Z mikekushner $ */
 public class FieldEditor {
 
+    /** Logger. */
   private final Logger logger;
 
-  public FieldEditor(final Logger logger) {
-    this.logger = logger;
+  /**
+   * @param alogger logger.
+   */
+  public FieldEditor(final Logger alogger) {
+    this.logger = alogger;
   }
 
   /**
    * List of fields that should be excluded from bean lists. This should contain
    * fields that should never be changed by a user
    */
-  private static final ArrayList<String> excluded = new ArrayList<String>();
+  private static final ArrayList<String> EXCLUDED = new ArrayList<String>();
 
   static {
-    excluded.add("type");
-    excluded.add("version");
-    excluded.add("class");
-    excluded.add("latestVersion");
-    excluded.add("upgraded");
-    excluded.add("CAId");
-    excluded.add("CAType");
-    excluded.add("CAToken");
-    excluded.add("hidden");
+    EXCLUDED.add("type");
+    EXCLUDED.add("version");
+    EXCLUDED.add("class");
+    EXCLUDED.add("latestVersion");
+    EXCLUDED.add("upgraded");
+    EXCLUDED.add("CAId");
+    EXCLUDED.add("CAType");
+    EXCLUDED.add("CAToken");
+    EXCLUDED.add("hidden");
   }
   /**
    * Lists methods in a class the has "setXyz", and prints them as "Xyz".
@@ -57,18 +61,22 @@ public class FieldEditor {
     DynaBean wrapper = new WrapDynaBean(obj);
     DynaProperty[] props = wrapper.getDynaClass().getDynaProperties();
     for (DynaProperty dynaProperty : props) {
-      if (!excluded.contains(dynaProperty.getName())) {
+      if (!EXCLUDED.contains(dynaProperty.getName())) {
         logger.info(dynaProperty.getName() + ", " + dynaProperty.getType());
       }
     }
   }
 
+  /**
+   * @param obj Object
+   * @return Names
+   */
   public List<String> getSetMethodNames(final Object obj) {
     List<String> result = new ArrayList<String>();
     DynaBean wrapper = new WrapDynaBean(obj);
     DynaProperty[] props = wrapper.getDynaClass().getDynaProperties();
     for (DynaProperty dynaProperty : props) {
-      if (!excluded.contains(dynaProperty.getName())) {
+      if (!EXCLUDED.contains(dynaProperty.getName())) {
         result.add(dynaProperty.getName());
       }
     }
@@ -76,7 +84,7 @@ public class FieldEditor {
   }
 
   /**
-   * gets a field value from a bean
+   * gets a field value from a bean.
    *
    * @param field the field to get
    * @param obj the bran to get the value from

@@ -36,13 +36,19 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class CaEditPublisherCommand extends BaseCaAdminCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CaEditPublisherCommand.class);
 
+  /** Param. */
   private static final String PUBLISHER_NAME_KEY = "--name";
+  /** Param. */
   private static final String FIELD_KEY = "--field";
+  /** Param. */
   private static final String VALUE_KEY = "--value";
+  /** Param. */
   private static final String LISTFIELDS_KEY = "-listFields";
+  /** Param. */
   private static final String GETVALUE_KEY = "-getValue";
 
   {
@@ -95,7 +101,7 @@ public class CaEditPublisherCommand extends BaseCaAdminCommand {
 
   @Override
   public CommandResult execute(final ParameterContainer parameters) {
-    FieldEditor fieldEditor = new FieldEditor(log);
+    FieldEditor fieldEditor = new FieldEditor(LOG);
     CryptoProviderTools.installBCProvider();
 
     boolean listOnly = parameters.get(LISTFIELDS_KEY) != null;
@@ -110,13 +116,13 @@ public class CaEditPublisherCommand extends BaseCaAdminCommand {
             .getPublisher(name);
 
     if (pub == null) {
-      log.info("Publisher '" + name + "' does not exist.");
+      LOG.info("Publisher '" + name + "' does not exist.");
       return CommandResult.FUNCTIONAL_FAILURE;
     } else {
       // List fields, get values or set value
       try {
         if (field == null && !listOnly) {
-          log.error("ERROR: No field value set.");
+          LOG.error("ERROR: No field value set.");
           return CommandResult.FUNCTIONAL_FAILURE;
         }
         if (listOnly) {
@@ -126,12 +132,12 @@ public class CaEditPublisherCommand extends BaseCaAdminCommand {
         } else {
           fieldEditor.setValue(name, field, value, pub);
           // Store the modifies object
-          log.info("Storing modified publisher '" + name + "'...");
+          LOG.info("Storing modified publisher '" + name + "'...");
           EjbRemoteHelper.INSTANCE
               .getRemoteSession(PublisherSessionRemote.class)
               .changePublisher(getAuthenticationToken(), name, pub);
           // Verify our new value
-          log.info("Reading modified value for verification...");
+          LOG.info("Reading modified value for verification...");
           final BasePublisher modpub =
               EjbRemoteHelper.INSTANCE
                   .getRemoteSession(PublisherSessionRemote.class)
@@ -142,10 +148,10 @@ public class CaEditPublisherCommand extends BaseCaAdminCommand {
         }
         return CommandResult.SUCCESS;
       } catch (FieldNotFoundException e) {
-        log.error(e.getMessage());
+        LOG.error(e.getMessage());
         return CommandResult.FUNCTIONAL_FAILURE;
       } catch (AuthorizationDeniedException e) {
-        log.error("CLI User was not authorized to edit publishers.");
+        LOG.error("CLI User was not authorized to edit publishers.");
         return CommandResult.AUTHORIZATION_FAILURE;
       }
     }
@@ -178,6 +184,6 @@ public class CaEditPublisherCommand extends BaseCaAdminCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

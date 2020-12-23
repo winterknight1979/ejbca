@@ -32,7 +32,8 @@ import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
  */
 public class CaGetCrlInfo extends BaseCaAdminCommand {
 
-  private static final Logger log = Logger.getLogger(CaGetCrlInfo.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CaGetCrlInfo.class);
 
   @Override
   public String getMainCommand() {
@@ -89,7 +90,7 @@ public class CaGetCrlInfo extends BaseCaAdminCommand {
       } else {
         sb.append(" NO_DELTACRL_ISSUED");
       }
-      log.info(sb.toString());
+      LOG.info(sb.toString());
     }
     return CommandResult.SUCCESS;
   }
@@ -106,6 +107,6 @@ public class CaGetCrlInfo extends BaseCaAdminCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

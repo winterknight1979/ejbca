@@ -43,10 +43,13 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class SetSubjDirAttrCommand extends BaseRaCommand {
 
-  private static final Logger log =
+      /** Param. */
+  private static final Logger LOG =
       Logger.getLogger(SetSubjDirAttrCommand.class);
 
+  /** Param. */
   private static final String USERNAME_KEY = "--username";
+  /** Param. */
   private static final String ATTRIBUTES_KEY = "--attr";
 
   {
@@ -136,6 +139,6 @@ public class SetSubjDirAttrCommand extends BaseRaCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

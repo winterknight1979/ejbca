@@ -31,7 +31,8 @@ import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
 public class InternalKeyBindingDeleteCommand
     extends RudInternalKeyBindingCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(InternalKeyBindingDeleteCommand.class);
 
   @Override
@@ -77,6 +78,6 @@ public class InternalKeyBindingDeleteCommand
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

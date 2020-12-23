@@ -42,12 +42,18 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class CaRestoreKeyStoreCommand extends BaseCaAdminCommand {
 
-  private static final Logger log = Logger.getLogger(CaInfoCommand.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CaInfoCommand.class);
 
+  /** Param. */
   private static final String CA_NAME_KEY = "--caname";
+  /** Param. */
   private static final String PKCS12_FILE_KEY = "-f";
+  /** Param. */
   private static final String SIG_ALIAS_KEY = "-s";
+  /** Param. */
   private static final String ENC_ALIAS_KEY = "-e";
+  /** Param. */
   private static final String KEYSTORE_PASSWORD_KEY = "-kspassword";
 
   {
@@ -122,7 +128,7 @@ public class CaRestoreKeyStoreCommand extends BaseCaAdminCommand {
     try {
       keystorebytes = FileTools.readFiletoBuffer(p12file);
     } catch (FileNotFoundException e) {
-      log.error("File " + p12file + " was not found.");
+      LOG.error("File " + p12file + " was not found.");
       return CommandResult.FUNCTIONAL_FAILURE;
     }
     // Import CA from PKCS12 file
@@ -140,7 +146,7 @@ public class CaRestoreKeyStoreCommand extends BaseCaAdminCommand {
       try {
         fis = new FileInputStream(p12file);
       } catch (FileNotFoundException e) {
-        log.error("File " + p12file + " was not found.");
+        LOG.error("File " + p12file + " was not found.");
         return CommandResult.FUNCTIONAL_FAILURE;
       }
       try {
@@ -171,12 +177,12 @@ public class CaRestoreKeyStoreCommand extends BaseCaAdminCommand {
         length++;
       }
       if (length > 1) {
-        log.error(
+        LOG.error(
             "Keystore contains more than one alias, alias must be provided as"
                 + " argument.");
         return CommandResult.FUNCTIONAL_FAILURE;
       } else if (length < 1) {
-        log.error(
+        LOG.error(
             "Keystore does not contain any aliases. It can not be used for a"
                 + " CA.");
         return CommandResult.FUNCTIONAL_FAILURE;
@@ -208,6 +214,6 @@ public class CaRestoreKeyStoreCommand extends BaseCaAdminCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

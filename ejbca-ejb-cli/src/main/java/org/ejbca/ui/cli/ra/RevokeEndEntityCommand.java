@@ -41,19 +41,25 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class RevokeEndEntityCommand extends BaseRaCommand {
 
-  private static final Logger log =
+      /** Param. */
+  private static final Logger LOG =
       Logger.getLogger(RevokeEndEntityCommand.class);
 
+  /** Param. */
   private static final String COMMAND = "revokeendentity";
+  /** Param. */
   private static final String OLD_COMMAND = "revokeuser";
 
+  /** Param. */
   private static final Set<String> ALIASES = new HashSet<String>();
 
   static {
     ALIASES.add(OLD_COMMAND);
   }
 
+  /** Param. */
   private static final String USERNAME_KEY = "--username";
+  /** Param. */
   private static final String REASON_KEY = "-r";
 
   {
@@ -96,10 +102,11 @@ public class RevokeEndEntityCommand extends BaseRaCommand {
     try {
       reason = Integer.parseInt(parameters.get(REASON_KEY));
     } catch (NumberFormatException e) {
-      log.error("ERROR: " + parameters.get(REASON_KEY) + " was not a number.");
+      LOG.error("ERROR: " + parameters.get(REASON_KEY) + " was not a number.");
       return CommandResult.FUNCTIONAL_FAILURE;
     }
-    if ((reason == 7) || (reason < 0) || (reason > 10)) {
+    final int invalid = 7;
+    if ((reason == invalid) || (reason < 0) || (reason > 10)) {
       getLogger().error("Reason must be an integer between 0 and 10 except 7.");
     } else {
       EndEntityInformation data;
@@ -109,7 +116,7 @@ public class RevokeEndEntityCommand extends BaseRaCommand {
                 .getRemoteSession(EndEntityAccessSessionRemote.class)
                 .findUser(getAuthenticationToken(), username);
       } catch (AuthorizationDeniedException e) {
-        log.error(
+        LOG.error(
             "ERROR: CLI user not authorized to end entity with username "
                 + username);
         return CommandResult.FUNCTIONAL_FAILURE;
@@ -140,9 +147,9 @@ public class RevokeEndEntityCommand extends BaseRaCommand {
       } catch (WaitingForApprovalException e) {
         getLogger().info("Revocation request has been sent for approval.");
       } catch (AlreadyRevokedException e) {
-        log.error("ERROR: " + e.getMessage());
+        LOG.error("ERROR: " + e.getMessage());
       } catch (NoSuchEndEntityException e) {
-        log.error("ERROR: " + e.getMessage());
+        LOG.error("ERROR: " + e.getMessage());
       }
     }
     return CommandResult.FUNCTIONAL_FAILURE;
@@ -160,6 +167,6 @@ public class RevokeEndEntityCommand extends BaseRaCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

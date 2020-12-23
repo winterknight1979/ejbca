@@ -31,9 +31,12 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class CaCreateCrlCommand extends BaseCaAdminCommand {
 
-  private static final Logger log = Logger.getLogger(CaCreateCrlCommand.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CaCreateCrlCommand.class);
 
+  /** PAram. */
   private static final String CA_NAME_KEY = "--caname";
+  /** Param. */
   private static final String DELTA_KEY = "-delta";
 
   {
@@ -74,10 +77,10 @@ public class CaCreateCrlCommand extends BaseCaAdminCommand {
         String issuerDn = getIssuerDN(getAuthenticationToken(), caName);
         createCRL(issuerDn, deltaCrl);
       } catch (CADoesntExistsException e) {
-        log.error("No CA named " + caName + " exists.");
+        LOG.error("No CA named " + caName + " exists.");
         return CommandResult.FUNCTIONAL_FAILURE;
       } catch (AuthorizationDeniedException e) {
-        log.error("CLI user is not authorized to CA " + caName);
+        LOG.error("CLI user is not authorized to CA " + caName);
         return CommandResult.AUTHORIZATION_FAILURE;
       }
     }
@@ -96,6 +99,6 @@ public class CaCreateCrlCommand extends BaseCaAdminCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

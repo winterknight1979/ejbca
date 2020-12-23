@@ -36,18 +36,23 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class ListEndEntitiesCommand extends BaseRaCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(ListEndEntitiesCommand.class);
 
+  /** Param. */
   private static final String COMMAND = "listendentities";
+  /** Param. */
   private static final String OLD_COMMAND = "listusers";
 
+  /** Param. */
   private static final Set<String> ALIASES = new HashSet<String>();
 
   static {
     ALIASES.add(OLD_COMMAND);
   }
 
+  /** Param. */
   private static final String STATUS_KEY = "-S";
 
   {
@@ -79,7 +84,7 @@ public class ListEndEntitiesCommand extends BaseRaCommand {
     try {
       status = Integer.parseInt(parameters.get(STATUS_KEY));
     } catch (NumberFormatException e) {
-      log.error("ERROR: " + parameters.get(STATUS_KEY) + " was not a number.");
+      LOG.error("ERROR: " + parameters.get(STATUS_KEY) + " was not a number.");
       return CommandResult.FUNCTIONAL_FAILURE;
     }
     Collection<EndEntityInformation> coll = null;
@@ -167,6 +172,6 @@ public class ListEndEntitiesCommand extends BaseRaCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

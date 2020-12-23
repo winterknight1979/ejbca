@@ -20,7 +20,8 @@ import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
 /** @version $Id: ListAliasCommand.java 27965 2018-01-15 16:20:53Z anatom $ */
 public class ListAliasCommand extends BaseEstConfigCommand {
 
-  private static final Logger log = Logger.getLogger(ListAliasCommand.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(ListAliasCommand.class);
 
   @Override
   public String getMainCommand() {
@@ -31,7 +32,7 @@ public class ListAliasCommand extends BaseEstConfigCommand {
   public CommandResult execute(final ParameterContainer parameters) {
     List<String> aliaslist = getEstConfiguration().getSortedAliasList();
     for (String alias : aliaslist) {
-      log.info(alias);
+      LOG.info(alias);
     }
     return CommandResult.SUCCESS;
   }
@@ -48,6 +49,6 @@ public class ListAliasCommand extends BaseEstConfigCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

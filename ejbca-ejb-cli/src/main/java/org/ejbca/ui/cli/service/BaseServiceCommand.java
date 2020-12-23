@@ -27,18 +27,19 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
 import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 
 /**
- * Base for service commands, contains common functions for service operations
+ * Base for service commands, contains common functions for service operations.
  *
  * @version $Id: BaseServiceCommand.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public abstract class BaseServiceCommand extends EjbcaCliUserCommandBase {
 
-  protected final String SERVICE_NAME_KEY = "--service";
+/** Param. */
+  protected final String serviceNameKey = "--service";
 
   {
     registerParameter(
         new Parameter(
-            SERVICE_NAME_KEY,
+            serviceNameKey,
             "Service Name",
             MandatoryMode.MANDATORY,
             StandaloneMode.ALLOW,
@@ -58,23 +59,34 @@ public abstract class BaseServiceCommand extends EjbcaCliUserCommandBase {
     if (acceptsServiceName()) {
       final ServiceSessionRemote serviceSession =
           EjbRemoteHelper.INSTANCE.getRemoteSession(ServiceSessionRemote.class);
-      serviceId = serviceSession.getServiceId(parameters.get(SERVICE_NAME_KEY));
+      serviceId = serviceSession.getServiceId(parameters.get(serviceNameKey));
       if (serviceId == 0 && failIfServiceMissing()) {
         getLogger()
-            .info("Unknown Service: " + parameters.get(SERVICE_NAME_KEY));
+            .info("Unknown Service: " + parameters.get(serviceNameKey));
         return CommandResult.FUNCTIONAL_FAILURE;
       }
     }
     return execute(parameters, serviceId);
   }
 
+  /**
+   * @param parameters Params
+   * @param serviceId ID
+   * @return result
+   */
   public abstract CommandResult execute(
       ParameterContainer parameters, int serviceId);
 
+  /**
+   * @return bool
+   */
   protected boolean acceptsServiceName() {
     return true;
   }
 
+  /**
+   * @return bool
+   */
   protected boolean failIfServiceMissing() {
     return true;
   }
@@ -85,7 +97,7 @@ public abstract class BaseServiceCommand extends EjbcaCliUserCommandBase {
   }
 
   /**
-   * Activates timers for services which change from not active to active
+   * Activates timers for services which change from not active to active.
    *
    * @param serviceName Name
    * @param wasActive bool

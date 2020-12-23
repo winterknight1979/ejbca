@@ -25,7 +25,8 @@ import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
  */
 public class ServiceDeleteCommand extends BaseServiceCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(ServiceDeleteCommand.class);
 
   @Override
@@ -60,6 +61,6 @@ public class ServiceDeleteCommand extends BaseServiceCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

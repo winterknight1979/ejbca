@@ -23,6 +23,7 @@ import org.ejbca.ui.cli.infrastructure.command.EjbcaCliUserCommandBase;
  */
 public abstract class ConfigBaseCommand extends EjbcaCliUserCommandBase {
 
+    /** Param. */
   private GlobalConfigurationSessionRemote globalConfigSession = null;
 
   @Override

@@ -48,7 +48,8 @@ import org.ejbca.core.model.ra.raadmin.EndEntityProfileValidationException;
  * @version $Id$
  */
 class CertificateImporter implements Callable<CertificateImporter.Result> {
-  private static final Logger log = Logger.getLogger(CertificateImporter.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CertificateImporter.class);
   // Map Username -> Certificate containing the usernames of end entities
   // currently being
   // processed. If two certificates, belonging to the same end entity, are being
@@ -59,90 +60,108 @@ class CertificateImporter implements Callable<CertificateImporter.Result> {
   // private static final ConcurrentHashMap<String, File>
   // usernamesBeingProcessed = new ConcurrentHashMap<>();
 
+  /** Param. */
   private File file;
+  /** Param. */
   private boolean resumeOnError;
+  /** Param. */
   private int status;
+  /** Param. */
   private int endEntityProfileId;
+  /** Param. */
   private int certificateProfileId;
+  /** Param. */
   private Date revocationTime;
+  /** Param. */
   private RevocationReasons revocationReason;
+  /** Param. */
   private String issuer;
+  /** Param. */
   private String usernameFilter;
+  /** Param. */
   private X509Certificate caCertificate;
+  /** Param. */
   private AuthenticationToken authenticationToken;
+  /** Param. */
   private CAInfo caInfo;
 
   public enum Result {
+        /** Result. */
     REDUNDANT,
+    /** Result. */
     CA_MISMATCH,
+    /** Result. */
     READ_ERROR,
+    /** Result. */
     CONSTRAINT_VIOLATION,
+    /** Result. */
     GENERAL_IMPORT_ERROR,
+    /** Result. */
     IMPORT_OK,
   }
 
-  public CertificateImporter setFileToImport(final File file) {
-    this.file = file;
+  public CertificateImporter setFileToImport(final File afile) {
+    this.file = afile;
     return this;
   }
 
-  public CertificateImporter setResumeOnError(final boolean resumeOnError) {
-    this.resumeOnError = resumeOnError;
+  public CertificateImporter setResumeOnError(final boolean aresumeOnError) {
+    this.resumeOnError = aresumeOnError;
     return this;
   }
 
-  public CertificateImporter setStatus(final int status) {
-    this.status = status;
+  public CertificateImporter setStatus(final int astatus) {
+    this.status = astatus;
     return this;
   }
 
   public CertificateImporter setCertificateProfileId(
-      final int certificateProfileId) {
-    this.certificateProfileId = certificateProfileId;
+      final int acertificateProfileId) {
+    this.certificateProfileId = acertificateProfileId;
     return this;
   }
 
   public CertificateImporter setEndEntityProfileId(
-      final int endEntityProfileId) {
-    this.endEntityProfileId = endEntityProfileId;
+      final int anendEntityProfileId) {
+    this.endEntityProfileId = anendEntityProfileId;
     return this;
   }
 
-  public CertificateImporter setRevocationTime(final Date revocationTime) {
-    this.revocationTime = revocationTime;
+  public CertificateImporter setRevocationTime(final Date arevocationTime) {
+    this.revocationTime = arevocationTime;
     return this;
   }
 
   public CertificateImporter setRevocationReason(
-      final RevocationReasons revocationReason) {
-    this.revocationReason = revocationReason;
+      final RevocationReasons arevocationReason) {
+    this.revocationReason = arevocationReason;
     return this;
   }
 
-  public CertificateImporter setIssuer(final String issuer) {
-    this.issuer = issuer;
+  public CertificateImporter setIssuer(final String anissuer) {
+    this.issuer = anissuer;
     return this;
   }
 
-  public CertificateImporter setUsernameFilter(final String usernameFilter) {
-    this.usernameFilter = usernameFilter;
+  public CertificateImporter setUsernameFilter(final String ausernameFilter) {
+    this.usernameFilter = ausernameFilter;
     return this;
   }
 
   public CertificateImporter setCaCertificate(
-      final X509Certificate caCertificate) {
-    this.caCertificate = caCertificate;
+      final X509Certificate acaCertificate) {
+    this.caCertificate = acaCertificate;
     return this;
   }
 
   public CertificateImporter setAuthenticationToken(
-      final AuthenticationToken authenticationToken) {
-    this.authenticationToken = authenticationToken;
+      final AuthenticationToken anauthenticationToken) {
+    this.authenticationToken = anauthenticationToken;
     return this;
   }
 
-  public CertificateImporter setCaInfo(final CAInfo caInfo) {
-    this.caInfo = caInfo;
+  public CertificateImporter setCaInfo(final CAInfo acaInfo) {
+    this.caInfo = acaInfo;
     return this;
   }
 
@@ -159,12 +178,12 @@ class CertificateImporter implements Callable<CertificateImporter.Result> {
   private String getEndEntityUsername(
       final String filename,
       final Certificate certificate,
-      final String usernameFilter) {
-    if (StringUtils.equalsIgnoreCase(usernameFilter, "DN")) {
+      final String ausernameFilter) {
+    if (StringUtils.equalsIgnoreCase(ausernameFilter, "DN")) {
       // Use the DN if requested, but fall-back to filename if DN is empty.
       final String dn = CertTools.getSubjectDN(certificate);
       if (dn == null || dn.length() == 0) {
-        log.warn(
+        LOG.warn(
             "WARN: Certificate with serial '"
                 + CertTools.getSerialNumberAsString(certificate)
                 + "' lacks DN, filename used instead, file: "
@@ -173,21 +192,21 @@ class CertificateImporter implements Callable<CertificateImporter.Result> {
       } else {
         return dn;
       }
-    } else if (StringUtils.equalsIgnoreCase(usernameFilter, "CN")) {
+    } else if (StringUtils.equalsIgnoreCase(ausernameFilter, "CN")) {
       // Use CN if requested, but fallback to DN if it's empty, or if DN is
       // empty as well, fall back to filename.
       final String dn = CertTools.getSubjectDN(certificate);
       final String cn = CertTools.getPartFromDN(dn, "CN");
       if (cn == null || cn.length() == 0) {
         if (dn == null || dn.length() == 0) {
-          log.warn(
+          LOG.warn(
               "WARN: Certificate with serial '"
                   + CertTools.getSerialNumberAsString(certificate)
                   + "' lacks both CN and DN, filename used instead, file: "
                   + filename);
           return filename;
         } else {
-          log.warn(
+          LOG.warn(
               "WARN: Certificate with serial '"
                   + CertTools.getSerialNumberAsString(certificate)
                   + "' lacks CN, DN used instead, file: "
@@ -214,9 +233,9 @@ class CertificateImporter implements Callable<CertificateImporter.Result> {
   }
 
   private boolean certificateIsSignedByCa(
-      final X509Certificate certificate, final X509Certificate caCertificate) {
+      final X509Certificate certificate, final X509Certificate acaCertificate) {
     try {
-      certificate.verify(caCertificate.getPublicKey());
+      certificate.verify(acaCertificate.getPublicKey());
       return true;
     } catch (GeneralSecurityException e) {
       return false;
@@ -258,7 +277,7 @@ class CertificateImporter implements Callable<CertificateImporter.Result> {
               null);
       userdata.setPassword("foo123");
       endEntityManagementSession.addUser(authenticationToken, userdata, false);
-      log.info("User '" + username + "' has been added.");
+      LOG.info("User '" + username + "' has been added.");
       return userdata;
     }
   }
@@ -272,7 +291,7 @@ class CertificateImporter implements Callable<CertificateImporter.Result> {
       final String fingerprint = CertTools.getFingerprintAsString(certificate);
 
       if (certificateAlreadyExists(fingerprint)) {
-        log.info(
+        LOG.info(
             "SKIP: Certificate with serial '"
                 + CertTools.getSerialNumberAsString(certificate)
                 + "' is already present, file: "
@@ -296,7 +315,7 @@ class CertificateImporter implements Callable<CertificateImporter.Result> {
       if (!caCertificate
           .getSubjectX500Principal()
           .equals(certificate.getIssuerX500Principal())) {
-        log.error(
+        LOG.error(
             "ERROR: The certificates issuer subject DN does not match with the"
                 + " specified CA's subject DN, file: "
                 + file.getName());
@@ -304,14 +323,14 @@ class CertificateImporter implements Callable<CertificateImporter.Result> {
       }
 
       if (!certificateIsSignedByCa(certificate, caCertificate)) {
-        log.error(
+        LOG.error(
             "ERROR: The certificate's signature does not validate against the"
                 + " specified CA, file: "
                 + file.getName());
         return Result.CA_MISMATCH;
       }
 
-      log.debug("Loading/updating user " + username);
+      LOG.debug("Loading/updating user " + username);
       final EndEntityManagementSessionRemote endEntityManagementSession =
           EjbRemoteHelper.INSTANCE.getRemoteSession(
               EndEntityManagementSessionRemote.class);
@@ -326,7 +345,7 @@ class CertificateImporter implements Callable<CertificateImporter.Result> {
       userdata.setStatus(EndEntityConstants.STATUS_GENERATED);
       endEntityManagementSession.changeUser(
           authenticationToken, userdata, false);
-      log.info("User '" + username + "' has been updated.");
+      LOG.info("User '" + username + "' has been updated.");
 
       // Finally import the certificate and revoke it if necessary
       CertificateStoreSessionRemote certificateStoreSession =
@@ -352,42 +371,42 @@ class CertificateImporter implements Callable<CertificateImporter.Result> {
             issuer,
             revocationReason.getDatabaseValue(),
             false);
-        log.info(
+        LOG.info(
             "Certificate with serial '"
                 + CertTools.getSerialNumberAsString(certificate)
                 + "' has been revoked.");
       }
 
-      log.info(
+      LOG.info(
           "Certificate with serial '"
               + CertTools.getSerialNumberAsString(certificate)
               + "' has been added.");
 
       return Result.IMPORT_OK;
     } catch (IOException | CertificateParsingException e) {
-      log.error(
+      LOG.error(
           "ERROR: A problem was encountered while reading the certificate,"
               + " file: "
               + file.getName());
       if (!resumeOnError) {
         throw e;
       } else {
-        log.error(e.getMessage());
+        LOG.error(e.getMessage());
         return Result.READ_ERROR;
       }
     } catch (EndEntityProfileValidationException e) {
-      log.error(
+      LOG.error(
           "ERROR: End entity profile constraints were violated by the"
               + " certificate, file: "
               + file.getName());
       if (!resumeOnError) {
         throw e;
       } else {
-        log.error(e.getMessage());
+        LOG.error(e.getMessage());
         return Result.CONSTRAINT_VIOLATION;
       }
     } catch (Exception e) {
-      log.error(
+      LOG.error(
           "ERROR: Unclassified general import error has occurred, file: "
               + file.getName()
               + System.lineSeparator()

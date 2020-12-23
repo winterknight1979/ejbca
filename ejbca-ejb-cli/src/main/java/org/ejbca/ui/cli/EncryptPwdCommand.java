@@ -30,14 +30,16 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
 import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 
 /**
- * Implements the password encryption mechanism
+ * Implements the password encryption mechanism.
  *
  * @version $Id: EncryptPwdCommand.java 30372 2018-11-02 19:09:35Z mikekushner $
  */
 public class EncryptPwdCommand extends EjbcaCommandBase {
 
-  private static final Logger log = Logger.getLogger(EncryptPwdCommand.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(EncryptPwdCommand.class);
 
+  /** Param. */
   private static final String ENCRYPT_KEY = "--key";
 
   {
@@ -72,20 +74,20 @@ public class EncryptPwdCommand extends EjbcaCommandBase {
   public CommandResult execute(final ParameterContainer parameters) {
 
     final boolean readKey = parameters.get(ENCRYPT_KEY) != null;
-    log.info(
+    LOG.info(
         "Please note that this encryption does not provide absolute security."
             + " If 'password.encryption.key' property haven't been customized"
             + " it doesn't provide more security than just preventing"
             + " accidental viewing.");
     char[] encryptionKey = null;
     if (readKey) {
-      log.info("Enter encryption key: ");
+      LOG.info("Enter encryption key: ");
       encryptionKey = System.console().readPassword();
     }
-    log.info("Enter word to encrypt: ");
+    LOG.info("Enter word to encrypt: ");
     String s = String.valueOf(System.console().readPassword());
     CryptoProviderTools.installBCProvider();
-    log.info(
+    LOG.info(
         "Encrypting pwd ("
             + (readKey ? "with custom key" : "with default key")
             + ")");
@@ -102,17 +104,17 @@ public class EncryptPwdCommand extends EjbcaCommandBase {
         | IllegalBlockSizeException
         | BadPaddingException
         | InvalidKeySpecException e) {
-      log.error(e.getMessage());
+      LOG.error(e.getMessage());
       return CommandResult.FUNCTIONAL_FAILURE;
     }
 
-    log.info(enc);
+    LOG.info(enc);
 
     return CommandResult.SUCCESS;
   }
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

@@ -36,13 +36,19 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class CaEditCertificateProfileCommand extends BaseCaAdminCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CaEditCertificateProfileCommand.class);
 
+  /** Param. */
   private static final String CERTIFICATEPROFILE_NAME_KEY = "--cpname";
+  /** Param. */
   private static final String FIELD_KEY = "--field";
+  /** Param. */
   private static final String VALUE_KEY = "--value";
+  /** Param. */
   private static final String LISTFIELDS_KEY = "-listFields";
+  /** Param. */
   private static final String GETVALUE_KEY = "-getValue";
 
   {
@@ -96,7 +102,7 @@ public class CaEditCertificateProfileCommand extends BaseCaAdminCommand {
   @Override
   public CommandResult execute(final ParameterContainer parameters) {
 
-    FieldEditor fieldEditor = new FieldEditor(log);
+    FieldEditor fieldEditor = new FieldEditor(LOG);
 
     CryptoProviderTools.installBCProvider();
 
@@ -107,17 +113,17 @@ public class CaEditCertificateProfileCommand extends BaseCaAdminCommand {
     final String value = parameters.get(VALUE_KEY);
 
     if (!listOnly && field == null) {
-      log.error("No field was specified.");
+      LOG.error("No field was specified.");
       return CommandResult.CLI_FAILURE;
     } else if (!listOnly && !getOnly && value == null) {
-      log.error("No value was specified.");
+      LOG.error("No value was specified.");
       return CommandResult.CLI_FAILURE;
     } else if (listOnly && getOnly) {
-      log.error(
+      LOG.error(
           "Cannot specify both " + LISTFIELDS_KEY + " and " + GETVALUE_KEY);
       return CommandResult.CLI_FAILURE;
     } else if (getOnly && value != null) {
-      log.error("Cannot submit a value with " + GETVALUE_KEY + " set.");
+      LOG.error("Cannot submit a value with " + GETVALUE_KEY + " set.");
       return CommandResult.CLI_FAILURE;
     }
 
@@ -126,7 +132,7 @@ public class CaEditCertificateProfileCommand extends BaseCaAdminCommand {
             .getRemoteSession(CertificateProfileSessionRemote.class)
             .getCertificateProfile(name);
     if (profile == null) {
-      log.info("Certificate profile '" + name + "' does not exist.");
+      LOG.info("Certificate profile '" + name + "' does not exist.");
       return CommandResult.FUNCTIONAL_FAILURE;
     } else {
       // List fields, get values or set value
@@ -137,13 +143,13 @@ public class CaEditCertificateProfileCommand extends BaseCaAdminCommand {
           fieldEditor.getBeanValue(field, profile);
         } else {
           fieldEditor.setValue(name, field, value, profile);
-          log.info("Storing modified profile '" + name + "'...");
+          LOG.info("Storing modified profile '" + name + "'...");
           EjbRemoteHelper.INSTANCE
               .getRemoteSession(CertificateProfileSessionRemote.class)
               .changeCertificateProfile(
                   getAuthenticationToken(), name, profile);
           // Verify our new value
-          log.info("Reading modified value for verification...");
+          LOG.info("Reading modified value for verification...");
           final CertificateProfile modprof =
               EjbRemoteHelper.INSTANCE
                   .getRemoteSession(CertificateProfileSessionRemote.class)
@@ -153,10 +159,10 @@ public class CaEditCertificateProfileCommand extends BaseCaAdminCommand {
         }
         return CommandResult.SUCCESS;
       } catch (FieldNotFoundException e) {
-        log.error(e.getMessage());
+        LOG.error(e.getMessage());
         return CommandResult.FUNCTIONAL_FAILURE;
       } catch (AuthorizationDeniedException e) {
-        log.error("CLI User was not authorized to Certificate Profile " + name);
+        LOG.error("CLI User was not authorized to Certificate Profile " + name);
         return CommandResult.AUTHORIZATION_FAILURE;
       }
     }
@@ -196,6 +202,6 @@ public class CaEditCertificateProfileCommand extends BaseCaAdminCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

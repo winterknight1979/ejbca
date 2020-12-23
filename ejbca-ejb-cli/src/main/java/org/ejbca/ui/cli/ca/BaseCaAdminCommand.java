@@ -51,22 +51,27 @@ import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionRemote;
 import org.ejbca.ui.cli.infrastructure.command.EjbcaCliUserCommandBase;
 
 /**
- * Base for CA commands, contains common functions for CA operations
+ * Base for CA commands, contains common functions for CA operations.
  *
  * @version $Id: BaseCaAdminCommand.java 27740 2018-01-05 07:24:53Z mikekushner
  *     $
  */
 public abstract class BaseCaAdminCommand extends EjbcaCliUserCommandBase {
 
-  private static final Logger log = Logger.getLogger(BaseCaAdminCommand.class);
-
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(BaseCaAdminCommand.class);
+  /** Param. */
   protected static final String MAINCOMMAND = "ca";
 
-  protected static final String defaultSuperAdminCN = "SuperAdmin";
+  /** Param. */
+  protected static final String DEF_SUPERADMIN_CN = "SuperAdmin";
 
-  /** Private key alias in PKCS12 keystores */
+  /** Private key alias in PKCS12 keystores. */
   protected String privKeyAlias = "privateKey";
 
+  /**
+   * PARAM.
+   */
   protected char[] privateKeyPass = null;
 
   @Override
@@ -75,7 +80,7 @@ public abstract class BaseCaAdminCommand extends EjbcaCliUserCommandBase {
   }
 
   /**
-   * Retrieves the complete certificate chain from the CA
+   * Retrieves the complete certificate chain from the CA.
    *
    * @param authenticationToken token
    * @param caname human readable name of CA
@@ -83,7 +88,7 @@ public abstract class BaseCaAdminCommand extends EjbcaCliUserCommandBase {
    */
   protected Collection<Certificate> getCertChain(
       final AuthenticationToken authenticationToken, final String caname) {
-    log.trace(">getCertChain()");
+    LOG.trace(">getCertChain()");
     Collection<Certificate> returnval = new ArrayList<Certificate>();
     try {
       CAInfo cainfo =
@@ -94,18 +99,30 @@ public abstract class BaseCaAdminCommand extends EjbcaCliUserCommandBase {
         returnval = cainfo.getCertificateChain();
       }
     } catch (Exception e) {
-      log.error("Error while getting certfificate chain from CA.", e);
+      LOG.error("Error while getting certfificate chain from CA.", e);
     }
-    log.trace("<getCertChain()");
+    LOG.trace("<getCertChain()");
     return returnval;
   }
 
+  /**
+   * @param dn DN
+   * @param rsaKeys Keys
+   * @param reqfile Req
+   * @throws NoSuchAlgorithmException FAil
+   * @throws IOException FAil
+   * @throws NoSuchProviderException Fail
+   * @throws InvalidKeyException Fail
+   * @throws SignatureException Fail
+   * @throws OperatorCreationException Fail
+   * @throws PKCSException Fail
+   */
   protected void makeCertRequest(
       final String dn, final KeyPair rsaKeys, final String reqfile)
       throws NoSuchAlgorithmException, IOException, NoSuchProviderException,
           InvalidKeyException, SignatureException, OperatorCreationException,
           PKCSException {
-    log.trace(">makeCertRequest: dn='" + dn + "', reqfile='" + reqfile + "'.");
+    LOG.trace(">makeCertRequest: dn='" + dn + "', reqfile='" + reqfile + "'.");
 
     PKCS10CertificationRequest req =
         CertTools.genPKCS10CertificationRequest(
@@ -134,10 +151,10 @@ public abstract class BaseCaAdminCommand extends EjbcaCliUserCommandBase {
     ContentVerifierProvider contentVerifier =
         CertTools.genContentVerifierProvider(rsaKeys.getPublic());
     boolean verify = req2.isSignatureValid(contentVerifier); // req2.verify();
-    log.info("Verify returned " + verify);
+    LOG.info("Verify returned " + verify);
 
-    if (verify == false) {
-      log.info("Aborting!");
+    if (!verify) {
+      LOG.info("Aborting!");
       return;
     }
 
@@ -146,12 +163,16 @@ public abstract class BaseCaAdminCommand extends EjbcaCliUserCommandBase {
     os1.write(Base64.encode(bOut.toByteArray()));
     os1.write("\n-----END CERTIFICATE REQUEST-----\n".getBytes());
     os1.close();
-    log.info("CertificationRequest '" + reqfile + "' generated successfully.");
-    log.trace("<makeCertRequest: dn='" + dn + "', reqfile='" + reqfile + "'.");
+    LOG.info("CertificationRequest '" + reqfile + "' generated successfully.");
+    LOG.trace("<makeCertRequest: dn='" + dn + "', reqfile='" + reqfile + "'.");
   }
 
+  /**
+   * @param issuerdn DN
+   * @param deltaCRL Bool
+   */
   protected void createCRL(final String issuerdn, final boolean deltaCRL) {
-    log.trace(">createCRL()");
+    LOG.trace(">createCRL()");
     try {
       if (issuerdn != null) {
         CAInfo cainfo =
@@ -166,7 +187,7 @@ public abstract class BaseCaAdminCommand extends EjbcaCliUserCommandBase {
               EjbRemoteHelper.INSTANCE
                   .getRemoteSession(CrlStoreSessionRemote.class)
                   .getLastCRLNumber(issuerdn, false);
-          log.info("CRL with number " + number + " generated.");
+          LOG.info("CRL with number " + number + " generated.");
         } else {
           EjbRemoteHelper.INSTANCE
               .getRemoteSession(PublishingCrlSessionRemote.class)
@@ -175,26 +196,33 @@ public abstract class BaseCaAdminCommand extends EjbcaCliUserCommandBase {
               EjbRemoteHelper.INSTANCE
                   .getRemoteSession(CrlStoreSessionRemote.class)
                   .getLastCRLNumber(issuerdn, true);
-          log.info("Delta CRL with number " + number + " generated.");
+          LOG.info("Delta CRL with number " + number + " generated.");
         }
       } else {
         int createdcrls =
             EjbRemoteHelper.INSTANCE
                 .getRemoteSession(PublishingCrlSessionRemote.class)
                 .createCRLs(getAuthenticationToken());
-        log.info("  " + createdcrls + " CRLs have been created.");
+        LOG.info("  " + createdcrls + " CRLs have been created.");
         int createddeltacrls =
             EjbRemoteHelper.INSTANCE
                 .getRemoteSession(PublishingCrlSessionRemote.class)
                 .createDeltaCRLs(getAuthenticationToken());
-        log.info("  " + createddeltacrls + " delta CRLs have been created.");
+        LOG.info("  " + createddeltacrls + " delta CRLs have been created.");
       }
     } catch (Exception e) {
-      log.error("Error while creating CRL for CA: " + issuerdn, e);
+      LOG.error("Error while creating CRL for CA: " + issuerdn, e);
     }
-    log.trace(">createCRL()");
+    LOG.trace(">createCRL()");
   }
 
+  /**
+   * @param authenticationToken Token
+   * @param caname NAme
+   * @return DN
+   * @throws CADoesntExistsException Fail
+   * @throws AuthorizationDeniedException Fail
+   */
   protected String getIssuerDN(
       final AuthenticationToken authenticationToken, final String caname)
       throws CADoesntExistsException, AuthorizationDeniedException {
@@ -205,6 +233,11 @@ public abstract class BaseCaAdminCommand extends EjbcaCliUserCommandBase {
     return cainfo != null ? cainfo.getSubjectDN() : null;
   }
 
+  /**
+   * @param authenticationToken Token
+   * @param caname Name
+   * @return Info
+   */
   protected CAInfo getCAInfo(
       final AuthenticationToken authenticationToken, final String caname) {
     CAInfo result = null;
@@ -214,23 +247,29 @@ public abstract class BaseCaAdminCommand extends EjbcaCliUserCommandBase {
               .getRemoteSession(CaSessionRemote.class)
               .getCAInfo(authenticationToken, caname);
     } catch (AuthorizationDeniedException e) {
-      log.error("Authorization denied", e);
+      LOG.error("Authorization denied", e);
     }
     if (result == null) {
-      log.debug("CA " + caname + " not found.");
+      LOG.debug("CA " + caname + " not found.");
     }
     return result;
   }
 
+  /**   *
+   * @param authenticationToken tOKEN
+   * @param caid CA
+   * @param superAdminCN CN
+   * @throws AuthorizationDeniedException Fail
+   */
   protected void initAuthorizationModule(
       final AuthenticationToken authenticationToken,
       final int caid,
       final String superAdminCN)
       throws AuthorizationDeniedException {
     if (superAdminCN == null) {
-      log.info("Not initializing authorization module.");
+      LOG.info("Not initializing authorization module.");
     } else {
-      log.info(
+      LOG.info(
           "Initalizing authorization module with caid="
               + caid
               + " and superadmin CN '"
@@ -243,12 +282,15 @@ public abstract class BaseCaAdminCommand extends EjbcaCliUserCommandBase {
             authenticationToken, caid, superAdminCN);
   }
 
+  /**
+   * @return CAS string
+   */
   protected String getAvailableCasString() {
     // List available CAs by name
     final StringBuilder existingCas = new StringBuilder();
     try {
-      for (final Integer nextId :
-          EjbRemoteHelper.INSTANCE
+      for (final Integer nextId
+          : EjbRemoteHelper.INSTANCE
               .getRemoteSession(CaSessionRemote.class)
               .getAuthorizedCaIds(getAuthenticationToken())) {
         final String caName =
@@ -267,12 +309,16 @@ public abstract class BaseCaAdminCommand extends EjbcaCliUserCommandBase {
     return existingCas.toString();
   }
 
+  /**   *
+   * @param endentityAccessRule Rule
+   * @return Eeps String
+   */
   protected String getAvailableEepsString(final String endentityAccessRule) {
     // List available EndEntityProfiles by name
     final StringBuilder availableEEPs = new StringBuilder();
     try {
-      for (final Integer nextId :
-          EjbRemoteHelper.INSTANCE
+      for (final Integer nextId
+          : EjbRemoteHelper.INSTANCE
               .getRemoteSession(EndEntityProfileSessionRemote.class)
               .getAuthorizedEndEntityProfileIds(
                   getAuthenticationToken(), endentityAccessRule)) {
@@ -291,12 +337,15 @@ public abstract class BaseCaAdminCommand extends EjbcaCliUserCommandBase {
     return availableEEPs.toString();
   }
 
+  /**
+   * @return CPS String
+   */
   protected String getAvailableEndUserCpsString() {
     // List available CertificateProfiles by name
     final StringBuilder availableCPs = new StringBuilder();
     try {
-      for (final Integer nextId :
-          EjbRemoteHelper.INSTANCE
+      for (final Integer nextId
+          : EjbRemoteHelper.INSTANCE
               .getRemoteSession(CertificateProfileSessionRemote.class)
               .getAuthorizedCertificateProfileIds(
                   getAuthenticationToken(),
@@ -316,8 +365,11 @@ public abstract class BaseCaAdminCommand extends EjbcaCliUserCommandBase {
     return availableCPs.toString();
   }
 
+  /**
+   * @return CA List
+   */
   protected String getCaList() {
-    final String TAB = "    ";
+    final String tab = "    ";
     Collection<Integer> cas =
         EjbRemoteHelper.INSTANCE
             .getRemoteSession(CaSessionRemote.class)
@@ -331,7 +383,7 @@ public abstract class BaseCaAdminCommand extends EjbcaCliUserCommandBase {
                 .getRemoteSession(CaSessionRemote.class)
                 .getCAInfo(getAuthenticationToken(), caid);
         if (info.getStatus() == CAConstants.CA_EXTERNAL) {
-          casList += TAB + info.getName() + ": External CA\n";
+          casList += tab + info.getName() + ": External CA\n";
         } else {
           int cryptoTokenId = info.getCAToken().getCryptoTokenId();
           String cryptoTokenName =
@@ -352,7 +404,7 @@ public abstract class BaseCaAdminCommand extends EjbcaCliUserCommandBase {
             // NOPMD: ignore, use string above
           }
           casList +=
-              TAB
+              tab
                   + info.getName()
                   + ":"
                   + cryptoTokenName

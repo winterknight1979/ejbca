@@ -31,9 +31,11 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class CryptoTokenTestCommand extends BaseCryptoTokenCommand {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CryptoTokenTestCommand.class);
 
+  /** Param. */
   private static final String ALIAS_KEY = "--alias";
 
   {
@@ -89,6 +91,6 @@ public class CryptoTokenTestCommand extends BaseCryptoTokenCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

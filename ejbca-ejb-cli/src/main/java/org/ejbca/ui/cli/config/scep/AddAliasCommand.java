@@ -25,9 +25,11 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 /** @version $Id: AddAliasCommand.java 26057 2017-06-22 08:08:34Z anatom $ */
 public class AddAliasCommand extends BaseScepConfigCommand {
 
+    /** Param. */
   private static final String ALIAS_KEY = "--alias";
 
-  private static final Logger log = Logger.getLogger(AddAliasCommand.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(AddAliasCommand.class);
 
   {
     registerParameter(
@@ -51,19 +53,19 @@ public class AddAliasCommand extends BaseScepConfigCommand {
     // We check first because it is unnecessary to call saveConfiguration when
     // it is not needed
     if (getScepConfiguration().aliasExists(alias)) {
-      log.info("Alias '" + alias + "' already exists.");
+      LOG.info("Alias '" + alias + "' already exists.");
       return CommandResult.FUNCTIONAL_FAILURE;
     }
     getScepConfiguration().addAlias(alias);
     try {
       getGlobalConfigurationSession()
           .saveConfiguration(getAuthenticationToken(), getScepConfiguration());
-      log.info("Added SCEP alias: " + alias);
+      LOG.info("Added SCEP alias: " + alias);
       getGlobalConfigurationSession()
           .flushConfigurationCache(ScepConfiguration.SCEP_CONFIGURATION_ID);
       return CommandResult.SUCCESS;
     } catch (AuthorizationDeniedException e) {
-      log.info(
+      LOG.info(
           "Failed to add alias '" + alias + "': " + e.getLocalizedMessage());
       return CommandResult.AUTHORIZATION_FAILURE;
     }
@@ -81,6 +83,6 @@ public class AddAliasCommand extends BaseScepConfigCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

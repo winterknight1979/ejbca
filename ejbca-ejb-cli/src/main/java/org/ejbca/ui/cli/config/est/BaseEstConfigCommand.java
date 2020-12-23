@@ -17,12 +17,13 @@ import org.ejbca.config.EstConfiguration;
 import org.ejbca.ui.cli.config.ConfigBaseCommand;
 
 /**
- * Shows the current server configuration
+ * Shows the current server configuration.
  *
  * @version $Id: BaseEstConfigCommand.java 27965 2018-01-15 16:20:53Z anatom $
  */
 public abstract class BaseEstConfigCommand extends ConfigBaseCommand {
 
+    /** Param. */
   private EstConfiguration estConfiguration = null;
 
   @Override
@@ -30,6 +31,9 @@ public abstract class BaseEstConfigCommand extends ConfigBaseCommand {
     return new String[] {super.getCommandPath()[0], "est"};
   }
 
+  /**
+   * @return config
+   */
   protected EstConfiguration getEstConfiguration() {
     if (estConfiguration == null) {
       estConfiguration =

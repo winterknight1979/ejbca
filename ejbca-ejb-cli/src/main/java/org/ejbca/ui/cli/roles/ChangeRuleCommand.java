@@ -32,15 +32,21 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
 import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
 import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 
-/** Changes an access rule */
+/** Changes an access rule. */
 public class ChangeRuleCommand extends BaseRolesCommand {
 
-  private static final Logger log = Logger.getLogger(ChangeRuleCommand.class);
+      /** Param. */
+  private static final Logger LOG = Logger.getLogger(ChangeRuleCommand.class);
 
+  /** Param. */
   private static final String NAME_KEY = "--name";
+  /** Param. */
   private static final String RULE_KEY = "--rule";
+  /** Param. */
   private static final String STATE_KEY = "--state";
+  /** Param. */
   private static final String ROLE_NAMESPACE_KEY = "--namespace";
+  /** Param. */
   @Deprecated private static final String RECURSIVE_KEY = "-R";
 
   {
@@ -184,7 +190,7 @@ public class ChangeRuleCommand extends BaseRolesCommand {
       }
       return CommandResult.SUCCESS;
     } catch (AuthorizationDeniedException e) {
-      log.error(
+      LOG.error(
           "CLI user not authorized to edit rule " + parameters.get(RULE_KEY));
       return CommandResult.AUTHORIZATION_FAILURE;
     }
@@ -233,6 +239,6 @@ public class ChangeRuleCommand extends BaseRolesCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }

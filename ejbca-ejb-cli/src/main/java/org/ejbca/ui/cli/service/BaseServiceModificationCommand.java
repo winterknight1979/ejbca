@@ -35,7 +35,7 @@ public abstract class BaseServiceModificationCommand
    * Displays the help text about -listFields and -listProperties accepted by
    * the "create" and "edit" commands.
    */
-  protected final String FIELDS_HELP =
+  protected final String fieldsHelp =
       "The \"fields\" are related directly to the service, e.g. it's"
           + " description and whether it's active. The properties are used by"
           + " the different worker/interval/action classes.\n"

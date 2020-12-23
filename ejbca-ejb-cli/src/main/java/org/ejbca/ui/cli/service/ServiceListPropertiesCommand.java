@@ -22,14 +22,14 @@ import org.ejbca.ui.cli.infrastructure.command.CommandResult;
 import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
 
 /**
- * CLI subcommand that lists all available fields
+ * CLI subcommand that lists all available fields.
  *
  * @version $Id: ServiceListPropertiesCommand.java 21708 2015-08-24 14:48:34Z
  *     mikekushner $
  */
 public class ServiceListPropertiesCommand extends BaseServiceCommand {
-
-  private static final Logger log =
+/** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(ServiceListPropertiesCommand.class);
 
   @Override
@@ -87,6 +87,6 @@ public class ServiceListPropertiesCommand extends BaseServiceCommand {
 
   @Override
   protected Logger getLogger() {
-    return log;
+    return LOG;
   }
 }
