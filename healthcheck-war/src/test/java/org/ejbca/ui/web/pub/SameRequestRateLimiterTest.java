@@ -17,149 +17,202 @@ import static org.junit.Assert.assertFalse;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Test code for util class that allows many concurrent requests for the same thing to share the result.
- * 
- * @version $Id: SameRequestRateLimiterTest.java 19902 2014-09-30 14:32:24Z anatom $
+ * Test code for util class that allows many concurrent requests for the same
+ * thing to share the result.
+ *
+ * @version $Id: SameRequestRateLimiterTest.java 19902 2014-09-30 14:32:24Z
+ *     anatom $
  */
 public class SameRequestRateLimiterTest {
-    
-    private static final Logger log = Logger.getLogger(SameRequestRateLimiterTest.class);
 
-    private int nextValue = 0;
-    SameRequestRateLimiter<Integer> srrl = null;
-    
-    @Before
-    public void setUp() {
-        nextValue = 0;
-        srrl = new SameRequestRateLimiter<Integer>();
-    }
+    /** Logger. */
+  private static final Logger LOG =
+      Logger.getLogger(SameRequestRateLimiterTest.class);
 
-    @Test
-    public void test100ThreadsWithoutLimiter() throws Exception {
-        log.trace(">test100ThreadsWithoutLimiter");
-        final List<Integer> allResults = new ArrayList<Integer>();
-        // Start a 100 threads that perform want to perform the same request concurrently
-        startTasks(allResults, 100, false);
-        waitForAllResults(allResults, 100, 10);
-        assertEquals("Incorrect nextValue. Request method was invoked less than 100 times!", 100, nextValue);
-        // Verify that we have 100 unique invocations without the rate limiter
-        for (final Integer resultValue : allResults) {
-            boolean once = false;
-            for (final Integer resultValue2 : allResults) {
-                if (resultValue.intValue() == resultValue2.intValue()) {
-                    assertFalse("Result occurred twice! We expect unique invocations..", once);
-                    once = true;
-                }
-            }
-        }
-        log.trace("<test100ThreadsWithoutLimiter");
-    }
+  /** Param. */
+  private int nextValue = 0;
+  /** Param. */
+  private SameRequestRateLimiter<Integer> srrl = null;
 
-    @Test
-    public void test100ThreadsWithLimiter() {
-        log.trace(">test100ThreadsWithLimiter");
-        final List<Integer> allResults = new ArrayList<Integer>();
-        // Start a 100 threads that perform want to perform the same request concurrently
-        startTasks(allResults, 100, true);
-        waitForAllResults(allResults, 100, 10);
-        assertEquals("Incorrect nextValue. Request method was invoked more than one time!", 1, nextValue);
-        // Verify that we have 1 unique invocations with the rate limiter
-        for (Integer resultValue : allResults) {
-            assertEquals("Incorrect result returned! All threads should get the same expected result value.", 0, resultValue.intValue());
+  /** Setup. */
+  @Before
+  public void setUp() {
+    nextValue = 0;
+    srrl = new SameRequestRateLimiter<Integer>();
+  }
+  /**
+   * Test.
+ * @throws Exception fail
+   */
+  @Test
+  public void test100ThreadsWithoutLimiter() throws Exception {
+    LOG.trace(">test100ThreadsWithoutLimiter");
+    final List<Integer> allResults = new ArrayList<Integer>();
+    // Start a 100 threads that perform want to perform the same request
+    // concurrently
+    startTasks(allResults, 100, false);
+    waitForAllResults(allResults, 100, 10);
+    assertEquals(
+        "Incorrect nextValue. Request method was invoked less than 100 times!",
+        100,
+        nextValue);
+    // Verify that we have 100 unique invocations without the rate limiter
+    for (final Integer resultValue : allResults) {
+      boolean once = false;
+      for (final Integer resultValue2 : allResults) {
+        if (resultValue.intValue() == resultValue2.intValue()) {
+          assertFalse(
+              "Result occurred twice! We expect unique invocations..", once);
+          once = true;
         }
-        log.trace("<test100ThreadsWithLimiter");
+      }
     }
+    LOG.trace("<test100ThreadsWithoutLimiter");
+  }
 
-    /** Start threads that perform the task 
-     * @param allResults Results
-     * @param threads # of threads
-     * @param useLimitWrapper bool */
-    private void startTasks(final List<Integer> allResults, final int threads, final boolean useLimitWrapper) {
-        log.trace(">startTasks");
-        for (int i=0; i<threads; i++) {
-            new Thread() {
-                @Override
-                public void run() {
-                    final Integer resultValue;
-                    if (useLimitWrapper) {
-                        resultValue = getNextValueLimitWrapper();
-                    } else {
-                        resultValue = getNextValue();
-                    }
-                    synchronized (allResults) {
-                        allResults.add(resultValue);
-                    }
-                    super.run();
-                }
-            }.start();
-        }
-        log.trace("<startTasks");
+  /**
+   * Test.
+   */
+  @Test
+  public void test100ThreadsWithLimiter() {
+    LOG.trace(">test100ThreadsWithLimiter");
+    final List<Integer> allResults = new ArrayList<Integer>();
+    // Start a 100 threads that perform want to perform the same request
+    // concurrently
+    startTasks(allResults, 100, true);
+    waitForAllResults(allResults, 100, 10);
+    assertEquals(
+        "Incorrect nextValue. Request method was invoked more than one time!",
+        1,
+        nextValue);
+    // Verify that we have 1 unique invocations with the rate limiter
+    for (Integer resultValue : allResults) {
+      assertEquals(
+          "Incorrect result returned! All threads should get the same expected"
+              + " result value.",
+          0,
+          resultValue.intValue());
     }
+    LOG.trace("<test100ThreadsWithLimiter");
+  }
 
-    /** Wait up to "timeoutSeconds" seconds for all "expected" number of threads to complete.. 
-     * @param allResults Results
-     * @param expected # of threads
-     * @param timeoutSeconds timeout */
-    private void waitForAllResults(final List<Integer> allResults, int expected, int timeoutSeconds) {
-        log.trace(">waitForAllResults");
-        while (timeoutSeconds-->0) {
-            synchronized (allResults) {
-                if (allResults.size()>=expected) {
-                    break;
-                }
-            }
-            log.info("Waiting another second for all tasks to complete..");
-            sleep(1000L);
+  /**
+   * Start threads that perform the task.
+   *
+   * @param allResults Results
+   * @param threads # of threads
+   * @param useLimitWrapper bool
+   */
+  private void startTasks(
+      final List<Integer> allResults,
+      final int threads,
+      final boolean useLimitWrapper) {
+    LOG.trace(">startTasks");
+    for (int i = 0; i < threads; i++) {
+      new Thread() {
+        @Override
+        public void run() {
+          final Integer resultValue;
+          if (useLimitWrapper) {
+            resultValue = getNextValueLimitWrapper();
+          } else {
+            resultValue = getNextValue();
+          }
+          synchronized (allResults) {
+            allResults.add(resultValue);
+          }
+          super.run();
         }
-        log.trace("<waitForAllResults");
+      }.start();
     }
-    
-    /** Wrapped task 
-     * @return int*/
-    private Integer getNextValueLimitWrapper() {
-        log.trace(">getNextValueLimitWrapper");
-        final SameRequestRateLimiter<Integer>.Result result = srrl.getResult();
-        if (result.isFirst()) {
-            try {
-                // Perform common action
-                final Integer value = Integer.valueOf(getNextValue());
-                result.setValue(value);
-            } catch (Throwable t) { // NOPMD: we want to catch all possible strangeness
-                result.setError(t);
-            }
-        }
-        log.trace("<getNextValueLimitWrapper");
-        return result.getValue();
-    }
+    LOG.trace("<startTasks");
+  }
 
-    /** Original task emulation 
-     * @return int*/
-    private Integer getNextValue() {
-        log.trace(">getNextValue");
-        // What the util really does is save server load when the same result is returned, but we need to increase the counter to track invocations..
-        final Integer ret;
-        synchronized (SameRequestRateLimiterTest.this) {
-            ret = Integer.valueOf(nextValue++);
+  /**
+   * Wait up to "timeoutSeconds" seconds for all "expected" number of threads to
+   * complete..
+   *
+   * @param allResults Results
+   * @param expected # of threads
+   * @param otimeoutSeconds timeout
+   */
+  private void waitForAllResults(
+      final List<Integer> allResults,
+      final int expected,
+      final int otimeoutSeconds) {
+    LOG.trace(">waitForAllResults");
+    int timeoutSeconds = otimeoutSeconds;
+    while (timeoutSeconds-- > 0) {
+      synchronized (allResults) {
+        if (allResults.size() >= expected) {
+          break;
         }
-        log.info("Pretending to be tasks that generates server load.. Current invocation: " + ret);
-        sleep(1000L);
-        log.trace("<getNextValue");
-        return ret;
+      }
+      LOG.info("Waiting another second for all tasks to complete..");
+      sleep(1000L);
     }
-    
-    /** Simple Thread.sleep wrapper 
-     * @param millis time */
-    private void sleep(final long millis) {
-        try {
-            Thread.sleep(millis);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+    LOG.trace("<waitForAllResults");
+  }
+
+  /**
+   * Wrapped task.
+   *
+   * @return int
+   */
+  private Integer getNextValueLimitWrapper() {
+    LOG.trace(">getNextValueLimitWrapper");
+    final SameRequestRateLimiter<Integer>.Result result = srrl.getResult();
+    if (result.isFirst()) {
+      try {
+        // Perform common action
+        final Integer value = Integer.valueOf(getNextValue());
+        result.setValue(value);
+      } catch (
+          Throwable t) { // NOPMD: we want to catch all possible strangeness
+        result.setError(t);
+      }
     }
+    LOG.trace("<getNextValueLimitWrapper");
+    return result.getValue();
+  }
+
+  /**
+   * Original task emulation.
+   *
+   * @return int
+   */
+  private Integer getNextValue() {
+    LOG.trace(">getNextValue");
+    // What the util really does is save server load when the same result is
+    // returned, but we need to increase the counter to track invocations..
+    final Integer ret;
+    synchronized (SameRequestRateLimiterTest.this) {
+      ret = Integer.valueOf(nextValue++);
+    }
+    LOG.info(
+        "Pretending to be tasks that generates server load.. Current"
+            + " invocation: "
+            + ret);
+    sleep(1000L);
+    LOG.trace("<getNextValue");
+    return ret;
+  }
+
+  /**
+   * Simple Thread.sleep wrapper.
+   *
+   * @param millis time
+   */
+  private void sleep(final long millis) {
+    try {
+      Thread.sleep(millis);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+  }
 }
