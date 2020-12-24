@@ -20,14 +20,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.util.Properties;
-
 import javax.ejb.EJB;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -42,239 +40,308 @@ import org.ejbca.core.model.InternalEjbcaResources;
 /**
  * Servlet used to check the health of an EJBCA instance and can be used to
  * build a cluster using a loadbalancer.
- * 
- * Does the following system checks.
- * 
- * * If a maintenance file is specific and the property is set to true, this message will be returned
- * * Not about to run out if memory i below configurable value
- * * Database connection can be established.
- * * All CATokens are active, if not set as offline and not set to specifically not be monitored
- * * All Publishers can establish connection
- * * All active OcspKeyBindings can be used.
- * 
- * * Optionally you can configure the CAToken test to also make a test signature, not only check if the token status is active.
- * 
+ *
+ * <p>Does the following system checks.
+ *
+ * <p>* If a maintenance file is specific and the property is set to true, this
+ * message will be returned * Not about to run out if memory i below
+ * configurable value * Database connection can be established. * All CATokens
+ * are active, if not set as offline and not set to specifically not be
+ * monitored * All Publishers can establish connection * All active
+ * OcspKeyBindings can be used.
+ *
+ * <p>* Optionally you can configure the CAToken test to also make a test
+ * signature, not only check if the token status is active.
+ *
  * @version $Id: HealthCheckServlet.java 25741 2017-04-25 08:18:56Z anatom $
  */
 public class HealthCheckServlet extends HttpServlet {
 
-    private static final Logger log = Logger.getLogger(HealthCheckServlet.class);
-    private static final long serialVersionUID = 1L;
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(HealthCheckServlet.class);
+  private static final long serialVersionUID = 1L;
 
-    /** Internal localization of logs and errors */
-    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();
-    private static final SameRequestRateLimiter<String> rateLimiter = new SameRequestRateLimiter<String>();
-    
-    private String[] authIPs = null;
-    private boolean anyIpAuthorized = false;
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
+      InternalEjbcaResources.getInstance();
 
-    private final long minfreememory = EjbcaConfiguration.getHealthCheckAmountFreeMem();
-    private boolean checkPublishers = EjbcaConfiguration.getHealthCheckPublisherConnections();
+  /** param. */
+  private static final SameRequestRateLimiter<String> RATE_LIMITER =
+      new SameRequestRateLimiter<String>();
 
-    @EJB
-    private CAAdminSessionLocal caAdminSession;
-    @EJB
-    private PublisherSessionLocal publisherSession;
-    @EJB
-    private HealthCheckSessionLocal healthCheckSession;
-    @EJB
-    private OcspResponseGeneratorSessionLocal ocspResponseGeneratorSession;
+  /** param. */
+  private String[] authIPs = null;
+  /** param. */
+  private boolean anyIpAuthorized = false;
 
-    @Override
-    public void init(ServletConfig config) throws ServletException {
-        super.init(config);
-        // Install BouncyCastle provider
-        CryptoProviderTools.installBCProviderIfNotAvailable();
-        authIPs = EjbcaConfiguration.getHealthCheckAuthorizedIps().split(";");
-        if (ArrayUtils.contains(authIPs, "ANY")) {
-            log.info(intres.getLocalizedMessage("healthcheck.allipsauthorized"));
-            anyIpAuthorized = true;
-        }
-        if (config.getInitParameter("CheckPublishers") != null) {
-            log.warn("CheckPublishers servlet parameter has been dropped. Use \"healthcheck.publisherconnections\" property instead.");
-        }
-        initMaintenanceFile();
+  /** param. */
+  private final long minfreememory =
+      EjbcaConfiguration.getHealthCheckAmountFreeMem();
+  /** param. */
+  private final boolean checkPublishers =
+      EjbcaConfiguration.getHealthCheckPublisherConnections();
+
+  /** param. */
+  @EJB private CAAdminSessionLocal caAdminSession;
+  /** param. */
+  @EJB private PublisherSessionLocal publisherSession;
+  /** param. */
+  @EJB private HealthCheckSessionLocal healthCheckSession;
+  /** param. */
+  @EJB private OcspResponseGeneratorSessionLocal ocspResponseGeneratorSession;
+
+  @Override
+  public void init(final ServletConfig config) throws ServletException {
+    super.init(config);
+    // Install BouncyCastle provider
+    CryptoProviderTools.installBCProviderIfNotAvailable();
+    authIPs = EjbcaConfiguration.getHealthCheckAuthorizedIps().split(";");
+    if (ArrayUtils.contains(authIPs, "ANY")) {
+      LOG.info(INTRES.getLocalizedMessage("healthcheck.allipsauthorized"));
+      anyIpAuthorized = true;
     }
-
-    @Override
-    public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        doGet(request, response);
+    if (config.getInitParameter("CheckPublishers") != null) {
+      LOG.warn(
+          "CheckPublishers servlet parameter has been dropped. Use"
+              + " \"healthcheck.publisherconnections\" property instead.");
     }
+    initMaintenanceFile();
+  }
 
-    @Override
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        if (isAuthorized(request, response)) {
-            respond(getRateLimitedResult(request), response);
-        }
+  @Override
+  public void doPost(
+      final HttpServletRequest request, final HttpServletResponse response)
+      throws IOException, ServletException {
+    doGet(request, response);
+  }
+
+  @Override
+  public void doGet(
+      final HttpServletRequest request, final HttpServletResponse response)
+      throws IOException, ServletException {
+    if (isAuthorized(request, response)) {
+      respond(getRateLimitedResult(request), response);
     }
-    
-    private boolean isAuthorized(HttpServletRequest request, HttpServletResponse response) {
-        String remoteIP = request.getRemoteAddr();
-        if (remoteIP == null || remoteIP.length()>100) {
-            remoteIP = "unknown";
+  }
+
+  private boolean isAuthorized(
+      final HttpServletRequest request, final HttpServletResponse response) {
+    String remoteIP = request.getRemoteAddr();
+    final int len = 100;
+    if (remoteIP == null || remoteIP.length() > len) {
+      remoteIP = "unknown";
+    }
+    if (anyIpAuthorized || ArrayUtils.contains(authIPs, remoteIP)) {
+      return true;
+    } else {
+      try {
+        response.sendError(
+            HttpServletResponse.SC_UNAUTHORIZED,
+            "ERROR : Healthcheck request received from an non authorized IP: "
+                + remoteIP);
+      } catch (IOException e) {
+        LOG.error("Problems generating unauthorized http response.", e);
+      }
+      LOG.error(INTRES.getLocalizedMessage("healthcheck.errorauth", remoteIP));
+    }
+    return false;
+  }
+
+  private String getRateLimitedResult(final HttpServletRequest request) {
+    final SameRequestRateLimiter<String>.Result result =
+        RATE_LIMITER.getResult();
+    if (result.isFirst()) {
+      try {
+        result.setValue(doAllHealthChecks(request));
+      } catch (
+          Throwable t) { // NOPMD: we want to catch all possible strangeness
+        result.setError(t);
+      }
+    } else if (LOG.isDebugEnabled()) {
+      LOG.debug(
+          "Re-using health check answer from first concurrent request for this"
+              + " request to conserve server load.");
+    }
+    return result.getValue();
+  }
+
+  /**
+   * @param ostatus status
+   * @param resp response
+   */
+  private void respond(final String ostatus, final HttpServletResponse resp) {
+	String status = ostatus;
+    resp.setContentType("text/plain");
+    try {
+      final Writer out = resp.getWriter();
+      if (status == null) {
+        // Return ok message
+        out.write(EjbcaConfiguration.getOkMessage());
+      } else {
+        // Check if we return a static error message or the more informative
+        final String customErrorMessage =
+            EjbcaConfiguration.getCustomErrorMessage();
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
+              "Healthcheck returned error. Status='"
+                  + status
+                  + "', customErrorMessage='"
+                  + customErrorMessage
+                  + "'.");
         }
-        if (anyIpAuthorized || ArrayUtils.contains(authIPs, remoteIP)) {
-            return true;
+        if (customErrorMessage != null) {
+          status = customErrorMessage;
         } else {
-            try {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "ERROR : Healthcheck request received from an non authorized IP: " + remoteIP);
-            } catch (IOException e) {
-                log.error("Problems generating unauthorized http response.", e);
-            }
-            log.error(intres.getLocalizedMessage("healthcheck.errorauth", remoteIP));
+          status = "Healthcheck returned error.";
         }
-        return false;
-    }
-    
-    private String getRateLimitedResult(HttpServletRequest request) {
-        final SameRequestRateLimiter<String>.Result result = rateLimiter.getResult();
-        if (result.isFirst()) {
-            try {
-                result.setValue(doAllHealthChecks(request));
-            } catch (Throwable t) { // NOPMD: we want to catch all possible strangeness
-                result.setError(t);
-            }
-        } else if (log.isDebugEnabled()) {
-            log.debug("Re-using health check answer from first concurrent request for this request to conserve server load.");
+        // Return fail message
+        if (EjbcaConfiguration.getSendServerError()) {
+          resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, status);
+        } else {
+          out.write(status);
         }
-        return result.getValue();
+      }
+      out.flush();
+      out.close();
+    } catch (IOException e) {
+      LOG.error("Error writing to Servlet Response.", e);
     }
-    
-    private void respond(String status, HttpServletResponse resp) {
-        resp.setContentType("text/plain");
+  }
+
+  /**
+   * @param request req
+   * @return result
+   */
+  public String doAllHealthChecks(final HttpServletRequest request) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
+          "Starting HealthCheck requested by : " + request.getRemoteAddr());
+    }
+    // Start by checking if we are in maintance mode
+    final Properties maintenanceProperties = getMaintenanceProperties();
+    final String maintenancePropertyName =
+        EjbcaConfiguration.getHealthCheckMaintenancePropertyName();
+    if (maintenanceProperties != null
+        && Boolean.valueOf(
+            maintenanceProperties.getProperty(maintenancePropertyName))) {
+      // Return directly without performing any more checks
+      return "MAINT: " + maintenancePropertyName;
+    }
+    final StringBuilder sb = new StringBuilder(0);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Checking database connection.");
+    }
+    sb.append(healthCheckSession.getDatabaseStatus());
+    if (sb.length() == 0) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Checking JVM heap memory.");
+      }
+      // Memory still not allocated by the JVM + available memory of what is
+      // allocated by the JVM
+      final long maxAllocation = Runtime.getRuntime().maxMemory();
+      // The total amount of memory allocated to the JVM.
+      final long currentlyAllocation = Runtime.getRuntime().totalMemory();
+      // Available memory of what is allocated by the JVM
+      final long freeAllocated = Runtime.getRuntime().freeMemory();
+      // Memory still not allocated by the JVM + available memory of what is
+      // allocated by the JVM
+      final long mb = 1048756L;
+      final long c = 100L;
+      final long currentFreeMemory =
+          maxAllocation - currentlyAllocation + freeAllocated;
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
+            (c * (maxAllocation - currentFreeMemory) / maxAllocation)
+                + "% of the "
+                + (maxAllocation / mb)
+                + " MiB heap is currently used.");
+      }
+      if (minfreememory >= currentFreeMemory) {
+        sb.append(
+                "\n"
+                    + "MEM: Error Virtual Memory is about to run out,"
+                    + " currently free memory :")
+            .append(String.valueOf(Runtime.getRuntime().freeMemory()));
+      }
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Checking CAs.");
+      }
+      sb.append(caAdminSession.healthCheck());
+      if (checkPublishers) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Checking publishers.");
+        }
+        sb.append(publisherSession.testAllConnections());
+      }
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Checking OcspKeyBindings.");
+      }
+      sb.append(ocspResponseGeneratorSession.healthCheck());
+    }
+    return sb.length() == 0 ? null : sb.toString();
+  }
+
+  /** Create the maintenance file if it should be used and does not exists. */
+  private void initMaintenanceFile() {
+    final String maintenanceFile =
+        EjbcaConfiguration.getHealthCheckMaintenanceFile();
+    if (StringUtils.isEmpty(maintenanceFile)) {
+      LOG.debug("Maintenance file not specified, node will be monitored");
+    } else {
+      if (getMaintenanceProperties() == null) {
+        LOG.info(
+            "Expected to find Maintenance File '"
+                + maintenanceFile
+                + "'. File will be created.");
+        OutputStream out = null;
         try {
-            final Writer out = resp.getWriter();
-            if (status == null) {
-                // Return ok message
-                out.write(EjbcaConfiguration.getOkMessage());
-            } else {
-                // Check if we return a static error message or the more informative
-                final String customErrorMessage = EjbcaConfiguration.getCustomErrorMessage();
-                if (log.isDebugEnabled()) {
-                    log.debug("Healthcheck returned error. Status='"+status+"', customErrorMessage='"+customErrorMessage+"'.");
-                }
-                if (customErrorMessage != null) {
-                    status = customErrorMessage;
-                } else {
-                	status = "Healthcheck returned error.";
-                }
-                // Return fail message
-                if (EjbcaConfiguration.getSendServerError()) {
-                    resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, status);
-                } else {
-                    out.write(status);
-                }
-            }
-            out.flush();
-            out.close();
-        } catch (IOException e) {
-            log.error("Error writing to Servlet Response.", e);
-        }
-    }
-    
-    public String doAllHealthChecks(HttpServletRequest request) {
-        if (log.isDebugEnabled()) {
-            log.debug("Starting HealthCheck requested by : " + request.getRemoteAddr());
-        }
-        // Start by checking if we are in maintance mode
-        final Properties maintenanceProperties = getMaintenanceProperties();
-        final String maintenancePropertyName = EjbcaConfiguration.getHealthCheckMaintenancePropertyName();
-        if (maintenanceProperties != null && Boolean.valueOf(maintenanceProperties.getProperty(maintenancePropertyName))) {
-            // Return directly without performing any more checks
-            return "MAINT: " + maintenancePropertyName;
-        }
-        final StringBuilder sb = new StringBuilder(0);
-        if (log.isDebugEnabled()) {
-            log.debug("Checking database connection.");
-        }
-        sb.append(healthCheckSession.getDatabaseStatus());
-        if (sb.length()==0) { 
-            if (log.isDebugEnabled()) {
-                log.debug("Checking JVM heap memory.");
-            }
-            // Memory still not allocated by the JVM + available memory of what is allocated by the JVM
-            final long maxAllocation = Runtime.getRuntime().maxMemory();
-            // The total amount of memory allocated to the JVM.
-            final long currentlyAllocation = Runtime.getRuntime().totalMemory();
-            // Available memory of what is allocated by the JVM
-            final long freeAllocated = Runtime.getRuntime().freeMemory();
-            // Memory still not allocated by the JVM + available memory of what is allocated by the JVM
-            final long currentFreeMemory = maxAllocation - currentlyAllocation + freeAllocated;
-            if (log.isDebugEnabled()) {
-                log.debug((100L*(maxAllocation-currentFreeMemory)/maxAllocation)+"% of the " + (maxAllocation/1048576L) + " MiB heap is currently used.");
-            }
-            if (minfreememory >= currentFreeMemory) {
-                sb.append("\nMEM: Error Virtual Memory is about to run out, currently free memory :").append(String.valueOf(Runtime.getRuntime().freeMemory()));    
-            }
-            if (log.isDebugEnabled()) {
-                log.debug("Checking CAs.");
-            }
-            sb.append(caAdminSession.healthCheck());
-            if (checkPublishers) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Checking publishers.");
-                }
-                sb.append(publisherSession.testAllConnections());
-            }
-            if (log.isDebugEnabled()) {
-                log.debug("Checking OcspKeyBindings.");
-            }
-            sb.append(ocspResponseGeneratorSession.healthCheck());
-        }
-        return sb.length()==0 ? null : sb.toString();
-    }
-
-    /** Create the maintenance file if it should be used and does not exists */
-    private void initMaintenanceFile() {
-        final String maintenanceFile = EjbcaConfiguration.getHealthCheckMaintenanceFile();
-        if (StringUtils.isEmpty(maintenanceFile)) {
-            log.debug("Maintenance file not specified, node will be monitored");
-        } else {
-            if (getMaintenanceProperties() == null) {
-                log.info("Expected to find Maintenance File '"+ maintenanceFile + "'. File will be created.");
-                OutputStream out = null;
-                try {
-                    out = new FileOutputStream("filename.properties");
-                    new Properties().store(out, null);
-                } catch (IOException e2) {
-                    log.error("Could not create Maintenance File at: "+ maintenanceFile);
-                } finally {
-                    if (out != null) {
-                        try {
-                            out.close();                    
-                        } catch (IOException e) {
-                            log.error("Error closing file: ", e);
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-    /** @return the maintenance file as properties or null of the file does not exist */
-    private Properties getMaintenanceProperties() {
-        final String maintenanceFile = EjbcaConfiguration.getHealthCheckMaintenanceFile();
-        if (!StringUtils.isEmpty(maintenanceFile)) {
-            InputStream in = null;
+          out = new FileOutputStream("filename.properties");
+          new Properties().store(out, null);
+        } catch (IOException e2) {
+          LOG.error("Could not create Maintenance File at: " + maintenanceFile);
+        } finally {
+          if (out != null) {
             try {
-                in = new FileInputStream(maintenanceFile);
-                final Properties maintenanceProperties = new Properties();
-                maintenanceProperties.load(in);
-                return maintenanceProperties;
+              out.close();
             } catch (IOException e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Could not read Maintenance File. Expected to find file at: "+ maintenanceFile);
-                }
-            } finally {
-                if (in != null) {
-                    try {
-                        in.close();                 
-                    } catch (IOException e) {
-                        log.error("Error closing file: ", e);
-                    }
-                }
+              LOG.error("Error closing file: ", e);
             }
+          }
         }
-        return null;
-    }    
+      }
+    }
+  }
+
+  /**
+   * @return the maintenance file as properties or null of the file does not
+   *     exist
+   */
+  private Properties getMaintenanceProperties() {
+    final String maintenanceFile =
+        EjbcaConfiguration.getHealthCheckMaintenanceFile();
+    if (!StringUtils.isEmpty(maintenanceFile)) {
+      InputStream in = null;
+      try {
+        in = new FileInputStream(maintenanceFile);
+        final Properties maintenanceProperties = new Properties();
+        maintenanceProperties.load(in);
+        return maintenanceProperties;
+      } catch (IOException e) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
+              "Could not read Maintenance File. Expected to find file at: "
+                  + maintenanceFile);
+        }
+      } finally {
+        if (in != null) {
+          try {
+            in.close();
+          } catch (IOException e) {
+            LOG.error("Error closing file: ", e);
+          }
+        }
+      }
+    }
+    return null;
+  }
 }

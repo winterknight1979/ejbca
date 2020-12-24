@@ -10,42 +10,48 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.ui.web.pub.retrieve;
 
 import java.security.cert.Certificate;
-
 import org.cesecore.util.CertTools;
 
 /**
- * This bean wraps a certificate, to be able to use CertTools to get values from certs, 
- * instead of the direct X509Certificate methods. It's not certain that this is an X509Certificate.
- * 
- * To make it easy to use from JSTL pages, most methods take no arguments.
+ * This bean wraps a certificate, to be able to use CertTools to get values from
+ * certs, instead of the direct X509Certificate methods. It's not certain that
+ * this is an X509Certificate.
+ *
+ * <p>To make it easy to use from JSTL pages, most methods take no arguments.
  * The arguments are supplied as member variables instead. <br>
- * 
+ *
  * @author Tomas Gustavsson
  * @version $Id: CertificateGuiInfo.java 21875 2015-09-16 19:57:31Z samuellb $
  */
 public class CertificateGuiInfo {
-	
-	private Certificate mCurrentCert;
 
+    /** Param. */
+  private final Certificate mCurrentCert;
 
-	/**
-	 * default constructor.
-	 * @param cert cert
-	 */
-	public CertificateGuiInfo(Certificate cert) {
-		mCurrentCert = cert;
-	}
+  /**
+   * default constructor.
+   *
+   * @param cert cert
+   */
+  public CertificateGuiInfo(final Certificate cert) {
+    mCurrentCert = cert;
+  }
 
-	public String getIssuerDN() {
-		return CertTools.getIssuerDN(mCurrentCert);
-	}
+  /**
+   * @return DN
+   */
+  public String getIssuerDN() {
+    return CertTools.getIssuerDN(mCurrentCert);
+  }
 
-	public String getSubjectDN() {
-		return CertTools.getSubjectDN(mCurrentCert);
-	}
-
+  /**
+   * @return DN
+   */
+  public String getSubjectDN() {
+    return CertTools.getSubjectDN(mCurrentCert);
+  }
 }
