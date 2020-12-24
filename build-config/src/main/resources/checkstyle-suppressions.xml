@@ -542,6 +542,15 @@
 		files="RequestInstance.java" lines="161 " />
 	<suppress checks="MethodLengthCheck"
 		files="RequestInstance.java" lines="309 " />
+		
+	<!-- ejbca-renew-war -->
+	
+	<!-- ejbca-scep-war -->
+	
+	<suppress checks="MethodLengthCheck"
+		files="ScepServlet.java" lines="212 " />
+		
+	<!-- ejbca-webdist-war -->
 	
 	
 </suppressions>
