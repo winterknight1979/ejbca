@@ -553,4 +553,8 @@
 	<!-- ejbca-webdist-war -->
 	
 	
+	<suppress checks="MethodLengthCheck"
+		files="CertDistServlet.java" lines="182 " />
+	
+	
 </suppressions>
