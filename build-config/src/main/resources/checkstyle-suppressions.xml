@@ -530,5 +530,18 @@
 		files="AddEndEntityCommand.java" lines="252 " />
 	<suppress checks="MethodLengthCheck"
 		files="RemoveAdminCommand.java" lines="120 " />
+		
+    <!-- publicweb-gui -->
+	<suppress checks="MethodLengthCheck"
+		files="AutoEnrollServlet.java" lines="107 " />
+	<suppress checks="MethodLengthCheck"
+		files="DemoCertReqServlet.java" lines="142 " />
+	<suppress checks="ParameterNumberCheck"
+		files="MSCertTools.java" lines="317 " />
+	<suppress checks="ParameterNumberCheck"
+		files="RequestInstance.java" lines="161 " />
+	<suppress checks="MethodLengthCheck"
+		files="RequestInstance.java" lines="309 " />
+	
 	
 </suppressions>

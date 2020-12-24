@@ -22,7 +22,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Iterator;
-
 import javax.ejb.EJB;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -30,7 +29,6 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
 import org.cesecore.authentication.tokens.AlwaysAllowLocalAuthenticationToken;
@@ -65,262 +63,342 @@ import org.ejbca.util.ActiveDirectoryTools;
 import org.ejbca.util.passgen.PasswordGeneratorFactory;
 
 /**
- * Parses a posted request and returns a correct certificate depending on the type.
- * 
- * This Servlet assumes that it is protected by an Kerberos verifying proxy and is insecure to use without.
- * 
+ * Parses a posted request and returns a correct certificate depending on the
+ * type.
+ *
+ * <p>This Servlet assumes that it is protected by an Kerberos verifying proxy
+ * and is insecure to use without.
+ *
  * @version $Id: AutoEnrollServlet.java 22811 2016-02-15 16:48:23Z samuellb $
  */
 public class AutoEnrollServlet extends HttpServlet {
 
-	private static final long serialVersionUID = 1L;
-	private final static Logger log = Logger.getLogger(AutoEnrollServlet.class);
+  private static final long serialVersionUID = 1L;
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(AutoEnrollServlet.class);
 
-	@EJB
-	private CertificateStoreSessionLocal certificateStoreSession;
-	@EJB
-	private EndEntityProfileSessionLocal endEntityProfileSession;
-	@EJB
-	private AdminPreferenceSessionLocal raAdminSession;
-	@EJB
-	private SignSessionLocal signSession;
-	@EJB
-	private EndEntityManagementSessionLocal endEntityManagementSession;
-	@EJB
-	private CertificateProfileSessionLocal certificateProfileSession;
-	@EJB
-	private GlobalConfigurationSessionLocal globalConfigurationSession;
-	
-    @Override
-	public void init(ServletConfig config) throws ServletException {
-		super.init(config);
-		try {
-			// Install BouncyCastle provider
-			CryptoProviderTools.installBCProvider();
-		} catch (Exception e) {
-			throw new ServletException(e);
-		}
-	}
+  /** EJB. */
+  @EJB private CertificateStoreSessionLocal certificateStoreSession;
+  /** EJB. */
+  @EJB private EndEntityProfileSessionLocal endEntityProfileSession;
+  /** EJB. */
+  @EJB private AdminPreferenceSessionLocal raAdminSession;
+  /** EJB. */
+  @EJB private SignSessionLocal signSession;
+  /** EJB. */
+  @EJB private EndEntityManagementSessionLocal endEntityManagementSession;
+  /** EJB. */
+  @EJB private CertificateProfileSessionLocal certificateProfileSession;
+  /** EJB. */
+  @EJB private GlobalConfigurationSessionLocal globalConfigurationSession;
 
-	/**
-	 * Recievies the request.
-	 */
-    @Override
-	public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-	    log.trace(">doPost");
-	    try {
+  @Override
+  public void init(final ServletConfig config) throws ServletException {
+    super.init(config);
+    try {
+      // Install BouncyCastle provider
+      CryptoProviderTools.installBCProvider();
+    } catch (Exception e) {
+      throw new ServletException(e);
+    }
+  }
 
-	        AuthenticationToken internalAdmin = new AlwaysAllowLocalAuthenticationToken(new PublicWebPrincipal("AutoEnrollServlet", request.getRemoteAddr()));
-	        //Admin internalAdmin = Admin.getInternalAdmin();
-	        GlobalConfiguration globalConfiguration = (GlobalConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID);
-	        // Make sure we allow use of this Servlet
-	        if ( !globalConfiguration.getAutoEnrollUse() ) {
-	            log.info("Unauthorized access attempt from " + request.getRemoteAddr());
-	            response.getOutputStream().println("Not allowed.");
-	            return;
-	        }
-	        int caid = globalConfiguration.getAutoEnrollCA();
-	        if (caid == GlobalConfiguration.AUTOENROLL_DEFAULT_CA) {
-	            log.info("Configure a proper CA to use with enroll.");
-	            response.getOutputStream().println("Configure a proper CA to use with enroll.");
-	            return;
-	        }
-	        boolean debugRequest = "true".equalsIgnoreCase(request.getParameter("debug"));
-	        String debugInfo = "";
+  /** Recievies the request. */
+  @Override
+  public void doPost(
+      final HttpServletRequest request, final HttpServletResponse response)
+      throws IOException, ServletException {
+    LOG.trace(">doPost");
+    try {
 
-	        RequestHelper.setDefaultCharacterEncoding(request);
+      AuthenticationToken internalAdmin =
+          new AlwaysAllowLocalAuthenticationToken(
+              new PublicWebPrincipal(
+                  "AutoEnrollServlet", request.getRemoteAddr()));
+      // Admin internalAdmin = Admin.getInternalAdmin();
+      GlobalConfiguration globalConfiguration =
+          (GlobalConfiguration)
+              globalConfigurationSession.getCachedConfiguration(
+                  GlobalConfiguration.GLOBAL_CONFIGURATION_ID);
+      // Make sure we allow use of this Servlet
+      if (!globalConfiguration.getAutoEnrollUse()) {
+        LOG.info("Unauthorized access attempt from " + request.getRemoteAddr());
+        response.getOutputStream().println("Not allowed.");
+        return;
+      }
+      int caid = globalConfiguration.getAutoEnrollCA();
+      if (caid == GlobalConfiguration.AUTOENROLL_DEFAULT_CA) {
+        LOG.info("Configure a proper CA to use with enroll.");
+        response
+            .getOutputStream()
+            .println("Configure a proper CA to use with enroll.");
+        return;
+      }
+      boolean debugRequest =
+          "true".equalsIgnoreCase(request.getParameter("debug"));
+      String debugInfo = "";
 
-	        if (debugRequest) {
-	            debugInfo += "getAttributeNames:\n";
-	            Enumeration<?> enumeration = request.getAttributeNames();
-	            while (enumeration.hasMoreElements()) {
-	                String temp = enumeration.nextElement().toString();
-	                debugInfo += temp + " = " + request.getAttribute(temp) + "\n";
-	            }
-	            debugInfo += "\ngetParameterNames:\n";
-	            enumeration = request.getParameterNames();
-	            while (enumeration.hasMoreElements()) {
-	                String temp = enumeration.nextElement().toString();
-	                debugInfo += temp + " = " + request.getParameter(temp) + "\n";
-	            }
-	            debugInfo += "\ngetHeaderNames:\n";
-	            enumeration = request.getHeaderNames();
-	            while (enumeration.hasMoreElements()) {
-	                String temp = enumeration.nextElement().toString();
-	                debugInfo += temp + " = " + request.getHeader(temp) + "\n";
-	            }
-	            debugInfo += "Remote address: " + request.getRemoteAddr() + "\n";
-	            log.info(debugInfo);
-	        }
+      RequestHelper.setDefaultCharacterEncoding(request);
 
-	        byte[] result = null;	
-	        String requestData = MSCertTools.extractRequestFromRawData(request.getParameter("request"));
-	        if (requestData == null) {
-	            response.getOutputStream().println("No request supplied..");
-	            return;
-	        }
-	        log.info("Got request: "+requestData);
-	        // The next line expects apache to forward the kerberos-authenticated user as X-Remote-User"
-	        String remoteUser = request.getHeader("X-Remote-User") ;
-	        String usernameShort = StringTools.stripUsername(remoteUser.substring(0, remoteUser.indexOf("@"))).replaceAll("/", "");
-	        if (remoteUser == null || "".equals(remoteUser) || "(null)".equals(remoteUser)) {
-	            response.getOutputStream().println("X-Remote-User was not supplied..");
-	            return;
-	        }
-	        MSPKCS10RequestMessage req = null;
-	        String certificateTemplate = null;
-	        String command = request.getParameter("command");
-	        if (command != null && "status".equalsIgnoreCase(command)) {
-	            response.getOutputStream().println(returnStatus(internalAdmin, "Autoenrolled-" + usernameShort + "-" + request.getParameter("template")));
-	            return; 
-	        } else {
-	            // Default command "request"
-	        }
-	        req = new MSPKCS10RequestMessage(Base64.decode(requestData.getBytes()));
-	        certificateTemplate = req.getMSRequestInfoTemplateName();
-	        int templateIndex = MSCertTools.getTemplateIndex(certificateTemplate);
-	        /* TODO: Lookup requesting entity in AD here to verify that only Machines request Machine Certificates etc.. Also check permissions
-						like who is allowed to enroll for what if possible. */
-	        // Create or edit a user "Autoenrolled-Username-Templatename"
-	        String username = "Autoenrolled-" + usernameShort + "-" + certificateTemplate;
-	        log.info("Got autoenroll request from " + remoteUser + " (" + username + ") for a " + certificateTemplate + "-certificate.");
-	        String fetchedSubjectDN = null;
-	        if (MSCertTools.isRequired(templateIndex, MSCertTools.GET_SUBJECTDN_FROM_AD, 0)) {
-	            fetchedSubjectDN = ActiveDirectoryTools.getUserDNFromActiveDirectory(globalConfiguration, usernameShort);
-	        }
-	        int certProfileId = MSCertTools.getOrCreateCertificateProfile(internalAdmin, templateIndex, certificateProfileSession);
-	        
-            int endEntityProfileId;
-            try {
-                endEntityProfileId = MSCertTools.getOrCreateEndEndtityProfile(internalAdmin, templateIndex, certProfileId, caid, usernameShort,
-                        fetchedSubjectDN, raAdminSession, endEntityProfileSession);
-            } catch (EndEntityProfileNotFoundException e) {
-                String msg = "Could not retrieve required information from AD.";
-                log.error(msg, e);
-                response.getOutputStream().println(msg);
-                return;
-            } catch(IllegalArgumentException e) {
-                String msg = "Could not retrieve required information from AD.";
-                log.error(msg, e);
-                response.getOutputStream().println(msg);
-                return;
-            }
-	       
-	  
-	        
-	        // Create user
+      if (debugRequest) {
+        debugInfo += "getAttributeNames:\n";
+        Enumeration<?> enumeration = request.getAttributeNames();
+        while (enumeration.hasMoreElements()) {
+          String temp = enumeration.nextElement().toString();
+          debugInfo += temp + " = " + request.getAttribute(temp) + "\n";
+        }
+        debugInfo += "\ngetParameterNames:\n";
+        enumeration = request.getParameterNames();
+        while (enumeration.hasMoreElements()) {
+          String temp = enumeration.nextElement().toString();
+          debugInfo += temp + " = " + request.getParameter(temp) + "\n";
+        }
+        debugInfo += "\ngetHeaderNames:\n";
+        enumeration = request.getHeaderNames();
+        while (enumeration.hasMoreElements()) {
+          String temp = enumeration.nextElement().toString();
+          debugInfo += temp + " = " + request.getHeader(temp) + "\n";
+        }
+        debugInfo += "Remote address: " + request.getRemoteAddr() + "\n";
+        LOG.info(debugInfo);
+      }
 
-	        // The CA needs to use non-LDAP order and we need to have the SAN like "CN=Users, CN=Username, DC=com, DC=company".. why??
-	        // TODO: fix this here.. or is this an general order issue?
-	        String subjectDN = fetchedSubjectDN;
-	        if (subjectDN == null) {
-	            if (MSCertTools.isRequired(templateIndex, DnComponents.COMMONNAME, 0)) {
-	                subjectDN = "CN="+usernameShort;
-	            }
-	        }
-	        String subjectAN = "";
-	        if (MSCertTools.isRequired(templateIndex, DnComponents.UPN, 0)) {
-	            subjectAN += (subjectAN.length() == 0 ? "" : ",") + "UPN=" +remoteUser;
-	        }
-	        if (MSCertTools.isRequired(templateIndex, DnComponents.GUID, 0)) {
-	            String reqGUID = req.getMSRequestInfoSubjectAltnames()[0];
-	            subjectAN += (subjectAN.length() == 0 ? "" : ",") + "GUID=" +reqGUID;
-	        }
-	        if (MSCertTools.isRequired(templateIndex, DnComponents.DNSNAME, 0)) {
-	            String reqDNS = req.getMSRequestInfoSubjectAltnames()[1];
-	            subjectAN += (subjectAN.length() == 0 ? "" : ",") + "DNSNAME=" +reqDNS;
-	        }
-	        log.info("sdn=" + subjectDN + ", san=" + subjectAN);
-	        debugInfo += "\nsdn=" + subjectDN + ", san=" + subjectAN + "\n";
-            EndEntityInformation userData = new EndEntityInformation(username, subjectDN, caid, subjectAN, null, EndEntityConstants.STATUS_NEW,
-                    new EndEntityType(EndEntityTypes.ENDUSER), endEntityProfileId, certProfileId, new Date(), new Date(),
-                    SecConst.TOKEN_SOFT_BROWSERGEN, 0, null);
-	        String password = PasswordGeneratorFactory.getInstance(PasswordGeneratorFactory.PASSWORDTYPE_LETTERSANDDIGITS).getNewPassword(8,8);
-	        userData.setPassword(password);
-	        try {
-	            if (endEntityManagementSession.existsUser(username)) {
-	                endEntityManagementSession.changeUser(internalAdmin, userData, true);
-	            } else {
-	                endEntityManagementSession.addUser(internalAdmin, userData, true);
-	            }
-	        } catch (Exception e) {
-	            log.error("Could not add user "+username, e);
-	        }
-	        X509Certificate cert=null;
-	        debugInfo += "Request: " + requestData + "\n";
-	        req.setUsername(username);
-	        req.setPassword(password);
-	        ResponseMessage resp;
-	        try {
-	            resp = signSession.createCertificate(internalAdmin, req, X509ResponseMessage.class, null);
-	            cert = CertTools.getCertfromByteArray(resp.getResponseMessage(), X509Certificate.class);
-	            result = signSession.createPKCS7(internalAdmin, cert, true);
-	            debugInfo += "Resulting cert: " + new String(Base64.encode(result, true)) + "\n"; 
-	        } catch (Exception e) {
-	            log.error("Noooo!!! ", e);
-	            response.getOutputStream().println("An error has occurred.");
-	            return;
-	        }
-	        if (debugRequest) {            
-                response.getOutputStream().println(StringEscapeUtils.escapeJavaScript(debugInfo));
-	        } else {
-	            // Output the certificate
-	            ServletOutputStream os = response.getOutputStream();
-	            os.print(RequestHelper.BEGIN_PKCS7_WITH_NL);
-	            os.print(new String(Base64.encode(result, true)));
-	            os.print(RequestHelper.END_PKCS7_WITH_NL);
-	            response.flushBuffer();
-	            log.info("Sent cert to client");
-	        }
-	    } catch (AuthorizationDeniedException e1) {
-	    	// TODO: localize this.
-        	log.info("Authentication failed", e1);
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication failed");
-            return;
-	    }
-		log.trace("<doPost");
-	}
+      byte[] result = null;
+      String requestData =
+          MSCertTools.extractRequestFromRawData(
+              request.getParameter("request"));
+      if (requestData == null) {
+        response.getOutputStream().println("No request supplied..");
+        return;
+      }
+      LOG.info("Got request: " + requestData);
+      // The next line expects apache to forward the kerberos-authenticated user
+      // as X-Remote-User"
+      String remoteUser = request.getHeader("X-Remote-User");
+      String usernameShort =
+          StringTools.stripUsername(
+                  remoteUser.substring(0, remoteUser.indexOf("@")))
+              .replaceAll("/", "");
+      if (remoteUser == null
+          || "".equals(remoteUser)
+          || "(null)".equals(remoteUser)) {
+        response.getOutputStream().println("X-Remote-User was not supplied..");
+        return;
+      }
+      MSPKCS10RequestMessage req = null;
+      String certificateTemplate = null;
+      String command = request.getParameter("command");
+      if (command != null && "status".equalsIgnoreCase(command)) {
+        response
+            .getOutputStream()
+            .println(
+                returnStatus(
+                    internalAdmin,
+                    "Autoenrolled-"
+                        + usernameShort
+                        + "-"
+                        + request.getParameter("template")));
+        return;
+      } else {
+        // Default command "request"
+      }
+      req = new MSPKCS10RequestMessage(Base64.decode(requestData.getBytes()));
+      certificateTemplate = req.getMSRequestInfoTemplateName();
+      int templateIndex = MSCertTools.getTemplateIndex(certificateTemplate);
+      /* TODO: Lookup requesting entity in AD here to verify that only
+       * Machines request Machine Certificates etc.. Also check permissions
+      like who is allowed to enroll for what if possible. */
+      // Create or edit a user "Autoenrolled-Username-Templatename"
+      String username =
+          "Autoenrolled-" + usernameShort + "-" + certificateTemplate;
+      LOG.info(
+          "Got autoenroll request from "
+              + remoteUser
+              + " ("
+              + username
+              + ") for a "
+              + certificateTemplate
+              + "-certificate.");
+      String fetchedSubjectDN = null;
+      if (MSCertTools.isRequired(
+          templateIndex, MSCertTools.GET_SUBJECTDN_FROM_AD, 0)) {
+        fetchedSubjectDN =
+            ActiveDirectoryTools.getUserDNFromActiveDirectory(
+                globalConfiguration, usernameShort);
+      }
+      int certProfileId =
+          MSCertTools.getOrCreateCertificateProfile(
+              internalAdmin, templateIndex, certificateProfileSession);
 
-    @Override
-	public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-		log.trace(">doGet");
-		doPost(request, response);
-		log.trace("<doGet");
-	}
+      int endEntityProfileId;
+      try {
+        endEntityProfileId =
+            MSCertTools.getOrCreateEndEndtityProfile(
+                internalAdmin,
+                templateIndex,
+                certProfileId,
+                caid,
+                usernameShort,
+                fetchedSubjectDN,
+                raAdminSession,
+                endEntityProfileSession);
+      } catch (EndEntityProfileNotFoundException e) {
+        String msg = "Could not retrieve required information from AD.";
+        LOG.error(msg, e);
+        response.getOutputStream().println(msg);
+        return;
+      } catch (IllegalArgumentException e) {
+        String msg = "Could not retrieve required information from AD.";
+        LOG.error(msg, e);
+        response.getOutputStream().println(msg);
+        return;
+      }
 
-	/**
-	 * Return "OK" if renewal isn't needed.
-	 * @param admin admin
-	 * @param username user
-	 * @return ok
-	 */
-	private String returnStatus(AuthenticationToken admin, String username) {
-		if (!endEntityManagementSession.existsUser(username)) {
-			return "NO_SUCH_USER";
-		}
-		Collection<Certificate> certificates = EJBTools.unwrapCertCollection(certificateStoreSession.findCertificatesByUsername(username));
-		Iterator<Certificate> iter = certificates.iterator();
-		if (!iter.hasNext()) {
-			return "NO_CERTIFICATES";
-		}
-		while (iter.hasNext()) {
-			X509Certificate cert = (X509Certificate)iter.next();
-			try {
-				cert.checkValidity(new Date(System.currentTimeMillis() + 14 * 24 * 3600 * 1000));
-				return "OK";
-			} catch (CertificateExpiredException e) {
-				try {
-					cert.checkValidity(new Date(System.currentTimeMillis()));
-					return "EXPIRING";
-				} catch (CertificateExpiredException e1) {
-				} catch (CertificateNotYetValidException e1) {
-					return "ERROR";
-				}
-			} catch (CertificateNotYetValidException e) {
-				return "ERROR";
-			}
-		}
-		return "EXPIRED";
-	}
+      // Create user
 
+      // The CA needs to use non-LDAP order and we need to have the SAN like
+      // "CN=Users, CN=Username, DC=com, DC=company".. why??
+      // TODO: fix this here.. or is this an general order issue?
+      String subjectDN = fetchedSubjectDN;
+      if (subjectDN == null) {
+        if (MSCertTools.isRequired(templateIndex, DnComponents.COMMONNAME, 0)) {
+          subjectDN = "CN=" + usernameShort;
+        }
+      }
+      String subjectAN = "";
+      if (MSCertTools.isRequired(templateIndex, DnComponents.UPN, 0)) {
+        subjectAN += (subjectAN.length() == 0 ? "" : ",") + "UPN=" + remoteUser;
+      }
+      if (MSCertTools.isRequired(templateIndex, DnComponents.GUID, 0)) {
+        String reqGUID = req.getMSRequestInfoSubjectAltnames()[0];
+        subjectAN += (subjectAN.length() == 0 ? "" : ",") + "GUID=" + reqGUID;
+      }
+      if (MSCertTools.isRequired(templateIndex, DnComponents.DNSNAME, 0)) {
+        String reqDNS = req.getMSRequestInfoSubjectAltnames()[1];
+        subjectAN += (subjectAN.length() == 0 ? "" : ",") + "DNSNAME=" + reqDNS;
+      }
+      LOG.info("sdn=" + subjectDN + ", san=" + subjectAN);
+      debugInfo += "\nsdn=" + subjectDN + ", san=" + subjectAN + "\n";
+      EndEntityInformation userData =
+          new EndEntityInformation(
+              username,
+              subjectDN,
+              caid,
+              subjectAN,
+              null,
+              EndEntityConstants.STATUS_NEW,
+              new EndEntityType(EndEntityTypes.ENDUSER),
+              endEntityProfileId,
+              certProfileId,
+              new Date(),
+              new Date(),
+              SecConst.TOKEN_SOFT_BROWSERGEN,
+              0,
+              null);
+      String password =
+          PasswordGeneratorFactory.getInstance(
+                  PasswordGeneratorFactory.PASSWORDTYPE_LETTERSANDDIGITS)
+              .getNewPassword(8, 8);
+      userData.setPassword(password);
+      try {
+        if (endEntityManagementSession.existsUser(username)) {
+          endEntityManagementSession.changeUser(internalAdmin, userData, true);
+        } else {
+          endEntityManagementSession.addUser(internalAdmin, userData, true);
+        }
+      } catch (Exception e) {
+        LOG.error("Could not add user " + username, e);
+      }
+      X509Certificate cert = null;
+      debugInfo += "Request: " + requestData + "\n";
+      req.setUsername(username);
+      req.setPassword(password);
+      ResponseMessage resp;
+      try {
+        resp =
+            signSession.createCertificate(
+                internalAdmin, req, X509ResponseMessage.class, null);
+        cert =
+            CertTools.getCertfromByteArray(
+                resp.getResponseMessage(), X509Certificate.class);
+        result = signSession.createPKCS7(internalAdmin, cert, true);
+        debugInfo +=
+            "Resulting cert: " + new String(Base64.encode(result, true)) + "\n";
+      } catch (Exception e) {
+        LOG.error("Noooo!!! ", e);
+        response.getOutputStream().println("An error has occurred.");
+        return;
+      }
+      if (debugRequest) {
+        response
+            .getOutputStream()
+            .println(StringEscapeUtils.escapeJavaScript(debugInfo));
+      } else {
+        // Output the certificate
+        ServletOutputStream os = response.getOutputStream();
+        os.print(RequestHelper.BEGIN_PKCS7_WITH_NL);
+        os.print(new String(Base64.encode(result, true)));
+        os.print(RequestHelper.END_PKCS7_WITH_NL);
+        response.flushBuffer();
+        LOG.info("Sent cert to client");
+      }
+    } catch (AuthorizationDeniedException e1) {
+      // TODO: localize this.
+      LOG.info("Authentication failed", e1);
+      response.sendError(
+          HttpServletResponse.SC_FORBIDDEN, "Authentication failed");
+      return;
+    }
+    LOG.trace("<doPost");
+  }
+
+  @Override
+  public void doGet(
+      final HttpServletRequest request, final HttpServletResponse response)
+      throws IOException, ServletException {
+    LOG.trace(">doGet");
+    doPost(request, response);
+    LOG.trace("<doGet");
+  }
+
+  /**
+   * Return "OK" if renewal isn't needed.
+   *
+   * @param admin admin
+   * @param username user
+   * @return ok
+   */
+  private String returnStatus(
+      final AuthenticationToken admin, final String username) {
+    if (!endEntityManagementSession.existsUser(username)) {
+      return "NO_SUCH_USER";
+    }
+    Collection<Certificate> certificates =
+        EJBTools.unwrapCertCollection(
+            certificateStoreSession.findCertificatesByUsername(username));
+    Iterator<Certificate> iter = certificates.iterator();
+    if (!iter.hasNext()) {
+      return "NO_CERTIFICATES";
+    }
+    while (iter.hasNext()) {
+      X509Certificate cert = (X509Certificate) iter.next();
+      final int twoWeeks = 14 * 24 * 3600 * 1000;
+      try {
+        cert.checkValidity(
+            new Date(System.currentTimeMillis() + twoWeeks));
+        return "OK";
+      } catch (CertificateExpiredException e) {
+        try {
+          cert.checkValidity(new Date(System.currentTimeMillis()));
+          return "EXPIRING";
+        } catch (CertificateExpiredException e1) {
+        } catch (CertificateNotYetValidException e1) {
+          return "ERROR";
+        }
+      } catch (CertificateNotYetValidException e) {
+        return "ERROR";
+      }
+    }
+    return "EXPIRED";
+  }
 }
