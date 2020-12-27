@@ -16,8 +16,8 @@
 .rtlDirection { direction: rtl; }
 .ltrDirection { direction: ltr; }
 
-.nopadding td { padding: 0px; }
-.noborder td { border: 0px; }
+.nopadding td { padding: 0; }
+.noborder td { border: 0; }
 
 .fineprint { font-size: xx-small; }
 .fineprintMono { font-size: xx-small; font-family: monospace; }
