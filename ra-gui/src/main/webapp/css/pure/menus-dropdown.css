@@ -26,8 +26,8 @@ https://github.com/yahoo/pure/blob/master/LICENSE.md
   width: inherit;
 }
 
-.pure-menu-allow-hover:hover > .pure-menu-children,
-.pure-menu-active > .pure-menu-children {
+.pure-menu-active > .pure-menu-children,
+.pure-menu-allow-hover:hover > .pure-menu-children {
   display: block;
   position: absolute;
 }
