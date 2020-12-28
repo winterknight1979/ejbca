@@ -38,11 +38,12 @@ https://github.com/yahoo/pure/blob/master/LICENSE.md
     `-moz-` prefix version is omitted.
     */
 
-  display: -webkit-flex;
+  display: -webkit-flex -ms-flexbox;
   -webkit-flex-flow: row wrap;
 
   /* IE10 uses display: flexbox */
-  display: -ms-flexbox;
+
+  /* display: -ms-flexbox; */
   -ms-flex-flow: row wrap;
 
   /* Prevents distributing space between rows */
