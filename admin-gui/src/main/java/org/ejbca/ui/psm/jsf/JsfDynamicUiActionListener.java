@@ -40,31 +40,31 @@ public class JsfDynamicUiActionListener
   private static final long serialVersionUID = -1L;
 
   /** Class logger. */
-  private static final Logger log =
+  private static final Logger LOG =
       Logger.getLogger(JsfDynamicUiActionListener.class);
 
   /** DynamicUIProperty reference. */
   private DynamicUiProperty<?> dynamicUiProperty;
 
-  /** Required by java.lang.Serializable */
-  public JsfDynamicUiActionListener() {}
+  /** Required by java.lang.Serializable. */
+  public JsfDynamicUiActionListener() { }
 
   /**
    * Constructor with DynamicUiProperty reference.
    *
-   * @param dynamicUiProperty Property
+   * @param adynamicUiProperty Property
    */
   public JsfDynamicUiActionListener(
-      final DynamicUiProperty<?> dynamicUiProperty) {
-    this.dynamicUiProperty = dynamicUiProperty;
+      final DynamicUiProperty<?> adynamicUiProperty) {
+    this.dynamicUiProperty = adynamicUiProperty;
   }
 
   @Override
   public void processAction(final ActionEvent event)
       throws AbortProcessingException {
     final HtmlCommandButton button = (HtmlCommandButton) event.getSource();
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Dynamic UI model action called: "
               + event
               + " by component "
@@ -75,7 +75,7 @@ public class JsfDynamicUiActionListener
         dynamicUiProperty.getActionCallback().action(button.getValue());
         FacesContext.getCurrentInstance().renderResponse();
       } catch (DynamicUiCallbackException e) {
-        log.info(
+        LOG.info(
             "Could not process dynamic UI model action callback: "
                 + e.getMessage());
         FacesContext.getCurrentInstance()

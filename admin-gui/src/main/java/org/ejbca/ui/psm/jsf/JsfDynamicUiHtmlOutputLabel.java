@@ -31,7 +31,7 @@ public class JsfDynamicUiHtmlOutputLabel extends HtmlOutputText
     implements DynamicUiComponent, PropertyChangeListener {
 
   /** Class logger. */
-  private static final Logger log =
+  private static final Logger LOG =
       Logger.getLogger(JsfDynamicUiHtmlOutputLabel.class);
 
   /** DynamicUIProperty reference. */
@@ -49,8 +49,8 @@ public class JsfDynamicUiHtmlOutputLabel extends HtmlOutputText
 
   @Override
   public void propertyChange(final PropertyChangeEvent event) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "Property change event for dynamic UI property " + dynamicUiProperty
                   != null
               ? dynamicUiProperty.getName()

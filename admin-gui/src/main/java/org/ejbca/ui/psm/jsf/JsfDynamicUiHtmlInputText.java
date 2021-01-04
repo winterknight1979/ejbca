@@ -31,14 +31,14 @@ public class JsfDynamicUiHtmlInputText extends HtmlInputText
     implements DynamicUiComponent, PropertyChangeListener {
 
   /** Class logger. */
-  private static final Logger log =
+  private static final Logger LOG =
       Logger.getLogger(JsfDynamicUiHtmlInputText.class);
 
   /** DynamicUIProperty reference. */
   private DynamicUiProperty<?> dynamicUiProperty;
 
   /** Default constructor. */
-  public JsfDynamicUiHtmlInputText() {}
+  public JsfDynamicUiHtmlInputText() { }
 
   /**
    * Sets the dynamic UI property reference.
@@ -52,8 +52,8 @@ public class JsfDynamicUiHtmlInputText extends HtmlInputText
 
   @Override
   public void propertyChange(final PropertyChangeEvent event) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "Property change event for dynamic UI property " + dynamicUiProperty
                   != null
               ? dynamicUiProperty.getName()

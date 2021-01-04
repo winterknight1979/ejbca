@@ -31,14 +31,14 @@ public class JsfDynamicUiHtmlSelectOneMenu extends HtmlSelectOneMenu
     implements DynamicUiComponent, PropertyChangeListener {
 
   /** Class logger. */
-  private static final Logger log =
+  private static final Logger LOG =
       Logger.getLogger(JsfDynamicUiHtmlSelectOneMenu.class);
 
   /** DynamicUIProperty reference. */
   private DynamicUiProperty<?> dynamicUiProperty;
 
   /** Default constructor. */
-  public JsfDynamicUiHtmlSelectOneMenu() {}
+  public JsfDynamicUiHtmlSelectOneMenu() { }
 
   /**
    * Sets the dynamic UI property reference.
@@ -52,8 +52,8 @@ public class JsfDynamicUiHtmlSelectOneMenu extends HtmlSelectOneMenu
 
   @Override
   public void propertyChange(final PropertyChangeEvent event) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "Property change event for dynamic UI property " + dynamicUiProperty
                   != null
               ? dynamicUiProperty.getName()

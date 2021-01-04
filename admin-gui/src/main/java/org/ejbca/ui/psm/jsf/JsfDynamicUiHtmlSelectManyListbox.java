@@ -31,14 +31,14 @@ public class JsfDynamicUiHtmlSelectManyListbox extends HtmlSelectManyListbox
     implements DynamicUiComponent, PropertyChangeListener {
 
   /** Class logger. */
-  private static final Logger log =
+  private static final Logger LOG =
       Logger.getLogger(JsfDynamicUiHtmlSelectManyListbox.class);
 
   /** DynamicUIProperty reference. */
   private DynamicUiProperty<?> dynamicUiProperty;
 
   /** Default constructor. */
-  public JsfDynamicUiHtmlSelectManyListbox() {}
+  public JsfDynamicUiHtmlSelectManyListbox() { }
 
   /**
    * Sets the dynamic UI property reference.
@@ -52,8 +52,8 @@ public class JsfDynamicUiHtmlSelectManyListbox extends HtmlSelectManyListbox
 
   @Override
   public void propertyChange(final PropertyChangeEvent event) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "Property change event for dynamic UI property " + dynamicUiProperty
                   != null
               ? dynamicUiProperty.getName()

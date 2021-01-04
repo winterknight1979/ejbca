@@ -561,5 +561,15 @@
 	
 	<!-- clearcache-war --> 
 	
+	<!-- admin-gui -->
+	
+	
+	<suppress checks="UnusedImportsCheck"
+		files="JsfDynamicUiActionListener.java" lines="23,25" /> <!-- Used in JDOC -->
+	<suppress checks="UnusedImportsCheck"
+		files="JsfDynamicUiAjaxBehaviorListener.java" lines="21,23" /> <!-- Used in JDOC -->
+	<suppress checks="UnusedImportsCheck"
+		files="JsfDynamicUiValueChangeListener.java" lines="25" /> <!-- Used in JDOC -->
+	
 	
 </suppressions>

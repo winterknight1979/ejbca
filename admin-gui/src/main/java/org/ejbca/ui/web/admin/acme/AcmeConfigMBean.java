@@ -41,24 +41,37 @@ import org.ejbca.ui.web.admin.BaseManagedBean;
  */
 public class AcmeConfigMBean extends BaseManagedBean implements Serializable {
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(AcmeConfigMBean.class);
+  /** Param. */
+  private static final Logger LOG = Logger.getLogger(AcmeConfigMBean.class);
+  /** Param. */
   private ListDataModel<AcmeAliasGuiInfo> aliasGuiList = null;
 
+  /** Param. */
   private GlobalAcmeConfiguration globalAcmeConfigurationConfig;
+  /** Param. */
   private AcmeAliasGuiInfo currentAlias = null;
+  /** Param. */
   private AcmeGlobalGuiInfo globalInfo = null;
+  /** Param. */
   private boolean currentAliasEditMode = false;
+  /** Param. */
   private String currentAliasStr;
+  /** Param. */
   private String newAlias = "";
 
+  /** Param. */
   private final GlobalConfigurationSessionLocal globalConfigSession =
       getEjbcaWebBean().getEjb().getGlobalConfigurationSession();
+  /** Param. */
   private final AuthorizationSessionLocal authorizationSession =
       getEjbcaWebBean().getEjb().getAuthorizationSession();
+  /** Param. */
   private final EndEntityProfileSessionLocal endentityProfileSession =
       getEjbcaWebBean().getEjb().getEndEntityProfileSession();
+  /** Param. */
   private final AuthenticationToken authenticationToken = getAdmin();
 
+  /** Constructor. */
   public AcmeConfigMBean() {
     super();
     globalAcmeConfigurationConfig =
@@ -69,7 +82,7 @@ public class AcmeConfigMBean extends BaseManagedBean implements Serializable {
 
   /**
    * Force reload from underlying (cache) layer for the current ACME
-   * configuration alias
+   * configuration alias.
    */
   private void flushCache() {
     currentAlias = null;
@@ -82,15 +95,15 @@ public class AcmeConfigMBean extends BaseManagedBean implements Serializable {
     globalInfo = new AcmeGlobalGuiInfo(globalAcmeConfigurationConfig);
   }
   /**
-   * Build a list sorted by name from the existing ACME configuration aliases
+   * Build a list sorted by name from the existing ACME configuration aliases.
    *
    * @return Model
    */
   public ListDataModel<AcmeAliasGuiInfo> getAliasGuiList() {
     flushCache();
     final List<AcmeAliasGuiInfo> list = new ArrayList<>();
-    for (String alias :
-        globalAcmeConfigurationConfig.getAcmeConfigurationIds()) {
+    for (String alias
+        : globalAcmeConfigurationConfig.getAcmeConfigurationIds()) {
       list.add(new AcmeAliasGuiInfo(globalAcmeConfigurationConfig, alias));
       Collections.sort(
           list,
@@ -109,6 +122,7 @@ public class AcmeConfigMBean extends BaseManagedBean implements Serializable {
     return aliasGuiList;
   }
 
+  /** Add. */
   public void addAlias() {
     if (StringUtils.isNotEmpty(newAlias)
         && !globalAcmeConfigurationConfig.aliasExists(newAlias)) {
@@ -121,17 +135,18 @@ public class AcmeConfigMBean extends BaseManagedBean implements Serializable {
             authenticationToken, globalAcmeConfigurationConfig);
       } catch (AuthorizationDeniedException e) {
         String msg = "Failed to add alias: " + e.getLocalizedMessage();
-        log.info(msg, e);
+        LOG.info(msg, e);
         super.addNonTranslatedErrorMessage(msg);
       }
     } else {
       String msg = "Cannot add alias. Alias '" + newAlias + "' already exists.";
-      log.info(msg);
+      LOG.info(msg);
       super.addNonTranslatedErrorMessage(msg);
     }
     flushCache();
   }
 
+  /** Rename. */
   public void renameAlias() {
     if (StringUtils.isNotEmpty(newAlias)
         && !globalAcmeConfigurationConfig.aliasExists(newAlias)) {
@@ -141,19 +156,20 @@ public class AcmeConfigMBean extends BaseManagedBean implements Serializable {
             authenticationToken, globalAcmeConfigurationConfig);
       } catch (AuthorizationDeniedException e) {
         String msg = "Failed to rename alias: " + e.getLocalizedMessage();
-        log.info(msg, e);
+        LOG.info(msg, e);
         super.addNonTranslatedErrorMessage(msg);
       }
     } else {
       String msg =
           "Cannot rename alias. Either the new alias is empty or it already"
               + " exists.";
-      log.info(msg);
+      LOG.info(msg);
       super.addNonTranslatedErrorMessage(msg);
     }
     flushCache();
   }
 
+  /** Delete. */
   public void deleteAlias() {
     if (globalAcmeConfigurationConfig.aliasExists(currentAliasStr)) {
       globalAcmeConfigurationConfig.removeConfigId(currentAliasStr);
@@ -162,12 +178,12 @@ public class AcmeConfigMBean extends BaseManagedBean implements Serializable {
             authenticationToken, globalAcmeConfigurationConfig);
       } catch (AuthorizationDeniedException e) {
         String msg = "Failed to remove alias: " + e.getLocalizedMessage();
-        log.info(msg, e);
+        LOG.info(msg, e);
         super.addNonTranslatedErrorMessage(msg);
       }
     } else {
       String msg = "Cannot remove alias. It does not exist.";
-      log.info(msg);
+      LOG.info(msg);
       super.addNonTranslatedErrorMessage(msg);
     }
     flushCache();
@@ -187,12 +203,18 @@ public class AcmeConfigMBean extends BaseManagedBean implements Serializable {
     return this.currentAlias;
   }
 
+  /**
+   * @return Alias
+   */
   public String getNewAlias() {
     return newAlias;
   }
 
-  public void setNewAlias(final String newAlias) {
-    this.newAlias = newAlias;
+  /**
+   * @param anewAlias Alias
+   */
+  public void setNewAlias(final String anewAlias) {
+    this.newAlias = anewAlias;
   }
 
   /** @return the name of the ACME alias that is subject to view or edit */
@@ -246,10 +268,13 @@ public class AcmeConfigMBean extends BaseManagedBean implements Serializable {
     }
   }
 
+  /**
+   * @return Items
+   */
   public List<SelectItem> getAliasSeletItemList() {
     final List<SelectItem> ret = new ArrayList<>();
-    for (String alias :
-        globalAcmeConfigurationConfig.getAcmeConfigurationIds()) {
+    for (String alias
+        : globalAcmeConfigurationConfig.getAcmeConfigurationIds()) {
       ret.add(new SelectItem(alias, alias));
     }
     return ret;
@@ -261,7 +286,7 @@ public class AcmeConfigMBean extends BaseManagedBean implements Serializable {
   }
 
   /**
-   * Invoked when admin saves the ACME alias configurations
+   * Invoked when admin saves the ACME alias configurations.
    *
    * @throws EjbcaException On fail
    */
@@ -296,17 +321,21 @@ public class AcmeConfigMBean extends BaseManagedBean implements Serializable {
             authenticationToken, globalAcmeConfigurationConfig);
       } catch (AuthorizationDeniedException e) {
         String msg = "Cannot save alias. Administrator is not authorized.";
-        log.info(msg + e.getLocalizedMessage());
+        LOG.info(msg + e.getLocalizedMessage());
         super.addNonTranslatedErrorMessage(msg);
       }
     }
     flushCache();
   }
 
+  /**
+   * @return Bool
+   */
   public boolean isSaveCurrentAliasDisabled() {
     return getUsableEEProfileNames().isEmpty();
   }
 
+  /** Save. */
   public void saveGlobalConfigs() {
     globalAcmeConfigurationConfig.setDefaultAcmeConfigurationId(
         globalInfo.getDefaultAcmeConfiguration());
@@ -318,62 +347,97 @@ public class AcmeConfigMBean extends BaseManagedBean implements Serializable {
     } catch (AuthorizationDeniedException e) {
       String msg =
           "Cannot save ACME configurations. Administrator is not authorized.";
-      log.info(msg + e.getLocalizedMessage());
+      LOG.info(msg + e.getLocalizedMessage());
       super.addNonTranslatedErrorMessage(msg);
     }
   }
 
-  public void setCurrentAliasStr(final String currentAliasStr) {
-    this.currentAliasStr = currentAliasStr;
+  /**
+   * @param acurrentAliasStr Alias
+   */
+  public void setCurrentAliasStr(final String acurrentAliasStr) {
+    this.currentAliasStr = acurrentAliasStr;
   }
 
+  /**
+   * @return Bool
+   */
   public boolean isCurrentAliasEditMode() {
     return currentAliasEditMode;
   }
 
-  public void setCurrentAliasEditMode(final boolean currentAliasEditMode) {
-    this.currentAliasEditMode = currentAliasEditMode && isAllowedToEdit();
+  /**
+   * @param acurrentAliasEditMode Bool
+   */
+  public void setCurrentAliasEditMode(final boolean acurrentAliasEditMode) {
+    this.currentAliasEditMode = acurrentAliasEditMode && isAllowedToEdit();
   }
 
+  /** Yoggle. */
   public void toggleCurrentAliasEditMode() {
     currentAliasEditMode ^= true;
     currentAliasEditMode = currentAliasEditMode && isAllowedToEdit();
   }
 
+  /**
+   * @return Bool
+   */
   public boolean isAllowedToEdit() {
     return authorizationSession.isAuthorizedNoLogging(
         getAdmin(), StandardRules.SYSTEMCONFIGURATION_EDIT.resource());
   }
 
+  /**
+   * @return Bool
+   */
   public AcmeGlobalGuiInfo getGlobalInfo() {
     return globalInfo;
   }
 
-  public void setGlobalInfo(final AcmeGlobalGuiInfo globalInfo) {
-    this.globalInfo = globalInfo;
+  /**
+   * @param aglobalInfo Info
+   */
+  public void setGlobalInfo(final AcmeGlobalGuiInfo aglobalInfo) {
+    this.globalInfo = aglobalInfo;
   }
 
   public class AcmeAliasGuiInfo {
+        /** Param. */
     private String alias;
+    /** Param. */
     private String endEntityProfileId;
+    /** Param. */
     private boolean preAuthorizationAllowed;
+    /** Param. */
     private boolean requireExternalAccountBinding;
+    /** Param. */
     private String urlTemplate;
+    /** Param. */
     private boolean wildcardCertificateIssuanceAllowed;
+    /** Param. */
     private String dnsResolver;
+    /** Param. */
     private int dnsPort;
+    /** Param. */
     private String dnssecTrustAnchor;
+    /** Param. */
     private String termsOfServiceUrl;
+    /** Param. */
     private boolean termsOfServiceApproval;
+    /** Param. */
     private boolean useDnsSecValidation;
 
+    /**
+     * @param aglobalAcmeConfigurationConfig Config
+     * @param analias Alias
+     */
     public AcmeAliasGuiInfo(
-        final GlobalAcmeConfiguration globalAcmeConfigurationConfig,
-        final String alias) {
-      if (alias != null) {
-        this.alias = alias;
+        final GlobalAcmeConfiguration aglobalAcmeConfigurationConfig,
+        final String analias) {
+      if (analias != null) {
+        this.alias = analias;
         AcmeConfiguration acmeConfiguration =
-            globalAcmeConfigurationConfig.getAcmeConfiguration(alias);
+            aglobalAcmeConfigurationConfig.getAcmeConfiguration(analias);
         if (acmeConfiguration != null) {
           this.endEntityProfileId =
               String.valueOf(acmeConfiguration.getEndEntityProfileId());
@@ -396,136 +460,225 @@ public class AcmeConfigMBean extends BaseManagedBean implements Serializable {
       }
     }
 
+    /**
+     * @return Alias
+     */
     public String getAlias() {
       return alias;
     }
 
-    public void setAlias(final String alias) {
-      this.alias = alias;
+    /**
+     * @param analias Alias
+     */
+    public void setAlias(final String analias) {
+      this.alias = analias;
     }
 
+    /**
+     * @return Profile
+     */
     public String getEndEntityProfileId() {
       return endEntityProfileId;
     }
 
-    public void setEndEntityProfileId(final String endEntityProfileId) {
-      this.endEntityProfileId = endEntityProfileId;
+    /**
+     * @param anendEntityProfileId Profile
+     */
+    public void setEndEntityProfileId(final String anendEntityProfileId) {
+      this.endEntityProfileId = anendEntityProfileId;
     }
 
+    /**
+     * @return Bool
+     */
     public boolean isPreAuthorizationAllowed() {
       return preAuthorizationAllowed;
     }
 
+    /**
+     * @param apreAuthorizationAllowed Bool
+     */
     public void setPreAuthorizationAllowed(
-        final boolean preAuthorizationAllowed) {
-      this.preAuthorizationAllowed = preAuthorizationAllowed;
+        final boolean apreAuthorizationAllowed) {
+      this.preAuthorizationAllowed = apreAuthorizationAllowed;
     }
 
+    /**
+     * @return Bool
+     */
     public boolean isRequireExternalAccountBinding() {
       return requireExternalAccountBinding;
     }
 
+    /**
+     * @param arequireExternalAccountBinding Bool
+     */
     public void setRequireExternalAccountBinding(
-        final boolean requireExternalAccountBinding) {
-      this.requireExternalAccountBinding = requireExternalAccountBinding;
+        final boolean arequireExternalAccountBinding) {
+      this.requireExternalAccountBinding = arequireExternalAccountBinding;
     }
 
+    /**
+     * @return URL
+     */
     public String getUrlTemplate() {
       return urlTemplate;
     }
 
-    public void setUrlTemplate(final String urlTemplate) {
-      this.urlTemplate = urlTemplate;
+    /**
+     * @param aurlTemplate URL
+     */
+    public void setUrlTemplate(final String aurlTemplate) {
+      this.urlTemplate = aurlTemplate;
     }
 
+    /**
+     * @return Bool
+     */
     public boolean isWildcardCertificateIssuanceAllowed() {
       return wildcardCertificateIssuanceAllowed;
     }
 
+    /**
+     * @param awildcardCertificateIssuanceAllowed Bool
+     */
     public void setWildcardCertificateIssuanceAllowed(
-        final boolean wildcardCertificateIssuanceAllowed) {
+        final boolean awildcardCertificateIssuanceAllowed) {
       this.wildcardCertificateIssuanceAllowed =
-          wildcardCertificateIssuanceAllowed;
+          awildcardCertificateIssuanceAllowed;
     }
 
+    /**
+     * @return Anchor
+     */
     public String getDnssecTrustAnchor() {
       return dnssecTrustAnchor;
     }
 
-    public void setDnssecTrustAnchor(final String dnssecTrustAnchor) {
-      this.dnssecTrustAnchor = dnssecTrustAnchor;
+    /**
+     * @param adnssecTrustAnchor Anchor
+     */
+    public void setDnssecTrustAnchor(final String adnssecTrustAnchor) {
+      this.dnssecTrustAnchor = adnssecTrustAnchor;
     }
 
+    /**
+     * @return Resolver
+     */
     public String getDnsResolver() {
       return dnsResolver;
     }
 
-    public void setDnsResolver(final String dnsResolver) {
-      this.dnsResolver = dnsResolver;
+    /**
+     * @param adnsResolver Resolver
+     */
+    public void setDnsResolver(final String adnsResolver) {
+      this.dnsResolver = adnsResolver;
     }
 
+    /**
+     * @return port
+     */
     public int getDnsPort() {
       return dnsPort;
     }
 
-    public void setDnsPort(final int dnsPort) {
-      this.dnsPort = dnsPort;
+    /**
+     * @param adnsPort Port
+     */
+    public void setDnsPort(final int adnsPort) {
+      this.dnsPort = adnsPort;
     }
 
+    /**
+     * @return URL
+     */
     public String getTermsOfServiceUrl() {
       return termsOfServiceUrl;
     }
 
-    public void setTermsOfServiceUrl(final String termsOfServiceUrl) {
-      this.termsOfServiceUrl = termsOfServiceUrl;
+
+    /**
+     * @param atermsOfServiceUrl URL
+     */
+    public void setTermsOfServiceUrl(final String atermsOfServiceUrl) {
+      this.termsOfServiceUrl = atermsOfServiceUrl;
     }
 
+    /**
+     * @return bool
+     */
     public boolean getTermsOfServiceApproval() {
       return termsOfServiceApproval;
     }
 
+    /**
+     * @param atermsOfServiceApproval bool
+     */
     public void setTermsOfServiceApproval(
-        final boolean termsOfServiceApproval) {
-      this.termsOfServiceApproval = termsOfServiceApproval;
+        final boolean atermsOfServiceApproval) {
+      this.termsOfServiceApproval = atermsOfServiceApproval;
     }
 
+    /**
+     * @return Bool
+     */
     public boolean isUseDnsSecValidation() {
       return useDnsSecValidation;
     }
 
-    public void setUseDnsSecValidation(final boolean useDnsSecValidation) {
-      this.useDnsSecValidation = useDnsSecValidation;
+    /**
+     * @param auseDnsSecValidation bool
+     */
+    public void setUseDnsSecValidation(final boolean auseDnsSecValidation) {
+      this.useDnsSecValidation = auseDnsSecValidation;
     }
   }
 
   public class AcmeGlobalGuiInfo {
+        /** Param. */
     private String defaultAcmeConfiguration;
+    /** Param. */
     private String replayNonceValidity;
 
+    /**
+     * @param aglobalAcmeConfigurationConfig Config
+     */
     public AcmeGlobalGuiInfo(
-        final GlobalAcmeConfiguration globalAcmeConfigurationConfig) {
+        final GlobalAcmeConfiguration aglobalAcmeConfigurationConfig) {
       this.defaultAcmeConfiguration =
-          globalAcmeConfigurationConfig.getDefaultAcmeConfigurationId();
+          aglobalAcmeConfigurationConfig.getDefaultAcmeConfigurationId();
       this.replayNonceValidity =
           String.valueOf(
-              globalAcmeConfigurationConfig.getReplayNonceValidity());
+              aglobalAcmeConfigurationConfig.getReplayNonceValidity());
     }
 
+    /**
+     * @return Vonfig */
     public String getDefaultAcmeConfiguration() {
       return defaultAcmeConfiguration;
     }
 
+    /**
+     * @param adefaultAcmeConfiguration Config
+     */
     public void setDefaultAcmeConfiguration(
-        final String defaultAcmeConfiguration) {
-      this.defaultAcmeConfiguration = defaultAcmeConfiguration;
+        final String adefaultAcmeConfiguration) {
+      this.defaultAcmeConfiguration = adefaultAcmeConfiguration;
     }
 
+    /**
+     * @return Validity
+     */
     public String getReplayNonceValidity() {
       return replayNonceValidity;
     }
 
-    public void setReplayNonceValidity(final String replayNonceValidity) {
-      this.replayNonceValidity = replayNonceValidity;
+    /**
+     * @param areplayNonceValidity validity
+     */
+    public void setReplayNonceValidity(final String areplayNonceValidity) {
+      this.replayNonceValidity = areplayNonceValidity;
     }
   }
 }

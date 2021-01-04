@@ -38,23 +38,23 @@ public class JsfDynamicUiValueChangeListener
   private static final long serialVersionUID = -1L;
 
   /** Class logger. */
-  private static final Logger log =
+  private static final Logger LOG =
       Logger.getLogger(JsfDynamicUiValueChangeListener.class);
 
   /** DynamicUIProperty reference. */
   private DynamicUiProperty<?> dynamicUiProperty;
 
   /** Default constructor. */
-  public JsfDynamicUiValueChangeListener() {}
+  public JsfDynamicUiValueChangeListener() { }
 
   /**
    * Constructor with DynamicUiProperty reference.
    *
-   * @param dynamicUiProperty UI Property
+   * @param adynamicUiProperty UI Property
    */
   public JsfDynamicUiValueChangeListener(
-      final DynamicUiProperty<?> dynamicUiProperty) {
-    this.dynamicUiProperty = dynamicUiProperty;
+      final DynamicUiProperty<?> adynamicUiProperty) {
+    this.dynamicUiProperty = adynamicUiProperty;
   }
 
   @Override
@@ -80,8 +80,8 @@ public class JsfDynamicUiValueChangeListener
       final UIComponent eventSource,
       final DynamicUiProperty<? extends Serializable> property) {
     final Object value = ((UIInput) eventSource).getValue();
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Registered UIComponent "
               + eventSource
               + " for dynamic UI property "
@@ -97,8 +97,8 @@ public class JsfDynamicUiValueChangeListener
       try {
         property.setValueGenericIncludeNull(((UploadedFile) value).getBytes());
       } catch (IOException e) {
-        if (log.isTraceEnabled()) {
-          log.trace(
+        if (LOG.isTraceEnabled()) {
+          LOG.trace(
               "Could not delete temp. file " + fileName + ": " + e.getMessage(),
               e);
         }
@@ -119,8 +119,8 @@ public class JsfDynamicUiValueChangeListener
       final UIComponent eventSource,
       final DynamicUiProperty<? extends Serializable> property) {
     final String[] values = (String[]) ((UIInput) eventSource).getValue();
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Registered UIComponent "
               + eventSource
               + " for dynamic UI property "

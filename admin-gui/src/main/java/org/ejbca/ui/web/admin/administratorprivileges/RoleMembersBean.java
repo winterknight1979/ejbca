@@ -61,29 +61,45 @@ import org.ejbca.ui.web.admin.BaseManagedBean;
 public class RoleMembersBean extends BaseManagedBean implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(RoleMembersBean.class);
+  /** Param. */
+  private static final Logger LOG = Logger.getLogger(RoleMembersBean.class);
 
+  /** Param. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** Param. */
   @EJB private CaSessionLocal caSession;
+  /** Param. */
   @EJB private RoleSessionLocal roleSession;
+  /** Param. */
   @EJB private RoleMemberSessionLocal roleMemberSession;
+  /** Param. */
   @EJB private RoleMemberDataSessionLocal roleMemberDataSession;
 
+  /** Param. */
   private String roleIdParam;
+  /** Param. */
   private Role role;
 
+  /** Param. */
   private List<SelectItem> matchWithItems = null;
+  /** Param. */
   private String matchWithSelected =
       X509CertificateAuthenticationTokenMetaData.TOKEN_TYPE
           + ":"
           + X500PrincipalAccessMatchValue.WITH_SERIALNUMBER.getNumericValue();
+  /** Param. */
   private Integer tokenIssuerId;
+  /** Param. */
   private String tokenMatchValue = "";
+  /** Param. */
   private String description = "";
 
+  /** Param. */
   private ListDataModel<RoleMember> roleMembers = null;
+  /** Param. */
   private RoleMember roleMemberToDelete = null;
 
+  /** Param. */
   private Map<Integer, String> caIdToNameMap = null;
 
   @PostConstruct
@@ -97,7 +113,7 @@ public class RoleMembersBean extends BaseManagedBean implements Serializable {
   }
 
   /**
-   * Redirect back to this page with the correct roleId for non-ajax requests
+   * Redirect back to this page with the correct roleId for non-ajax requests.
    */
   private void nonAjaxPostRedirectGet() {
     super.nonAjaxPostRedirectGet("?roleId=" + roleIdParam);
@@ -149,13 +165,13 @@ public class RoleMembersBean extends BaseManagedBean implements Serializable {
     if (role == null && NumberUtils.isNumber(roleIdParam)) {
       try {
         role = roleSession.getRole(getAdmin(), Integer.parseInt(roleIdParam));
-        if (role == null && log.isDebugEnabled()) {
-          log.debug(
+        if (role == null && LOG.isDebugEnabled()) {
+          LOG.debug(
               "Admin '" + getAdmin() + "' failed to access non-existing role.");
         }
       } catch (NumberFormatException | AuthorizationDeniedException e) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Admin '"
                   + getAdmin()
                   + "' failed to access a role: "
@@ -169,10 +185,10 @@ public class RoleMembersBean extends BaseManagedBean implements Serializable {
   /** @return a ListDataModel of all RoleMembers in this Role (sorted) */
   public ListDataModel<RoleMember> getRoleMembers() {
     if (roleMembers == null) {
-      final List<RoleMember> roleMembers =
+      final List<RoleMember> theroleMembers =
           roleMemberDataSession.findRoleMemberByRoleId(role.getRoleId());
       Collections.sort(
-          roleMembers,
+          theroleMembers,
           new Comparator<RoleMember>() {
             @Override
             public int compare(
@@ -200,7 +216,7 @@ public class RoleMembersBean extends BaseManagedBean implements Serializable {
                   .compareTo(roleMember2.getTokenMatchValue());
             }
           });
-      this.roleMembers = new ListDataModel<>(roleMembers);
+      this.roleMembers = new ListDataModel<>(theroleMembers);
     }
     return roleMembers;
   }
@@ -219,8 +235,8 @@ public class RoleMembersBean extends BaseManagedBean implements Serializable {
             AccessMatchValueReverseLookupRegistry.INSTANCE.getMetaData(
                 tokenType);
         if (authenticationTokenMetaData.isUserConfigurable()) {
-          for (final AccessMatchValue accessMatchValue :
-              authenticationTokenMetaData.getAccessMatchValues()) {
+          for (final AccessMatchValue accessMatchValue
+              : authenticationTokenMetaData.getAccessMatchValues()) {
             // Special exclusion of this rather useless match value that will
             // never match anything
             if (!X500PrincipalAccessMatchValue.NONE.equals(accessMatchValue)) {
@@ -244,12 +260,12 @@ public class RoleMembersBean extends BaseManagedBean implements Serializable {
     return matchWithSelected;
   }
   /**
-   * Set the selected tokenType and tokenMatchKey combo
+   * Set the selected tokenType and tokenMatchKey combo.
    *
-   * @param matchWithSelected string
+   * @param amatchWithSelected string
    */
-  public void setMatchWithSelected(final String matchWithSelected) {
-    this.matchWithSelected = matchWithSelected;
+  public void setMatchWithSelected(final String amatchWithSelected) {
+    this.matchWithSelected = amatchWithSelected;
   }
 
   /**
@@ -299,12 +315,12 @@ public class RoleMembersBean extends BaseManagedBean implements Serializable {
     return tokenIssuerId;
   }
   /**
-   * Set the currently selected CA
+   * Set the currently selected CA.
    *
-   * @param tokenIssuerId Issuer
+   * @param atokenIssuerId Issuer
    */
-  public void setTokenIssuerId(final Integer tokenIssuerId) {
-    this.tokenIssuerId = tokenIssuerId;
+  public void setTokenIssuerId(final Integer atokenIssuerId) {
+    this.tokenIssuerId = atokenIssuerId;
   }
 
   /**
@@ -312,23 +328,23 @@ public class RoleMembersBean extends BaseManagedBean implements Serializable {
    * @return a human readable version of the RoleMember's tokenIsserId (CA name)
    */
   public String getTokenIssuerIdString(final RoleMember roleMember) {
-    final int tokenIssuerId = roleMember.getTokenIssuerId();
-    if (tokenIssuerId == RoleMember.NO_ISSUER) {
+    final int atokenIssuerId = roleMember.getTokenIssuerId();
+    if (atokenIssuerId == RoleMember.NO_ISSUER) {
       return "-";
     }
     if (getAccessMatchValue(
             roleMember.getTokenType(), roleMember.getTokenMatchKey())
         .isIssuedByCa()) {
-      final String caName = getCaIdToNameMap().get(tokenIssuerId);
+      final String caName = getCaIdToNameMap().get(atokenIssuerId);
       if (caName == null) {
         return super.getEjbcaWebBean().getText("UNKNOWNCAID")
             + " "
-            + tokenIssuerId;
+            + atokenIssuerId;
       } else {
         return caName;
       }
     } else {
-      return String.valueOf(tokenIssuerId);
+      return String.valueOf(atokenIssuerId);
     }
   }
 
@@ -371,12 +387,12 @@ public class RoleMembersBean extends BaseManagedBean implements Serializable {
     return tokenMatchValue;
   }
   /**
-   * Set the current tokenMatchValue
+   * Set the current tokenMatchValue.
    *
-   * @param tokenMatchValue Match
+   * @param atokenMatchValue Match
    */
-  public void setTokenMatchValue(final String tokenMatchValue) {
-    this.tokenMatchValue = tokenMatchValue.trim();
+  public void setTokenMatchValue(final String atokenMatchValue) {
+    this.tokenMatchValue = atokenMatchValue.trim();
   }
 
   /**
@@ -423,12 +439,12 @@ public class RoleMembersBean extends BaseManagedBean implements Serializable {
     return description;
   }
   /**
-   * Set the current human readable description
+   * Set the current human readable description.
    *
-   * @param description Description
+   * @param adescription Description
    */
-  public void setDescription(final String description) {
-    this.description = description.trim();
+  public void setDescription(final String adescription) {
+    this.description = adescription.trim();
   }
 
   /** Invoked by the admin when adding a new RoleMember. */
@@ -481,18 +497,18 @@ public class RoleMembersBean extends BaseManagedBean implements Serializable {
           return;
         }
       }
-      final int tokenIssuerId;
+      final int atokenIssuerId;
       if (accessMatchValue.isIssuedByCa()) {
-        tokenIssuerId = this.tokenIssuerId;
+        atokenIssuerId = this.tokenIssuerId;
       } else {
-        tokenIssuerId = RoleMember.NO_ISSUER;
+        atokenIssuerId = RoleMember.NO_ISSUER;
       }
       try {
         roleMemberSession.persist(
             getAdmin(),
             new RoleMember(
                 tokenType,
-                tokenIssuerId,
+                atokenIssuerId,
                 tokenMatchKey,
                 accessMatchType.getNumericValue(),
                 tokenMatchValue,
@@ -536,24 +552,24 @@ public class RoleMembersBean extends BaseManagedBean implements Serializable {
         .isEmpty();
   }
 
-  /** @return the RoleMember that has been selected for deletion */
+  /** @return the RoleMember that has been selected for deletion. */
   public RoleMember getRoleMemberToDelete() {
     return roleMemberToDelete;
   }
-  /** @return true if a RoleMember that has been selected for deletion */
+  /** @return true if a RoleMember that has been selected for deletion. */
   public boolean isRenderDeleteRoleMember() {
     return roleMemberToDelete != null;
   }
-  /** Invoked by the admin to start the process of deleting a RoleMember */
+  /** Invoked by the admin to start the process of deleting a RoleMember. */
   public void actionDeleteRoleMemberStart() {
     roleMemberToDelete = getRoleMembers().getRowData();
   }
-  /** Invoked by the admin to cancel the process of deleting a RoleMember */
+  /** Invoked by the admin to cancel the process of deleting a RoleMember. */
   public void actionDeleteRoleMemberReset() {
     roleMemberToDelete = null;
     nonAjaxPostRedirectGet();
   }
-  /** Invoked by the admin to confirm the process of deleting a RoleMember */
+  /** Invoked by the admin to confirm the process of deleting a RoleMember. */
   public void actionDeleteRoleMemberConfirm() {
     try {
       roleMemberSession.remove(getAdmin(), roleMemberToDelete.getId());

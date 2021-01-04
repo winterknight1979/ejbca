@@ -32,14 +32,14 @@ public class JsfDynamicUiHtmlSelectBooleanCheckbox
     implements DynamicUiComponent, PropertyChangeListener {
 
   /** Class logger. */
-  private static final Logger log =
+  private static final Logger LOG =
       Logger.getLogger(JsfDynamicUiHtmlSelectBooleanCheckbox.class);
 
   /** DynamicUIProperty reference. */
   private DynamicUiProperty<?> dynamicUiProperty;
 
   /** Default constructor. */
-  public JsfDynamicUiHtmlSelectBooleanCheckbox() {}
+  public JsfDynamicUiHtmlSelectBooleanCheckbox() { }
 
   /**
    * Sets the dynamic UI property reference.
@@ -53,8 +53,8 @@ public class JsfDynamicUiHtmlSelectBooleanCheckbox
 
   @Override
   public void propertyChange(final PropertyChangeEvent event) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "Property change event for dynamic UI property " + dynamicUiProperty
                   != null
               ? dynamicUiProperty.getName()
