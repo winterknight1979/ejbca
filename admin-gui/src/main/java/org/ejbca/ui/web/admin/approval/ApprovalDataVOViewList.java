@@ -20,123 +20,136 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-
 import org.ejbca.core.model.approval.ApprovalDataVO;
 
 /**
  * Class used to manage the list of approvaldatas resulted in the query.
- * 
- * @version $Id: ApprovalDataVOViewList.java 28844 2018-05-04 08:31:02Z samuellb $
+ *
+ * @version $Id: ApprovalDataVOViewList.java 28844 2018-05-04 08:31:02Z samuellb
+ *     $
  */
+public class ApprovalDataVOViewList extends AbstractList<ApprovalDataVOView>
+    implements Serializable {
 
-public class ApprovalDataVOViewList extends AbstractList<ApprovalDataVOView> implements Serializable {
+  private static final long serialVersionUID = 1680993305950225012L;
+  private String sort;
+  private boolean ascending;
+  private final List<ApprovalDataVOView> listData;
 
-    private static final long serialVersionUID = 1680993305950225012L;
-    private String sort;
-    private boolean ascending;
-    private List<ApprovalDataVOView> listData;
-
-    public ApprovalDataVOViewList(Collection<ApprovalDataVO> approvalDataVOs) {
-        listData = new ArrayList<>();
-        for(ApprovalDataVO approvalDataVO : approvalDataVOs) {
-            listData.add(new ApprovalDataVOView(approvalDataVO));
-        }
-
+  public ApprovalDataVOViewList(
+      final Collection<ApprovalDataVO> approvalDataVOs) {
+    listData = new ArrayList<>();
+    for (ApprovalDataVO approvalDataVO : approvalDataVOs) {
+      listData.add(new ApprovalDataVOView(approvalDataVO));
     }
+  }
 
-    @Override
-    public ApprovalDataVOView get(int arg0) {
-        return listData.get(arg0);
-    }
+  @Override
+  public ApprovalDataVOView get(final int arg0) {
+    return listData.get(arg0);
+  }
 
-    @Override
-    public int size() {
-        return listData.size();
-    }
+  @Override
+  public int size() {
+    return listData.size();
+  }
 
-
-    /**
-     * Sort the list.
-     * @param column Column
-     * @param ascending Up or down
-     */
-    protected void sort(final String column, final boolean ascending) {
-        Comparator<ApprovalDataVOView> comparator = new Comparator<ApprovalDataVOView>() {
-            @Override
-            public int compare(ApprovalDataVOView c2, ApprovalDataVOView c1) {
-                if (column == null || column.equals("requestDate")) {
-                    return ascending ? c1.getApproveActionDataVO().getRequestDate().compareTo(c2.getApproveActionDataVO().getRequestDate()) : c2
-                            .getApproveActionDataVO().getRequestDate().compareTo(c1.getApproveActionDataVO().getRequestDate());
-                } else if (column.equals("approveActionName")) {
-                    return ascending ? c1.getApproveActionName().compareTo(c2.getApproveActionName()) : c2.getApproveActionName().compareTo(
-                            c1.getApproveActionName());
-                } else if (column.equals("requestUsername")) {
-                    return ascending ? c1.getRequestAdminName().compareTo(c2.getRequestAdminName()) : c2.getRequestAdminName().compareTo(
-                            c1.getRequestAdminName());
-                } else if (column.equals("status")) {
-                    return ascending ? c1.getStatus().compareTo(c2.getStatus()) : c2.getStatus().compareTo(c1.getStatus());
-                } else {
-                    return 0;
-                }
+  /**
+   * Sort the list.
+   *
+   * @param column Column
+   * @param ascending Up or down
+   */
+  protected void sort(final String column, final boolean ascending) {
+    Comparator<ApprovalDataVOView> comparator =
+        new Comparator<ApprovalDataVOView>() {
+          @Override
+          public int compare(
+              final ApprovalDataVOView c2, final ApprovalDataVOView c1) {
+            if (column == null || column.equals("requestDate")) {
+              return ascending
+                  ? c1.getApproveActionDataVO()
+                      .getRequestDate()
+                      .compareTo(c2.getApproveActionDataVO().getRequestDate())
+                  : c2.getApproveActionDataVO()
+                      .getRequestDate()
+                      .compareTo(c1.getApproveActionDataVO().getRequestDate());
+            } else if (column.equals("approveActionName")) {
+              return ascending
+                  ? c1.getApproveActionName()
+                      .compareTo(c2.getApproveActionName())
+                  : c2.getApproveActionName()
+                      .compareTo(c1.getApproveActionName());
+            } else if (column.equals("requestUsername")) {
+              return ascending
+                  ? c1.getRequestAdminName().compareTo(c2.getRequestAdminName())
+                  : c2.getRequestAdminName()
+                      .compareTo(c1.getRequestAdminName());
+            } else if (column.equals("status")) {
+              return ascending
+                  ? c1.getStatus().compareTo(c2.getStatus())
+                  : c2.getStatus().compareTo(c1.getStatus());
+            } else {
+              return 0;
             }
+          }
         };
 
-        Collections.sort(listData, comparator);
+    Collections.sort(listData, comparator);
+  }
+
+  /**
+   * Is the default sort direction for the given column "ascending" ?
+   *
+   * @param sortColumn Column
+   * @return always true
+   */
+  protected boolean isDefaultAscending(final String sortColumn) {
+    return true;
+  }
+
+  public void sort(final String sortColumn) {
+    if (sortColumn == null) {
+      throw new IllegalArgumentException(
+          "Argument sortColumn must not be null.");
     }
 
-    /**
-     * Is the default sort direction for the given column "ascending" ?
-     * @param sortColumn Column
-     * @return always true
-     */
-    protected boolean isDefaultAscending(String sortColumn) {
-        return true;
+    if (sort.equals(sortColumn)) {
+      // current sort equals new sortColumn -> reverse sort order
+      ascending = !ascending;
+    } else {
+      // sort new column in default direction
+      sort = sortColumn;
+      ascending = isDefaultAscending(sort);
     }
 
-    public void sort(String sortColumn) {
-        if (sortColumn == null) {
-            throw new IllegalArgumentException("Argument sortColumn must not be null.");
-        }
+    sort(sort, ascending);
+  }
 
-        if (sort.equals(sortColumn)) {
-            // current sort equals new sortColumn -> reverse sort order
-            ascending = !ascending;
-        } else {
-            // sort new column in default direction
-            sort = sortColumn;
-            ascending = isDefaultAscending(sort);
-        }
+  public void sort() {
+    sort(sort);
+  }
 
-        sort(sort, ascending);
-    }
+  public List<ApprovalDataVOView> getData() {
+    sort(getSort(), isAscending());
+    return this;
+  }
 
-    public void sort() {
-        sort(sort);
-    }
+  public void setData(final List<ApprovalDataVOView> data) {}
 
-    public List<ApprovalDataVOView> getData() {
-        sort(getSort(), isAscending());
-        return this;
-    }
+  public String getSort() {
+    return sort;
+  }
 
-    public void setData(List<ApprovalDataVOView> data) {
+  public void setSort(final String sort) {
+    this.sort = sort;
+  }
 
-    }
+  public boolean isAscending() {
+    return ascending;
+  }
 
-    public String getSort() {
-        return sort;
-    }
-
-    public void setSort(String sort) {
-        this.sort = sort;
-    }
-
-    public boolean isAscending() {
-        return ascending;
-    }
-
-    public void setAscending(boolean ascending) {
-        this.ascending = ascending;
-    }
-
+  public void setAscending(final boolean ascending) {
+    this.ascending = ascending;
+  }
 }

@@ -14,30 +14,25 @@ package org.ejbca.ui.web.admin.cainterface.exception;
 
 /**
  * Thrown if too many results are encountered to process.
- * 
- * @version $Id: ExcessiveResultsException.java 19902 2014-09-30 14:32:24Z anatom $
  *
+ * @version $Id: ExcessiveResultsException.java 19902 2014-09-30 14:32:24Z
+ *     anatom $
  */
 public class ExcessiveResultsException extends Exception {
 
-    private static final long serialVersionUID = -3569778666070980397L;
+  private static final long serialVersionUID = -3569778666070980397L;
 
-    public ExcessiveResultsException() {
+  public ExcessiveResultsException() {}
 
-    }
+  public ExcessiveResultsException(final String arg0) {
+    super(arg0);
+  }
 
+  public ExcessiveResultsException(final Throwable arg0) {
+    super(arg0);
+  }
 
-    public ExcessiveResultsException(String arg0) {
-        super(arg0);
-
-    }
-
-    public ExcessiveResultsException(Throwable arg0) {
-        super(arg0);
-    }
-
-    public ExcessiveResultsException(String arg0, Throwable arg1) {
-        super(arg0, arg1);
-    }
-
+  public ExcessiveResultsException(final String arg0, final Throwable arg1) {
+    super(arg0, arg1);
+  }
 }

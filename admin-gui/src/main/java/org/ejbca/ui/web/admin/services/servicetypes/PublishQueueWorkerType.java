@@ -16,70 +16,81 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-
 import org.ejbca.core.model.services.workers.PublishQueueProcessWorker;
 
 /**
  * Class managing the view of the Renew CA Worker
- * 
  *
- * @version $Id: PublishQueueWorkerType.java 28844 2018-05-04 08:31:02Z samuellb $
+ * @version $Id: PublishQueueWorkerType.java 28844 2018-05-04 08:31:02Z samuellb
+ *     $
  */
 public class PublishQueueWorkerType extends BaseEmailNotifyingWorkerType {
-	
-	private static final long serialVersionUID = -5012349995138960737L;
 
-    public static final String NAME = "PUBLISHQUEUEWORKER";
+  private static final long serialVersionUID = -5012349995138960737L;
 
-	private List<String> selectedPublisherIdsToCheck = new ArrayList<>();
+  public static final String NAME = "PUBLISHQUEUEWORKER";
 
-	public PublishQueueWorkerType(){
-		super(NAME, "publishqueueprocessworker.jsp", PublishQueueProcessWorker.class.getName());
-		// No action available for this worker
-		deleteAllCompatibleActionTypes();
-		addCompatibleActionTypeName(NoActionType.NAME);				
-	}
-	
-	
-	/** Overrides
-	 * @see org.ejbca.ui.web.admin.services.servicetypes.ServiceType#getProperties
-	 */
-	@Override
-	public Properties getProperties(ArrayList<String> errorMessages) throws IOException {
-		Properties ret = super.getProperties(errorMessages);
-		String publisherIdString = "";
-		for(String pubid : selectedPublisherIdsToCheck) {
-			if(!pubid.trim().equals("")){
-			  if(publisherIdString.equals("")){
-				  publisherIdString = pubid;
-			  }else{
-				  publisherIdString += ";"+pubid;
-			  }
-			}
-		}
-		ret.setProperty(PublishQueueProcessWorker.PROP_PUBLISHER_IDS, publisherIdString);
-		return ret;
-	}
-	
-	/** Overrides
-	 * @see org.ejbca.ui.web.admin.services.servicetypes.ServiceType#setProperties(java.util.Properties)
-	 */
-	@Override
-	public void setProperties(Properties properties) throws IOException {
-		super.setProperties(properties);
-		selectedPublisherIdsToCheck = new ArrayList<>();
-		String[] publisherIdsToCheck = properties.getProperty(PublishQueueProcessWorker.PROP_PUBLISHER_IDS,"").split(";");
-		for(int i=0;i<publisherIdsToCheck.length;i++){
-			selectedPublisherIdsToCheck.add(publisherIdsToCheck[i]);
-		}
-	}
+  private List<String> selectedPublisherIdsToCheck = new ArrayList<>();
 
-    public List<String> getSelectedPublisherIdsToCheck() {
-        return selectedPublisherIdsToCheck;
+  public PublishQueueWorkerType() {
+    super(
+        NAME,
+        "publishqueueprocessworker.jsp",
+        PublishQueueProcessWorker.class.getName());
+    // No action available for this worker
+    deleteAllCompatibleActionTypes();
+    addCompatibleActionTypeName(NoActionType.NAME);
+  }
+
+  /**
+   * Overrides
+   *
+   * @see org.ejbca.ui.web.admin.services.servicetypes.ServiceType#getProperties
+   */
+  @Override
+  public Properties getProperties(final ArrayList<String> errorMessages)
+      throws IOException {
+    Properties ret = super.getProperties(errorMessages);
+    String publisherIdString = "";
+    for (String pubid : selectedPublisherIdsToCheck) {
+      if (!pubid.trim().equals("")) {
+        if (publisherIdString.equals("")) {
+          publisherIdString = pubid;
+        } else {
+          publisherIdString += ";" + pubid;
+        }
+      }
     }
+    ret.setProperty(
+        PublishQueueProcessWorker.PROP_PUBLISHER_IDS, publisherIdString);
+    return ret;
+  }
 
-    public void setSelectedPublisherIdsToCheck(List<String> selectedPublisherIdsToCheck) {
-        this.selectedPublisherIdsToCheck = selectedPublisherIdsToCheck;
+  /**
+   * Overrides
+   *
+   * @see
+   *     org.ejbca.ui.web.admin.services.servicetypes.ServiceType#setProperties(java.util.Properties)
+   */
+  @Override
+  public void setProperties(final Properties properties) throws IOException {
+    super.setProperties(properties);
+    selectedPublisherIdsToCheck = new ArrayList<>();
+    String[] publisherIdsToCheck =
+        properties
+            .getProperty(PublishQueueProcessWorker.PROP_PUBLISHER_IDS, "")
+            .split(";");
+    for (int i = 0; i < publisherIdsToCheck.length; i++) {
+      selectedPublisherIdsToCheck.add(publisherIdsToCheck[i]);
     }
+  }
 
+  public List<String> getSelectedPublisherIdsToCheck() {
+    return selectedPublisherIdsToCheck;
+  }
+
+  public void setSelectedPublisherIdsToCheck(
+      final List<String> selectedPublisherIdsToCheck) {
+    this.selectedPublisherIdsToCheck = selectedPublisherIdsToCheck;
+  }
 }

@@ -10,16 +10,14 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.ui.web.admin.cainterface;
 
 import java.io.IOException;
-
 import javax.ejb.EJB;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.crl.CrlStoreSessionLocal;
 import org.cesecore.util.CertTools;
@@ -31,119 +29,137 @@ import org.ejbca.ui.web.admin.cainterface.exception.AdminWebAuthenticationExcept
 import org.ejbca.ui.web.pub.ServletUtils;
 
 /**
- * Servlet used to distribute  CRLs.<br>
+ * Servlet used to distribute CRLs.<br>
+ * The servlet is called with method GET or POST and syntax <code>
+ * command=&lt;command&gt;</code>.
  *
- * The servlet is called with method GET or POST and syntax
- * <code>command=&lt;command&gt;</code>.
  * <p>The follwing commands are supported:<br>
+ *
  * <ul>
- * <li>crl - gets the latest CRL.
+ *   <li>crl - gets the latest CRL.
  * </ul>
  *
  * @version $Id: GetCRLServlet.java 34154 2019-12-23 13:38:17Z samuellb $
  */
 public class GetCRLServlet extends BaseAdminServlet {
 
-	private static final long serialVersionUID = 1L;
-	private static final Logger log = Logger.getLogger(GetCRLServlet.class);
-    /** Internal localization of logs and errors */
-    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();
+  private static final long serialVersionUID = 1L;
+  private static final Logger log = Logger.getLogger(GetCRLServlet.class);
+  /** Internal localization of logs and errors */
+  private static final InternalEjbcaResources intres =
+      InternalEjbcaResources.getInstance();
 
-    private static final String COMMAND_PROPERTY_NAME = "cmd";
-    private static final String COMMAND_CRL = "crl";
-    private static final String COMMAND_DELTACRL = "deltacrl";
-    private static final String ISSUER_PROPERTY = "issuer";
+  private static final String COMMAND_PROPERTY_NAME = "cmd";
+  private static final String COMMAND_CRL = "crl";
+  private static final String COMMAND_DELTACRL = "deltacrl";
+  private static final String ISSUER_PROPERTY = "issuer";
 
-    @EJB
-    private CrlStoreSessionLocal crlStoreSession;
+  @EJB private CrlStoreSessionLocal crlStoreSession;
 
-    @Override
-    public void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException, ServletException {
-        log.trace(">doPost()");
-        doGet(req, res);
-        log.trace("<doPost()");
+  @Override
+  public void doPost(
+      final HttpServletRequest req, final HttpServletResponse res)
+      throws IOException, ServletException {
+    log.trace(">doPost()");
+    doGet(req, res);
+    log.trace("<doPost()");
+  }
+
+  @Override
+  public void doGet(final HttpServletRequest req, final HttpServletResponse res)
+      throws java.io.IOException, ServletException {
+    log.trace(">doGet()");
+    try {
+      authenticateAdmin(req, res, AccessRulesConstants.REGULAR_VIEWCERTIFICATE);
+    } catch (AdminWebAuthenticationException authExc) {
+      // TODO: localize this.
+      log.info("Authentication failed", authExc);
+      res.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication failed");
+      return;
+    }
+    RequestHelper.setDefaultCharacterEncoding(req);
+    String issuerdn = null;
+    if (req.getParameter(ISSUER_PROPERTY) != null) {
+      // HttpServetRequets.getParameter URLDecodes the value for you
+      // No need to do it manually, that will cause problems with + characters
+      issuerdn = req.getParameter(ISSUER_PROPERTY);
+      issuerdn = CertTools.stringToBCDNString(issuerdn);
     }
 
-    @Override
-    public void doGet(HttpServletRequest req,  HttpServletResponse res) throws java.io.IOException, ServletException {
-        log.trace(">doGet()");
-        try {
-            authenticateAdmin(req, res, AccessRulesConstants.REGULAR_VIEWCERTIFICATE);
-        } catch (AdminWebAuthenticationException authExc) {
-        	// TODO: localize this.
-        	log.info("Authentication failed", authExc);
-            res.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication failed");
-            return;
-        }
-        RequestHelper.setDefaultCharacterEncoding(req);
-        String issuerdn = null; 
-        if(req.getParameter(ISSUER_PROPERTY) != null){
-            // HttpServetRequets.getParameter URLDecodes the value for you
-            // No need to do it manually, that will cause problems with + characters
-            issuerdn = req.getParameter(ISSUER_PROPERTY);
-            issuerdn = CertTools.stringToBCDNString(issuerdn);
-        }
-        
-        String command;
-        // Keep this for logging.
-        String remoteAddr = req.getRemoteAddr();
-        command = req.getParameter(COMMAND_PROPERTY_NAME);
-        if (command == null) {
-            command = "";
-        }
-        if (command.equalsIgnoreCase(COMMAND_CRL) && issuerdn != null) {
-            try {
-                byte[] crl = crlStoreSession.getLastCRL(issuerdn, false);
-                String basename = getBaseFileName(issuerdn);
-                String filename = basename+".crl";
-                // We must remove cache headers for IE
-                ServletUtils.removeCacheHeaders(res);
-                res.setHeader("Content-disposition", "attachment; filename=\"" +  StringTools.stripFilename(filename) + "\"");
-                res.setContentType("application/pkix-crl");
-                res.setContentLength(crl.length);
-                res.getOutputStream().write(crl);
-                String iMsg = intres.getLocalizedMessage("certreq.sentlatestcrl", remoteAddr);
-                log.info(iMsg);
-            } catch (Exception e) {
-                String errMsg = intres.getLocalizedMessage("certreq.errorsendcrl", remoteAddr, e.getMessage());
-                log.error(errMsg, e);
-                res.sendError(HttpServletResponse.SC_NOT_FOUND, errMsg);
-                return;
-            }
-        }
-        if (command.equalsIgnoreCase(COMMAND_DELTACRL) && issuerdn != null) {
-        	try {
-        		byte[] crl = crlStoreSession.getLastCRL(issuerdn, true);
-                String basename = getBaseFileName(issuerdn);
-        		String filename = basename+"_delta.crl";
-        		// We must remove cache headers for IE
-        		ServletUtils.removeCacheHeaders(res);
-        		res.setHeader("Content-disposition", "attachment; filename=\"" + StringTools.stripFilename(filename) + "\"");
-        		res.setContentType("application/pkix-crl");
-        		res.setContentLength(crl.length);
-        		res.getOutputStream().write(crl);
-        		log.info("Sent latest delta CRL to client at " + remoteAddr);
-        	} catch (Exception e) {
-        		log.error("Error sending latest delta CRL to " + remoteAddr, e);
-        		res.sendError(HttpServletResponse.SC_NOT_FOUND, "Error getting latest delta CRL.");
-        		return;
-        	}
-        }
-    } // doGet
+    String command;
+    // Keep this for logging.
+    String remoteAddr = req.getRemoteAddr();
+    command = req.getParameter(COMMAND_PROPERTY_NAME);
+    if (command == null) {
+      command = "";
+    }
+    if (command.equalsIgnoreCase(COMMAND_CRL) && issuerdn != null) {
+      try {
+        byte[] crl = crlStoreSession.getLastCRL(issuerdn, false);
+        String basename = getBaseFileName(issuerdn);
+        String filename = basename + ".crl";
+        // We must remove cache headers for IE
+        ServletUtils.removeCacheHeaders(res);
+        res.setHeader(
+            "Content-disposition",
+            "attachment; filename=\""
+                + StringTools.stripFilename(filename)
+                + "\"");
+        res.setContentType("application/pkix-crl");
+        res.setContentLength(crl.length);
+        res.getOutputStream().write(crl);
+        String iMsg =
+            intres.getLocalizedMessage("certreq.sentlatestcrl", remoteAddr);
+        log.info(iMsg);
+      } catch (Exception e) {
+        String errMsg =
+            intres.getLocalizedMessage(
+                "certreq.errorsendcrl", remoteAddr, e.getMessage());
+        log.error(errMsg, e);
+        res.sendError(HttpServletResponse.SC_NOT_FOUND, errMsg);
+        return;
+      }
+    }
+    if (command.equalsIgnoreCase(COMMAND_DELTACRL) && issuerdn != null) {
+      try {
+        byte[] crl = crlStoreSession.getLastCRL(issuerdn, true);
+        String basename = getBaseFileName(issuerdn);
+        String filename = basename + "_delta.crl";
+        // We must remove cache headers for IE
+        ServletUtils.removeCacheHeaders(res);
+        res.setHeader(
+            "Content-disposition",
+            "attachment; filename=\""
+                + StringTools.stripFilename(filename)
+                + "\"");
+        res.setContentType("application/pkix-crl");
+        res.setContentLength(crl.length);
+        res.getOutputStream().write(crl);
+        log.info("Sent latest delta CRL to client at " + remoteAddr);
+      } catch (Exception e) {
+        log.error("Error sending latest delta CRL to " + remoteAddr, e);
+        res.sendError(
+            HttpServletResponse.SC_NOT_FOUND,
+            "Error getting latest delta CRL.");
+        return;
+      }
+    }
+  } // doGet
 
-	/**
-	 * @param  dn DN
-	 * @return base filename, without extension, with CN, or SN (of CN is null) or O, with spaces removed so name is compacted.
-	 */
-	private String getBaseFileName(String dn) {
-		String dnpart = CertTools.getPartFromDN(dn, "CN");
-		if (dnpart == null) {
-			dnpart = CertTools.getPartFromDN(dn, "SN");
-		}
-		if (dnpart == null) {
-			dnpart = CertTools.getPartFromDN(dn, "O");
-		}
-		String basename = dnpart.replaceAll("\\W", "");
-		return basename;
-	}
+  /**
+   * @param dn DN
+   * @return base filename, without extension, with CN, or SN (of CN is null) or
+   *     O, with spaces removed so name is compacted.
+   */
+  private String getBaseFileName(final String dn) {
+    String dnpart = CertTools.getPartFromDN(dn, "CN");
+    if (dnpart == null) {
+      dnpart = CertTools.getPartFromDN(dn, "SN");
+    }
+    if (dnpart == null) {
+      dnpart = CertTools.getPartFromDN(dn, "O");
+    }
+    String basename = dnpart.replaceAll("\\W", "");
+    return basename;
+  }
 }

@@ -10,7 +10,7 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 /*
  * AddedUserMemory.java
  *
@@ -21,98 +21,93 @@ package org.ejbca.ui.web.admin.rainterface;
 import java.io.Serializable;
 import java.util.LinkedList;
 
-
 /**
- * A class used to remember a RA Admins last added users. It's use is in the adduser.jsp to list
- * previously added users give the RA admins a better overlook of the his work.
+ * A class used to remember a RA Admins last added users. It's use is in the
+ * adduser.jsp to list previously added users give the RA admins a better
+ * overlook of the his work.
  *
-
  * @version $Id: AddedUserMemory.java 28844 2018-05-04 08:31:02Z samuellb $
  */
 public class AddedUserMemory implements Serializable {
 
-    private static final long serialVersionUID = 1864439727928588230L;
+  private static final long serialVersionUID = 1864439727928588230L;
 
-    public static final int MEMORY_SIZE = 100; // Remember the 100 last users. 
+  public static final int MEMORY_SIZE = 100; // Remember the 100 last users.
 
-    // Private fields
-    private LinkedList<UserView> memory = null;
+  // Private fields
+  private LinkedList<UserView> memory = null;
 
-    /**
-     * Creates a new instance of AddedUserMemory
-     */
-    public AddedUserMemory() {
-        memory = new LinkedList<>();
+  /** Creates a new instance of AddedUserMemory */
+  public AddedUserMemory() {
+    memory = new LinkedList<>();
+  }
+
+  /**
+   * Used to add a user tho the memory
+   *
+   * @param user the UserView representation of the user to add.
+   */
+  public void addUser(final UserView user) {
+    memory.add(user);
+    while (memory.size() > MEMORY_SIZE) {
+      memory.removeFirst();
+    }
+  }
+
+  /**
+   * Used to retrieve a number of previously added users.
+   *
+   * @param size the size of the array of users to return
+   * @return the 'size' or available users in memory.
+   */
+  public UserView[] getUsers(final int size) {
+    int endindex = memory.size() - size;
+    int tempsize = size;
+    UserView[] returnval;
+
+    if (endindex < 0) {
+      endindex = 0;
     }
 
-    /**
-     * Used to add a user tho the memory
-     *
-     * @param user the UserView representation of the user to add.
-     */
-    public void addUser(UserView user) {
-        memory.add(user);
-        while (memory.size() > MEMORY_SIZE) {
-            memory.removeFirst();
-        }
+    if (size > memory.size()) {
+      tempsize = memory.size();
     }
 
-    /**
-     * Used to retrieve a number of previously added users.
-     *
-     * @param size the size of the array of users to return
-     *
-     * @return the 'size' or available users in memory.
-     */
-    public UserView[] getUsers(int size) {
-        int endindex = memory.size() - size;
-        int tempsize = size;
-        UserView[] returnval;
+    returnval = new UserView[tempsize];
 
-        if (endindex < 0) {
-            endindex = 0;
-        }
+    int j = 0;
 
-        if (size > memory.size()) {
-            tempsize = memory.size();
-        }
-
-        returnval = new UserView[tempsize];
-
-        int j = 0;
-
-        for (int i = memory.size() - 1; i >= endindex; i--) {
-            returnval[j] = memory.get(i);
-            j++;
-        }
-
-        return returnval;
+    for (int i = memory.size() - 1; i >= endindex; i--) {
+      returnval[j] = memory.get(i);
+      j++;
     }
 
-    /**
-     * Used to update the data of a user.
-     *
-     * @param user the stringarray representation of the user to change.
-     */
-    public void changeUser(UserView user) {
-        // Find user in memory.
-        for (int i = 0; i < memory.size(); i++) {
-            if ((memory.get(i)).getUsername().equals(user.getUsername())) {
-                memory.set(i, user);
+    return returnval;
+  }
 
-                break;
-            }
-        }
-    }
+  /**
+   * Used to update the data of a user.
+   *
+   * @param user the stringarray representation of the user to change.
+   */
+  public void changeUser(final UserView user) {
+    // Find user in memory.
+    for (int i = 0; i < memory.size(); i++) {
+      if ((memory.get(i)).getUsername().equals(user.getUsername())) {
+        memory.set(i, user);
 
-    public void removeUser(String userName) {
-     // Find user in memory.
-        for (int i = 0; i < memory.size(); i++) {
-            if ((memory.get(i)).getUsername().equals(userName)) {
-                memory.remove(i);
-                break;
-            }
-        }
+        break;
+      }
     }
-  
+  }
+
+  public void removeUser(final String userName) {
+    // Find user in memory.
+    for (int i = 0; i < memory.size(); i++) {
+      if ((memory.get(i)).getUsername().equals(userName)) {
+        memory.remove(i);
+        break;
+      }
+    }
+  }
 }

@@ -13,38 +13,49 @@
 
 package org.ejbca.ui.web.admin;
 
-import org.apache.log4j.Logger;
-import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
-
+import java.net.URI;
+import java.net.URISyntaxException;
 import javax.faces.application.FacesMessage;
 import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 import javax.faces.validator.Validator;
 import javax.faces.validator.ValidatorException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import org.apache.log4j.Logger;
+import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
 
-/** JSF validator to check that input fields are valid urls
+/**
+ * JSF validator to check that input fields are valid urls
  *
  * @version $Id: UrlValidator.java 28844 2018-05-04 08:31:02Z samuellb $
  */
 public class UrlValidator implements Validator {
-    private static final Logger log = Logger.getLogger(UrlValidator.class);
+  private static final Logger log = Logger.getLogger(UrlValidator.class);
 
-    @Override
-    public void validate(FacesContext facesContext, UIComponent uiComponent, Object o) throws ValidatorException {
-        StringBuilder url = new StringBuilder();
-        String urlValue = o.toString();
-        if (log.isDebugEnabled()) {
-            log.debug("Validating component " + uiComponent.getClientId(facesContext) + " with value \"" + urlValue + "\"");
-        }
-
-        url.append(urlValue);
-        try {
-            new URI(url.toString());
-        } catch (URISyntaxException e) {
-            final String msg = EjbcaJSFHelper.getBean().getEjbcaWebBean().getText("INVALIDURL");
-            throw new ValidatorException(new FacesMessage(FacesMessage.SEVERITY_ERROR, msg, null));
-        }
+  @Override
+  public void validate(
+      final FacesContext facesContext,
+      final UIComponent uiComponent,
+      final Object o)
+      throws ValidatorException {
+    StringBuilder url = new StringBuilder();
+    String urlValue = o.toString();
+    if (log.isDebugEnabled()) {
+      log.debug(
+          "Validating component "
+              + uiComponent.getClientId(facesContext)
+              + " with value \""
+              + urlValue
+              + "\"");
     }
+
+    url.append(urlValue);
+    try {
+      new URI(url.toString());
+    } catch (URISyntaxException e) {
+      final String msg =
+          EjbcaJSFHelper.getBean().getEjbcaWebBean().getText("INVALIDURL");
+      throw new ValidatorException(
+          new FacesMessage(FacesMessage.SEVERITY_ERROR, msg, null));
+    }
+  }
 }

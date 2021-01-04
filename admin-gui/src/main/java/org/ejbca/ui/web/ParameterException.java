@@ -10,22 +10,23 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- package org.ejbca.ui.web;
+package org.ejbca.ui.web;
 
 /**
  * Used for parameter errors on web pages.
- * 
- * @version $Id: ParameterException.java 24933 2016-12-20 08:41:57Z mikekushner $
  *
+ * @version $Id: ParameterException.java 24933 2016-12-20 08:41:57Z mikekushner
+ *     $
  */
 public class ParameterException extends Exception {
 
-    private static final long serialVersionUID = -8861455593395367960L;
+  private static final long serialVersionUID = -8861455593395367960L;
 
-    /**
-     * @param message string to be displayed on the error page of the admin web GUI.
-     */
-    public ParameterException(String message) {
-        super(message);
-    }
+  /**
+   * @param message string to be displayed on the error page of the admin web
+   *     GUI.
+   */
+  public ParameterException(final String message) {
+    super(message);
+  }
 }

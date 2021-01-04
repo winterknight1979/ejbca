@@ -13,93 +13,99 @@
 package org.ejbca.ui.web.admin.audit;
 
 import java.util.List;
-
 import javax.faces.model.SelectItem;
-
 import org.apache.commons.lang.StringEscapeUtils;
 import org.cesecore.audit.AuditLogEntry;
 
 /**
- * 
- * @version $Id: AuditSearchCondition.java 25716 2017-04-19 19:52:35Z mikekushner $
+ * @version $Id: AuditSearchCondition.java 25716 2017-04-19 19:52:35Z
+ *     mikekushner $
  */
 public class AuditSearchCondition {
-	
-	private Operation operation = Operation.AND;
-	private final String column;
-	private Condition condition = Condition.EQUALS;
-	private String value;
 
-	private final List<SelectItem> options;
-    private final List<SelectItem> conditions;
+  private Operation operation = Operation.AND;
+  private final String column;
+  private Condition condition = Condition.EQUALS;
+  private String value;
 
-	public AuditSearchCondition(String column, List<SelectItem> conditions, List<SelectItem> options, Condition condition, String defaultValue) {
-		this.column = column;
-		this.options = options;
-		this.value = defaultValue;
-		this.condition = condition;
-		this.conditions = conditions;
-	}
+  private final List<SelectItem> options;
+  private final List<SelectItem> conditions;
 
-	public AuditSearchCondition(String column, List<SelectItem> conditions, List<SelectItem> options) {
-		this.column = column;
-		this.options = options;
-        this.conditions = conditions;
-	}
+  public AuditSearchCondition(
+      final String column,
+      final List<SelectItem> conditions,
+      final List<SelectItem> options,
+      final Condition condition,
+      final String defaultValue) {
+    this.column = column;
+    this.options = options;
+    this.value = defaultValue;
+    this.condition = condition;
+    this.conditions = conditions;
+  }
 
-	public void setOperation(Operation operation) {
-		this.operation = operation;
-	}
+  public AuditSearchCondition(
+      final String column,
+      final List<SelectItem> conditions,
+      final List<SelectItem> options) {
+    this.column = column;
+    this.options = options;
+    this.conditions = conditions;
+  }
 
-	public Operation getOperation() {
-		return operation;
-	}
+  public void setOperation(final Operation operation) {
+    this.operation = operation;
+  }
 
-	public String getColumn() {
-		return column;
-	}
+  public Operation getOperation() {
+    return operation;
+  }
 
-	public void setCondition(String condition) {
-		this.condition = Condition.valueOf(condition);
-	}
+  public String getColumn() {
+    return column;
+  }
 
-	public String getCondition() {
-		return condition.name();
-	}
+  public void setCondition(final String condition) {
+    this.condition = Condition.valueOf(condition);
+  }
 
-	public void setValue(String value) {
-	    //The details column is XML-encoded, so escape any sensitive characters
-        if (column.equals(AuditLogEntry.FIELD_ADDITIONAL_DETAILS)) {
-            this.value = StringEscapeUtils.escapeXml(value);
-        } else {
-            this.value = value;
+  public String getCondition() {
+    return condition.name();
+  }
+
+  public void setValue(final String value) {
+    // The details column is XML-encoded, so escape any sensitive characters
+    if (column.equals(AuditLogEntry.FIELD_ADDITIONAL_DETAILS)) {
+      this.value = StringEscapeUtils.escapeXml(value);
+    } else {
+      this.value = value;
+    }
+  }
+
+  public String getValueLabel() {
+    if (options != null) {
+      for (final SelectItem option : options) {
+        if (option.getValue().equals(value)) {
+          return option.getLabel();
         }
-	}
-
-	public String getValueLabel() {
-	    if (options!=null) {
-	        for (final SelectItem option: options) {
-	            if (option.getValue().equals(value)) {
-	                return option.getLabel();
-	            }
-	        }
-	    }	    
-	    if (column.equals(AuditLogEntry.FIELD_ADDITIONAL_DETAILS)) {
-	        return StringEscapeUtils.unescapeXml(value);
-        } else {
-            return value;
-        }   
-	}
-
-    public String getValue() {
-        return value;
+      }
     }
-
-	public List<SelectItem> getOptions() {
-		return options;
-	}
-
-    public List<SelectItem> getConditions() {
-        return conditions;
+    if (column.equals(AuditLogEntry.FIELD_ADDITIONAL_DETAILS)) {
+      return StringEscapeUtils.unescapeXml(value);
+    } else {
+      return value;
     }
+  }
+
+  public String getValue() {
+    return value;
+  }
+
+  public List<SelectItem> getOptions() {
+    return options;
+  }
+
+  public List<SelectItem> getConditions() {
+    return conditions;
+  }
 }

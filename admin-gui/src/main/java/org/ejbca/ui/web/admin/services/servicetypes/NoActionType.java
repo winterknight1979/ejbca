@@ -17,45 +17,43 @@ import java.util.ArrayList;
 import java.util.Properties;
 
 /**
- * Class used to populate the fields in the noaction subpage. 
- * 
+ * Class used to populate the fields in the noaction subpage.
  *
  * @version $Id: NoActionType.java 28844 2018-05-04 08:31:02Z samuellb $
  */
 public class NoActionType extends ActionType {
-	
-	private static final long serialVersionUID = -5063026816886312970L;
 
-    public static final String NAME = "NOACTION";
-	
-	private transient Properties properties = new Properties();
-	
-	public NoActionType() {
-		super("noaction.jsp", NAME, true);
-	}
+  private static final long serialVersionUID = -5063026816886312970L;
 
-    String unit;
-    String value;
+  public static final String NAME = "NOACTION";
 
-    @Override
-	public String getClassPath() {
-		return org.ejbca.core.model.services.actions.NoAction.class.getName();
-	}
+  private transient Properties properties = new Properties();
 
-    @Override
-	public Properties getProperties(ArrayList<String> errorMessages) throws IOException {		
-		return properties;
-	}
-	
-    @Override
-	public void setProperties(Properties properties) throws IOException {
-		this.properties = properties;
-	}
+  public NoActionType() {
+    super("noaction.jsp", NAME, true);
+  }
 
-    @Override
-	public boolean isCustom() {
-		return false;
-	}
+  String unit;
+  String value;
 
+  @Override
+  public String getClassPath() {
+    return org.ejbca.core.model.services.actions.NoAction.class.getName();
+  }
 
+  @Override
+  public Properties getProperties(final ArrayList<String> errorMessages)
+      throws IOException {
+    return properties;
+  }
+
+  @Override
+  public void setProperties(final Properties properties) throws IOException {
+    this.properties = properties;
+  }
+
+  @Override
+  public boolean isCustom() {
+    return false;
+  }
 }

@@ -15,28 +15,28 @@ package org.ejbca.ui.web.admin.services.servicetypes;
 import org.ejbca.core.model.services.workers.HsmKeepAliveWorker;
 
 /**
- * This worker type exists with the express purpose of keeping a session to an HSM slot from timing out. It replaces
- * the previous need of creating crontab calls to the healthchecker. 
- * 
- * @version $Id: HsmKeepAliveWorkerType.java 19902 2014-09-30 14:32:24Z anatom $
+ * This worker type exists with the express purpose of keeping a session to an
+ * HSM slot from timing out. It replaces the previous need of creating crontab
+ * calls to the healthchecker.
  *
+ * @version $Id: HsmKeepAliveWorkerType.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public class HsmKeepAliveWorkerType extends BaseWorkerType {
 
-    public static final String NAME = "HSMKEEPALIVEWORKER";
-    
-    private static final long serialVersionUID = -1598910154971679252L;
-    
-    public HsmKeepAliveWorkerType() {
-        super("hsmkeepaliveworker.jsp", NAME, true, HsmKeepAliveWorker.class.getName());
-        // No action available for this worker
-        deleteAllCompatibleActionTypes();
-        addCompatibleActionTypeName(NoActionType.NAME);
-        //deleteAllCompatibleIntervalTypes();
-        addCompatibleIntervalTypeName(PeriodicalIntervalType.NAME);
-        
-    }
-    
+  public static final String NAME = "HSMKEEPALIVEWORKER";
 
+  private static final long serialVersionUID = -1598910154971679252L;
 
+  public HsmKeepAliveWorkerType() {
+    super(
+        "hsmkeepaliveworker.jsp",
+        NAME,
+        true,
+        HsmKeepAliveWorker.class.getName());
+    // No action available for this worker
+    deleteAllCompatibleActionTypes();
+    addCompatibleActionTypeName(NoActionType.NAME);
+    // deleteAllCompatibleIntervalTypes();
+    addCompatibleIntervalTypeName(PeriodicalIntervalType.NAME);
+  }
 }

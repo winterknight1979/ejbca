@@ -10,17 +10,14 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.ui.web.admin.hardtokeninterface;
 
 import java.util.Collection;
 import java.util.Date;
-
 import org.cesecore.util.StringTools;
 import org.ejbca.core.model.hardtoken.HardTokenInformation;
 import org.ejbca.core.model.hardtoken.types.HardToken;
-
-
 
 /**
  * A class representing a web interface view of a hard token in the ra database.
@@ -28,93 +25,94 @@ import org.ejbca.core.model.hardtoken.types.HardToken;
  * @version $Id: HardTokenView.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public class HardTokenView implements java.io.Serializable, Cloneable {
-  
-    private static final long serialVersionUID = 4090246269386728977L;
 
-    // Public constants.
-    public HardTokenView() {
-        this.tokendata = new HardTokenInformation();        
-    }
+  private static final long serialVersionUID = 4090246269386728977L;
 
-    public HardTokenView(HardTokenInformation newtokendata) {
-        tokendata = newtokendata;        
-    }
+  // Public constants.
+  public HardTokenView() {
+    this.tokendata = new HardTokenInformation();
+  }
 
-    public void setUsername(String user) {
-        tokendata.setUsername(StringTools.stripUsername(user));
-    }
+  public HardTokenView(final HardTokenInformation newtokendata) {
+    tokendata = newtokendata;
+  }
 
-    public String getUsername() {
-        return tokendata.getUsername();
-    }
+  public void setUsername(final String user) {
+    tokendata.setUsername(StringTools.stripUsername(user));
+  }
 
+  public String getUsername() {
+    return tokendata.getUsername();
+  }
 
-    public void setTokenSN(String tokensn) {
-        tokendata.setTokenSN(tokensn);
-    }
+  public void setTokenSN(final String tokensn) {
+    tokendata.setTokenSN(tokensn);
+  }
 
+  public String getTokenSN() {
+    return tokendata.getTokenSN();
+  }
 
-    public String getTokenSN() {
-        return tokendata.getTokenSN();
-    }
+  public void setCreateTime(final Date createtime) {
+    tokendata.setCreateTime(createtime);
+  }
 
-    public void setCreateTime(Date createtime) {
-        tokendata.setCreateTime(createtime);
-    }
+  public Date getCreateTime() {
+    return tokendata.getCreateTime();
+  }
 
-    public Date getCreateTime() {
-        return tokendata.getCreateTime();
-    }
+  public void setModifyTime(final Date modifytime) {
+    tokendata.setModifyTime(modifytime);
+  }
 
-    public void setModifyTime(Date modifytime) {
-        tokendata.setModifyTime(modifytime);
-    }
+  public Date getModifyTime() {
+    return tokendata.getModifyTime();
+  }
 
-    public Date getModifyTime() {
-        return tokendata.getModifyTime();
-    }
-    
-    public String getLabel(){
-    	return tokendata.getHardToken().getLabel();
-    }
+  public String getLabel() {
+    return tokendata.getHardToken().getLabel();
+  }
 
-    public int getNumberOfFields() {
-        return tokendata.getHardToken().getNumberOfFields();
-    }
+  public int getNumberOfFields() {
+    return tokendata.getHardToken().getNumberOfFields();
+  }
 
-    public String getTextOfField(int index) {
-        if (tokendata.getHardToken().getFieldText(index).equals(HardToken.EMPTYROW_FIELD)) {
-            return "";
-        }
-        return tokendata.getHardToken().getFieldText(index);
+  public String getTextOfField(final int index) {
+    if (tokendata
+        .getHardToken()
+        .getFieldText(index)
+        .equals(HardToken.EMPTYROW_FIELD)) {
+      return "";
     }
-    
-    public boolean isOriginal(){
-      return tokendata.isOriginal();	
-    }
-    
-    public String getCopyOf(){
-      return tokendata.getCopyOf();	
-    }
-    
-    public Collection<String> getCopies(){
-      return tokendata.getCopies();	
-    }
-    
-    public Integer getHardTokenProfileId(){    	
-    	  return Integer.valueOf(tokendata.getHardToken().getTokenProfileId());
-    }
+    return tokendata.getHardToken().getFieldText(index);
+  }
 
-    public Object getField(int index) {
-        HardToken token = tokendata.getHardToken();
+  public boolean isOriginal() {
+    return tokendata.isOriginal();
+  }
 
-        if (token.getFieldPointer(index).equals(HardToken.EMPTYROW_FIELD)) {
-            return "";
-        }
-        return token.getField(token.getFieldPointer(index));
+  public String getCopyOf() {
+    return tokendata.getCopyOf();
+  }
+
+  public Collection<String> getCopies() {
+    return tokendata.getCopies();
+  }
+
+  public Integer getHardTokenProfileId() {
+    return Integer.valueOf(tokendata.getHardToken().getTokenProfileId());
+  }
+
+  public Object getField(final int index) {
+    HardToken token = tokendata.getHardToken();
+
+    if (token.getFieldPointer(index).equals(HardToken.EMPTYROW_FIELD)) {
+      return "";
     }
+    return token.getField(token.getFieldPointer(index));
+  }
 
-    // Private constants.
-    // Private methods.
-    private HardTokenInformation tokendata;    
+  // Private constants.
+  // Private methods.
+  private final HardTokenInformation tokendata;
 }

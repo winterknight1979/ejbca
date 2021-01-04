@@ -13,12 +13,10 @@
 package org.ejbca.ui.psm.jsf;
 
 import java.io.Serializable;
-
 import javax.faces.component.UIInput;
 import javax.faces.event.AbortProcessingException;
 import javax.faces.event.AjaxBehaviorEvent;
 import javax.faces.event.AjaxBehaviorListener;
-
 import org.apache.log4j.Logger;
 import org.cesecore.util.ui.DynamicUiActionCallback;
 import org.cesecore.util.ui.DynamicUiCallbackException;
@@ -26,46 +24,57 @@ import org.cesecore.util.ui.DynamicUiModel;
 import org.cesecore.util.ui.DynamicUiProperty;
 
 /**
- * This MyFaces AjaxBehaviorListener implementation for {@link DynamicUiModel} delegates the event to 
- * the {@link DynamicUiActionCallback} associated with the dynamic UI property and renders the 
- * outcome on the view.
- * 
- * @version $Id: JsfDynamicUiAjaxBehaviorListener.java 28532 2018-03-21 07:43:59Z mikekushner $
+ * This MyFaces AjaxBehaviorListener implementation for {@link DynamicUiModel}
+ * delegates the event to the {@link DynamicUiActionCallback} associated with
+ * the dynamic UI property and renders the outcome on the view.
+ *
+ * @version $Id: JsfDynamicUiAjaxBehaviorListener.java 28532 2018-03-21
+ *     07:43:59Z mikekushner $
  */
-public class JsfDynamicUiAjaxBehaviorListener implements Serializable, AjaxBehaviorListener {
+public class JsfDynamicUiAjaxBehaviorListener
+    implements Serializable, AjaxBehaviorListener {
 
-    private static final long serialVersionUID = -1L;
+  private static final long serialVersionUID = -1L;
 
-    /** Class logger. */
-    private static final Logger log = Logger.getLogger(JsfDynamicUiHtmlInputText.class);
+  /** Class logger. */
+  private static final Logger log =
+      Logger.getLogger(JsfDynamicUiHtmlInputText.class);
 
-    /** DynamicUIProperty reference. */
-    private DynamicUiProperty<?> dynamicUiProperty;
-    
-    /** UI component reference. */
-    private UIInput component;
+  /** DynamicUIProperty reference. */
+  private final DynamicUiProperty<?> dynamicUiProperty;
 
-    /** 
-     * Constructor with DynamicUiProperty and UI component reference.
-     * @param dynamicUiProperty UI
-     * @param component Component
-     */
-    public JsfDynamicUiAjaxBehaviorListener(final DynamicUiProperty<?> dynamicUiProperty, final UIInput component) {
-        this.dynamicUiProperty = dynamicUiProperty;
-        this.component = component;
+  /** UI component reference. */
+  private final UIInput component;
+
+  /**
+   * Constructor with DynamicUiProperty and UI component reference.
+   *
+   * @param dynamicUiProperty UI
+   * @param component Component
+   */
+  public JsfDynamicUiAjaxBehaviorListener(
+      final DynamicUiProperty<?> dynamicUiProperty, final UIInput component) {
+    this.dynamicUiProperty = dynamicUiProperty;
+    this.component = component;
+  }
+
+  @Override
+  public void processAjaxBehavior(final AjaxBehaviorEvent event)
+      throws AbortProcessingException {
+    if (log.isTraceEnabled()) {
+      log.trace("Call dynamic UI property AJAX action event: " + event);
     }
-
-    @Override
-    public void processAjaxBehavior(AjaxBehaviorEvent event) throws AbortProcessingException {
-    	if (log.isTraceEnabled()) {
-            log.trace( "Call dynamic UI property AJAX action event: " + event);
-        }
-        try {
-            dynamicUiProperty.getActionCallback().action(((UIInput) event.getSource()).getSubmittedValue());
-        } catch (DynamicUiCallbackException e) {
-            if (log.isDebugEnabled()) {
-                log.debug("Could not perform dynamic UI property action callback: " + component.getSubmittedValue(), e);
-            }
-        }
+    try {
+      dynamicUiProperty
+          .getActionCallback()
+          .action(((UIInput) event.getSource()).getSubmittedValue());
+    } catch (DynamicUiCallbackException e) {
+      if (log.isDebugEnabled()) {
+        log.debug(
+            "Could not perform dynamic UI property action callback: "
+                + component.getSubmittedValue(),
+            e);
+      }
     }
+  }
 }

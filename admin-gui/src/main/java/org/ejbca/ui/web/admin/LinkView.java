@@ -14,38 +14,42 @@
 package org.ejbca.ui.web.admin;
 
 /**
- * Represents a link to another view. Used by approvals to link from approvals list to certificate views.
- * 
- * @version $Id: LinkView.java 19902 2014-09-30 14:32:24Z anatom $
+ * Represents a link to another view. Used by approvals to link from approvals
+ * list to certificate views.
  *
+ * @version $Id: LinkView.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public class LinkView {
 
-	private String URI;
-	private String preDescription;
-	private String description;
-	private String postDescription;
+  private final String URI;
+  private final String preDescription;
+  private final String description;
+  private final String postDescription;
 
-	public LinkView(String URI, String preDescription, String description, String postDescription) {
-		this.URI = URI;
-		this.preDescription = preDescription;
-		this.description = description;
-		this.postDescription = postDescription;
-	}
-	
-	public String getURI() {
-		return URI;
-	}
-	
-	public String getPreDescription() {
-		return preDescription;
-	}
+  public LinkView(
+      final String URI,
+      final String preDescription,
+      final String description,
+      final String postDescription) {
+    this.URI = URI;
+    this.preDescription = preDescription;
+    this.description = description;
+    this.postDescription = postDescription;
+  }
 
-	public String getPostDescription() {
-		return postDescription;
-	}
+  public String getURI() {
+    return URI;
+  }
 
-	public String getDescription() {
-		return description;
-	}
+  public String getPreDescription() {
+    return preDescription;
+  }
+
+  public String getPostDescription() {
+    return postDescription;
+  }
+
+  public String getDescription() {
+    return description;
+  }
 }

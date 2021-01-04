@@ -14,7 +14,6 @@
 package org.ejbca.ui.web.admin.cainterface;
 
 import java.io.Serializable;
-
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.common.exception.ReferencesToItemExistException;
@@ -26,80 +25,98 @@ import org.ejbca.core.model.ca.publisher.PublisherExistsException;
 
 /**
  * A class handling the hardtoken profile data in the webinterface.
- * 
- * @deprecated since 6.12.0. Use PublisherSession directly instead
  *
+ * @deprecated since 6.12.0. Use PublisherSession directly instead
  * @version $Id: PublisherDataHandler.java 30470 2018-11-12 11:02:11Z samuellb $
  */
 @Deprecated
 public class PublisherDataHandler implements Serializable {
 
-    private static final long serialVersionUID = -5646053740072121787L;
+  private static final long serialVersionUID = -5646053740072121787L;
 
-    private PublisherSessionLocal publishersession;
-    private AuthenticationToken administrator;
+  private final PublisherSessionLocal publishersession;
+  private final AuthenticationToken administrator;
 
-    /** Creates a new instance of PublisherDataHandler 
-     * @param administrator Admin
-     * @param publishersession Session */
-    public PublisherDataHandler(AuthenticationToken administrator, PublisherSessionLocal publishersession) {
-        this.publishersession = publishersession;
-        this.administrator = administrator;
-    }
+  /**
+   * Creates a new instance of PublisherDataHandler
+   *
+   * @param administrator Admin
+   * @param publishersession Session
+   */
+  public PublisherDataHandler(
+      final AuthenticationToken administrator,
+      final PublisherSessionLocal publishersession) {
+    this.publishersession = publishersession;
+    this.administrator = administrator;
+  }
 
-    /** Method to add a publisher. Throws PublisherExitsException if profile already exists  
-     * @param name Name
-     * @param publisher Pub 
-     * @throws PublisherExistsException Fail 
-     * @throws AuthorizationDeniedException Fail */
-    public void addPublisher(String name, BasePublisher publisher) throws PublisherExistsException, AuthorizationDeniedException {
-        publishersession.addPublisher(administrator, name, publisher);
+  /**
+   * Method to add a publisher. Throws PublisherExitsException if profile
+   * already exists
+   *
+   * @param name Name
+   * @param publisher Pub
+   * @throws PublisherExistsException Fail
+   * @throws AuthorizationDeniedException Fail
+   */
+  public void addPublisher(final String name, final BasePublisher publisher)
+      throws PublisherExistsException, AuthorizationDeniedException {
+    publishersession.addPublisher(administrator, name, publisher);
+  }
 
-    }
+  /**
+   * Method to change a publisher.
+   *
+   * @param name Name
+   * @param publisher Pub
+   * @throws AuthorizationDeniedException fail
+   */
+  public void changePublisher(final String name, final BasePublisher publisher)
+      throws AuthorizationDeniedException {
+    publishersession.changePublisher(administrator, name, publisher);
+  }
 
-    /** Method to change a publisher. 
-     * @param name Name
-     * @param publisher Pub 
-     * @throws AuthorizationDeniedException fail  */
-    public void changePublisher(String name, BasePublisher publisher) throws AuthorizationDeniedException {
-        publishersession.changePublisher(administrator, name, publisher);
-    }
+  /**
+   * Removes a publisher
+   *
+   * @param name Name
+   * @throws AuthorizationDeniedException if not authorized
+   * @throws ReferencesToItemExistException if references exist.
+   */
+  public void removePublisher(final String name)
+      throws ReferencesToItemExistException, AuthorizationDeniedException {
+    publishersession.removePublisher(administrator, name);
+  }
 
-    /**
-     * Removes a publisher
-     * @param name Name
-     * @throws AuthorizationDeniedException if not authorized
-     * @throws ReferencesToItemExistException if references exist.
-     */
-    public void removePublisher(String name) throws ReferencesToItemExistException, AuthorizationDeniedException {
-        publishersession.removePublisher(administrator, name);
-    }
+  /**
+   * Metod to rename a publisher
+   *
+   * @param oldname Name
+   * @param newname Name
+   * @throws PublisherExistsException fail
+   * @throws AuthorizationDeniedException fail
+   */
+  public void renamePublisher(final String oldname, final String newname)
+      throws PublisherExistsException, AuthorizationDeniedException {
+    publishersession.renamePublisher(administrator, oldname, newname);
+  }
 
-    /** Metod to rename a publisher 
-     * @param oldname Name
-     * @param newname Name
-     * @throws PublisherExistsException fail
-     * @throws AuthorizationDeniedException fail */
-    public void renamePublisher(String oldname, String newname) throws PublisherExistsException, AuthorizationDeniedException {
-        publishersession.renamePublisher(administrator, oldname, newname);
+  public void clonePublisher(final String originalname, final String newname)
+      throws AuthorizationDeniedException, PublisherDoesntExistsException,
+          PublisherExistsException {
+    publishersession.clonePublisher(administrator, originalname, newname);
+  }
 
-    }
+  public void testConnection(final String name)
+      throws PublisherConnectionException {
+    publishersession.testConnection(publishersession.getPublisherId(name));
+  }
 
-    public void clonePublisher(String originalname, String newname) throws AuthorizationDeniedException, PublisherDoesntExistsException,
-            PublisherExistsException {
-        publishersession.clonePublisher(administrator, originalname, newname);
-    }
+  public BasePublisher getPublisher(final String name) {
+    return publishersession.getPublisher(name);
+  }
 
-    public void testConnection(String name) throws PublisherConnectionException {
-        publishersession.testConnection(publishersession.getPublisherId(name));
-
-    }
-    public BasePublisher getPublisher(String name) {
-        return publishersession.getPublisher(name);
-    }
-
-    public int getPublisherId(String name) {
-        return publishersession.getPublisherId(name);
-    }
-
+  public int getPublisherId(final String name) {
+    return publishersession.getPublisherId(name);
+  }
 }

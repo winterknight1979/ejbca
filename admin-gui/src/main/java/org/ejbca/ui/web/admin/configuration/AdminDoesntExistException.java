@@ -10,7 +10,7 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 /*
  * AdminDoesntExistException.java
  *
@@ -19,28 +19,31 @@
 package org.ejbca.ui.web.admin.configuration;
 
 /**
- * An exception thown when trying to change or remove a user that does not exist in the database.
+ * An exception thown when trying to change or remove a user that does not exist
+ * in the database.
  *
  * @author Philip Vendil
- * @version $Id: AdminDoesntExistException.java 19902 2014-09-30 14:32:24Z anatom $
+ * @version $Id: AdminDoesntExistException.java 19902 2014-09-30 14:32:24Z
+ *     anatom $
  */
 public class AdminDoesntExistException extends java.lang.Exception {
-	private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-	/**
-     * Creates a new instance of <code>AdminDoesntExistException</code> without detail message.
-     */
-    public AdminDoesntExistException() {
-        super();
-    }
+  /**
+   * Creates a new instance of <code>AdminDoesntExistException</code> without
+   * detail message.
+   */
+  public AdminDoesntExistException() {
+    super();
+  }
 
-    /**
-     * Constructs an instance of <code>AdminDoesntExistException</code> with the specified detail
-     * message.
-     *
-     * @param msg the detail message.
-     */
-    public AdminDoesntExistException(String msg) {
-        super(msg);
-    }
+  /**
+   * Constructs an instance of <code>AdminDoesntExistException</code> with the
+   * specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public AdminDoesntExistException(final String msg) {
+    super(msg);
+  }
 }

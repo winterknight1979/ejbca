@@ -15,55 +15,62 @@ package org.ejbca.ui.web.admin.services.servicetypes;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Properties;
-
 import org.ejbca.core.model.services.workers.RenewCAWorker;
 
 /**
  * Class managing the view of the Renew CA Worker
- * 
- * @author Tomas Gustavsson
  *
+ * @author Tomas Gustavsson
  * @version $Id: RenewCAWorkerType.java 28844 2018-05-04 08:31:02Z samuellb $
  */
 public class RenewCAWorkerType extends BaseEmailNotifyingWorkerType {
-	private static final long serialVersionUID = 2L;
-	
-	public static final String NAME = "RENEWCAWORKER";
+  private static final long serialVersionUID = 2L;
 
-	private boolean renewkeys = false;	
+  public static final String NAME = "RENEWCAWORKER";
 
-	public RenewCAWorkerType(){
-		super(NAME, "renewcaworker.jsp", RenewCAWorker.class.getName());
-	}
-	
-	public boolean isRenewKeys() {
-		return renewkeys;
-	}
-	public void setRenewKeys(boolean renewkeys) {
-		this.renewkeys = renewkeys;
-	}
-	
-	/** Overrides
-	 * @see org.ejbca.ui.web.admin.services.servicetypes.ServiceType#getProperties
-	 */
-	@Override
-	public Properties getProperties(ArrayList<String> errorMessages) throws IOException {
-		Properties ret = super.getProperties(errorMessages);
-		if(renewkeys){
-			ret.setProperty(RenewCAWorker.PROP_RENEWKEYS, "TRUE");
-		} else {
-			ret.setProperty(RenewCAWorker.PROP_RENEWKEYS, "FALSE");			
-		}
-		return ret;
-	}
-	
-	/** Overrides
-	 * @see org.ejbca.ui.web.admin.services.servicetypes.ServiceType#setProperties(java.util.Properties)
-	 */
-	@Override
-	public void setProperties(Properties properties) throws IOException {
-		super.setProperties(properties);
-		renewkeys = properties.getProperty(RenewCAWorker.PROP_RENEWKEYS,"").equalsIgnoreCase("TRUE");
-	}
+  private boolean renewkeys = false;
 
+  public RenewCAWorkerType() {
+    super(NAME, "renewcaworker.jsp", RenewCAWorker.class.getName());
+  }
+
+  public boolean isRenewKeys() {
+    return renewkeys;
+  }
+
+  public void setRenewKeys(final boolean renewkeys) {
+    this.renewkeys = renewkeys;
+  }
+
+  /**
+   * Overrides
+   *
+   * @see org.ejbca.ui.web.admin.services.servicetypes.ServiceType#getProperties
+   */
+  @Override
+  public Properties getProperties(final ArrayList<String> errorMessages)
+      throws IOException {
+    Properties ret = super.getProperties(errorMessages);
+    if (renewkeys) {
+      ret.setProperty(RenewCAWorker.PROP_RENEWKEYS, "TRUE");
+    } else {
+      ret.setProperty(RenewCAWorker.PROP_RENEWKEYS, "FALSE");
+    }
+    return ret;
+  }
+
+  /**
+   * Overrides
+   *
+   * @see
+   *     org.ejbca.ui.web.admin.services.servicetypes.ServiceType#setProperties(java.util.Properties)
+   */
+  @Override
+  public void setProperties(final Properties properties) throws IOException {
+    super.setProperties(properties);
+    renewkeys =
+        properties
+            .getProperty(RenewCAWorker.PROP_RENEWKEYS, "")
+            .equalsIgnoreCase("TRUE");
+  }
 }

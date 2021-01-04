@@ -18,15 +18,19 @@ import javax.faces.validator.Validator;
 import javax.faces.validator.ValidatorException;
 
 /**
- * Dummy validator used as a placeholder in cases where we require no validation but must specify a validator.
- * 
- * @version $Id: DummyValidator.java 24967 2017-01-03 09:18:28Z mikekushner $
+ * Dummy validator used as a placeholder in cases where we require no validation
+ * but must specify a validator.
  *
+ * @version $Id: DummyValidator.java 24967 2017-01-03 09:18:28Z mikekushner $
  */
 public class DummyValidator implements Validator {
 
-    @Override
-    public void validate(FacesContext context, UIComponent component, Object object) throws ValidatorException {
-        //Do absolutely nothing.
-    }
+  @Override
+  public void validate(
+      final FacesContext context,
+      final UIComponent component,
+      final Object object)
+      throws ValidatorException {
+    // Do absolutely nothing.
+  }
 }

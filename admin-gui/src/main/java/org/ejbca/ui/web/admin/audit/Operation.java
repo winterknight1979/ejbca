@@ -13,9 +13,11 @@
 package org.ejbca.ui.web.admin.audit;
 
 /**
- * Logic operators that can be used when searching the audit log. 
+ * Logic operators that can be used when searching the audit log.
+ *
  * @version $Id: Operation.java 28844 2018-05-04 08:31:02Z samuellb $
  */
 public enum Operation {
-	AND, OR
+  AND,
+  OR
 }

@@ -14,41 +14,32 @@ package org.ejbca.ui.web.admin.configuration;
 
 /**
  * Thrown as a result of clearing the caches from the UI failing.
- * 
- * @version $Id: CacheClearException.java 22945 2016-03-09 13:32:20Z mikekushner $
  *
+ * @version $Id: CacheClearException.java 22945 2016-03-09 13:32:20Z mikekushner
+ *     $
  */
 public class CacheClearException extends Exception {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * 
-     */
-    public CacheClearException() {
-    }
+  /** */
+  public CacheClearException() {}
 
-    /**
-     * @param message message
-     */
-    public CacheClearException(String message) {
-        super(message);
-    }
+  /** @param message message */
+  public CacheClearException(final String message) {
+    super(message);
+  }
 
-    /**
-     * @param cause Cause
-     */
-    public CacheClearException(Throwable cause) {
-        super(cause);
-    }
+  /** @param cause Cause */
+  public CacheClearException(final Throwable cause) {
+    super(cause);
+  }
 
-    /**
-     * @param message Message
-     * @param cause Cause
-     */
-    public CacheClearException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-
+  /**
+   * @param message Message
+   * @param cause Cause
+   */
+  public CacheClearException(final String message, final Throwable cause) {
+    super(message, cause);
+  }
 }

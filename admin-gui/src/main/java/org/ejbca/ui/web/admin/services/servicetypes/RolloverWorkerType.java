@@ -20,11 +20,11 @@ import org.ejbca.core.model.services.workers.RolloverWorker;
  * @version $Id: RolloverWorkerType.java 21190 2015-04-30 16:53:25Z samuellb $
  */
 public class RolloverWorkerType extends BaseEmailNotifyingWorkerType {
-	private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-	public static final String NAME = "ROLLOVERWORKER";
+  public static final String NAME = "ROLLOVERWORKER";
 
-	public RolloverWorkerType(){
-		super(NAME, "rolloverworker.jsp", RolloverWorker.class.getName());
-	}
+  public RolloverWorkerType() {
+    super(NAME, "rolloverworker.jsp", RolloverWorker.class.getName());
+  }
 }
