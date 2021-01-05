@@ -24,33 +24,49 @@ import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
 import org.ejbca.ui.web.admin.configuration.EjbcaWebBean;
 
 /**
- * Class used to represent the view of an approval
+ * Class used to represent the view of an approval.
  *
  * @version $Id: ApprovalView.java 23688 2016-06-17 10:46:42Z mikekushner $
  */
 public class ApprovalView {
 
+    /** Param. */
   private final Approval approval;
 
-  public ApprovalView(final Approval approval) {
-    this.approval = approval;
+  /**
+   * @param anapproval approval
+   */
+  public ApprovalView(final Approval anapproval) {
+    this.approval = anapproval;
   }
 
+  /**
+   * @return approval
+   */
   public Approval getApproval() {
     return approval;
   }
 
+  /**
+   * @return date
+   */
   public String getApprovalDate() {
     return EjbcaJSFHelper.getBean()
         .getEjbcaWebBean()
         .formatAsISO8601(approval.getApprovalDate());
   }
 
+  /**
+   * @return admin
+   */
   public String getApprovalAdmin() {
     // return approval.getAdmin().getUsername();
     return approval.getAdmin().toString();
   }
 
+  /**
+   * @return action
+   */
   public String getAdminAction() {
     EjbcaWebBean ejbcawebbean = EjbcaJSFHelper.getBean().getEjbcaWebBean();
 
@@ -60,6 +76,9 @@ public class ApprovalView {
     return ejbcawebbean.getText("REJECTED");
   }
 
+  /**
+   * @return link
+   */
   public String getViewApproverCertLink() {
     String link = "";
     try {
@@ -87,6 +106,9 @@ public class ApprovalView {
     }
   }
 
+  /**
+   * @return comment
+   */
   public String getComment() {
     return approval.getComment();
   }

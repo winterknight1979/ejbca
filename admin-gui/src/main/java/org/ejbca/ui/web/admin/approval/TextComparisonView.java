@@ -25,14 +25,23 @@ import java.io.Serializable;
 public class TextComparisonView implements Serializable {
 
   private static final long serialVersionUID = 47502248806073893L;
+  /** Param. */
   private final String orgvalue;
+  /** Param. */
   private final String newvalue;
 
-  public TextComparisonView(final String orgvalue, final String newvalue) {
-    this.orgvalue = orgvalue;
-    this.newvalue = newvalue;
+  /**
+   * @param anorgvalue old
+   * @param anewvalue new
+   */
+  public TextComparisonView(final String anorgvalue, final String anewvalue) {
+    this.orgvalue = anorgvalue;
+    this.newvalue = anewvalue;
   }
 
+  /**
+   * @return colot
+   */
   public String getTextComparisonColor() {
     if (orgvalue != null && !orgvalue.equals(newvalue)) {
       return "alert";
@@ -41,10 +50,16 @@ public class TextComparisonView implements Serializable {
     return "";
   }
 
+  /**
+   * @return Value
+   */
   public String getNewvalue() {
     return newvalue;
   }
 
+  /**
+   * @return value
+   */
   public String getOrgvalue() {
     return orgvalue;
   }

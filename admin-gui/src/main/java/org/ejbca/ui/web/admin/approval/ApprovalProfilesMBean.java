@@ -54,42 +54,71 @@ public class ApprovalProfilesMBean extends BaseManagedBean
   private static final long serialVersionUID = -2452049885728885525L;
 
   public class ApprovalProfileGuiInfo {
+        /** Param. */
     private final int id;
+    /** Param. */
     private final String name;
 
-    public ApprovalProfileGuiInfo(final int id, final String name) {
-      this.name = name;
-      this.id = id;
+    /**
+     * @param anid ID
+     * @param aname Name
+     */
+    public ApprovalProfileGuiInfo(final int anid, final String aname) {
+      this.name = aname;
+      this.id = anid;
     }
 
+    /**
+     * @return ID
+     */
     public int getId() {
       return this.id;
     }
 
+    /**
+     * @return name
+     */
     public String getName() {
       return this.name;
     }
   }
 
+  /** Param. */
   @EJB private ApprovalProfileSessionLocal approvalProfileSession;
 
+  /** Param. */
   private boolean renameInProgress = false;
+  /** Param. */
   private boolean deleteInProgress = false;
+  /** Param. */
   private boolean addFromTemplateInProgress = false;
+  /** Param. */
   private ListDataModel<ApprovalProfileGuiInfo> approvalProfilesList = null;
+  /** Param. */
   private String approvalProfileName = "";
+  /** Param. */
   private Integer selectedApprovalProfileId = null;
+  /** Param. */
   private boolean viewOnly = true;
 
+  /**
+   * @return ID
+   */
   public Integer getSelectedApprovalProfileId() {
     return selectedApprovalProfileId;
   }
 
+  /**
+   * @param aselectedApprovalProfileId ID
+   */
   public void setSelectedApprovalProfileId(
-      final Integer selectedApprovalProfileId) {
-    this.selectedApprovalProfileId = selectedApprovalProfileId;
+      final Integer aselectedApprovalProfileId) {
+    this.selectedApprovalProfileId = aselectedApprovalProfileId;
   }
 
+  /**
+   * @return Name
+   */
   public String getSelectedApprovalProfileName() {
     final Integer profileId = getSelectedApprovalProfileId();
     if (profileId != null) {
@@ -99,24 +128,37 @@ public class ApprovalProfilesMBean extends BaseManagedBean
     return null;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isRenameInProgress() {
     return renameInProgress;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isDeleteInProgress() {
     return deleteInProgress;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isAddFromTemplateInProgress() {
     return addFromTemplateInProgress;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isOperationInProgress() {
     return isRenameInProgress()
         || isDeleteInProgress()
         || isAddFromTemplateInProgress();
   }
 
+  /** Data. */
   public void selectCurrentRowData() {
     if (approvalProfilesList == null) {
       getApprovalProfiles();
@@ -126,6 +168,9 @@ public class ApprovalProfilesMBean extends BaseManagedBean
     selectedApprovalProfileId = approvalProfileItem.getId();
   }
 
+  /**
+   * @return profiles
+   */
   public ListDataModel<ApprovalProfileGuiInfo> getApprovalProfiles() {
     if (approvalProfilesList == null) {
       final List<ApprovalProfileGuiInfo> items = new ArrayList<>();
@@ -155,28 +200,43 @@ public class ApprovalProfilesMBean extends BaseManagedBean
     return approvalProfilesList;
   }
 
+  /**
+   * @return reset
+   */
   public String getResetApprovalProfilesTrigger() {
     approvalProfilesList = null;
     return "";
   }
 
+  /**
+   * @return bool
+   */
   public boolean isAuthorizedToEdit() {
     return isAuthorizedTo(StandardRules.APPROVALPROFILEEDIT.resource());
   }
 
+  /**
+   * @return name
+   */
   public String getApprovalProfileName() {
     return approvalProfileName;
   }
 
-  public void setApprovalProfileName(String approvalProfileName) {
-    approvalProfileName = approvalProfileName.trim();
-    if (StringTools.checkFieldForLegalChars(approvalProfileName)) {
+  /**
+   * @param oapprovalProfileName name
+   */
+  public void setApprovalProfileName(final String oapprovalProfileName) {
+    String anapprovalProfileName = oapprovalProfileName.trim();
+    if (StringTools.checkFieldForLegalChars(anapprovalProfileName)) {
       addErrorMessage("ONLYCHARACTERS");
     } else {
-      this.approvalProfileName = approvalProfileName;
+      this.approvalProfileName = anapprovalProfileName;
     }
   }
 
+  /**
+   * @return View
+   */
   public String actionView() {
     selectCurrentRowData();
     if (selectedProfileExists()) {
@@ -187,6 +247,9 @@ public class ApprovalProfilesMBean extends BaseManagedBean
     }
   }
 
+  /**
+   * @return Edit
+   */
   public String actionEdit() {
     selectCurrentRowData();
     if (selectedProfileExists()) {
@@ -197,10 +260,14 @@ public class ApprovalProfilesMBean extends BaseManagedBean
     }
   }
 
+  /**
+   * @return bool
+   */
   public boolean getViewOnly() {
     return viewOnly;
   }
 
+  /** Cancel. */
   public void actionCancel() {
     addFromTemplateInProgress = false;
     deleteInProgress = false;
@@ -210,6 +277,7 @@ public class ApprovalProfilesMBean extends BaseManagedBean
     approvalProfileName = null;
   }
 
+  /** Delete. */
   public void actionDelete() {
     selectCurrentRowData();
     if (selectedProfileExists()) {
@@ -217,6 +285,7 @@ public class ApprovalProfilesMBean extends BaseManagedBean
     }
   }
 
+  /** Delete. */
   public void actionDeleteConfirm() {
     if (canDeleteApprovalProfile()) {
       try {
@@ -262,6 +331,10 @@ public class ApprovalProfilesMBean extends BaseManagedBean
     return ret;
   }
 
+  /**
+   * @param approvalProfileId ID
+   * @return Profiles
+   */
   public List<String> getCertProfilesUsingApprovalProfile(
       final int approvalProfileId) {
     final CertificateProfileSessionLocal certProfileSession =
@@ -283,6 +356,10 @@ public class ApprovalProfilesMBean extends BaseManagedBean
     return result;
   }
 
+  /**
+   * @param approvalProfileId ID
+   * @return CAs
+   */
   public List<String> getCAsUsingApprovalProfile(final int approvalProfileId) {
     final CaSessionLocal caSession = getEjbcaWebBean().getEjb().getCaSession();
     List<Integer> allCas = caSession.getAllCaIds();
@@ -309,6 +386,7 @@ public class ApprovalProfilesMBean extends BaseManagedBean
     return sb.toString();
   }
 
+  /** Rename. */
   public void actionRename() {
     selectCurrentRowData();
     if (selectedProfileExists()) {
@@ -316,15 +394,16 @@ public class ApprovalProfilesMBean extends BaseManagedBean
     }
   }
 
+  /** Rename. */
   public void actionRenameConfirm() {
-    final String approvalProfileName = getApprovalProfileName();
-    if (StringUtils.isNotEmpty(approvalProfileName)) {
+    final String anapprovalProfileName = getApprovalProfileName();
+    if (StringUtils.isNotEmpty(anapprovalProfileName)) {
       try {
         approvalProfileSession.renameApprovalProfile(
             getAdmin(),
             approvalProfileSession.getApprovalProfile(
                 getSelectedApprovalProfileId()),
-            approvalProfileName);
+            anapprovalProfileName);
         setApprovalProfileName("");
       } catch (ApprovalProfileExistsException
           | ApprovalProfileDoesNotExistException e) {
@@ -337,6 +416,7 @@ public class ApprovalProfilesMBean extends BaseManagedBean
     actionCancel();
   }
 
+  /** Add. */
   public void actionAddFromTemplate() {
     selectCurrentRowData();
     if (selectedProfileExists()) {
@@ -344,15 +424,18 @@ public class ApprovalProfilesMBean extends BaseManagedBean
     }
   }
 
+  /**
+   * Add.
+   */
   public void actionAddFromTemplateConfirm() {
-    final String approvalProfileName = getApprovalProfileName();
-    if (StringUtils.isNotEmpty(approvalProfileName)) {
+    final String anapprovalProfileName = getApprovalProfileName();
+    if (StringUtils.isNotEmpty(anapprovalProfileName)) {
       try {
         approvalProfileSession.cloneApprovalProfile(
             getAdmin(),
             approvalProfileSession.getApprovalProfile(
                 getSelectedApprovalProfileId()),
-            approvalProfileName);
+            anapprovalProfileName);
         setApprovalProfileName("");
       } catch (ApprovalProfileExistsException
           | ApprovalProfileDoesNotExistException
@@ -372,22 +455,25 @@ public class ApprovalProfilesMBean extends BaseManagedBean
         != null;
   }
 
+  /**
+   * Add.
+   */
   public void actionAdd() {
 
-    final String approvalProfileName = getApprovalProfileName();
-    if (StringUtils.isNotEmpty(approvalProfileName)) {
+    final String anapprovalProfileName = getApprovalProfileName();
+    if (StringUtils.isNotEmpty(anapprovalProfileName)) {
       try {
         if (!approvalProfileSession
-            .findByApprovalProfileName(approvalProfileName)
+            .findByApprovalProfileName(anapprovalProfileName)
             .isEmpty()) {
           // Handle this below
           throw new ApprovalProfileExistsException(
               "Approval profile of name "
-                  + approvalProfileName
+                  + anapprovalProfileName
                   + " already exists");
         }
         final ApprovalProfile approvalProfile =
-            new AccumulativeApprovalProfile(approvalProfileName);
+            new AccumulativeApprovalProfile(anapprovalProfileName);
         approvalProfileSession.addApprovalProfile(getAdmin(), approvalProfile);
         setApprovalProfileName("");
       } catch (ApprovalProfileExistsException e) {

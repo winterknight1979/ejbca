@@ -32,10 +32,16 @@ public class ApprovalDataVOViewList extends AbstractList<ApprovalDataVOView>
     implements Serializable {
 
   private static final long serialVersionUID = 1680993305950225012L;
+  /** Param. */
   private String sort;
+  /** Param. */
   private boolean ascending;
+  /** Param. */
   private final List<ApprovalDataVOView> listData;
 
+  /**
+   * @param approvalDataVOs VOs
+   */
   public ApprovalDataVOViewList(
       final Collection<ApprovalDataVO> approvalDataVOs) {
     listData = new ArrayList<>();
@@ -58,16 +64,16 @@ public class ApprovalDataVOViewList extends AbstractList<ApprovalDataVOView>
    * Sort the list.
    *
    * @param column Column
-   * @param ascending Up or down
+   * @param isascending Up or down
    */
-  protected void sort(final String column, final boolean ascending) {
+  protected void sort(final String column, final boolean isascending) {
     Comparator<ApprovalDataVOView> comparator =
         new Comparator<ApprovalDataVOView>() {
           @Override
           public int compare(
               final ApprovalDataVOView c2, final ApprovalDataVOView c1) {
             if (column == null || column.equals("requestDate")) {
-              return ascending
+              return isascending
                   ? c1.getApproveActionDataVO()
                       .getRequestDate()
                       .compareTo(c2.getApproveActionDataVO().getRequestDate())
@@ -75,18 +81,18 @@ public class ApprovalDataVOViewList extends AbstractList<ApprovalDataVOView>
                       .getRequestDate()
                       .compareTo(c1.getApproveActionDataVO().getRequestDate());
             } else if (column.equals("approveActionName")) {
-              return ascending
+              return isascending
                   ? c1.getApproveActionName()
                       .compareTo(c2.getApproveActionName())
                   : c2.getApproveActionName()
                       .compareTo(c1.getApproveActionName());
             } else if (column.equals("requestUsername")) {
-              return ascending
+              return isascending
                   ? c1.getRequestAdminName().compareTo(c2.getRequestAdminName())
                   : c2.getRequestAdminName()
                       .compareTo(c1.getRequestAdminName());
             } else if (column.equals("status")) {
-              return ascending
+              return isascending
                   ? c1.getStatus().compareTo(c2.getStatus())
                   : c2.getStatus().compareTo(c1.getStatus());
             } else {
@@ -108,6 +114,9 @@ public class ApprovalDataVOViewList extends AbstractList<ApprovalDataVOView>
     return true;
   }
 
+  /**
+   * @param sortColumn column
+   */
   public void sort(final String sortColumn) {
     if (sortColumn == null) {
       throw new IllegalArgumentException(
@@ -126,30 +135,49 @@ public class ApprovalDataVOViewList extends AbstractList<ApprovalDataVOView>
     sort(sort, ascending);
   }
 
+  /** Sprt. */
   public void sort() {
     sort(sort);
   }
 
+  /**
+   * @return Data
+   */
   public List<ApprovalDataVOView> getData() {
     sort(getSort(), isAscending());
     return this;
   }
 
-  public void setData(final List<ApprovalDataVOView> data) {}
+  /**
+   * @param data Data
+   */
+  public void setData(final List<ApprovalDataVOView> data) { }
 
+  /**
+   * @return Sort
+   */
   public String getSort() {
     return sort;
   }
 
-  public void setSort(final String sort) {
-    this.sort = sort;
+  /**
+   * @param asort Sort
+   */
+  public void setSort(final String asort) {
+    this.sort = asort;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isAscending() {
     return ascending;
   }
 
-  public void setAscending(final boolean ascending) {
-    this.ascending = ascending;
+  /**
+   * @param isascending bool
+   */
+  public void setAscending(final boolean isascending) {
+    this.ascending = isascending;
   }
 }

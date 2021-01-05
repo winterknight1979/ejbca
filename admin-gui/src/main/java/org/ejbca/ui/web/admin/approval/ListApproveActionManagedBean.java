@@ -41,25 +41,41 @@ import org.ejbca.util.query.TimeMatch;
 public class ListApproveActionManagedBean extends BaseManagedBean {
 
   private static final long serialVersionUID = 1L;
-  public static int QUERY_MAX_NUM_ROWS = 300;
-  private static String TIME_5MIN = Integer.toString(5 * 60 * 1000);
-  private static String TIME_30MIN = Integer.toString(30 * 60 * 1000);
-  private static String TIME_8HOURS = Integer.toString(8 * 60 * 60 * 1000);
-  private static String ALL_STATUSES = Integer.toString(-9);
+  /** Param. */
+  public static final int QUERY_MAX_NUM_ROWS = 300;
+  /** Param. */
+  private static final String TIME_5MIN = Integer.toString(5 * 60 * 1000);
+  /** Param. */
+  private static final String TIME_30MIN = Integer.toString(30 * 60 * 1000);
+  /** Param. */
+  private static final String TIME_8HOURS
+      = Integer.toString(8 * 60 * 60 * 1000);
+  /** Param. */
+  private static final String ALL_STATUSES = Integer.toString(-9);
+  /** Param. */
   private final EjbLocalHelper ejbLocalHelper = new EjbLocalHelper();
+  /** Param. */
   private List<SelectItem> availableStatus;
+  /** Param. */
   private String selectedStatus;
+  /** Param. */
   private List<SelectItem> availableTimeSpans;
+  /** Param. */
   private String selectedTimeSpan;
 
+  /** Param. */
   private ApprovalDataVOViewList listData;
 
+  /** Construct. */
   public ListApproveActionManagedBean() {
     setSelectedStatus("" + ApprovalDataVO.STATUS_WAITINGFORAPPROVAL);
     setSelectedTimeSpan(TIME_30MIN);
     list();
   }
 
+  /**
+   * @return Status
+   */
   public List<SelectItem> getAvailableStatus() {
     if (availableStatus == null) {
       availableStatus = new ArrayList<>();
@@ -110,10 +126,16 @@ public class ListApproveActionManagedBean extends BaseManagedBean {
     return availableStatus;
   }
 
-  public void setAvailableStatus(final List<SelectItem> availableStatus) {
-    this.availableStatus = availableStatus;
+  /**
+   * @param anavailableStatus Status
+   */
+  public void setAvailableStatus(final List<SelectItem> anavailableStatus) {
+    this.availableStatus = anavailableStatus;
   }
 
+  /**
+   * @return time
+   */
   public List<SelectItem> getAvailableTimeSpans() {
     if (availableTimeSpans == null) {
       availableTimeSpans = new ArrayList<>();
@@ -138,10 +160,17 @@ public class ListApproveActionManagedBean extends BaseManagedBean {
     return availableTimeSpans;
   }
 
-  public void setAvailableTimeSpans(final List<SelectItem> availableTimeSpans) {
-    this.availableTimeSpans = availableTimeSpans;
+  /**
+   * @param theavailableTimeSpans time
+   */
+  public void setAvailableTimeSpans(
+          final List<SelectItem> theavailableTimeSpans) {
+    this.availableTimeSpans = theavailableTimeSpans;
   }
 
+  /**
+   * @return list
+   */
   public String list() {
     Query query = new Query(Query.TYPE_APPROVALQUERY);
     if (selectedStatus.equals(ALL_STATUSES)) {
@@ -256,6 +285,9 @@ public class ListApproveActionManagedBean extends BaseManagedBean {
     return new Date(new Date().getTime() - Integer.parseInt(selectedTimeSpan));
   }
 
+  /**
+   * @return classes
+   */
   public String getRowClasses() {
     if (listData.size() == 0) {
       return "";
@@ -266,39 +298,66 @@ public class ListApproveActionManagedBean extends BaseManagedBean {
     return "Row0, Row1";
   }
 
+  /**
+   * @return Data
+   */
   public List<ApprovalDataVOView> getListData() {
     return listData.getData();
   }
 
+  /**
+   * @return Sort
+   */
   public String getSort() {
     return listData.getSort();
   }
 
+  /**
+   * @param sort sort
+   */
   public void setSort(final String sort) {
     listData.setSort(sort);
   }
 
+  /**
+   * @return bool
+   */
   public boolean isAscending() {
     return listData.isAscending();
   }
 
+  /**
+   * @param ascending bool
+   */
   public void setAscending(final boolean ascending) {
     listData.setAscending(ascending);
   }
 
+  /**
+   * @return status
+   */
   public String getSelectedStatus() {
     return selectedStatus;
   }
 
-  public void setSelectedStatus(final String selectedStatus) {
-    this.selectedStatus = selectedStatus;
+  /**
+   * @param aselectedStatus status
+   */
+  public void setSelectedStatus(final String aselectedStatus) {
+    this.selectedStatus = aselectedStatus;
   }
 
+  /**
+   * @return time
+   */
   public String getSelectedTimeSpan() {
     return selectedTimeSpan;
   }
 
-  public void setSelectedTimeSpan(final String selectedTimeSpan) {
-    this.selectedTimeSpan = selectedTimeSpan;
+  /**
+   * @param aselectedTimeSpan time
+   */
+  public void setSelectedTimeSpan(final String aselectedTimeSpan) {
+    this.selectedTimeSpan = aselectedTimeSpan;
   }
 }

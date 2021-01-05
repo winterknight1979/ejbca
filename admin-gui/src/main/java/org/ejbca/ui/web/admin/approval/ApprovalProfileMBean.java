@@ -66,9 +66,11 @@ public class ApprovalProfileMBean extends BaseManagedBean
     implements Serializable {
 
   private static final long serialVersionUID = -3751383340600251434L;
-  private static final InternalResources intres =
+  /** Param. */
+  private static final InternalResources INTRES =
       InternalResources.getInstance();
-  private static final Logger log =
+  /** Param. */
+  private static final Logger LOG =
       Logger.getLogger(ApprovalProfileMBean.class);
 
   /**
@@ -76,19 +78,28 @@ public class ApprovalProfileMBean extends BaseManagedBean
    * approval partition dynamically.
    */
   private enum FieldType {
+      /** Param. */
     CHECKBOX(
-        intres.getLocalizedMessage("approval.profile.metadata.field.checkbox")),
+        INTRES.getLocalizedMessage("approval.profile.metadata.field.checkbox")),
+    /** Param. */
     INTEGER(
-        intres.getLocalizedMessage("approval.profile.metadata.field.integer")),
-    LONG(intres.getLocalizedMessage("approval.profile.metadata.field.long")),
+        INTRES.getLocalizedMessage("approval.profile.metadata.field.integer")),
+    /** Param. */
+    LONG(INTRES.getLocalizedMessage("approval.profile.metadata.field.long")),
+    /** Param. */
     RADIOBUTTON(
-        intres.getLocalizedMessage(
+        INTRES.getLocalizedMessage(
             "approval.profile.metadata.field.radio.button")),
+    /** Param. */
     TEXT(
-        intres.getLocalizedMessage("approval.profile.metadata.field.freetext"));
+        INTRES.getLocalizedMessage("approval.profile.metadata.field.freetext"));
 
+      /** Param. */
     private static List<SelectItem> selectItems;
+    /** Param. */
     private static Map<String, FieldType> nameLookupMap;
+
+    /** Param. */
     private final String label;
 
     static {
@@ -100,8 +111,8 @@ public class ApprovalProfileMBean extends BaseManagedBean
       }
     }
 
-    private FieldType(final String label) {
-      this.label = label;
+    FieldType(final String alabel) {
+      this.label = alabel;
     }
 
     public String getLabel() {
@@ -117,31 +128,46 @@ public class ApprovalProfileMBean extends BaseManagedBean
     }
   }
 
+  /** Param. */
   @EJB private ApprovalProfileSessionLocal approvalProfileSession;
+  /** Param. */
   @EJB private GlobalConfigurationSessionLocal globalConfigurationSession;
+  /** Param. */
   @EJB private RoleSessionLocal roleSession;
+  /** Param. */
   @EJB private RoleMemberSessionLocal roleMemberSession;
 
+  /** Param. */
   @ManagedProperty(value = "#{approvalProfilesMBean}")
   private ApprovalProfilesMBean approvalProfilesMBean;
+  /** Param. */
 
   private int currentApprovalProfileId = -1;
+  /** Param. */
   private ApprovalProfile currentApprovalProfile = null;
 
+  /** Param. */
   private ListDataModel<ApprovalStepGuiObject> steps = null;
 
   /** The type of metadata field to add to a partition, if any. */
   private Map<Integer, String> fieldToAdd = new HashMap<>();
 
+  /** Param. */
   private Map<Integer, String> fieldLabel = new HashMap<>();
 
+  /**
+   * @return bean
+   */
   public ApprovalProfilesMBean getApprovalProfilesMBean() {
     return approvalProfilesMBean;
   }
 
+  /**
+   * @param anapprovalProfilesMBean bean
+   */
   public void setApprovalProfilesMBean(
-      final ApprovalProfilesMBean approvalProfilesMBean) {
-    this.approvalProfilesMBean = approvalProfilesMBean;
+      final ApprovalProfilesMBean anapprovalProfilesMBean) {
+    this.approvalProfilesMBean = anapprovalProfilesMBean;
   }
   /**
    * @return the selected profile id from the list view or the one cached in
@@ -157,11 +183,17 @@ public class ApprovalProfileMBean extends BaseManagedBean
     return currentApprovalProfileId;
   }
 
+  /**
+   * @return Name
+   */
   public String getSelectedApprovalProfileName() {
     return approvalProfileSession.getApprovalProfileName(
         getSelectedApprovalProfileId());
   }
 
+  /**
+   * @return Profile
+   */
   public ApprovalProfile getApprovalProfile() {
     if (currentApprovalProfile == null
         && getSelectedApprovalProfileId() != -1) {
@@ -175,47 +207,74 @@ public class ApprovalProfileMBean extends BaseManagedBean
     return currentApprovalProfile;
   }
 
+  /**
+   * @return Time
+   */
   public String getRequestExpirationPeriod() {
     final long millis = getApprovalProfile().getRequestExpirationPeriod();
     final SimpleTime time = SimpleTime.getInstance(millis);
     return time.toString(SimpleTime.TYPE_DAYS);
   }
 
+  /**
+   * @param expirationPeriod Time
+   */
   public void setRequestExpirationPeriod(final String expirationPeriod) {
     final SimpleTime time = SimpleTime.getInstance(expirationPeriod);
     getApprovalProfile().setRequestExpirationPeriod(time.getLong());
   }
 
+  /**
+   * @return Time
+   */
   public String getApprovalExpirationPeriod() {
     final long millis = getApprovalProfile().getApprovalExpirationPeriod();
     final SimpleTime time = SimpleTime.getInstance(millis);
     return time.toString(SimpleTime.TYPE_DAYS);
   }
 
+  /**
+   * @param expirationPeriod Time
+   */
   public void setApprovalExpirationPeriod(final String expirationPeriod) {
     final SimpleTime time = SimpleTime.getInstance(expirationPeriod);
     getApprovalProfile().setApprovalExpirationPeriod(time.getLong());
   }
 
+  /**
+   * @return Time
+   */
   public String getMaxExtensionTime() {
     final long millis = getApprovalProfile().getMaxExtensionTime();
     final SimpleTime time = SimpleTime.getInstance(millis);
     return time.toString(SimpleTime.TYPE_DAYS);
   }
 
+  /**
+   * @return Bool
+   */
   public boolean getAllowSelfEdit() {
     return getApprovalProfile().getAllowSelfEdit();
   }
 
+  /**
+   * @param allowSelfEdit Bool
+   */
   public void setAllowSelfEdit(final boolean allowSelfEdit) {
     getApprovalProfile().setAllowSelfEdit(allowSelfEdit);
   }
 
+  /**
+   * @param maxExtensionTime Time
+   */
   public void setMaxExtensionTime(final String maxExtensionTime) {
     final SimpleTime time = SimpleTime.getInstance(maxExtensionTime);
     getApprovalProfile().setMaxExtensionTime(time.getLong());
   }
 
+  /**
+   * @return string
+   */
   @SuppressWarnings("unchecked")
   public String save() {
     try {
@@ -225,8 +284,8 @@ public class ApprovalProfileMBean extends BaseManagedBean
         final int sequenceIdentifier =
             approvalSequenceGuiObject.getIdentifier();
         for (final ApprovalPartitionProfileGuiObject
-            approvalPartitionGuiObject :
-                approvalSequenceGuiObject.getPartitionGuiObjects()) {
+            approvalPartitionGuiObject
+                : approvalSequenceGuiObject.getPartitionGuiObjects()) {
           approvalProfile.addPropertiesToPartition(
               sequenceIdentifier,
               approvalPartitionGuiObject.getPartitionId(),
@@ -259,8 +318,8 @@ public class ApprovalProfileMBean extends BaseManagedBean
     final ApprovalProfile approvalProfile = getApprovalProfile();
     final List<Integer> stepOrder = new ArrayList<>();
     for (final ApprovalStepGuiObject step : steps) {
-      for (final ApprovalPartitionProfileGuiObject partition :
-          step.getPartitionGuiObjects()) {
+      for (final ApprovalPartitionProfileGuiObject partition
+          : step.getPartitionGuiObjects()) {
         final int stepId = step.getIdentifier();
         final int partitionId = partition.getPartitionId();
         final Object guiObject =
@@ -275,6 +334,8 @@ public class ApprovalProfileMBean extends BaseManagedBean
     steps = createStepListFromProfile(approvalProfile);
   }
 
+  /** Cancel.
+   * @return String */
   public String cancel() {
     return "done";
   }
@@ -294,26 +355,27 @@ public class ApprovalProfileMBean extends BaseManagedBean
 
     ApprovalProfile updatedApprovalProfile = getApprovalProfile();
     DynamicUiProperty<? extends Serializable> property;
-    String fieldLabel = this.fieldLabel.get(partitionId);
+    String afieldLabel = this.fieldLabel.get(partitionId);
     FieldType fieldType = FieldType.getFromName(fieldToAdd.get(partitionId));
     switch (fieldType) {
       case TEXT:
-        property = new DynamicUiProperty<>(fieldLabel, new MultiLineString(""));
+        property = new DynamicUiProperty<>(
+                afieldLabel, new MultiLineString(""));
         break;
       case RADIOBUTTON:
         property =
             new DynamicUiProperty<>(
-                fieldLabel, null, new ArrayList<RadioButton>());
+                afieldLabel, null, new ArrayList<RadioButton>());
         property.setType(RadioButton.class);
         break;
       case CHECKBOX:
-        property = new DynamicUiProperty<>(fieldLabel, Boolean.FALSE);
+        property = new DynamicUiProperty<>(afieldLabel, Boolean.FALSE);
         break;
       case INTEGER:
-        property = new DynamicUiProperty<>(fieldLabel, Integer.valueOf(0));
+        property = new DynamicUiProperty<>(afieldLabel, Integer.valueOf(0));
         break;
       case LONG:
-        property = new DynamicUiProperty<>(fieldLabel, Long.valueOf(0L));
+        property = new DynamicUiProperty<>(afieldLabel, Long.valueOf(0L));
         break;
       default:
         return "";
@@ -322,7 +384,7 @@ public class ApprovalProfileMBean extends BaseManagedBean
     if (updatedApprovalProfile
             .getStep(currentStep)
             .getPartition(partitionId)
-            .getProperty(fieldLabel)
+            .getProperty(afieldLabel)
         != null) {
       addErrorMessage("APPROVAL_PROFILE_FIELD_EXISTS");
     } else {
@@ -350,8 +412,8 @@ public class ApprovalProfileMBean extends BaseManagedBean
     final ApprovalProfile updatedApprovalProfile = getApprovalProfile();
     final List<ApprovalPartitionProfileGuiObject> guiPartitions =
         steps.getRowData().getPartitionGuiObjects();
-    for (ApprovalPartitionProfileGuiObject approvalPartitionProfileGuiObject :
-        guiPartitions) {
+    for (ApprovalPartitionProfileGuiObject approvalPartitionProfileGuiObject
+        : guiPartitions) {
       // find the right partition
       if (approvalPartitionProfileGuiObject.getPartitionId() == partitionId) {
         @SuppressWarnings("unchecked")
@@ -398,8 +460,8 @@ public class ApprovalProfileMBean extends BaseManagedBean
         DynamicUiProperty.getAsObject(encodedRadioButton, RadioButton.class);
     final List<ApprovalPartitionProfileGuiObject> guiPartitions =
         steps.getRowData().getPartitionGuiObjects();
-    for (ApprovalPartitionProfileGuiObject approvalPartitionProfileGuiObject :
-        guiPartitions) {
+    for (ApprovalPartitionProfileGuiObject approvalPartitionProfileGuiObject
+        : guiPartitions) {
       // find the right partition
       if (approvalPartitionProfileGuiObject.getPartitionId() == partitionId) {
         @SuppressWarnings("unchecked")
@@ -431,6 +493,11 @@ public class ApprovalProfileMBean extends BaseManagedBean
     return "";
   }
 
+  /**
+   * @param partitionId ID
+   * @param propertyName Name
+   * @return String
+   */
   public String removeField(final int partitionId, final String propertyName) {
     final Integer currentStep = steps.getRowData().getIdentifier();
     saveTemporary();
@@ -441,12 +508,14 @@ public class ApprovalProfileMBean extends BaseManagedBean
     return "";
   }
 
+  /** Add. */
   public void addStep() {
     saveTemporary();
     getApprovalProfile().addStepLast();
     steps = null;
   }
 
+  /** Move. */
   public void moveStepDown() {
     final Integer currentStep = steps.getRowData().getIdentifier();
     final Integer nextStep = steps.getRowData().getNextStep();
@@ -455,6 +524,7 @@ public class ApprovalProfileMBean extends BaseManagedBean
     steps = null;
   }
 
+  /** Move. */
   public void moveStepUp() {
     final Integer currentStep = steps.getRowData().getIdentifier();
     final Integer previousStep = steps.getRowData().getPreviousStep();
@@ -463,6 +533,7 @@ public class ApprovalProfileMBean extends BaseManagedBean
     steps = null;
   }
 
+  /** Del.*/
   public void deleteStep() {
     final Integer currentStep = steps.getRowData().getIdentifier();
     saveTemporary();
@@ -470,6 +541,7 @@ public class ApprovalProfileMBean extends BaseManagedBean
     steps = null;
   }
 
+  /** Add. */
   public void addPartition() {
     final Integer currentStep = steps.getRowData().getIdentifier();
     saveTemporary();
@@ -477,6 +549,9 @@ public class ApprovalProfileMBean extends BaseManagedBean
     steps = null;
   }
 
+  /**
+   * @param partitionId ID
+   */
   public void deletePartition(final int partitionId) {
     final Integer currentStep = steps.getRowData().getIdentifier();
     saveTemporary();
@@ -484,6 +559,11 @@ public class ApprovalProfileMBean extends BaseManagedBean
     steps = null;
   }
 
+  /**
+   * @param partitionId ID
+   * @param propertyName Name
+   * @return Bool
+   */
   public boolean isPropertyPredefined(
       final int partitionId, final String propertyName) {
     ApprovalProfile approvalProfile = getApprovalProfile();
@@ -491,14 +571,21 @@ public class ApprovalProfileMBean extends BaseManagedBean
         steps.getRowData().getIdentifier(), partitionId, propertyName);
   }
 
+  /** update. */
   public void selectUpdate() {
     // NOOP: Only for page reload
   }
 
+  /**
+   * @return Profile
+   */
   public String getCurrentApprovalProfileTypeName() {
     return getApprovalProfile().getApprovalProfileTypeIdentifier();
   }
 
+  /**
+   * @param typeName type
+   */
   public void setCurrentApprovalProfileTypeName(final String typeName) {
     // Re-instantiate approval profile if we've changed type
     if (!getApprovalProfile()
@@ -513,10 +600,13 @@ public class ApprovalProfileMBean extends BaseManagedBean
     }
   }
 
+  /**
+   * @return List
+   */
   public List<SelectItem> getApprovalProfileTypesAvailable() {
     final List<SelectItem> ret = new ArrayList<>();
-    for (final ApprovalProfile type :
-        ApprovalProfilesFactory.INSTANCE.getAllImplementations()) {
+    for (final ApprovalProfile type
+        : ApprovalProfilesFactory.INSTANCE.getAllImplementations()) {
       ret.add(
           new SelectItem(
               type.getApprovalProfileTypeIdentifier(),
@@ -540,13 +630,13 @@ public class ApprovalProfileMBean extends BaseManagedBean
 
   private ListDataModel<ApprovalStepGuiObject> createStepListFromProfile(
       final ApprovalProfile approvalProfile) {
-    List<ApprovalStepGuiObject> steps = new ArrayList<>();
+    List<ApprovalStepGuiObject> thesteps = new ArrayList<>();
     int ordinal = 1;
     // Use the internal ordering for sequences, if one is predefined
     ApprovalStep step = approvalProfile.getFirstStep();
     Map<Integer, List<DynamicUiProperty<? extends Serializable>>>
         partitionProperties = getPartitionProperties(step);
-    steps.add(
+    thesteps.add(
         new ApprovalStepGuiObject(
             step,
             approvalProfile.getApprovalProfileTypeIdentifier(),
@@ -555,14 +645,14 @@ public class ApprovalProfileMBean extends BaseManagedBean
     while (step.getNextStep() != null) {
       step = approvalProfile.getStep(step.getNextStep());
       partitionProperties = getPartitionProperties(step);
-      steps.add(
+      thesteps.add(
           new ApprovalStepGuiObject(
               step,
               approvalProfile.getApprovalProfileTypeIdentifier(),
               ++ordinal,
               partitionProperties));
     }
-    return new ListDataModel<>(steps);
+    return new ListDataModel<>(thesteps);
   }
 
   /**
@@ -580,8 +670,8 @@ public class ApprovalProfileMBean extends BaseManagedBean
     for (ApprovalPartition approvalPartition : step.getPartitions().values()) {
       List<DynamicUiProperty<? extends Serializable>> propertyList =
           new ArrayList<>();
-      for (DynamicUiProperty<? extends Serializable> property :
-          approvalPartition.getPropertyList().values()) {
+      for (DynamicUiProperty<? extends Serializable> property
+          : approvalPartition.getPropertyList().values()) {
         DynamicUiProperty<? extends Serializable> propertyClone =
             new DynamicUiProperty<>(property);
         switch (propertyClone.getPropertyCallback()) {
@@ -607,8 +697,8 @@ public class ApprovalProfileMBean extends BaseManagedBean
                           role.getRoleName(),
                           roleMembers));
                 } catch (AuthorizationDeniedException e) {
-                  if (log.isDebugEnabled()) {
-                    log.debug(
+                  if (LOG.isDebugEnabled()) {
+                    LOG.debug(
                         "Not authorized to members of authorized role '"
                             + role.getRoleNameFull()
                             + "' (?):"
@@ -653,8 +743,8 @@ public class ApprovalProfileMBean extends BaseManagedBean
                           role.getRoleName(),
                           roleMembers));
                 } catch (AuthorizationDeniedException e) {
-                  if (log.isDebugEnabled()) {
-                    log.debug(
+                  if (LOG.isDebugEnabled()) {
+                    LOG.debug(
                         "Not authorized to members of authorized role '"
                             + role.getRoleNameFull()
                             + "' (?):"
@@ -704,20 +794,33 @@ public class ApprovalProfileMBean extends BaseManagedBean
         .arePartitionsFixed();
   }
 
+  /**
+   * @return Items
+   */
   public List<SelectItem> getFieldsAvailable() {
     return FieldType.asSelectItems();
   }
 
+  /**
+   * @return Map
+   */
   public Map<Integer, String> getFieldToAdd() {
     return fieldToAdd;
   }
 
+  /**
+   * @return Map
+   */
   public Map<Integer, String> getFieldLabel() {
     return fieldLabel;
   }
 
   // Notifications
 
+  /**
+   * @param partitionIdentifier ID
+   * @return Bool
+   */
   public boolean isNotificationEnabled(final int partitionIdentifier) {
     final ApprovalProfile approvalProfile = getApprovalProfile();
     final ApprovalStep approvalStep =
@@ -727,6 +830,9 @@ public class ApprovalProfileMBean extends BaseManagedBean
     return approvalProfile.isNotificationEnabled(approvalPartition);
   }
 
+  /**
+   * @param partitionIdentifier ID
+   */
   public void addNotification(final int partitionIdentifier) {
     final Integer currentStep = steps.getRowData().getIdentifier();
     saveTemporary();
@@ -753,7 +859,8 @@ public class ApprovalProfileMBean extends BaseManagedBean
             hostnameFromRequest,
             httpServletRequest.getServerPort());
     final String defaultSubject =
-        "[AR-${approvalRequest.ID}-${approvalRequest.STEP_ID}-${approvalRequest.PARTITION_ID}]"
+        "[AR-${approvalRequest.ID}-${approvalRequest.STEP_ID}"
+        + "-${approvalRequest.PARTITION_ID}]"
             + " Approval Request to ${approvalRequest.TYPE} is now in state"
             + " ${approvalRequest.WORKFLOWSTATE}";
     final String defaultBody =
@@ -773,6 +880,9 @@ public class ApprovalProfileMBean extends BaseManagedBean
     steps = null;
   }
 
+  /**
+   * @param partitionIdentifier ID
+   */
   public void removeNotification(final int partitionIdentifier) {
     final Integer currentStep = steps.getRowData().getIdentifier();
     saveTemporary();
@@ -786,6 +896,10 @@ public class ApprovalProfileMBean extends BaseManagedBean
 
   // User Notification
 
+  /**
+   * @param partitionIdentifier ID
+   * @return Bool
+   */
   public boolean isUserNotificationEnabled(final int partitionIdentifier) {
     final ApprovalProfile approvalProfile = getApprovalProfile();
     final ApprovalStep approvalStep =
@@ -795,6 +909,9 @@ public class ApprovalProfileMBean extends BaseManagedBean
     return approvalProfile.isUserNotificationEnabled(approvalPartition);
   }
 
+  /**
+   * @param partitionIdentifier ID
+   */
   public void addUserNotification(final int partitionIdentifier) {
     final Integer currentStep = steps.getRowData().getIdentifier();
     saveTemporary();
@@ -821,7 +938,8 @@ public class ApprovalProfileMBean extends BaseManagedBean
             hostnameFromRequest,
             httpServletRequest.getServerPort());
     final String defaultSubject =
-        "[AR-${approvalRequest.ID}-${approvalRequest.STEP_ID}-${approvalRequest.PARTITION_ID}]"
+        "[AR-${approvalRequest.ID}-${approvalRequest.STEP_ID}"
+        + "-${approvalRequest.PARTITION_ID}]"
             + " Approval Request to ${approvalRequest.TYPE} is now in state"
             + " ${approvalRequest.WORKFLOWSTATE}";
     final String defaultBody =
@@ -840,6 +958,9 @@ public class ApprovalProfileMBean extends BaseManagedBean
     steps = null;
   }
 
+  /**
+   * @param partitionIdentifier ID
+   */
   public void removeUserNotification(final int partitionIdentifier) {
     final Integer currentStep = steps.getRowData().getIdentifier();
     saveTemporary();
@@ -886,7 +1007,7 @@ public class ApprovalProfileMBean extends BaseManagedBean
     try {
       propertyClone.setEncodedValues(finalListOfEncodedValues);
     } catch (PropertyValidationException e) {
-      log.error(
+      LOG.error(
           "Invalid propery value while setting the encoded values for property"
               + " clone!"
               + e);

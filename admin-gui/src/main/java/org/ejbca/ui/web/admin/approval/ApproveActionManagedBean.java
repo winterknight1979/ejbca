@@ -84,16 +84,22 @@ import org.ejbca.util.query.Query;
 @ManagedBean(name = "approvalActionManagedBean")
 public class ApproveActionManagedBean extends BaseManagedBean {
   private static final long serialVersionUID = 1940920496104779323L;
-  private static final Logger log =
+  /** Param. */
+  private static final Logger LOG =
       Logger.getLogger(ApproveActionManagedBean.class);
-  private static final InternalResources intres =
+  /** Param. */
+  private static final InternalResources INTRES =
       InternalResources.getInstance();
 
   private enum Action {
-    APPROVE(intres.getLocalizedMessage("general.approve")),
-    REJECT(intres.getLocalizedMessage("general.reject"));
+      /** Param. */
+    APPROVE(INTRES.getLocalizedMessage("general.approve")),
+    /** Param. */
+    REJECT(INTRES.getLocalizedMessage("general.reject"));
 
+      /** Param. */
     private static List<SelectItem> selectItems;
+    /** Param. */
     private final String label;
 
     static {
@@ -103,8 +109,8 @@ public class ApproveActionManagedBean extends BaseManagedBean {
       }
     }
 
-    private Action(final String label) {
-      this.label = label;
+    Action(final String alabel) {
+      this.label = alabel;
     }
 
     public String getLabel() {
@@ -116,28 +122,47 @@ public class ApproveActionManagedBean extends BaseManagedBean {
     }
   }
 
+  /** Param. */
   @EJB private ApprovalExecutionSessionLocal approvalExecutionSession;
+  /** Param. */
   @EJB private RoleSessionLocal roleSession;
+  /** Param. */
   @EJB private RoleMemberSessionLocal roleMemberSession;
 
+  /** Param. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** Param. */
   @EJB private ApprovalProfileSessionLocal approvalProfileSession;
+  /** Param. */
   @EJB private ApprovalSessionLocal approvalSession;
+  /** Param. */
   @EJB private CaSessionLocal caSession;
+  /** Param. */
   @EJB private EndEntityProfileSessionLocal endEntityProfileSession;
+  /** Param. */
   @EJB private GlobalConfigurationSessionLocal globalConfigurationSession;
 
+  /** Param. */
   private String comment = "";
+  /** Param. */
   private ApprovalDataVOView approvalDataVOView = new ApprovalDataVOView();
+  /** Param. */
   private HashMap<Integer, String> statustext = null;
+  /** Param. */
   private Map<Integer, Action> partitionActions;
 
+  /** Param. */
   private ListDataModel<ApprovalPartitionProfileGuiObject>
       partitionsAuthorizedToView = null;
+  /** Param. */
   private Set<Integer> partitionsAuthorizedToApprove = null;
+  /** Param. */
   private ListDataModel<ApprovalPartitionProfileGuiObject> previousPartitions =
       null;
 
+  /**
+   * @return text
+   */
   public HashMap<Integer, String> getStatusText() {
     if (statustext == null) {
       EjbcaWebBean ejbcawebbean = EjbcaJSFHelper.getBean().getEjbcaWebBean();
@@ -170,10 +195,16 @@ public class ApproveActionManagedBean extends BaseManagedBean {
     return statustext;
   }
 
+  /**
+   * @return data
+   */
   public ApprovalDataVOView getApproveRequestData() {
     return approvalDataVOView;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isApprovalRequestComparable() {
     return approvalDataVOView
             .getApproveActionDataVO()
@@ -182,6 +213,9 @@ public class ApproveActionManagedBean extends BaseManagedBean {
         == ApprovalRequest.REQUESTTYPE_COMPARING;
   }
 
+  /**
+   * @return width
+   */
   public String getWindowWidth() {
     if (isApprovalRequestComparable()) {
       return "1000";
@@ -189,32 +223,47 @@ public class ApproveActionManagedBean extends BaseManagedBean {
     return "600";
   }
 
+  /**
+   * @return views
+   */
   public List<ApprovalView> getApprovalViews() {
     List<ApprovalView> approvalViews = new ArrayList<>();
     if (approvalDataVOView != null
         && approvalDataVOView.getApproveActionDataVO().getApprovals() != null) {
-      for (Approval approval :
-          approvalDataVOView.getApproveActionDataVO().getApprovals()) {
+      for (Approval approval
+          : approvalDataVOView.getApproveActionDataVO().getApprovals()) {
         approvalViews.add(new ApprovalView(approval));
       }
     }
     return approvalViews;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isExistsApprovals() {
     return approvalDataVOView.getApproveActionDataVO().getApprovals().size()
         > 0;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isApprovable() {
     return approvalDataVOView.getApproveActionDataVO().getStatus()
         == ApprovalDataVO.STATUS_WAITINGFORAPPROVAL;
   }
 
+  /**
+   * @return actions
+   */
   public List<SelectItem> getActionsAvailable() {
     return Action.asSelectItems();
   }
 
+  /**
+   * @return Action
+   */
   public Action getActionForPartition() {
     Action result =
         getPartitionActions()
@@ -229,8 +278,8 @@ public class ApproveActionManagedBean extends BaseManagedBean {
   private Map<Integer, Action> getPartitionActions() {
     if (partitionActions == null) {
       partitionActions = new HashMap<>();
-      for (Approval approval :
-          approvalDataVOView.getApproveActionDataVO().getApprovals()) {
+      for (Approval approval
+          : approvalDataVOView.getApproveActionDataVO().getApprovals()) {
         if (approval.getStepId() == getCurrentStep().getStepIdentifier()) {
           if (approval.isApproved()) {
             partitionActions.put(approval.getPartitionId(), Action.APPROVE);
@@ -243,11 +292,18 @@ public class ApproveActionManagedBean extends BaseManagedBean {
     return partitionActions;
   }
 
+  /**
+   * @param action Action
+   */
   public void setActionForPartition(final Action action) {
     getPartitionActions()
         .put(partitionsAuthorizedToView.getRowData().getPartitionId(), action);
   }
 
+  /**
+   * @param event Event
+   * @return State
+   */
   public String saveState(final ActionEvent event) {
     boolean closeWindow = true;
     ApprovalDataVO approvalDataVO =
@@ -259,7 +315,7 @@ public class ApproveActionManagedBean extends BaseManagedBean {
           approvalRequest.getApprovalProfile();
       for (Iterator<ApprovalPartitionProfileGuiObject> iter =
               partitionsAuthorizedToView.iterator();
-          iter.hasNext(); ) {
+          iter.hasNext();) {
         boolean isRejected = false;
         ApprovalPartitionProfileGuiObject approvalPartitionGuiObject =
             iter.next();
@@ -278,7 +334,7 @@ public class ApproveActionManagedBean extends BaseManagedBean {
                         approvalPartitionGuiObject
                             .getProfilePropertyList()
                             .iterator();
-                propertyIterator.hasNext(); ) {
+                propertyIterator.hasNext();) {
               updatedProperties.add(propertyIterator.next());
             }
             storedApprovalProfile.addPropertiesToPartition(
@@ -373,8 +429,11 @@ public class ApproveActionManagedBean extends BaseManagedBean {
     // I'm so, so sorry. I have dishonored my dojo.
   }
 
+  /**
+   * @param uniqueId ID
+   */
   public void setUniqueId(final int uniqueId) {
-    log.debug(
+    LOG.debug(
         "ApproveActionSessionBean.setApprovalId setting uniqueId : "
             + uniqueId);
     updateApprovalRequestData(uniqueId);
@@ -413,14 +472,23 @@ public class ApproveActionManagedBean extends BaseManagedBean {
     }
   }
 
+  /**
+   * @return comment
+   */
   public String getComment() {
     return "";
   }
 
-  public void setComment(final String comment) {
-    this.comment = comment;
+  /**
+   * @param acomment comment
+   */
+  public void setComment(final String acomment) {
+    this.comment = acomment;
   }
 
+  /**
+   * @return Partitions
+   */
   public int getNumberOfPartitionsInStep() {
     ApprovalStep step = getCurrentStep();
     if (step == null) {
@@ -487,8 +555,8 @@ public class ApproveActionManagedBean extends BaseManagedBean {
           if (currentStep != null && step.equals(currentStep)) {
             break;
           }
-          for (ApprovalPartition approvalPartition :
-              step.getPartitions().values()) {
+          for (ApprovalPartition approvalPartition
+              : step.getPartitions().values()) {
             try {
               if (approvalDataVOView
                   .getApprovalProfile()
@@ -538,8 +606,8 @@ public class ApproveActionManagedBean extends BaseManagedBean {
       if (getCurrentStep() != null) {
         final ApprovalStep approvalStep =
             approvalProfile.getStep(getCurrentStep().getStepIdentifier());
-        for (Integer approvalPartitionId :
-            getCurrentStep().getPartitions().keySet()) {
+        for (Integer approvalPartitionId
+            : getCurrentStep().getPartitions().keySet()) {
           ApprovalPartition approvalPartition =
               approvalStep.getPartition(approvalPartitionId);
           if (approvalPartition != null) {
@@ -582,6 +650,10 @@ public class ApproveActionManagedBean extends BaseManagedBean {
     return partitionsAuthorizedToView;
   }
 
+  /**
+   * @param partition partitionj
+   * @return bool
+   */
   public boolean canApprovePartition(
       final ApprovalPartitionProfileGuiObject partition) {
     if (partitionsAuthorizedToApprove == null) {
@@ -700,8 +772,8 @@ public class ApproveActionManagedBean extends BaseManagedBean {
                           role.getRoleName(),
                           roleMembers));
                 } catch (AuthorizationDeniedException e) {
-                  if (log.isDebugEnabled()) {
-                    log.debug(
+                  if (LOG.isDebugEnabled()) {
+                    LOG.debug(
                         "Not authorized to members of authorized role '"
                             + role.getRoleNameFull()
                             + "' (?):"
@@ -743,7 +815,7 @@ public class ApproveActionManagedBean extends BaseManagedBean {
             approvalDataVOView.getApprovalId());
 
     if (approvalDataVO == null) {
-      log.warn("Approval request already expired or invalid!");
+      LOG.warn("Approval request already expired or invalid!");
       return;
     }
 
@@ -770,7 +842,7 @@ public class ApproveActionManagedBean extends BaseManagedBean {
       approvalProfileSession.changeApprovalProfile(
           getAdmin(), updateApprovalProfile(approvalProfileFromSession));
     } catch (AuthorizationDeniedException e) {
-      log.info("Not authorized to change approval profile!" + e);
+      LOG.info("Not authorized to change approval profile!" + e);
     }
 
     updateApprovalRequestData(uniqueId);
@@ -786,10 +858,10 @@ public class ApproveActionManagedBean extends BaseManagedBean {
       final ApprovalProfile approvalProfile) {
 
     for (ApprovalStep approvalStep : approvalProfile.getSteps().values()) {
-      for (ApprovalPartition approvalPartition :
-          approvalStep.getPartitions().values()) {
-        for (DynamicUiProperty<? extends Serializable> property :
-            approvalPartition.getPropertyList().values()) {
+      for (ApprovalPartition approvalPartition
+          : approvalStep.getPartitions().values()) {
+        for (DynamicUiProperty<? extends Serializable> property
+            : approvalPartition.getPropertyList().values()) {
 
           DynamicUiProperty<? extends Serializable> propertyClone =
               new DynamicUiProperty<>(property);
@@ -877,8 +949,8 @@ public class ApproveActionManagedBean extends BaseManagedBean {
                   role.getRoleName(),
                   roleMembers));
         } catch (AuthorizationDeniedException e) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Not authorized to members of authorized role '"
                     + role.getRoleNameFull()
                     + "' (?):"
@@ -925,7 +997,7 @@ public class ApproveActionManagedBean extends BaseManagedBean {
     try {
       propertyClone.setEncodedValues(finalListOfEncodedValues);
     } catch (PropertyValidationException e) {
-      log.error(
+      LOG.error(
           "Invalid propery value while setting the encoded values for property"
               + " clone!"
               + e);

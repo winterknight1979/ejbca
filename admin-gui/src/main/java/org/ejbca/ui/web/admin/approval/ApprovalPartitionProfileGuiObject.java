@@ -30,35 +30,51 @@ public class ApprovalPartitionProfileGuiObject implements Serializable {
 
   private static final long serialVersionUID = 2L;
 
+  /** Param. */
   private ListDataModel<DynamicUiProperty<? extends Serializable>>
       profilePropertyList = null;
 
+  /** Param. */
   private final String approvalProfileIdentifier;
+  /** Param. */
   private final int partitionId;
+  /** Param. */
   private final String partitionName;
 
+  /**
+   * @param aapprovalProfileIdentifier ID
+   * @param paartitionId ID
+   * @param apartitionName Name
+   * @param propertyValues Vals
+   */
   public ApprovalPartitionProfileGuiObject(
-      final String approvalProfileIdentifier,
-      final int partitionId,
-      final String partitionName,
+      final String aapprovalProfileIdentifier,
+      final int paartitionId,
+      final String apartitionName,
       final List<DynamicUiProperty<? extends Serializable>> propertyValues) {
     // Pass property values as a parameter because it may need some outside
     // poking
     setProfilePropertyList(new ListDataModel<>(propertyValues));
-    this.approvalProfileIdentifier = approvalProfileIdentifier;
-    this.partitionId = partitionId;
-    this.partitionName = partitionName;
+    this.approvalProfileIdentifier = aapprovalProfileIdentifier;
+    this.partitionId = paartitionId;
+    this.partitionName = apartitionName;
   }
 
+  /**
+   * @return List
+   */
   public ListDataModel<DynamicUiProperty<? extends Serializable>>
       getProfilePropertyList() {
     return profilePropertyList;
   }
 
+  /**
+   * @param aprofilePropertyList List
+   */
   public void setProfilePropertyList(
       final ListDataModel<DynamicUiProperty<? extends Serializable>>
-          profilePropertyList) {
-    this.profilePropertyList = profilePropertyList;
+          aprofilePropertyList) {
+    this.profilePropertyList = aprofilePropertyList;
   }
 
   /**
@@ -106,14 +122,23 @@ public class ApprovalPartitionProfileGuiObject implements Serializable {
     return translatedName.equals(msgKey) ? name : translatedName;
   }
 
+  /**
+   * @return name
+   */
   public String getPropertyName() {
     return profilePropertyList.getRowData().getName();
   }
 
+  /**
+   * @return ID
+   */
   public int getPartitionId() {
     return partitionId;
   }
 
+  /**
+   * @return name
+   */
   public String getPartitionName() {
     return partitionName;
   }

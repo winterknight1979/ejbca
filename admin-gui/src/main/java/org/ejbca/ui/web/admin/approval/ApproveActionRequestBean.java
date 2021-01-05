@@ -19,14 +19,16 @@ import javax.servlet.http.HttpServletRequest;
 
 /**
  * Bean to set the right Approve Request Data when calling the approveaction.jsf
- * page from javascript
+ * page from javascript.
  *
  * @version $Id: ApproveActionRequestBean.java 28844 2018-05-04 08:31:02Z
  *     samuellb $
  */
 public class ApproveActionRequestBean {
+    /** Param. */
   private int uniqueId;
 
+  /** Constructor. */
   public ApproveActionRequestBean() {
     FacesContext ctx = FacesContext.getCurrentInstance();
 
@@ -53,11 +55,17 @@ public class ApproveActionRequestBean {
     }
   }
 
+  /**
+   * @return ID
+   */
   public int getUniqueId() {
     return uniqueId;
   }
 
-  public void setUniqueId(final int uniqueId) {
-    this.uniqueId = uniqueId;
+  /**
+   * @param auniqueId ID
+   */
+  public void setUniqueId(final int auniqueId) {
+    this.uniqueId = auniqueId;
   }
 }

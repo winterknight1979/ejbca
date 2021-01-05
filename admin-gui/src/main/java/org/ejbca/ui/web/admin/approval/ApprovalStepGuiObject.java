@@ -27,10 +27,15 @@ import org.ejbca.core.model.approval.profile.PartitionedApprovalProfile;
  *     mikekushner $
  */
 public class ApprovalStepGuiObject {
+      /** Param. */
   private final Integer identifier;
+  /** Param. */
   private final int stepNumber;
+  /** Param. */
   private final List<ApprovalPartitionProfileGuiObject> partitionGuiObjects;
+  /** Param. */
   private final Integer nextStep;
+  /** Param. */
   private final Integer previousStep;
 
   /**
@@ -72,6 +77,9 @@ public class ApprovalStepGuiObject {
     this.previousStep = approvalStep.getPreviousStep();
   }
 
+  /**
+   * @return ID
+   */
   public Integer getIdentifier() {
     return identifier;
   }
@@ -81,22 +89,37 @@ public class ApprovalStepGuiObject {
     return stepNumber;
   }
 
+  /**
+   * @return Objects
+   */
   public List<ApprovalPartitionProfileGuiObject> getPartitionGuiObjects() {
     return partitionGuiObjects;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isFinalStep() {
     return nextStep == null;
   }
 
+  /**
+   * @return Step
+   */
   public Integer getNextStep() {
     return nextStep;
   }
 
+  /**
+   * @return Step
+   */
   public Integer getPreviousStep() {
     return previousStep;
   }
 
+  /**
+   * @return size
+   */
   public int getNumberOfPartitions() {
     return partitionGuiObjects.size();
   }
