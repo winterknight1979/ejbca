@@ -75,46 +75,82 @@ import org.ejbca.ui.web.admin.configuration.EjbcaWebBean;
 public class AuditorManagedBean implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(AuditorManagedBean.class);
+  /** param. */
+  private static final Logger LOG = Logger.getLogger(AuditorManagedBean.class);
 
+  /** param. */
   private static final boolean ORDER_ASC = true;
+  /** param. */
   private static final boolean ORDER_DESC = false;
 
+  /** param. */
   private final SecurityEventsAuditorSessionLocal securityEventsAuditorSession =
       new EjbLocalHelper().getSecurityEventsAuditorSession();
+  /** param. */
   private final CaSessionLocal caSession = new EjbLocalHelper().getCaSession();
 
+  /** param. */
   private boolean renderNext = false;
 
+  /** param. */
   private boolean reloadResultsNextView = true;
+  /** param. */
   private String device;
+  /** param. */
   private String sortColumn = AuditLogEntry.FIELD_TIMESTAMP;
+  /** param. */
   private boolean sortOrder = ORDER_DESC;
-  private int maxResults = 40;
+  /** param. */
+  private final int defaultMaxResults = 40;
+  /** param. */
+  private int maxResults = defaultMaxResults;
+  /** param. */
   private int startIndex = 1;
+  /** param. */
   private final List<SelectItem> sortColumns = new ArrayList<>();
+  /** param. */
   private final List<SelectItem> columns = new ArrayList<>();
+  /** param. */
   private final List<SelectItem> sortOrders = new ArrayList<>();
+  /** param. */
   private List<? extends AuditLogEntry> results;
+  /** param. */
   private Map<Object, String> caIdToNameMap;
 
+  /** param. */
   private final Map<String, String> columnNameMap = new HashMap<>();
+  /** param. */
   private final List<SelectItem> eventStatusOptions = new ArrayList<>();
+  /** param. */
   private final List<SelectItem> eventTypeOptions = new ArrayList<>();
+  /** param. */
   private final List<SelectItem> moduleTypeOptions = new ArrayList<>();
+  /** param. */
   private final List<SelectItem> serviceTypeOptions = new ArrayList<>();
+  /** param. */
   private final List<SelectItem> operationsOptions = new ArrayList<>();
+  /** param. */
   private final List<SelectItem> conditionsOptions = new ArrayList<>();
+  /** param. */
   private final List<SelectItem> conditionsOptionsExact = new ArrayList<>();
+  /** param. */
   private final List<SelectItem> conditionsOptionsContains = new ArrayList<>();
+  /** param. */
   private final List<SelectItem> conditionsOptionsNumber = new ArrayList<>();
+  /** param. */
   private final List<SelectItem> cmsSigningCaOptions = new ArrayList<>();
+  /** param. */
   private Integer cmsSigningCa = null;
+  /** param. */
   private String conditionColumn = AuditLogEntry.FIELD_SEARCHABLE_DETAIL2;
+  /** param. */
   private AuditSearchCondition conditionToAdd;
+  /** param. */
   private List<AuditSearchCondition> conditions = new ArrayList<>();
+  /** param. */
   private boolean automaticReload = true;
 
+  /** Constructor. */
   public AuditorManagedBean() {
     final EjbcaWebBean ejbcaWebBean =
         EjbcaJSFHelper.getBean().getEjbcaWebBean();
@@ -255,49 +291,79 @@ public class AuditorManagedBean implements Serializable {
     updateCmsSigningCas();
   }
 
+  /**
+   * @return devices
+   */
   public List<SelectItem> getDevices() {
     final List<SelectItem> list = new ArrayList<>();
-    for (final String deviceId :
-        securityEventsAuditorSession.getQuerySupportingLogDevices()) {
+    for (final String deviceId
+        : securityEventsAuditorSession.getQuerySupportingLogDevices()) {
       list.add(new SelectItem(deviceId, deviceId));
     }
     return list;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isOneLogDevice() {
     return getDevices().size() == 1;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isRenderNext() {
     getResults();
     return renderNext;
   }
 
+  /**
+   * @return orders
+   */
   public int getResultSize() {
     getResults();
     return results == null ? 0 : results.size();
   }
 
+  /**
+   * @return cols
+   */
   public List<SelectItem> getSortColumns() {
     return sortColumns;
   }
 
+  /**
+   * @return orders
+   */
   public List<SelectItem> getSortOrders() {
     return sortOrders;
   }
 
+  /**
+   * @return cols
+   */
   public List<SelectItem> getColumns() {
     return columns;
   }
 
+  /**
+   * @param selectedDevice device
+   */
   public void setDevice(final String selectedDevice) {
     this.device = selectedDevice;
   }
 
+  /**
+   * @return device
+   */
   public String getDevice() {
     return device;
   }
 
+  /**
+   * @return results
+   */
   public List<? extends AuditLogEntry> getResults() {
     if (getDevice() != null && reloadResultsNextView) {
       reloadResults();
@@ -307,7 +373,7 @@ public class AuditorManagedBean implements Serializable {
   }
 
   /**
-   * Converts a map with possibly Base64 encoded items to a string
+   * Converts a map with possibly Base64 encoded items to a string.
    *
    * @param value Value
    * @return String
@@ -316,61 +382,100 @@ public class AuditorManagedBean implements Serializable {
     return MapToStringConverter.getAsString(value);
   }
 
-  public void setSortColumn(final String sortColumn) {
-    this.sortColumn = sortColumn;
+  /**
+   * @param asortColumn column
+   */
+  public void setSortColumn(final String asortColumn) {
+    this.sortColumn = asortColumn;
   }
 
+  /**
+   * @return column
+   */
   public String getSortColumn() {
     return sortColumn;
   }
 
-  public void setMaxResults(final int maxResults) {
+  /**
+   * @param themaxResults results
+   */
+  public void setMaxResults(final int themaxResults) {
+    final int limit = 1000;
     this.maxResults =
-        Math.min(1000, Math.max(1, maxResults)); // 1-1000 results allowed
+        Math.min(limit, Math.max(1, themaxResults)); // 1-1000 results allowed
   }
 
+  /**
+   * @return results
+   */
   public int getMaxResults() {
     return maxResults;
   }
 
-  public void setStartIndex(final int startIndex) {
-    this.startIndex = Math.max(1, startIndex);
+  /**
+   * @param astartIndex index
+   */
+  public void setStartIndex(final int astartIndex) {
+    this.startIndex = Math.max(1, astartIndex);
   }
 
+  /**
+   * @return index
+   */
   public int getStartIndex() {
     return startIndex;
   }
 
-  public void setSortOrder(final boolean sortOrder) {
-    this.sortOrder = sortOrder;
+  /**
+   * @param dosortOrder bool
+   */
+  public void setSortOrder(final boolean dosortOrder) {
+    this.sortOrder = dosortOrder;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isSortOrder() {
     return sortOrder;
   }
 
-  public void setConditionColumn(final String conditionColumn) {
-    this.conditionColumn = conditionColumn;
+  /**
+   * @param aconditionColumn column
+   */
+  public void setConditionColumn(final String aconditionColumn) {
+    this.conditionColumn = aconditionColumn;
   }
 
+  /**
+   * @return column
+   */
   public String getConditionColumn() {
     return conditionColumn;
   }
 
-  public void setConditionToAdd(final AuditSearchCondition conditionToAdd) {
-    this.conditionToAdd = conditionToAdd;
+  /**
+   * @param aconditionToAdd condition
+   */
+  public void setConditionToAdd(final AuditSearchCondition aconditionToAdd) {
+    this.conditionToAdd = aconditionToAdd;
   }
 
+  /**
+   * @return condition
+   */
   public AuditSearchCondition getConditionToAdd() {
     return conditionToAdd;
   }
 
+  /** Clear. */
   public void clearConditions() {
     setConditions(new ArrayList<AuditSearchCondition>());
     setConditionToAdd(null);
     onConditionChanged();
   }
 
+  /** New. **/
   public void newCondition() {
     if (AuditLogEntry.FIELD_AUTHENTICATION_TOKEN.equals(conditionColumn)
         || AuditLogEntry.FIELD_NODEID.equals(conditionColumn)
@@ -424,28 +529,41 @@ public class AuditorManagedBean implements Serializable {
     }
   }
 
+  /** CAncel. */
   public void cancelCondition() {
     setConditionToAdd(null);
   }
 
+  /**
+   * Add.
+   */
   public void addCondition() {
     getConditions().add(getConditionToAdd());
     setConditionToAdd(null);
     onConditionChanged();
   }
 
+  /**
+   * @param event event
+   */
   public void removeCondition(final ActionEvent event) {
     getConditions()
         .remove(event.getComponent().getAttributes().get("removeCondition"));
     onConditionChanged();
   }
 
+  /**
+   * @return bool
+   */
   public boolean isAutomaticReload() {
     return automaticReload;
   }
 
-  public void setAutomaticReload(final boolean automaticReload) {
-    this.automaticReload = automaticReload;
+  /**
+   * @param doautomaticReload bool
+   */
+  public void setAutomaticReload(final boolean doautomaticReload) {
+    this.automaticReload = doautomaticReload;
   }
 
   private void onConditionChanged() {
@@ -453,13 +571,14 @@ public class AuditorManagedBean implements Serializable {
     first();
   }
 
+  /** Reload. */
   public void reload() {
     reloadResultsNextView = true;
   }
 
   private void reloadResults() {
-    if (log.isDebugEnabled()) {
-      log.debug("Reloading audit load. selectedDevice=" + device);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Reloading audit load. selectedDevice=" + device);
     }
     updateCaIdToNameMap();
     try {
@@ -479,8 +598,8 @@ public class AuditorManagedBean implements Serializable {
       if (results != null) {
         results.clear();
       }
-      if (log.isDebugEnabled()) {
-        log.debug(e.getMessage(), e);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(e.getMessage(), e);
       }
       FacesContext.getCurrentInstance()
           .addMessage(
@@ -497,12 +616,12 @@ public class AuditorManagedBean implements Serializable {
    * @param token the requesting entity. Will also limit the results to
    *     authorized CAs.
    * @param validColumns a Set of legal column names
-   * @param device the name of the audit log device
-   * @param conditions the list of conditions to transform into a query
-   * @param sortColumn ORDER BY column
-   * @param sortOrder true=ASC, false=DESC order
+   * @param adevice the name of the audit log device
+   * @param theconditions the list of conditions to transform into a query
+   * @param asortColumn ORDER BY column
+   * @param asortOrder true=ASC, false=DESC order
    * @param firstResult first entry from the result set. Index starts with 0.
-   * @param maxResults number of results to return
+   * @param themaxResults number of results to return
    * @return the query result
    * @throws AuthorizationDeniedException if the administrator is not authorized
    *     to perform the requested query
@@ -510,20 +629,20 @@ public class AuditorManagedBean implements Serializable {
   private List<? extends AuditLogEntry> getResults(
       final AuthenticationToken token,
       final Set<String> validColumns,
-      final String device,
-      final List<AuditSearchCondition> conditions,
-      final String sortColumn,
-      final boolean sortOrder,
+      final String adevice,
+      final List<AuditSearchCondition> theconditions,
+      final String asortColumn,
+      final boolean asortOrder,
       final int firstResult,
-      final int maxResults)
+      final int themaxResults)
       throws AuthorizationDeniedException {
     final List<Object> parameters = new ArrayList<>();
     final StringBuilder whereClause = new StringBuilder();
     final String errorMessage =
         "This should never happen unless you are intentionally trying to"
             + " perform an SQL injection attack.";
-    for (int i = 0; i < conditions.size(); i++) {
-      final AuditSearchCondition condition = conditions.get(i);
+    for (int i = 0; i < theconditions.size(); i++) {
+      final AuditSearchCondition condition = theconditions.get(i);
       if (i > 0) {
         switch (condition.getOperation()) {
           case AND:
@@ -532,6 +651,7 @@ public class AuditorManagedBean implements Serializable {
           case OR:
             whereClause.append(" OR ");
             break;
+          default: break;
         }
       }
       // Validate that the column we are adding to the SQL WHERE clause is
@@ -547,7 +667,7 @@ public class AuditorManagedBean implements Serializable {
                   ValidityDate.parseAsIso8601(conditionValue.toString())
                       .getTime());
         } catch (ParseException e) {
-          log.debug(
+          LOG.debug(
               "Admin entered invalid date for audit log search: "
                   + condition.getValue());
           continue;
@@ -615,30 +735,34 @@ public class AuditorManagedBean implements Serializable {
     }
     // Validate that the column we are adding to the SQL ORDER clause is exactly
     // one of the legal column names
-    if (!validColumns.contains(sortColumn)) {
+    if (!validColumns.contains(asortColumn)) {
       throw new IllegalArgumentException(errorMessage);
     }
     final String orderClause =
         new StringBuilder("a.")
-            .append(sortColumn)
-            .append(sortOrder ? " ASC" : " DESC")
+            .append(asortColumn)
+            .append(asortOrder ? " ASC" : " DESC")
             .toString();
     return new EjbLocalHelper()
         .getEjbcaAuditorSession()
         .selectAuditLog(
             token,
-            device,
+            adevice,
             firstResult,
-            maxResults,
+            themaxResults,
             whereClause.toString(),
             orderClause,
             parameters);
   }
 
+  /**
+   * @return ID
+   */
   public Map<Object, String> getCaIdToName() {
     return caIdToNameMap;
   }
 
+  /** Update. */
   private void updateCaIdToNameMap() {
     final Map<Integer, String> map = caSession.getCAIdToNameMap();
     final Map<Object, String> ret = new HashMap<>();
@@ -653,29 +777,41 @@ public class AuditorManagedBean implements Serializable {
     caIdToNameMap = ret;
   }
 
+  /**
+   * @return Name
+   */
   public Map<String, String> getNameFromColumn() {
     return columnNameMap;
   }
 
+  /** First. */
   public void first() {
     setStartIndex(1);
     reloadResultsNextView = true;
   }
 
+  /** Next. */
   public void next() {
     setStartIndex(startIndex + maxResults);
     reloadResultsNextView = true;
   }
 
+  /** Prev. */
   public void previous() {
     setStartIndex(startIndex - maxResults);
     reloadResultsNextView = true;
   }
 
-  public void setConditions(final List<AuditSearchCondition> conditions) {
-    this.conditions = conditions;
+  /**
+   * @param theconditions conditions
+   */
+  public void setConditions(final List<AuditSearchCondition> theconditions) {
+    this.conditions = theconditions;
   }
 
+  /**
+   * @return conditiions
+   */
   public List<AuditSearchCondition> getConditions() {
     // Special case when we supply "username" as parameter to allow view of a
     // user's history
@@ -697,10 +833,16 @@ public class AuditorManagedBean implements Serializable {
     return conditions;
   }
 
+  /**
+   * @return ops
+   */
   public List<SelectItem> getDefinedOperations() {
     return operationsOptions;
   }
 
+  /**
+   * @return conditions
+   */
   public List<SelectItem> getDefinedConditions() {
     return conditionToAdd.getConditions();
   }
@@ -712,74 +854,92 @@ public class AuditorManagedBean implements Serializable {
         .get(key);
   }
 
+  /** Reorder. */
   public void reorderAscByTime() {
     reorderBy(AuditLogEntry.FIELD_TIMESTAMP, ORDER_ASC);
   }
 
+  /** Reorder. */
   public void reorderDescByTime() {
     reorderBy(AuditLogEntry.FIELD_TIMESTAMP, ORDER_DESC);
   }
 
+  /** Reorder. */
   public void reorderAscByEvent() {
     reorderBy(AuditLogEntry.FIELD_EVENTTYPE, ORDER_ASC);
   }
 
+  /** Reorder. */
   public void reorderDescByEvent() {
     reorderBy(AuditLogEntry.FIELD_EVENTTYPE, ORDER_DESC);
   }
 
+  /** Reorder. */
   public void reorderAscByStatus() {
     reorderBy(AuditLogEntry.FIELD_EVENTSTATUS, ORDER_ASC);
   }
 
+  /** Reorder. */
   public void reorderDescByStatus() {
     reorderBy(AuditLogEntry.FIELD_EVENTSTATUS, ORDER_DESC);
   }
 
+  /** Reorder. */
   public void reorderAscByAuthToken() {
     reorderBy(AuditLogEntry.FIELD_AUTHENTICATION_TOKEN, ORDER_ASC);
   }
 
+  /** Reorder. */
   public void reorderDescByAuthToken() {
     reorderBy(AuditLogEntry.FIELD_AUTHENTICATION_TOKEN, ORDER_DESC);
   }
 
+  /** Reorder. */
   public void reorderAscByModule() {
     reorderBy(AuditLogEntry.FIELD_MODULE, ORDER_ASC);
   }
 
+  /** Reorder. */
   public void reorderDescByModule() {
     reorderBy(AuditLogEntry.FIELD_MODULE, ORDER_DESC);
   }
 
+  /** Reorder. */
   public void reorderAscByCustomId() {
     reorderBy(AuditLogEntry.FIELD_CUSTOM_ID, ORDER_ASC);
   }
 
+  /** Reorder. */
   public void reorderDescByCustomId() {
     reorderBy(AuditLogEntry.FIELD_CUSTOM_ID, ORDER_DESC);
   }
 
+  /** Reorder. */
   public void reorderAscBySearchDetail1() {
     reorderBy(AuditLogEntry.FIELD_SEARCHABLE_DETAIL1, ORDER_ASC);
   }
 
+  /** Reorder. */
   public void reorderDescBySearchDetail1() {
     reorderBy(AuditLogEntry.FIELD_SEARCHABLE_DETAIL1, ORDER_DESC);
   }
 
+  /** Reorder. */
   public void reorderAscBySearchDetail2() {
     reorderBy(AuditLogEntry.FIELD_SEARCHABLE_DETAIL2, ORDER_ASC);
   }
 
+  /** Reorder. */
   public void reorderDescBySearchDetail2() {
     reorderBy(AuditLogEntry.FIELD_SEARCHABLE_DETAIL2, ORDER_DESC);
   }
 
+  /** Reorder. */
   public void reorderAscByNodeId() {
     reorderBy(AuditLogEntry.FIELD_NODEID, ORDER_ASC);
   }
 
+  /** Reorder. */
   public void reorderDescByNodeId() {
     reorderBy(AuditLogEntry.FIELD_NODEID, ORDER_DESC);
   }
@@ -815,7 +975,7 @@ public class AuditorManagedBean implements Serializable {
       }
 
       @Override
-      public void clear() {}
+      public void clear() { }
 
       @Override
       public boolean containsKey(final Object key) {
@@ -848,7 +1008,7 @@ public class AuditorManagedBean implements Serializable {
       }
 
       @Override
-      public void putAll(final Map<? extends String, ? extends Integer> m) {}
+      public void putAll(final Map<? extends String, ? extends Integer> m) { }
 
       @Override
       public Integer remove(final Object key) {
@@ -870,8 +1030,8 @@ public class AuditorManagedBean implements Serializable {
   private void updateCmsSigningCas() {
     final Map<Integer, String> map = caSession.getCAIdToNameMap();
     cmsSigningCaOptions.clear();
-    for (int caid :
-        caSession.getAuthorizedCaIds(
+    for (int caid
+        : caSession.getAuthorizedCaIds(
             EjbcaJSFHelper.getBean().getEjbcaWebBean().getAdminObject())) {
       // TODO: Would be nice to check if the CMS signer service is activated
       // here before we add it
@@ -882,18 +1042,28 @@ public class AuditorManagedBean implements Serializable {
     }
   }
 
+  /**
+   * @return CAs
+   */
   public List<SelectItem> getCmsSigningCas() {
     return cmsSigningCaOptions;
   }
 
+  /**
+   * @return CA
+   */
   public Integer getCmsSigningCa() {
     return cmsSigningCa;
   }
 
-  public void setCmsSigningCa(final Integer cmsSigningCa) {
-    this.cmsSigningCa = cmsSigningCa;
+  /**
+   * @param acmsSigningCa CA
+   */
+  public void setCmsSigningCa(final Integer acmsSigningCa) {
+    this.cmsSigningCa = acmsSigningCa;
   }
 
+  /** Download. */
   public void downloadResultsCms() {
     try {
       if (cmsSigningCa == null) {
@@ -918,7 +1088,7 @@ public class AuditorManagedBean implements Serializable {
               "application/octet-stream",
               "export-" + results.get(0).getTimeStamp() + ".p7m");
         } catch (IOException e) {
-          log.info(
+          LOG.info(
               "Administration tried to export audit log, but failed. "
                   + e.getMessage());
           FacesContext.getCurrentInstance()
@@ -926,7 +1096,7 @@ public class AuditorManagedBean implements Serializable {
         }
       }
     } catch (Exception e) {
-      log.info(
+      LOG.info(
           "Administration tried to export audit log, but failed. "
               + e.getMessage());
       FacesContext.getCurrentInstance()
@@ -934,6 +1104,7 @@ public class AuditorManagedBean implements Serializable {
     }
   }
 
+  /** Download. */
   public void downloadResults() {
     try {
       // text/xml doesn't work since it gets filtered and all non-ASCII bytes
@@ -946,7 +1117,7 @@ public class AuditorManagedBean implements Serializable {
               + ".xml"); // "application/force-download" is an alternative
                          // here..
     } catch (IOException e) {
-      log.info(
+      LOG.info(
           "Administration tried to export audit log, but failed. "
               + e.getMessage());
       FacesContext.getCurrentInstance()
@@ -963,14 +1134,14 @@ public class AuditorManagedBean implements Serializable {
         AuditDevicesConfig.getExporter(getDevice());
     AuditExporter auditExporter = null;
     if (exporterClass != null) {
-      if (log.isDebugEnabled()) {
-        log.debug("Using AuditExporter class: " + exporterClass.getName());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Using AuditExporter class: " + exporterClass.getName());
       }
 
       try {
         auditExporter = exporterClass.getConstructor().newInstance();
       } catch (Exception e) {
-        log.warn(
+        LOG.warn(
             "AuditExporter for "
                 + getDevice()
                 + " is not configured correctly.",
@@ -979,15 +1150,15 @@ public class AuditorManagedBean implements Serializable {
     }
 
     if (auditExporter == null) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "AuditExporter not configured. Using default: "
                 + AuditExporterXml.class.getSimpleName());
       }
       auditExporter =
           new AuditExporterXml(); // Use Java-friendly XML as default
     }
-    try (final ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+    try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
       auditExporter.setOutputStream(baos);
       for (final AuditLogEntry auditLogEntry : results) {
         writeToExport(auditExporter, (AuditRecordData) auditLogEntry);
@@ -1026,9 +1197,9 @@ public class AuditorManagedBean implements Serializable {
         .responseComplete(); // No further JSF navigation
   }
 
-  // Duplicate of code from
-  // org.cesecore.audit.impl.integrityprotected.IntegrityProtectedAuditorSessionBean.writeToExport
-  // (unusable from here.. :/)
+  /* Duplicate of code from
+   * org.cesecore.audit.impl.integrityprotected.IntegrityProtectedAuditorSessionBean.writeToExport
+   * (unusable from here.. :/) */
   /**
    * We want to export exactly like it was stored in the database, to comply
    * with requirements on logging systems where no altering of the original log

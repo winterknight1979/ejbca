@@ -18,11 +18,18 @@ package org.ejbca.ui.web.admin.audit;
  * @version $Id: Condition.java 28844 2018-05-04 08:31:02Z samuellb $
  */
 public enum Condition {
+      /** param. */
   EQUALS,
+  /** param. */
   NOT_EQUALS,
+  /** param. */
   STARTS_WITH,
+  /** param. */
   ENDS_WITH,
+  /** param. */
   CONTAINS,
+  /** param. */
   LESS_THAN,
+  /** param. */
   GREATER_THAN
 }

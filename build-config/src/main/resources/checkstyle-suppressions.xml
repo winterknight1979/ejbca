@@ -570,6 +570,8 @@
 		files="JsfDynamicUiAjaxBehaviorListener.java" lines="21,23" /> <!-- Used in JDOC -->
 	<suppress checks="UnusedImportsCheck"
 		files="JsfDynamicUiValueChangeListener.java" lines="25" /> <!-- Used in JDOC -->
+	<suppress checks="ParameterNumberCheck"
+		files="AuditorManagedBean.java" lines=" 629" />
 	
 	
 </suppressions>

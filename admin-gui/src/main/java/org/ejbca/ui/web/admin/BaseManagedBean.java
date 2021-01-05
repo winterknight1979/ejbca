@@ -35,18 +35,23 @@ import org.ejbca.util.SelectItemComparator;
 
 /**
  * Base EJBCA JSF Managed Bean, all managed beans of EJBCA should inherit this
- * class
+ * class.
  *
  * @version $Id: BaseManagedBean.java 29589 2018-08-08 12:02:53Z bastianf $
  */
 public abstract class BaseManagedBean implements Serializable {
 
   private static final long serialVersionUID = -8019234011853194880L;
-  private static final Logger log = Logger.getLogger(BaseManagedBean.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(BaseManagedBean.class);
 
-  private static final Map<String, Map<String, Object>> publicConstantCache =
+  /** Param. */
+  private static final Map<String, Map<String, Object>> PUBLIC_CONST_CACHE =
       new ConcurrentHashMap<>();
 
+  /**
+   * @return bean
+   */
   protected EjbcaWebBean getEjbcaWebBean() {
     return EjbcaJSFHelper.getBean().getEjbcaWebBean();
   }
@@ -63,6 +68,11 @@ public abstract class BaseManagedBean implements Serializable {
         .isAuthorizedNoLogging(getAdmin(), resources);
   }
 
+  /**
+   * @param severity Sev
+   * @param messageResource Message
+   * @param params Params
+   */
   protected void addGlobalMessage(
       final Severity severity,
       final String messageResource,
@@ -72,6 +82,10 @@ public abstract class BaseManagedBean implements Serializable {
         .addMessage(null, new FacesMessage(severity, msg, msg));
   }
 
+  /**
+   * @param messageResource mess
+   * @param params Params
+   */
   protected void addErrorMessage(
       final String messageResource, final Object... params) {
     FacesContext ctx = FacesContext.getCurrentInstance();
@@ -83,6 +97,9 @@ public abstract class BaseManagedBean implements Serializable {
             getEjbcaWebBean().getText(messageResource, true, params)));
   }
 
+  /**
+   * @param messageResource message
+   */
   protected void addNonTranslatedErrorMessage(final String messageResource) {
     FacesContext ctx = FacesContext.getCurrentInstance();
     ctx.addMessage(
@@ -91,6 +108,10 @@ public abstract class BaseManagedBean implements Serializable {
             FacesMessage.SEVERITY_ERROR, messageResource, messageResource));
   }
 
+  /**
+   * @param messageResource message
+   * @param params params
+   */
   protected void addInfoMessage(
       final String messageResource, final Object... params) {
     FacesContext ctx = FacesContext.getCurrentInstance();
@@ -102,6 +123,9 @@ public abstract class BaseManagedBean implements Serializable {
             getEjbcaWebBean().getText(messageResource, true, params)));
   }
 
+  /**
+   * @param messageResource message
+   */
   protected void addNonTranslatedInfoMessage(final String messageResource) {
     FacesContext ctx = FacesContext.getCurrentInstance();
     ctx.addMessage(
@@ -110,6 +134,9 @@ public abstract class BaseManagedBean implements Serializable {
             FacesMessage.SEVERITY_INFO, messageResource, messageResource));
   }
 
+  /**
+   * @return token
+   */
   protected AuthenticationToken getAdmin() {
     return EjbcaJSFHelper.getBean().getAdmin();
   }
@@ -124,7 +151,7 @@ public abstract class BaseManagedBean implements Serializable {
    */
   protected Map<String, Object> getPublicConstantsAsMap(
       final Class<?> classObject) {
-    Map<String, Object> result = publicConstantCache.get(classObject.getName());
+    Map<String, Object> result = PUBLIC_CONST_CACHE.get(classObject.getName());
     if (result != null) {
       return result;
     }
@@ -141,7 +168,7 @@ public abstract class BaseManagedBean implements Serializable {
         throw new RuntimeException(e);
       }
     }
-    publicConstantCache.put(classObject.getName(), result);
+    PUBLIC_CONST_CACHE.put(classObject.getName(), result);
     return result;
   }
 
@@ -176,14 +203,14 @@ public abstract class BaseManagedBean implements Serializable {
       final Flash flash = facesContext.getExternalContext().getFlash();
       flash.setKeepMessages(true);
       final String url = viewUrl + (requestString == null ? "" : requestString);
-      if (log.isDebugEnabled()) {
-        log.debug("Trying Post-Redirect-Get to '" + url + "'.");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Trying Post-Redirect-Get to '" + url + "'.");
       }
       try {
         facesContext.getExternalContext().redirect(url);
       } catch (IOException e) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Post-Redirect-Get to '" + url + "' failed: " + e.getMessage());
         }
       }

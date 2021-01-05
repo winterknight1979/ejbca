@@ -44,6 +44,10 @@ public class MapToStringConverter implements Converter {
     return getAsString((Map<String, Object>) value);
   }
 
+  /**
+   * @param map Map
+   * @return String
+   */
   public static String getAsString(final Map<String, Object> map) {
     final StringBuilder sb = new StringBuilder();
     if (map.size() == 1 && map.containsKey("msg")) {

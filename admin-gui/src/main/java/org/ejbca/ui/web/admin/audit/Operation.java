@@ -18,6 +18,8 @@ package org.ejbca.ui.web.admin.audit;
  * @version $Id: Operation.java 28844 2018-05-04 08:31:02Z samuellb $
  */
 public enum Operation {
+      /** Param. */
   AND,
+  /** Param. */
   OR
 }

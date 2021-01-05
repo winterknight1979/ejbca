@@ -23,65 +23,104 @@ import org.cesecore.audit.AuditLogEntry;
  */
 public class AuditSearchCondition {
 
+      /** param. */
   private Operation operation = Operation.AND;
+  /** param. */
   private final String column;
+  /** param. */
   private Condition condition = Condition.EQUALS;
+  /** param. */
   private String value;
 
+  /** param. */
   private final List<SelectItem> options;
+  /** param. */
   private final List<SelectItem> conditions;
 
+  /**
+   * @param acolumn col
+   * @param theconditions conds
+   * @param theoptions opts
+   * @param acondition condition
+   * @param defaultValue value
+   */
   public AuditSearchCondition(
-      final String column,
-      final List<SelectItem> conditions,
-      final List<SelectItem> options,
-      final Condition condition,
+      final String acolumn,
+      final List<SelectItem> theconditions,
+      final List<SelectItem> theoptions,
+      final Condition acondition,
       final String defaultValue) {
-    this.column = column;
-    this.options = options;
+    this.column = acolumn;
+    this.options = theoptions;
     this.value = defaultValue;
-    this.condition = condition;
-    this.conditions = conditions;
+    this.condition = acondition;
+    this.conditions = theconditions;
   }
 
+  /**
+   * @param acolumn Col
+   * @param theconditions Conds
+   * @param theoptions Pos
+   */
   public AuditSearchCondition(
-      final String column,
-      final List<SelectItem> conditions,
-      final List<SelectItem> options) {
-    this.column = column;
-    this.options = options;
-    this.conditions = conditions;
+      final String acolumn,
+      final List<SelectItem> theconditions,
+      final List<SelectItem> theoptions) {
+    this.column = acolumn;
+    this.options = theoptions;
+    this.conditions = theconditions;
   }
 
-  public void setOperation(final Operation operation) {
-    this.operation = operation;
+  /**
+   * @param anoperation Operation
+   */
+  public void setOperation(final Operation anoperation) {
+    this.operation = anoperation;
   }
 
+  /**
+   * @return Operation
+   */
   public Operation getOperation() {
     return operation;
   }
 
+  /**
+   * @return column
+   */
   public String getColumn() {
     return column;
   }
 
-  public void setCondition(final String condition) {
-    this.condition = Condition.valueOf(condition);
+  /**
+   * @param acondition condition
+   */
+  public void setCondition(final String acondition) {
+    this.condition = Condition.valueOf(acondition);
   }
 
+  /**
+   * @return condition
+   */
   public String getCondition() {
     return condition.name();
   }
 
-  public void setValue(final String value) {
+  /**
+   * @param avalue value
+   */
+  public void setValue(final String avalue) {
     // The details column is XML-encoded, so escape any sensitive characters
     if (column.equals(AuditLogEntry.FIELD_ADDITIONAL_DETAILS)) {
-      this.value = StringEscapeUtils.escapeXml(value);
+      this.value = StringEscapeUtils.escapeXml(avalue);
     } else {
-      this.value = value;
+      this.value = avalue;
     }
   }
 
+  /**
+   * @return label
+   */
   public String getValueLabel() {
     if (options != null) {
       for (final SelectItem option : options) {
@@ -97,14 +136,23 @@ public class AuditSearchCondition {
     }
   }
 
+  /**
+   * @return Value
+   */
   public String getValue() {
     return value;
   }
 
+  /**
+   * @return Options
+   */
   public List<SelectItem> getOptions() {
     return options;
   }
 
+  /**
+   * @return Conditions
+   */
   public List<SelectItem> getConditions() {
     return conditions;
   }
