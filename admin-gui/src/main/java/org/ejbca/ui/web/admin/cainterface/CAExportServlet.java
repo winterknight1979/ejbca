@@ -19,13 +19,18 @@ import org.ejbca.ui.web.pub.ServletUtils;
 
 /** This Servlet exports a CA as an octet/stream. */
 public class CAExportServlet extends BaseAdminServlet {
-  private static final Logger log = Logger.getLogger(CAExportServlet.class);
+      /** Param. */
+  private static final Logger LOG = Logger.getLogger(CAExportServlet.class);
   private static final long serialVersionUID = 378499368926058906L;
+  /** Param. */
   public static final String HIDDEN_CANAME = "hiddencaname";
+  /** Param. */
   public static final String TEXTFIELD_EXPORTCA_PASSWORD =
       "textfieldexportcapassword";
 
+  /** Param. */
   @EJB private CAAdminSessionLocal caAdminSession;
+  /** Param. */
   @EJB private CaSessionLocal caSession;
 
   /** Initialize. */
@@ -33,7 +38,7 @@ public class CAExportServlet extends BaseAdminServlet {
   public void init(final ServletConfig config) throws ServletException {
     super.init(config);
     if (caAdminSession == null) {
-      log.error("Local EJB injection failed.");
+      LOG.error("Local EJB injection failed.");
     }
   }
 
@@ -48,9 +53,9 @@ public class CAExportServlet extends BaseAdminServlet {
   public void doPost(
       final HttpServletRequest req, final HttpServletResponse res)
       throws IOException, ServletException {
-    log.trace(">doPost()");
+    LOG.trace(">doPost()");
     doGet(req, res);
-    log.trace("<doPost()");
+    LOG.trace("<doPost()");
   }
 
   /**
@@ -63,20 +68,20 @@ public class CAExportServlet extends BaseAdminServlet {
   @Override
   public void doGet(final HttpServletRequest req, final HttpServletResponse res)
       throws IOException, ServletException {
-    log.trace(">doGet()");
+    LOG.trace(">doGet()");
     final AuthenticationToken admin;
     try {
       admin = authenticateAdmin(req, res, StandardRules.ROLE_ROOT.resource());
     } catch (AdminWebAuthenticationException authExc) {
       // TODO: localize this.
-      log.info("Authentication failed", authExc);
+      LOG.info("Authentication failed", authExc);
       res.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication failed");
       return;
     }
     RequestHelper.setDefaultCharacterEncoding(req);
     String caname = req.getParameter(HIDDEN_CANAME);
     String capassword = req.getParameter(TEXTFIELD_EXPORTCA_PASSWORD);
-    log.info(
+    LOG.info(
         "Got request from " + req.getRemoteAddr() + " to export " + caname);
     try {
       byte[] keystorebytes = null;
@@ -105,7 +110,7 @@ public class CAExportServlet extends BaseAdminServlet {
       res.getOutputStream().write(keystorebytes);
     } catch (Exception e) {
       // TODO: localize
-      log.info("Bad request", e);
+      LOG.info("Bad request", e);
       res.setContentType("text/plain");
       res.sendError(HttpServletResponse.SC_BAD_REQUEST, "Bad request.");
     }

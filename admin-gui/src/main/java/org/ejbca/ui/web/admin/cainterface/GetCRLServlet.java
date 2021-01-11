@@ -44,36 +44,42 @@ import org.ejbca.ui.web.pub.ServletUtils;
 public class GetCRLServlet extends BaseAdminServlet {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(GetCRLServlet.class);
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+  /** Log. */
+  private static final Logger LOG = Logger.getLogger(GetCRLServlet.class);
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** Param. */
   private static final String COMMAND_PROPERTY_NAME = "cmd";
+  /** Param. */
   private static final String COMMAND_CRL = "crl";
+  /** Param. */
   private static final String COMMAND_DELTACRL = "deltacrl";
+  /** Param. */
   private static final String ISSUER_PROPERTY = "issuer";
 
+  /** Param. */
   @EJB private CrlStoreSessionLocal crlStoreSession;
 
   @Override
   public void doPost(
       final HttpServletRequest req, final HttpServletResponse res)
       throws IOException, ServletException {
-    log.trace(">doPost()");
+    LOG.trace(">doPost()");
     doGet(req, res);
-    log.trace("<doPost()");
+    LOG.trace("<doPost()");
   }
 
   @Override
   public void doGet(final HttpServletRequest req, final HttpServletResponse res)
       throws java.io.IOException, ServletException {
-    log.trace(">doGet()");
+    LOG.trace(">doGet()");
     try {
       authenticateAdmin(req, res, AccessRulesConstants.REGULAR_VIEWCERTIFICATE);
     } catch (AdminWebAuthenticationException authExc) {
       // TODO: localize this.
-      log.info("Authentication failed", authExc);
+      LOG.info("Authentication failed", authExc);
       res.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication failed");
       return;
     }
@@ -109,13 +115,13 @@ public class GetCRLServlet extends BaseAdminServlet {
         res.setContentLength(crl.length);
         res.getOutputStream().write(crl);
         String iMsg =
-            intres.getLocalizedMessage("certreq.sentlatestcrl", remoteAddr);
-        log.info(iMsg);
+            INTRES.getLocalizedMessage("certreq.sentlatestcrl", remoteAddr);
+        LOG.info(iMsg);
       } catch (Exception e) {
         String errMsg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "certreq.errorsendcrl", remoteAddr, e.getMessage());
-        log.error(errMsg, e);
+        LOG.error(errMsg, e);
         res.sendError(HttpServletResponse.SC_NOT_FOUND, errMsg);
         return;
       }
@@ -135,9 +141,9 @@ public class GetCRLServlet extends BaseAdminServlet {
         res.setContentType("application/pkix-crl");
         res.setContentLength(crl.length);
         res.getOutputStream().write(crl);
-        log.info("Sent latest delta CRL to client at " + remoteAddr);
+        LOG.info("Sent latest delta CRL to client at " + remoteAddr);
       } catch (Exception e) {
-        log.error("Error sending latest delta CRL to " + remoteAddr, e);
+        LOG.error("Error sending latest delta CRL to " + remoteAddr, e);
         res.sendError(
             HttpServletResponse.SC_NOT_FOUND,
             "Error getting latest delta CRL.");

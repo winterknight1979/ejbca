@@ -59,173 +59,268 @@ import org.ejbca.ui.web.admin.configuration.EjbcaWebBean;
  */
 public class EditPublisherJSPHelper {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(EditPublisherJSPHelper.class);
 
+  /** Param. */
   public static final String ACTION = "action";
+  /** Param. */
   public static final String ACTION_EDIT_PUBLISHERS = "editpublishers";
+  /** Param. */
   public static final String ACTION_EDIT_PUBLISHER = "editpublisher";
 
+  /** Param. */
   public static final String ACTION_CHANGE_PUBLISHERTYPE =
       "changepublishertype";
 
+  /** Param. */
   public static final String CHECKBOX_VALUE = BasePublisher.TRUE;
 
   //  Used in publishers.jsp
+  /** Param. */
   public static final String BUTTON_EDIT_PUBLISHER = "buttoneditpublisher";
+  /** Param. */
   public static final String BUTTON_DELETE_PUBLISHER = "buttondeletepublisher";
+  /** Param. */
   public static final String BUTTON_ADD_PUBLISHER = "buttonaddpublisher";
+  /** Param. */
   public static final String BUTTON_RENAME_PUBLISHER = "buttonrenamepublisher";
+  /** Param. */
   public static final String BUTTON_CLONE_PUBLISHER = "buttonclonepublisher";
 
+  /** Param. */
   public static final String SELECT_PUBLISHER = "selectpublisher";
+  /** Param. */
   public static final String TEXTFIELD_PUBLISHERNAME = "textfieldpublishername";
+  /** Param. */
   public static final String HIDDEN_PUBLISHERNAME = "hiddenpublishername";
 
   //  Buttons used in publisher.jsp
+  /** Param. */
   public static final String BUTTON_TESTCONNECTION = "buttontestconnection";
+  /** Param. */
   public static final String BUTTON_SAVE = "buttonsave";
+  /** Param. */
   public static final String BUTTON_CANCEL = "buttoncancel";
 
+  /** Param. */
   public static final String TYPE_CUSTOM = "typecustom";
+  /** Param. */
   public static final String TYPE_LDAP = "typeldap";
+  /** Param. */
   public static final String TYPE_AD = "typead";
+  /** Param. */
   public static final String TYPE_LDAP_SEARCH = "typeldapsearch";
 
+  /** Param. */
   public static final String HIDDEN_PUBLISHERTYPE = "hiddenpublishertype";
+  /** Param. */
   public static final String SELECT_PUBLISHERTYPE = "selectpublishertype";
 
+  /** Param. */
   public static final String SELECT_APPLICABLECAS = "selectapplicablecas";
+  /** Param. */
   public static final String TEXTAREA_DESCRIPTION = "textareadescription";
 
+  /** Param. */
   public static final String SELECT_CUSTOMCLASS = "selectcustomclass";
+  /** Param. */
   public static final String TEXTFIELD_CUSTOMCLASSPATH =
       "textfieldcustomclasspath";
+  /** Param. */
   public static final String TEXTAREA_CUSTOMPROPERTIES =
       "textareacustomproperties";
+  /** Param. */
   public static final String TEXTAREA_PROPERTIES = "textareaproperties";
+  /** Param. */
   public static final String TEXTAREA_GROUPS = "textareagroups";
+  /** Param. */
 
   public static final String TEXTFIELD_LDAPHOSTNAME = "textfieldldaphostname";
+  /** Param. */
   public static final String TEXTFIELD_LDAPPORT = "textfieldldapport";
+  /** Param. */
   public static final String TEXTFIELD_LDAPBASEDN = "textfieldldapbasedn";
+  /** Param. */
   public static final String TEXTFIELD_LDAPLOGINDN = "textfieldldaplogindn";
+  /** Param. */
   public static final String TEXTFIELD_LDAPUSEROBJECTCLASS =
       "textfieldldapuserobjectclass";
+  /** Param. */
   public static final String TEXTFIELD_LDAPCAOBJECTCLASS =
       "textfieldldapcaobjectclass";
+  /** Param. */
   public static final String TEXTFIELD_LDAPUSERCERTATTRIBUTE =
       "textfieldldapusercertattribute";
+  /** Param. */
   public static final String TEXTFIELD_LDAPCACERTATTRIBUTE =
       "textfieldldapcacertattribute";
+  /** Param. */
   public static final String TEXTFIELD_LDAPCRLATTRIBUTE =
       "textfieldldapcrlattribute";
+  /** Param. */
   public static final String TEXTFIELD_LDAPDELTACRLATTRIBUTE =
       "textfieldldapdeltacrlattribute";
+  /** Param. */
   public static final String TEXTFIELD_LDAPARLATTRIBUTE =
       "textfieldldaparlattribute";
+  /** Param. */
   public static final String TEXTFIELD_LDAPSEARCHBASEDN =
       "textfieldldapsearchbasedn";
+  /** Param. */
   public static final String TEXTFIELD_LDAPSEARCHFILTER =
       "textfieldldapsearchfilter";
+  /** Param. */
   public static final String TEXTFIELD_LDAPTIMEOUT = "textfieldldaptimeout";
+  /** Param. */
   public static final String TEXTFIELD_LDAPREADTIMEOUT =
       "textfieldldapreadtimeout";
+  /** Param. */
   public static final String TEXTFIELD_LDAPSTORETIMEOUT =
       "textfieldldapstoretimeout";
+  /** Param. */
   public static final String TEXTFIELD_VA_DATASOURCE = "textfieldvadatasource";
+  /** Param. */
   public static final String PASSWORD_LDAPLOGINPASSWORD =
       "textfieldldaploginpassword";
+  /** Param. */
   public static final String PASSWORD_LDAPLOGINPASSWORDPLACEHOLDER =
       "placeholder";
+  /** Param. */
   public static final String PASSWORD_LDAPCONFIRMLOGINPWD =
       "textfieldldaploginconfirmpwd";
+  /** Param. */
   public static final String RADIO_LDAPCONNECTIONSECURITY =
       "radioldapconnectionsecurity";
+  /** Param. */
   public static final String CHECKBOX_LDAPCREATENONEXISTING =
       "checkboxldapcreatenonexisting";
+  /** Param. */
   public static final String CHECKBOX_LDAPMODIFYEXISTING =
       "checkboxldapmodifyexisting";
+  /** Param. */
   public static final String CHECKBOX_LDAPMODIFYEXISTINGATTRIBUTES =
       "checkboxldapmodifyexistingattributes";
+  /** Param. */
   public static final String CHECKBOX_LDAPADDNONEXISTING =
       "checkboxldapaddnonexisting";
+  /** Param. */
   public static final String CHECKBOX_LDAP_CREATEINTERMEDIATENODES =
       "checkboxldapcreateintermediatenodes";
+  /** Param. */
   public static final String CHECKBOX_LDAPADDMULTIPLECERTIFICATES =
       "checkboxaldapddmultiplecertificates";
+  /** Param. */
   public static final String CHECKBOX_LDAP_REVOKE_REMOVECERTIFICATE =
       "checkboxldaprevokeremovecertificate";
+  /** Param. */
   public static final String CHECKBOX_LDAP_REVOKE_REMOVEUSERONCERTREVOKE =
       "checkboxldaprevokeuseroncertrevoke";
+  /** Param. */
   public static final String CHECKBOX_LDAP_SET_USERPASSWORD =
       "checkboxldapsetuserpassword";
+  /** Param. */
   public static final String CHECKBOX_ONLYUSEQUEUE = "textfieldonlyusequeue";
+  /** Param. */
   public static final String CHECKBOX_KEEPPUBLISHEDINQUEUE =
       "textfieldkeeppublishedinqueue";
+  /** Param. */
   public static final String CHECKBOX_USEQUEUEFORCRLS =
       "textfieldusequeueforcrls";
+  /** Param. */
   public static final String CHECKBOX_USEQUEUEFORCERTIFICATES =
       "textfieldusequeueforcertificates";
+  /** Param. */
   public static final String CHECKBOX_VA_STORECERT = "textfieldvastorecert";
+  /** Param. */
   public static final String CHECKBOX_VA_STORECRL = "textfieldvastorecrl";
+  /** Param. */
   public static final String CHECKBOX_VA_ONLY_PUBLISH_REVOKED =
       "checkboxonlypublishrevoked";
 
+  /** Param. */
   public static final String SELECT_LDAPUSEFIELDINLDAPDN =
       "selectldapusefieldsinldapdn";
 
+  /** Param. */
   public static final String CHECKBOX_ADUSEPASSWORD = "checkboxadusepassword";
+  /** Param. */
   public static final String SELECT_ADUSERACCOUNTCONTROL =
       "selectaduseraccountcontrol";
+  /** Param. */
   public static final String SELECT_ADSAMACCOUNTNAME = "selectsamaccountname";
+  /** Param. */
   public static final String TEXTFIELD_ADUSERDESCRIPTION =
       "textfieldaduserdescription";
 
+  /** Param. */
   public static final String PAGE_PUBLISHER = "publisherpage.jspf";
+  /** Param. */
   public static final String PAGE_PUBLISHERS = "publisherspage.jspf";
 
+  /** Param. */
   private EjbcaWebBean ejbcawebbean;
 
+  /** Param. */
   private CAInterfaceBean cabean;
+  /** Param. */
   private boolean initialized = false;
+  /** Param. */
   private boolean publisherexists = false;
+  /** Param. */
   private boolean publisherdeletefailed = false;
+  /** Param. */
   private String publisherDeleteFailedMessage = "";
+  /** Param. */
   private boolean publisherEditFailed = false;
+  /** Param. */
   private String publisherEditMessage = "";
+  /** Param. */
   private boolean connectionmessage = false;
+  /** Param. */
   private boolean connectionsuccessful = false;
+  /** Param. */
   private String connectionerrormessage = "";
+  /** Param. */
   private BasePublisher publisherdata = null;
 
+  /** Param. */
   private String publishername = null;
+  /** Param. */
   private Integer publisherId = null;
 
-  /** Creates new LogInterfaceBean */
-  public EditPublisherJSPHelper() {}
+  /** Creates new LogInterfaceBean. */
+  public EditPublisherJSPHelper() { }
   // Public methods.
   /**
    * Method that initialized the bean.
    *
    * @param request is a reference to the http request.
-   * @param ejbcawebbean Web bean
-   * @param cabean CA bean
+   * @param anejbcawebbean Web bean
+   * @param acabean CA bean
    * @throws Exception Fail
    */
   public void initialize(
       final HttpServletRequest request,
-      final EjbcaWebBean ejbcawebbean,
-      final CAInterfaceBean cabean)
+      final EjbcaWebBean anejbcawebbean,
+      final CAInterfaceBean acabean)
       throws Exception {
 
     if (!initialized) {
-      this.cabean = cabean;
-      this.ejbcawebbean = ejbcawebbean;
+      this.cabean = acabean;
+      this.ejbcawebbean = anejbcawebbean;
       initialized = true;
     }
   }
 
+  /**
+   * @param request Req
+   * @return Req
+   * @throws AuthorizationDeniedException Fail
+   * @throws PublisherDoesntExistsException Fail
+   * @throws PublisherExistsException Fail
+   */
   @SuppressWarnings({"deprecation"})
   public String parseRequest(final HttpServletRequest request)
       throws AuthorizationDeniedException, PublisherDoesntExistsException,
@@ -392,8 +487,8 @@ public class EditPublisherJSPHelper {
                 }
                 if (custompublisherdata.isCustomUiRenderingSupported()) {
                   final StringBuilder sb = new StringBuilder();
-                  for (final CustomPublisherProperty customPublisherProperty :
-                      custompublisherdata.getCustomUiPropertyList(
+                  for (final CustomPublisherProperty customPublisherProperty
+                      : custompublisherdata.getCustomUiPropertyList(
                           this.cabean.getAuthenticationToken())) {
                     final String customValue =
                         request.getParameter(customPublisherProperty.getName());
@@ -727,6 +822,7 @@ public class EditPublisherJSPHelper {
               case PublisherConst.TYPE_MULTIGROUPPUBLISHER:
                 publisherdata = new MultiGroupPublisher();
                 break;
+              default: break;
             }
           } else {
             publisherdata = new CustomPublisherContainer();
@@ -745,6 +841,9 @@ public class EditPublisherJSPHelper {
     return includefile;
   }
 
+  /**
+   * Types.
+   */
   private static final int[] AVAILABLEPUBLISHER_TYPES =
       new int[] {
         PublisherConst.TYPE_LDAPPUBLISHER,
@@ -753,6 +852,7 @@ public class EditPublisherJSPHelper {
         PublisherConst.TYPE_CUSTOMPUBLISHERCONTAINER,
         PublisherConst.TYPE_MULTIGROUPPUBLISHER
       };
+  /** Texts. */
   private static final String[] AVAILABLEPUBLISHER_TYPETEXTS =
       new String[] {
         "LDAPPUBLISHER",
@@ -762,14 +862,24 @@ public class EditPublisherJSPHelper {
         "MULTIGROUPPUBLISHER"
       };
 
+  /**
+   * @return Name
+   */
   public String getPublisherName() {
     return publishername;
   }
 
+  /**
+   * @return ID
+   */
   public int getPublisherId() {
     return publisherId;
   }
 
+  /**
+   * @param className Class
+   * @return Name
+   */
   public String getPublisherName(final String className) {
     final String klassSimpleName =
         className.substring(className.lastIndexOf('.') + 1);
@@ -778,15 +888,19 @@ public class EditPublisherJSPHelper {
     if (text.equals(klassSimpleName.toUpperCase())) {
       // Present the publisher with the class name when no language key is
       // present
+      final int len = 3;
       text =
           klassSimpleName
               + " ("
-              + ejbcawebbean.getText(AVAILABLEPUBLISHER_TYPETEXTS[3])
+              + ejbcawebbean.getText(AVAILABLEPUBLISHER_TYPETEXTS[len])
               + ")";
     }
     return text;
   }
 
+  /**
+   * @return name
+   */
   public String getCurrentPublisherName() {
     if (publisherdata instanceof CustomPublisherContainer) {
       ICustomPublisher iCustomPublisher =
@@ -823,12 +937,13 @@ public class EditPublisherJSPHelper {
       }
     }
     // Allow selection of any class path
+    final int len = 3;
     if (WebConfiguration.isManualClassPathsEnabled()) {
       ret.add(
           new SelectItem(
               Integer.valueOf(PublisherConst.TYPE_CUSTOMPUBLISHERCONTAINER)
                   .toString(),
-              ejbcawebbean.getText(AVAILABLEPUBLISHER_TYPETEXTS[3])));
+              ejbcawebbean.getText(AVAILABLEPUBLISHER_TYPETEXTS[len])));
     }
     // If an publisher was configured before the plugin mechanism we still want
     // to show it
@@ -859,6 +974,9 @@ public class EditPublisherJSPHelper {
     return ret;
   }
 
+  /**
+   * @return Value
+   */
   public String getSelectedPublisherValue() {
     if (getPublisherType() == PublisherConst.TYPE_CUSTOMPUBLISHERCONTAINER) {
       final CustomPublisherContainer custompublisher =
@@ -877,6 +995,9 @@ public class EditPublisherJSPHelper {
     return Integer.valueOf(getPublisherType()).toString();
   }
 
+  /**
+   * @return type
+   */
   @SuppressWarnings("deprecation")
   public int getPublisherType() {
     int retval = PublisherConst.TYPE_CUSTOMPUBLISHERCONTAINER;
@@ -907,6 +1028,9 @@ public class EditPublisherJSPHelper {
     return retval;
   }
 
+  /**
+   * @return bool
+   */
   public boolean hasEditRights() {
     return ejbcawebbean.isAuthorizedNoLogSilent(
         AccessRulesConstants.REGULAR_EDITPUBLISHER);
@@ -929,44 +1053,61 @@ public class EditPublisherJSPHelper {
 
   /** @return true if the publisher is deprecated and shouldn't be editable. */
   public boolean isDeprecated() {
-    if (publisherdata
+    return publisherdata
         .getClass()
         .getName()
         .equals(
             LegacyValidationAuthorityPublisher
-                .OLD_VA_PUBLISHER_QUALIFIED_NAME)) {
-      return true;
-    } else {
-      return false;
-    }
+                .OLD_VA_PUBLISHER_QUALIFIED_NAME);
   }
 
+  /**
+   * @return len
+   */
   public int getPublisherQueueLength() {
     return getPublisherQueueLength(publishername);
   }
 
+  /**
+   * @param intervalLower min
+   * @param intervalUpper max
+   * @return lenb
+   */
   public int[] getPublisherQueueLength(
       final int[] intervalLower, final int[] intervalUpper) {
     return getPublisherQueueLength(publishername, intervalLower, intervalUpper);
   }
 
+  /**
+   * @param apublishername Name
+   * @return len
+   */
   @SuppressWarnings("deprecation")
-  public int getPublisherQueueLength(final String publishername) {
+  public int getPublisherQueueLength(final String apublishername) {
     return cabean.getPublisherQueueLength(
-        cabean.getPublisherDataHandler().getPublisherId(publishername));
+        cabean.getPublisherDataHandler().getPublisherId(apublishername));
   }
 
+  /**
+   * @param apublishername name
+   * @param intervalLower min
+   * @param intervalUpper max
+   * @return len
+   */
   @SuppressWarnings("deprecation")
   public int[] getPublisherQueueLength(
-      final String publishername,
+      final String apublishername,
       final int[] intervalLower,
       final int[] intervalUpper) {
     return cabean.getPublisherQueueLength(
-        cabean.getPublisherDataHandler().getPublisherId(publishername),
+        cabean.getPublisherDataHandler().getPublisherId(apublishername),
         intervalLower,
         intervalUpper);
   }
 
+  /**
+   * @return classes
+   */
   public List<String> getCustomClasses() {
     final List<String> classes = new ArrayList<>();
     final ServiceLoader<ICustomPublisher> svcloader =
@@ -992,77 +1133,131 @@ public class EditPublisherJSPHelper {
     return classes;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isPublisherexists() {
     return publisherexists;
   }
 
-  public void setPublisherexists(final boolean publisherexists) {
-    this.publisherexists = publisherexists;
+  /**
+   * @param apublisherexists bool
+   */
+  public void setPublisherexists(final boolean apublisherexists) {
+    this.publisherexists = apublisherexists;
   }
 
+  /**
+   * @return Bool
+   */
   public boolean isPublisherdeletefailed() {
     return publisherdeletefailed;
   }
 
-  public void setPublisherdeletefailed(final boolean publisherdeletefailed) {
-    this.publisherdeletefailed = publisherdeletefailed;
+  /**
+   * @param apublisherdeletefailed bool
+   */
+  public void setPublisherdeletefailed(final boolean apublisherdeletefailed) {
+    this.publisherdeletefailed = apublisherdeletefailed;
   }
 
+  /**
+   * @return msg
+   */
   public String getPublisherDeleteFailedMessage() {
     return publisherDeleteFailedMessage;
   }
 
+  /**
+   * @param apublisherDeleteFailedMessage msg
+   */
   public void setPublisherDeleteFailedMessage(
-      final String publisherDeleteFailedMessage) {
-    this.publisherDeleteFailedMessage = publisherDeleteFailedMessage;
+      final String apublisherDeleteFailedMessage) {
+    this.publisherDeleteFailedMessage = apublisherDeleteFailedMessage;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isPublisherEditFailed() {
     return publisherEditFailed;
   }
 
-  public void setPublisherEditFailed(final boolean publisherEditFailed) {
-    this.publisherEditFailed = publisherEditFailed;
+  /**
+   * @param apublisherEditFailed bool
+   */
+  public void setPublisherEditFailed(final boolean apublisherEditFailed) {
+    this.publisherEditFailed = apublisherEditFailed;
   }
 
+  /**
+   * @return Msg
+   */
   public String getPublisherEditMessage() {
     return publisherEditMessage;
   }
 
-  public void setPublisherEditMessage(final String publisherEditMessage) {
-    this.publisherEditMessage = publisherEditMessage;
+  /**
+   * @param apublisherEditMessage msg
+   */
+  public void setPublisherEditMessage(final String apublisherEditMessage) {
+    this.publisherEditMessage = apublisherEditMessage;
   }
 
+  /**
+   * @return msg
+   */
   public boolean getConnectionmessage() {
     return connectionmessage;
   }
 
-  public void setConnectionmessage(final boolean connectionmessage) {
-    this.connectionmessage = connectionmessage;
+  /**
+   * @param aconnectionmessage msg
+   */
+  public void setConnectionmessage(final boolean aconnectionmessage) {
+    this.connectionmessage = aconnectionmessage;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isConnectionsuccessful() {
     return connectionsuccessful;
   }
 
-  public void setConnectionsuccessful(final boolean connectionsuccessful) {
-    this.connectionsuccessful = connectionsuccessful;
+  /**
+   * @param isconnectionsuccessful bool
+   */
+  public void setConnectionsuccessful(final boolean isconnectionsuccessful) {
+    this.connectionsuccessful = isconnectionsuccessful;
   }
 
+  /**
+   * @return msg
+   */
   public String getConnectionerrormessage() {
     return connectionerrormessage;
   }
 
-  public void setConnectionerrormessage(final String connectionerrormessage) {
-    this.connectionerrormessage = connectionerrormessage;
+  /**
+   * @param aconnectionerrormessage msg
+   */
+  public void setConnectionerrormessage(final String aconnectionerrormessage) {
+    this.connectionerrormessage = aconnectionerrormessage;
   }
 
+  /**
+   * @return Data
+   */
   public BasePublisher getPublisherdata() {
     return publisherdata;
   }
 
-  public void setPublisherdata(final BasePublisher publisherdata) {
-    this.publisherdata = publisherdata;
+  /**
+   * @param apublisherdata Data
+   */
+  public void setPublisherdata(final BasePublisher apublisherdata) {
+    this.publisherdata = apublisherdata;
   }
 
   /**
@@ -1082,6 +1277,13 @@ public class EditPublisherJSPHelper {
     return "";
   }
 
+  /**
+   * @param publisherNameToIdMap Map
+   * @param textareaData Data
+   * @return Data
+   * @throws PublisherDoesntExistsException fail
+   * @throws PublisherExistsException fail
+   */
   List<TreeSet<Integer>> convertMultiPublishersStringToData(
       final Map<String, Integer> publisherNameToIdMap,
       final String textareaData)
@@ -1098,11 +1300,11 @@ public class EditPublisherJSPHelper {
           tree = new TreeSet<>();
         }
       } else {
-        Integer publisherId = publisherNameToIdMap.get(publisherName);
-        if (publisherId != null) {
-          if (!selectedPublishers.contains(publisherId)) {
-            tree.add(publisherId);
-            selectedPublishers.add(publisherId);
+        Integer apublisherId = publisherNameToIdMap.get(publisherName);
+        if (apublisherId != null) {
+          if (!selectedPublishers.contains(apublisherId)) {
+            tree.add(apublisherId);
+            selectedPublishers.add(apublisherId);
           } else {
             throw new PublisherExistsException(
                 "Publisher selected at least twice: " + publisherName);
@@ -1119,6 +1321,11 @@ public class EditPublisherJSPHelper {
     return data;
   }
 
+  /**
+   * @param publisherIdToNameMap Name
+   * @param data Data
+   * @return Data
+   */
   String convertMultiPublishersDataToString(
       final Map<Integer, String> publisherIdToNameMap,
       final List<TreeSet<Integer>> data) {
@@ -1126,12 +1333,12 @@ public class EditPublisherJSPHelper {
     String prefix = "";
     for (TreeSet<Integer> group : data) {
       List<String> publisherNames = new ArrayList<>();
-      for (Integer publisherId : group) {
-        String name = publisherIdToNameMap.get(publisherId);
+      for (Integer apublisherId : group) {
+        String name = publisherIdToNameMap.get(apublisherId);
         if (StringUtils.isNotEmpty(name)) {
           publisherNames.add(name);
-        } else if (log.isDebugEnabled()) {
-          log.info("No name found for publisher with id " + publisherId);
+        } else if (LOG.isDebugEnabled()) {
+          LOG.info("No name found for publisher with id " + apublisherId);
         }
       }
       Collections.sort(publisherNames);
@@ -1148,6 +1355,9 @@ public class EditPublisherJSPHelper {
     return result.toString();
   }
 
+  /**
+   * @return Data
+   */
   public List<String> getPublisherListAvailable() {
     final List<String> ret = new ArrayList<>();
     final Collection<Integer> authorizedPublisherIds =
@@ -1160,13 +1370,16 @@ public class EditPublisherJSPHelper {
     authorizedPublisherIds.remove(this.publisherId);
     final Map<Integer, String> publisherIdToNameMap =
         ejbcawebbean.getEjb().getPublisherSession().getPublisherIdToNameMap();
-    for (final Integer publisherId : authorizedPublisherIds) {
-      ret.add(publisherIdToNameMap.get(publisherId));
+    for (final Integer apublisherId : authorizedPublisherIds) {
+      ret.add(publisherIdToNameMap.get(apublisherId));
     }
     Collections.sort(ret);
     return ret;
   }
 
+  /**
+   * @return Data
+   */
   public String getMultiPublishersDataAsString() {
     MultiGroupPublisher multiGroupPublisher =
         (MultiGroupPublisher) this.publisherdata;

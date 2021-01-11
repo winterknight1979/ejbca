@@ -83,25 +83,33 @@ import org.ejbca.ui.web.admin.rainterface.UserView;
 public class AdminCertReqServlet extends BaseAdminServlet {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(AdminCertReqServlet.class);
+  /** Param. */
+  private static final Logger LOG = Logger.getLogger(AdminCertReqServlet.class);
+  /** Param. */
 
   private static final byte[] BEGIN_CERT =
       "-----BEGIN CERTIFICATE-----".getBytes();
+  /** Param. */
   private static final int BEGIN_CERT_LENGTH = BEGIN_CERT.length;
 
+  /** Param. */
   private static final byte[] END_CERT = "-----END CERTIFICATE-----".getBytes();
+  /** Param. */
   private static final int END_CERT_LENGTH = END_CERT.length;
 
+  /** Param. */
   private static final byte[] NL = "\n".getBytes();
+  /** Param. */
   private static final int NL_LENGTH = NL.length;
 
+  /** Param. */
   @EJB private SignSessionLocal signSession;
 
   @Override
   public void init(final ServletConfig config) throws ServletException {
     super.init(config);
     if (signSession == null) {
-      log.error("Local EJB injection failed.");
+      LOG.error("Local EJB injection failed.");
     }
   }
 
@@ -139,7 +147,7 @@ public class AdminCertReqServlet extends BaseAdminServlet {
               request, response, AccessRulesConstants.REGULAR_CREATEENDENTITY);
     } catch (AdminWebAuthenticationException authExc) {
       // TODO: localize this.
-      log.info("Authentication failed", authExc);
+      LOG.info("Authentication failed", authExc);
       response.sendError(
           HttpServletResponse.SC_FORBIDDEN, "Authentication failed");
       return;
@@ -187,7 +195,8 @@ public class AdminCertReqServlet extends BaseAdminServlet {
 
     String tmp = null;
     int eProfileId = EndEntityConstants.EMPTY_END_ENTITY_PROFILE;
-    if ((tmp = request.getParameter("entityprofile")) != null) {
+    tmp = request.getParameter("entityprofile");
+    if (tmp != null) {
       int reqId;
       try {
         reqId = rabean.getEndEntityProfileId(tmp);
@@ -199,7 +208,8 @@ public class AdminCertReqServlet extends BaseAdminServlet {
     newuser.setEndEntityProfileId(eProfileId);
 
     int cProfileId = CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER;
-    if ((tmp = request.getParameter("certificateprofile")) != null) {
+    tmp = request.getParameter("certificateprofile");
+    if (tmp != null) {
       CAInterfaceBean cabean = getCaBean(request);
       int reqId = cabean.getCertificateProfileId(tmp);
       if (reqId == 0) {
@@ -210,7 +220,8 @@ public class AdminCertReqServlet extends BaseAdminServlet {
     newuser.setCertificateProfileId(cProfileId);
 
     int caid = 0;
-    if ((tmp = request.getParameter("ca")) != null) {
+    tmp = request.getParameter("ca");
+    if (tmp != null) {
       // TODO: get requested CA to sign with
     }
     newuser.setCAId(caid);
@@ -257,8 +268,8 @@ public class AdminCertReqServlet extends BaseAdminServlet {
     } catch (CertificateExtensionException e) {
       throw new ServletException(e);
     }
-    if (log.isDebugEnabled()) {
-      log.debug("Created certificate (PKCS7) for " + username);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Created certificate (PKCS7) for " + username);
     }
     sendNewB64Cert(Base64.encode(pkcs7), response);
   }
@@ -267,20 +278,22 @@ public class AdminCertReqServlet extends BaseAdminServlet {
   public void doGet(
       final HttpServletRequest request, final HttpServletResponse response)
       throws IOException, ServletException {
-    log.trace(">doGet()");
+    LOG.trace(">doGet()");
     response.setHeader("Allow", "POST");
     response.sendError(
         HttpServletResponse.SC_METHOD_NOT_ALLOWED,
         "The certificate request servlet only handles the POST method.");
-    log.trace("<doGet()");
+    LOG.trace("<doGet()");
   } // doGet
 
   private void sendNewB64Cert(
       final byte[] b64cert, final HttpServletResponse out) throws IOException {
+    final int mul = 3;
     out.setContentType("application/octet-stream");
     out.setHeader("Content-Disposition", "filename=cert.pem");
     out.setContentLength(
-        b64cert.length + BEGIN_CERT_LENGTH + END_CERT_LENGTH + (3 * NL_LENGTH));
+        b64cert.length + BEGIN_CERT_LENGTH
+            + END_CERT_LENGTH + (mul * NL_LENGTH));
 
     ServletOutputStream os = out.getOutputStream();
     os.write(BEGIN_CERT);
@@ -296,7 +309,7 @@ public class AdminCertReqServlet extends BaseAdminServlet {
    * @param pkcs10 PKCS 10 string
    * @return bytes
    */
-  private static final byte[] pkcs10Bytes(final String pkcs10) {
+  private static byte[] pkcs10Bytes(final String pkcs10) {
     byte[] bytes = null;
     if (pkcs10 != null) {
       byte[] reqBytes = pkcs10.getBytes();
@@ -325,7 +338,7 @@ public class AdminCertReqServlet extends BaseAdminServlet {
    * @return Bean
    * @throws ServletException Fail
    */
-  private final CAInterfaceBean getCaBean(final HttpServletRequest req)
+  private CAInterfaceBean getCaBean(final HttpServletRequest req)
       throws ServletException {
     HttpSession session = req.getSession();
     CAInterfaceBean cabean = (CAInterfaceBean) session.getAttribute("cabean");
@@ -354,12 +367,14 @@ public class AdminCertReqServlet extends BaseAdminServlet {
 
   /**
    * @param rabean Bean
-   * @param username User
+   * @param ousername User
    * @return String
    * @throws ServletException Fail
    */
-  private final String checkUsername(
-      final RAInterfaceBean rabean, String username) throws ServletException {
+  private String checkUsername(
+      final RAInterfaceBean rabean,
+      final String ousername) throws ServletException {
+    String username = ousername;
     if (username != null) {
       username = username.trim();
     }

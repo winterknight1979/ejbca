@@ -47,25 +47,34 @@ import org.ejbca.ui.web.pub.ServletUtils;
 public class CACertServlet extends BaseAdminServlet {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(CACertServlet.class);
+  /** Param. */
+  private static final Logger LOG = Logger.getLogger(CACertServlet.class);
 
+/** Param. */
   private static final String COMMAND_PROPERTY_NAME = "cmd";
+  /** Param. */
   private static final String COMMAND_NSCACERT = "nscacert";
+  /** Param. */
   private static final String COMMAND_IECACERT = "iecacert";
+  /** Param. */
   private static final String COMMAND_CACERT = "cacert";
+  /** Param. */
   private static final String COMMAND_JKSTRUSTSTORE = "jkscert";
 
+/** Param. */
   private static final String LEVEL_PROPERTY = "level";
+  /** Param. */
   private static final String ISSUER_PROPERTY = "issuer";
+  /** Param. */
   private static final String JKSPASSWORD_PROPERTY = "password";
-
+/** Param. */
   @EJB private SignSessionLocal signSession;
 
   @Override
   public void init(final ServletConfig config) throws ServletException {
     super.init(config);
     if (signSession == null) {
-      log.error("Local EJB injection failed.");
+      LOG.error("Local EJB injection failed.");
     }
   }
 
@@ -73,20 +82,20 @@ public class CACertServlet extends BaseAdminServlet {
   public void doPost(
       final HttpServletRequest req, final HttpServletResponse res)
       throws IOException, ServletException {
-    log.trace(">doPost()");
+    LOG.trace(">doPost()");
     doGet(req, res);
-    log.trace("<doPost()");
+    LOG.trace("<doPost()");
   }
 
   @Override
   public void doGet(final HttpServletRequest req, final HttpServletResponse res)
       throws java.io.IOException, ServletException {
-    log.trace(">doGet()");
+    LOG.trace(">doGet()");
     try {
       authenticateAdmin(req, res, AccessRulesConstants.REGULAR_VIEWCERTIFICATE);
     } catch (AdminWebAuthenticationException authExc) {
       // TODO: localize this.
-      log.info("Authentication failed", authExc);
+      LOG.info("Authentication failed", authExc);
       res.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication failed");
       return;
     }
@@ -99,7 +108,7 @@ public class CACertServlet extends BaseAdminServlet {
 
     String command;
     // Keep this for logging.
-    log.debug("Got request from " + req.getRemoteAddr());
+    LOG.debug("Got request from " + req.getRemoteAddr());
     command = req.getParameter(COMMAND_PROPERTY_NAME);
     if (command == null) {
       command = "";
@@ -125,7 +134,7 @@ public class CACertServlet extends BaseAdminServlet {
         if ((chain.length - 1 - level) < 0) {
           PrintStream ps = new PrintStream(res.getOutputStream());
           ps.println("No CA certificate of level " + level + "exist.");
-          log.error("No CA certificate of level " + level + "exist.");
+          LOG.error("No CA certificate of level " + level + "exist.");
           return;
         }
         Certificate cacert = chain[level];
@@ -143,7 +152,7 @@ public class CACertServlet extends BaseAdminServlet {
           res.setContentType("application/x-x509-ca-cert");
           res.setContentLength(enccert.length);
           res.getOutputStream().write(enccert);
-          log.debug("Sent CA cert to NS client, len=" + enccert.length + ".");
+          LOG.debug("Sent CA cert to NS client, len=" + enccert.length + ".");
         } else if (command.equalsIgnoreCase(COMMAND_IECACERT)) {
           String ending = ".cacert.crt";
           if (cacert instanceof CardVerifiableCertificate) {
@@ -157,7 +166,7 @@ public class CACertServlet extends BaseAdminServlet {
           res.setContentType("application/octet-stream");
           res.setContentLength(enccert.length);
           res.getOutputStream().write(enccert);
-          log.debug("Sent CA cert to IE client, len=" + enccert.length + ".");
+          LOG.debug("Sent CA cert to IE client, len=" + enccert.length + ".");
         } else if (command.equalsIgnoreCase(COMMAND_CACERT)) {
           String out = CertTools.getPemFromCertificate(cacert);
           res.setHeader(
@@ -168,10 +177,10 @@ public class CACertServlet extends BaseAdminServlet {
           res.setContentType("application/octet-stream");
           res.setContentLength(out.length());
           res.getOutputStream().write(out.getBytes());
-          log.debug("Sent CA cert to client, len=" + out.length() + ".");
+          LOG.debug("Sent CA cert to client, len=" + out.length() + ".");
         } else if (command.equalsIgnoreCase(COMMAND_JKSTRUSTSTORE)) {
           String jksPassword = req.getParameter(JKSPASSWORD_PROPERTY).trim();
-          int passwordRequiredLength = 6;
+          final int passwordRequiredLength = 6;
           if (jksPassword != null
               && jksPassword.length() >= passwordRequiredLength) {
             KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
@@ -211,7 +220,7 @@ public class CACertServlet extends BaseAdminServlet {
           return;
         }
       } catch (Exception e) {
-        log.error("Error getting CA certificates: ", e);
+        LOG.error("Error getting CA certificates: ", e);
         res.sendError(
             HttpServletResponse.SC_NOT_FOUND, "Error getting CA certificates.");
         return;

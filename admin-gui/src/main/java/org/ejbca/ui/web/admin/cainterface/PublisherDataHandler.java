@@ -34,20 +34,22 @@ public class PublisherDataHandler implements Serializable {
 
   private static final long serialVersionUID = -5646053740072121787L;
 
+  /** POarem. */
   private final PublisherSessionLocal publishersession;
+  /** POarem. */
   private final AuthenticationToken administrator;
 
   /**
-   * Creates a new instance of PublisherDataHandler
+   * Creates a new instance of PublisherDataHandler.
    *
-   * @param administrator Admin
-   * @param publishersession Session
+   * @param anadministrator Admin
+   * @param apublishersession Session
    */
   public PublisherDataHandler(
-      final AuthenticationToken administrator,
-      final PublisherSessionLocal publishersession) {
-    this.publishersession = publishersession;
-    this.administrator = administrator;
+      final AuthenticationToken anadministrator,
+      final PublisherSessionLocal apublishersession) {
+    this.publishersession = apublishersession;
+    this.administrator = anadministrator;
   }
 
   /**
@@ -77,7 +79,7 @@ public class PublisherDataHandler implements Serializable {
   }
 
   /**
-   * Removes a publisher
+   * Removes a publisher.
    *
    * @param name Name
    * @throws AuthorizationDeniedException if not authorized
@@ -89,7 +91,7 @@ public class PublisherDataHandler implements Serializable {
   }
 
   /**
-   * Metod to rename a publisher
+   * Metod to rename a publisher.
    *
    * @param oldname Name
    * @param newname Name
@@ -100,22 +102,42 @@ public class PublisherDataHandler implements Serializable {
       throws PublisherExistsException, AuthorizationDeniedException {
     publishersession.renamePublisher(administrator, oldname, newname);
   }
-
+  /**
+   * Metod to clone a publisher.
+   *
+   * @param originalname Name
+   * @param newname Name
+   * @throws PublisherExistsException fail
+   * @throws AuthorizationDeniedException fail
+ * @throws PublisherDoesntExistsException  fail
+   */
   public void clonePublisher(final String originalname, final String newname)
       throws AuthorizationDeniedException, PublisherDoesntExistsException,
           PublisherExistsException {
     publishersession.clonePublisher(administrator, originalname, newname);
   }
 
+  /**
+   * @param name Name
+   * @throws PublisherConnectionException Fail
+   */
   public void testConnection(final String name)
       throws PublisherConnectionException {
     publishersession.testConnection(publishersession.getPublisherId(name));
   }
 
+  /**
+   * @param name Name
+   * @return Pub
+   */
   public BasePublisher getPublisher(final String name) {
     return publishersession.getPublisher(name);
   }
 
+  /**
+   * @param name Name
+   * @return ID
+   */
   public int getPublisherId(final String name) {
     return publishersession.getPublisherId(name);
   }

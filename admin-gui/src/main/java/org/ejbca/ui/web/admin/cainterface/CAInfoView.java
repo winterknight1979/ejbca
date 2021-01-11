@@ -39,29 +39,47 @@ public class CAInfoView implements Serializable, Cloneable {
   private static final long serialVersionUID = -5154282635821412670L;
   // Public constants.
 
+  /** Param. */
   public static final int NAME = 0;
+  /** Param. */
   public static final int SUBJECTDN = 1;
+  /** Param. */
   public static final int SUBJECTALTNAME = 2;
+  /** Param. */
   public static final int CATYPE = 3;
 
+  /** Param. */
   private static final int SECTION_CA = 4;
 
+  /** Param. */
   public static final int EXPIRETIME = 5;
+  /** Param. */
   public static final int STATUS = 6;
+  /** Param. */
   @Deprecated public static final int CATOKEN_STATUS = 7;
+  /** Param. */
   public static final int DESCRIPTION = 8;
 
+  /** Param. */
   private static final int SECTION_CRL = 9;
 
+  /** Param. */
   public static final int CRLPERIOD = 10;
+  /** Param. */
   public static final int CRLISSUEINTERVAL = 11;
+  /** Param. */
   public static final int CRLOVERLAPTIME = 12;
+  /** Param. */
   public static final int DELTACRLPERIOD = 13;
+  /** Param. */
   public static final int CRLPUBLISHERS = 14;
+  /** Param. */
   public static final int VALIDATORS = 15;
 
+  /** Param. */
   private static final int SECTION_SERVICE = 16;
 
+  /** Param. */
   public static final int OCSP = 17;
 
   /**
@@ -71,9 +89,9 @@ public class CAInfoView implements Serializable, Cloneable {
    * CRL_CA_DELTACRLPERIOD, PUBLISHERS, VALIDATORS It must also have CADATA in
    * position n° 4 (CA data) It must also have CRLSPECIFICDATA in position n° 9
    * (CRL Specific Data) It must also have SERVICES in position n° 15
-   * (Services), if exists
+   * (Services), if exists.
    */
-  public static String[] X509CA_CAINFODATATEXTS = {
+  public static final String[] X509CA_CAINFODATATEXTS = {
     "CANAME",
     "CERT_SUBJECTDN",
     "EXT_ABBR_SUBJECTALTNAME",
@@ -94,7 +112,9 @@ public class CAInfoView implements Serializable, Cloneable {
     "OCSPSERVICE"
   };
 
-  public static String[] CVCCA_CAINFODATATEXTS = {
+
+  /** Param. */
+  public static final String[] CVCCA_CAINFODATATEXTS = {
     "NAME",
     "CERT_SUBJECTDN",
     "",
@@ -111,27 +131,36 @@ public class CAInfoView implements Serializable, Cloneable {
     "CRL_CA_DELTACRLPERIOD"
   };
 
+  /** Param. */
   private String[] cainfodata = null;
+  /** Param. */
   private String[] cainfodatatexts = null;
 
+  /** Param. */
   private CAInfo cainfo = null;
 
+  /**
+   * @param acainfo info
+   * @param ejbcawebbean bean
+   * @param publishersidtonamemap map
+   * @param keyValidatorsIdToNameMap map
+   */
   public CAInfoView(
-      final CAInfo cainfo,
+      final CAInfo acainfo,
       final EjbcaWebBean ejbcawebbean,
       final Map<Integer, String> publishersidtonamemap,
       final Map<Integer, String> keyValidatorsIdToNameMap) {
-    this.cainfo = cainfo;
+    this.cainfo = acainfo;
 
-    if (cainfo instanceof X509CAInfo) {
-      setupGeneralInfo(X509CA_CAINFODATATEXTS, cainfo, ejbcawebbean);
+    if (acainfo instanceof X509CAInfo) {
+      setupGeneralInfo(X509CA_CAINFODATATEXTS, acainfo, ejbcawebbean);
 
       cainfodata[SUBJECTALTNAME] =
-          HTMLTools.htmlescape(((X509CAInfo) cainfo).getSubjectAltName());
+          HTMLTools.htmlescape(((X509CAInfo) acainfo).getSubjectAltName());
 
       cainfodata[CRLPUBLISHERS] = "";
       Iterator<Integer> publisherIds =
-          ((X509CAInfo) cainfo).getCRLPublishers().iterator();
+          ((X509CAInfo) acainfo).getCRLPublishers().iterator();
       if (publisherIds.hasNext()) {
         cainfodata[CRLPUBLISHERS] =
             publishersidtonamemap.get(publisherIds.next());
@@ -148,7 +177,7 @@ public class CAInfoView implements Serializable, Cloneable {
       cainfodata[VALIDATORS] = StringUtils.EMPTY;
 
       final Iterator<Integer> keyValidatorIds =
-          ((X509CAInfo) cainfo).getValidators().iterator();
+          ((X509CAInfo) acainfo).getValidators().iterator();
       if (keyValidatorIds.hasNext()) {
         cainfodata[VALIDATORS] =
             keyValidatorsIdToNameMap.get(keyValidatorIds.next());
@@ -164,14 +193,14 @@ public class CAInfoView implements Serializable, Cloneable {
 
       cainfodata[SECTION_SERVICE] = "&nbsp;"; // Section row
 
-    } else if (cainfo instanceof CVCCAInfo) {
-      setupGeneralInfo(CVCCA_CAINFODATATEXTS, cainfo, ejbcawebbean);
+    } else if (acainfo instanceof CVCCAInfo) {
+      setupGeneralInfo(CVCCA_CAINFODATATEXTS, acainfo, ejbcawebbean);
     }
   }
 
   private void setupGeneralInfo(
       final String[] strings,
-      final CAInfo cainfo,
+      final CAInfo acainfo,
       final EjbcaWebBean ejbcawebbean) {
     cainfodatatexts = new String[strings.length];
     cainfodata = new String[strings.length];
@@ -184,23 +213,23 @@ public class CAInfoView implements Serializable, Cloneable {
       }
     }
 
-    cainfodata[SUBJECTDN] = HTMLTools.htmlescape(cainfo.getSubjectDN());
-    cainfodata[NAME] = HTMLTools.htmlescape(cainfo.getName());
-    int catype = cainfo.getCAType();
+    cainfodata[SUBJECTDN] = HTMLTools.htmlescape(acainfo.getSubjectDN());
+    cainfodata[NAME] = HTMLTools.htmlescape(acainfo.getName());
+    int catype = acainfo.getCAType();
     if (catype == CAInfo.CATYPE_CVC) {
       cainfodata[CATYPE] = ejbcawebbean.getText("CVCCA");
     } else {
       cainfodata[CATYPE] = ejbcawebbean.getText("X509");
     }
     cainfodata[SECTION_CA] = "&nbsp;"; // Section row
-    if (cainfo.getExpireTime() == null) {
+    if (acainfo.getExpireTime() == null) {
       cainfodata[EXPIRETIME] = "";
     } else {
       cainfodata[EXPIRETIME] =
-          ejbcawebbean.formatAsISO8601(cainfo.getExpireTime());
+          ejbcawebbean.formatAsISO8601(acainfo.getExpireTime());
     }
 
-    switch (cainfo.getStatus()) {
+    switch (acainfo.getStatus()) {
       case CAConstants.CA_ACTIVE:
         cainfodata[STATUS] = ejbcawebbean.getText("ACTIVE");
         break;
@@ -217,11 +246,11 @@ public class CAInfoView implements Serializable, Cloneable {
                 + ejbcawebbean.getText("REASON")
                 + " : <br>&nbsp;&nbsp;&nbsp;&nbsp;"
                 + ejbcawebbean.getText(
-                    SecConst.REASONTEXTS[cainfo.getRevocationReason()])
+                    SecConst.REASONTEXTS[acainfo.getRevocationReason()])
                 + "<br>&nbsp;&nbsp;"
                 + ejbcawebbean.getText("CRL_ENTRY_REVOCATIONDATE")
                 + "<br>&nbsp;&nbsp;&nbsp;&nbsp;"
-                + ejbcawebbean.formatAsISO8601(cainfo.getRevocationDate());
+                + ejbcawebbean.formatAsISO8601(acainfo.getRevocationDate());
         break;
       case CAConstants.CA_WAITING_CERTIFICATE_RESPONSE:
         cainfodata[STATUS] = ejbcawebbean.getText("WAITINGFORCERTRESPONSE");
@@ -229,42 +258,58 @@ public class CAInfoView implements Serializable, Cloneable {
       case CAConstants.CA_EXTERNAL:
         cainfodata[STATUS] = ejbcawebbean.getText("EXTERNALCA");
         break;
+      default: break;
     }
 
-    cainfodata[DESCRIPTION] = HTMLTools.htmlescape(cainfo.getDescription());
+    cainfodata[DESCRIPTION] = HTMLTools.htmlescape(acainfo.getDescription());
 
     cainfodata[SECTION_CRL] = "&nbsp;"; // Section row
 
     cainfodata[CRLPERIOD] =
-        SimpleTime.getInstance(cainfo.getCRLPeriod())
+        SimpleTime.getInstance(acainfo.getCRLPeriod())
             .toString(SimpleTime.TYPE_MINUTES);
     cainfodata[CRLISSUEINTERVAL] =
-        SimpleTime.getInstance(cainfo.getCRLIssueInterval())
+        SimpleTime.getInstance(acainfo.getCRLIssueInterval())
             .toString(SimpleTime.TYPE_MINUTES);
     cainfodata[CRLOVERLAPTIME] =
-        SimpleTime.getInstance(cainfo.getCRLOverlapTime())
+        SimpleTime.getInstance(acainfo.getCRLOverlapTime())
             .toString(SimpleTime.TYPE_MINUTES);
     cainfodata[DELTACRLPERIOD] =
-        SimpleTime.getInstance(cainfo.getDeltaCRLPeriod())
+        SimpleTime.getInstance(acainfo.getDeltaCRLPeriod())
             .toString(SimpleTime.TYPE_MINUTES);
   }
 
+  /**
+   * @return DFata
+   */
   public String[] getCAInfoData() {
     return cainfodata;
   }
 
+  /**
+   * @return Text
+   */
   public String[] getCAInfoDataText() {
     return cainfodatatexts;
   }
 
+  /**
+   * @return Info
+   */
   public CAInfo getCAInfo() {
     return cainfo;
   }
 
+  /**
+   * @return token
+   */
   public CAToken getCAToken() {
     return cainfo.getCAToken();
   }
 
+  /**
+   * @return chain
+   */
   public Collection<Certificate> getCertificateChain() {
     return cainfo.getCertificateChain();
   }

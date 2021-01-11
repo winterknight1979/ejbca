@@ -59,40 +59,48 @@ import org.ejbca.ui.web.pub.ServletUtils;
 public class CACertReqServlet extends BaseAdminServlet {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(CACertReqServlet.class);
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CACertReqServlet.class);
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
-
+  /** Param. */
   private static final String COMMAND_PROPERTY_NAME = "cmd";
+  /** Param. */
   private static final String COMMAND_PROPERTY_CAID = "caid";
+  /** Param. */
   private static final String COMMAND_CERTREQ = "certreq";
+  /** Param. */
   private static final String COMMAND_CERT = "cert";
+  /** Param. */
   private static final String COMMAND_CERTPKCS7 = "certpkcs7";
+  /** Param. */
   private static final String COMMAND_CERTLINK = "linkcert";
+  /** Param. */
   private static final String FORMAT_PROPERTY_NAME = "format";
 
+  /** Param. */
   @EJB private SignSessionLocal signSession;
 
   @Override
   public void doPost(
       final HttpServletRequest req, final HttpServletResponse res)
       throws IOException, ServletException {
-    log.trace(">doPost()");
+    LOG.trace(">doPost()");
     doGet(req, res);
-    log.trace("<doPost()");
+    LOG.trace("<doPost()");
   }
 
   @Override
   public void doGet(final HttpServletRequest req, final HttpServletResponse res)
       throws java.io.IOException, ServletException {
-    log.trace(">doGet()");
+    LOG.trace(">doGet()");
     final AuthenticationToken admin;
     try {
       admin = authenticateAdmin(req, res, StandardRules.ROLE_ROOT.resource());
     } catch (AdminWebAuthenticationException authExc) {
       // TODO: localize this.
-      log.info("Authentication failed", authExc);
+      LOG.info("Authentication failed", authExc);
       res.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication failed");
       return;
     }
@@ -215,13 +223,13 @@ public class CACertReqServlet extends BaseAdminServlet {
         res.setContentLength(length);
         res.getOutputStream().write(outbytes);
         String iMsg =
-            intres.getLocalizedMessage("certreq.sentlatestcertreq", remoteAddr);
-        log.info(iMsg);
+            INTRES.getLocalizedMessage("certreq.sentlatestcertreq", remoteAddr);
+        LOG.info(iMsg);
       } catch (Exception e) {
         String errMsg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "certreq.errorsendlatestcertreq", remoteAddr);
-        log.error(errMsg, e);
+        LOG.error(errMsg, e);
         res.sendError(HttpServletResponse.SC_NOT_FOUND, errMsg);
         return;
       }
@@ -242,9 +250,9 @@ public class CACertReqServlet extends BaseAdminServlet {
         }
       } catch (Exception e) {
         String errMsg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "certreq.errorsendcert", remoteAddr, e.getMessage());
-        log.error(errMsg, e);
+        LOG.error(errMsg, e);
         res.sendError(HttpServletResponse.SC_NOT_FOUND, errMsg);
         return;
       }
@@ -262,9 +270,9 @@ public class CACertReqServlet extends BaseAdminServlet {
             RequestHelper.END_PKCS7_WITH_NL);
       } catch (Exception e) {
         String errMsg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "certreq.errorsendcert", remoteAddr, e.getMessage());
-        log.error(errMsg, e);
+        LOG.error(errMsg, e);
         res.sendError(HttpServletResponse.SC_NOT_FOUND, errMsg);
         return;
       }
@@ -289,9 +297,9 @@ public class CACertReqServlet extends BaseAdminServlet {
         }
       } catch (Exception e) {
         String errMsg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "certreq.errorsendcert", remoteAddr, e.getMessage());
-        log.error(errMsg, e);
+        LOG.error(errMsg, e);
         res.sendError(HttpServletResponse.SC_NOT_FOUND, errMsg);
         return;
       }

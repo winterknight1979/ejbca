@@ -42,8 +42,10 @@ public abstract class BaseAdminServlet extends HttpServlet {
 
   private static final long serialVersionUID = 1L;
 
-  private static final Logger log = Logger.getLogger(BaseAdminServlet.class);
+  /** Param. */
+  private static final Logger LOG = Logger.getLogger(BaseAdminServlet.class);
 
+  /** Param. */
   @EJB private WebAuthenticationProviderSessionLocal authenticationSession;
 
   @Override
@@ -55,7 +57,7 @@ public abstract class BaseAdminServlet extends HttpServlet {
       throw new ServletException(e);
     }
     if (authenticationSession == null) {
-      log.error("Local EJB injection failed of AuthenticationSession");
+      LOG.error("Local EJB injection failed of AuthenticationSession");
     }
   }
 
@@ -79,8 +81,8 @@ public abstract class BaseAdminServlet extends HttpServlet {
     try {
       ejbcawebbean.initialize(request, accessResources);
     } catch (Exception e) {
-      log.info("Could not initialize for client " + request.getRemoteAddr());
-      log.debug("Client initialization failed", e);
+      LOG.info("Could not initialize for client " + request.getRemoteAddr());
+      LOG.debug("Client initialization failed", e);
       throw new AdminWebAuthenticationException("Authorization Denied");
     }
 
@@ -88,7 +90,7 @@ public abstract class BaseAdminServlet extends HttpServlet {
         (X509Certificate[])
             request.getAttribute("javax.servlet.request.X509Certificate");
     if (certs == null) {
-      log.info(
+      LOG.info(
           "Client "
               + request.getRemoteAddr()
               + " was denied. No client certificate sent.");
@@ -105,7 +107,7 @@ public abstract class BaseAdminServlet extends HttpServlet {
       final String message =
           "Authorization denied for certificate: "
               + CertTools.getSubjectDN(certs[0]);
-      log.info("Client " + request.getRemoteAddr() + " was denied. " + message);
+      LOG.info("Client " + request.getRemoteAddr() + " was denied. " + message);
       throw new AdminWebAuthenticationException(message);
     }
     return admin;

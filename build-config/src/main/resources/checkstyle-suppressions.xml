@@ -572,6 +572,14 @@
 		files="JsfDynamicUiValueChangeListener.java" lines="25" /> <!-- Used in JDOC -->
 	<suppress checks="ParameterNumberCheck"
 		files="AuditorManagedBean.java" lines=" 629" />
+		<suppress checks="MethodLengthCheck"
+		files="CACertReqServlet.java" lines="94 " />
+		<suppress checks="MethodLengthCheck"
+		files="CAInterfaceBean.java" lines="902,1149,1824 " />
+	<suppress checks="ParameterNumberCheck"
+		files="CAInterfaceBean.java" lines=" 902,1149,1824" />
+		<suppress checks="MethodLengthCheck"
+		files="EditPublisherJSPHelper.java" lines="324 " />
 	
 	
 </suppressions>

@@ -77,33 +77,45 @@ public class CADataHandler implements Serializable {
 
   private static final long serialVersionUID = 2132603037548273013L;
 
-  private static final Logger log = Logger.getLogger(CADataHandler.class);
+  /** Param. */
+  private static final Logger LOG = Logger.getLogger(CADataHandler.class);
 
+  /** Param. */
   private final AuthenticationToken administrator;
 
+  /** Param. */
   private final RoleDataSessionLocal roleDataSession;
+  /** Param. */
   private final RoleMemberDataSessionLocal roleMemberDataSession;
+  /** Param. */
   private final CAAdminSessionLocal caadminsession;
+  /** Param. */
   private final CaSessionLocal caSession;
+  /** Param. */
   private final CertificateProfileSession certificateProfileSession;
+  /** Param. */
   private final EndEntityProfileSession endEntityProfileSession;
+  /** Param. */
   private final EndEntityManagementSessionLocal endEntitySession;
+  /** Param. */
   private final KeyValidatorSessionLocal keyValidatorSession;
+  /** Param. */
   private final PublisherSessionLocal publisherSession;
 
+  /** Param. */
   private final EjbcaWebBean ejbcawebbean;
 
   /**
-   * Creates a new instance of CADataHandler
+   * Creates a new instance of CADataHandler.
    *
    * @param authenticationToken Token
    * @param ejb EJB
-   * @param ejbcawebbean Bean
+   * @param anejbcawebbean Bean
    */
   public CADataHandler(
       final AuthenticationToken authenticationToken,
       final EjbLocalHelper ejb,
-      final EjbcaWebBean ejbcawebbean) {
+      final EjbcaWebBean anejbcawebbean) {
     this.roleDataSession = ejb.getRoleDataSession();
     this.roleMemberDataSession = ejb.getRoleMemberDataSession();
     this.caadminsession = ejb.getCaAdminSession();
@@ -114,7 +126,7 @@ public class CADataHandler implements Serializable {
     this.keyValidatorSession = ejb.getKeyValidatorSession();
     this.publisherSession = ejb.getPublisherSession();
     this.administrator = authenticationToken;
-    this.ejbcawebbean = ejbcawebbean;
+    this.ejbcawebbean = anejbcawebbean;
   }
 
   /**
@@ -135,8 +147,8 @@ public class CADataHandler implements Serializable {
    * @param caname CA Name
    * @param p12file PKCS12 File
    * @param keystorepass Password
-   * @param privateSignatureKeyAlias Alias
-   * @param privateEncryptionKeyAlias Alias
+   * @param oprivateSignatureKeyAlias Alias
+   * @param oprivateEncryptionKeyAlias Alias
    * @throws Exception Fail
    * @see org.ejbca.core.ejb.ca.caadmin.CAAdminSessionBean
    */
@@ -144,9 +156,11 @@ public class CADataHandler implements Serializable {
       final String caname,
       final byte[] p12file,
       final String keystorepass,
-      String privateSignatureKeyAlias,
-      String privateEncryptionKeyAlias)
+      final String oprivateSignatureKeyAlias,
+      final String oprivateEncryptionKeyAlias)
       throws Exception {
+    String privateSignatureKeyAlias = oprivateSignatureKeyAlias;
+    String privateEncryptionKeyAlias = oprivateEncryptionKeyAlias;
     final KeyStore ks =
         KeyStore.getInstance("PKCS12", BouncyCastleProvider.PROVIDER_NAME);
     ks.load(new ByteArrayInputStream(p12file), keystorepass.toCharArray());
@@ -196,7 +210,7 @@ public class CADataHandler implements Serializable {
           CertTools.getCertsFromPEM(
               new ByteArrayInputStream(certbytes), Certificate.class);
     } catch (CertificateException e) {
-      log.debug("Input stream is not PEM certificate(s): " + e.getMessage());
+      LOG.debug("Input stream is not PEM certificate(s): " + e.getMessage());
       // See if it is a single binary certificate
       certs = new ArrayList<>();
       certs.add(CertTools.getCertfromByteArray(certbytes, Certificate.class));
@@ -219,7 +233,7 @@ public class CADataHandler implements Serializable {
           CertTools.getCertsFromPEM(
               new ByteArrayInputStream(certbytes), Certificate.class);
     } catch (CertificateException e) {
-      log.debug("Input stream is not PEM certificate(s): " + e.getMessage());
+      LOG.debug("Input stream is not PEM certificate(s): " + e.getMessage());
       // See if it is a single binary certificate
       Certificate cert =
           CertTools.getCertfromByteArray(certbytes, Certificate.class);
@@ -300,8 +314,8 @@ public class CADataHandler implements Serializable {
                   StandardRules.CAACCESS.resource() + caId))) {
         return true;
       }
-      for (final RoleMember roleMember :
-          roleMemberDataSession.findRoleMemberByRoleId(role.getRoleId())) {
+      for (final RoleMember roleMember
+          : roleMemberDataSession.findRoleMemberByRoleId(role.getRoleId())) {
         if (roleMember.getTokenIssuerId() == caId) {
           // Do more expensive checks if it is a potential match
           final AccessMatchValue accessMatchValue =
@@ -338,6 +352,11 @@ public class CADataHandler implements Serializable {
     return false;
   }
 
+  /**
+   * @param name Name
+   * @return Info
+   * @throws AuthorizationDeniedException Fail
+   */
   public CAInfoView getCAInfo(final String name)
       throws AuthorizationDeniedException {
     CAInfoView cainfoview = null;
@@ -353,6 +372,10 @@ public class CADataHandler implements Serializable {
     return cainfoview;
   }
 
+  /**
+   * @param name Name
+   * @return Info
+   */
   public CAInfoView getCAInfoNoAuth(final String name) {
     CAInfoView cainfoview = null;
     CAInfo cainfo = caSession.getCAInfoInternal(-1, name, true);
@@ -367,6 +390,10 @@ public class CADataHandler implements Serializable {
     return cainfoview;
   }
 
+  /**
+   * @param caid ID
+   * @return Info
+   */
   public CAInfoView getCAInfoNoAuth(final int caid) {
     final CAInfo cainfo = caSession.getCAInfoInternal(caid);
     return new CAInfoView(
@@ -376,6 +403,11 @@ public class CADataHandler implements Serializable {
         keyValidatorSession.getKeyValidatorIdToNameMap());
   }
 
+  /**
+   * @param caid ID
+   * @return View
+   * @throws AuthorizationDeniedException fail
+   */
   public CAInfoView getCAInfo(final int caid)
       throws AuthorizationDeniedException {
     final CAInfo cainfo = caSession.getCAInfo(administrator, caid);
@@ -476,7 +508,7 @@ public class CADataHandler implements Serializable {
             CertTools.getCertsFromPEM(
                 new ByteArrayInputStream(certBytes), Certificate.class));
       } catch (CertificateException e) {
-        log.debug("Input stream is not PEM certificate(s): " + e.getMessage());
+        LOG.debug("Input stream is not PEM certificate(s): " + e.getMessage());
         // See if it is a single binary certificate
         certChain.add(
             CertTools.getCertfromByteArray(certBytes, Certificate.class));
@@ -496,7 +528,7 @@ public class CADataHandler implements Serializable {
           futureRollover);
     } catch (Exception e) {
       // log the error here, since otherwise it may be hidden by web pages...
-      log.error("Error receiving response: ", e);
+      LOG.error("Error receiving response: ", e);
       throw e;
     }
   }
@@ -521,11 +553,19 @@ public class CADataHandler implements Serializable {
     return returnval;
   }
 
+  /**
+   * @param caid ID
+   * @param nextSignKeyAlias Alias
+   * @param ocreateLinkCertificate Cert
+   * @return Bool
+   * @throws Exception Fail
+   */
   public boolean renewCA(
       final int caid,
       final String nextSignKeyAlias,
-      boolean createLinkCertificate)
+      final boolean ocreateLinkCertificate)
       throws Exception {
+    boolean createLinkCertificate = ocreateLinkCertificate;
     if (getCAInfo(caid).getCAInfo().getSignedBy()
         == CAInfo.SIGNEDBYEXTERNALCA) {
       return false;
@@ -547,6 +587,14 @@ public class CADataHandler implements Serializable {
     }
   }
 
+  /**
+   * @param caid ID
+   * @param nextSignKeyAlias Alias
+   * @param createLinkCertificate Cert
+   * @param newSubjectDn DN
+   * @return Bool
+   * @throws Exception Fail
+   */
   public boolean renewAndRenameCA(
       final int caid,
       final String nextSignKeyAlias,
@@ -652,23 +700,46 @@ public class CADataHandler implements Serializable {
     caadminsession.rolloverCA(administrator, caid);
   }
 
+  /**
+   * @param caid ID
+   * @throws CADoesntExistsException FAil
+   * @throws CAOfflineException Fail
+   * @throws CertificateRevokeException Fail
+   * @throws AuthorizationDeniedException Fail
+   */
   public void renewAndRevokeCmsCertificate(final int caid)
       throws CADoesntExistsException, CAOfflineException,
           CertificateRevokeException, AuthorizationDeniedException {
     caadminsession.renewAndRevokeCmsCertificate(administrator, caid);
   }
 
+  /**
+   * @param caid ID
+   * @throws AuthorizationDeniedException fail
+   * @throws ApprovalException fail
+   * @throws WaitingForApprovalException fail
+   * @throws CADoesntExistsException fail
+   */
   public void activateCAToken(final int caid)
       throws AuthorizationDeniedException, ApprovalException,
           WaitingForApprovalException, CADoesntExistsException {
     caadminsession.activateCAService(administrator, caid);
   }
 
+  /**
+   * @param caid ID
+   * @throws AuthorizationDeniedException fail
+   * @throws CADoesntExistsException fail
+   */
   public void deactivateCAToken(final int caid)
       throws AuthorizationDeniedException, CADoesntExistsException {
     caadminsession.deactivateCAService(administrator, caid);
   }
 
+  /**
+   * @param cainfo Info
+   * @return Bool
+   */
   public boolean isCARevoked(final CAInfo cainfo) {
     boolean retval = false;
 

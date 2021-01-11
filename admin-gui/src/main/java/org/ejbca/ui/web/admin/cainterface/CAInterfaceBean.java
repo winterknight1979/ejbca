@@ -128,77 +128,123 @@ import org.ejbca.ui.web.admin.configuration.EjbcaWebBean;
 public class CAInterfaceBean implements Serializable {
 
   /** Backing object for main page list of CA and CRL statuses. */
-  public class CaCrlStatusInfo {
+  public final class CaCrlStatusInfo {
+        /** Param. */
     private final String caName;
+    /** Param. */
     private final boolean caService;
+    /** Param. */
     private final boolean crlStatus;
 
     private CaCrlStatusInfo(
-        final String caName, final boolean caService, final boolean crlStatus) {
-      this.caName = caName;
-      this.caService = caService;
-      this.crlStatus = crlStatus;
+        final String acaName,
+        final boolean acaService,
+        final boolean acrlStatus) {
+      this.caName = acaName;
+      this.caService = acaService;
+      this.crlStatus = acrlStatus;
     }
 
+    /**
+     * @return Bool
+     */
     public String getCaName() {
       return caName;
     }
 
+    /**
+     * @return Bool
+     */
     public boolean isCaService() {
       return caService;
     }
 
+    /**
+     * @return Bool
+     */
     public boolean isCrlStatus() {
       return crlStatus;
     }
   }
 
+  /** Param. */
   private static final long serialVersionUID = 3L;
-  private static final Logger log = Logger.getLogger(CAInterfaceBean.class);
+  /** Param. */
+  private static final Logger LOG = Logger.getLogger(CAInterfaceBean.class);
+  /** Param. */
   private static final String LIST_SEPARATOR = ";";
 
+  /** Param. */
   public static final int CATOKENTYPE_P12 = 1;
+  /** Param. */
   public static final int CATOKENTYPE_HSM = 2;
+  /** Param. */
   public static final int CATOKENTYPE_NULL = 3;
 
+  /** Param. */
   private final EjbLocalHelper ejbLocalHelper = new EjbLocalHelper();
+  /** Param. */
   private AuthorizationSessionLocal authorizationSession;
+  /** Param. */
   private CAAdminSessionLocal caadminsession;
+  /** Param. */
   private CaSessionLocal casession;
+  /** Param. */
   private CertificateCreateSessionLocal certcreatesession;
+  /** Param. */
   private CertificateProfileSession certificateProfileSession;
+  /** Param. */
   private CertificateStoreSessionLocal certificatesession;
+  /** Param. */
   private CertReqHistorySessionLocal certreqhistorysession;
+  /** Param. */
   private CrlStoreSession crlStoreSession;
+  /** Param. */
   private CryptoTokenManagementSessionLocal cryptoTokenManagementSession;
+  /** Param. */
   private PublishingCrlSessionLocal publishingCrlSession;
+  /** Param. */
   private PublisherQueueSessionLocal publisherqueuesession;
+  /** Param. */
   private PublisherSessionLocal publishersession;
+  /** Param. */
   private KeyValidatorSessionLocal keyValidatorSession;
 
+  /** Param. */
   private SignSession signsession;
 
+  /** Param. */
   private CADataHandler cadatahandler;
 
+  /** Param. */
   @SuppressWarnings("deprecation")
   private PublisherDataHandler publisherdatahandler;
 
+  /** Param. */
   private boolean initialized;
+  /** Param. */
   private AuthenticationToken authenticationToken;
+  /** Param. */
   private CAInfo cainfo;
+  /** Param. */
   private EjbcaWebBean ejbcawebbean;
-  /** The certification request in binary format */
+  /** The certification request in binary format. */
   private transient byte[] request;
 
+  /** Param. */
   private Certificate processedcert;
+  /** Param. */
   private boolean isUniqueIndex;
 
-  /** Creates a new instance of CaInterfaceBean */
-  public CAInterfaceBean() {}
+  /** Creates a new instance of CaInterfaceBean. */
+  public CAInterfaceBean() { }
 
   // Public methods
+  /**
+   * @param anejbcawebbean Bean
+   */
   @SuppressWarnings("deprecation")
-  public void initialize(final EjbcaWebBean ejbcawebbean) {
+  public void initialize(final EjbcaWebBean anejbcawebbean) {
     if (!initialized) {
       certificatesession = ejbLocalHelper.getCertificateStoreSession();
       certreqhistorysession = ejbLocalHelper.getCertReqHistorySession();
@@ -215,11 +261,12 @@ public class CAInterfaceBean implements Serializable {
       keyValidatorSession = ejbLocalHelper.getKeyValidatorSession();
       certificateProfileSession = ejbLocalHelper.getCertificateProfileSession();
       publishingCrlSession = ejbLocalHelper.getPublishingCrlSession();
-      authenticationToken = ejbcawebbean.getAdminObject();
-      this.ejbcawebbean = ejbcawebbean;
+      authenticationToken = anejbcawebbean.getAdminObject();
+      this.ejbcawebbean = anejbcawebbean;
 
       cadatahandler =
-          new CADataHandler(authenticationToken, ejbLocalHelper, ejbcawebbean);
+          new CADataHandler(
+                  authenticationToken, ejbLocalHelper, anejbcawebbean);
       publisherdatahandler =
           new PublisherDataHandler(authenticationToken, publishersession);
 
@@ -228,10 +275,14 @@ public class CAInterfaceBean implements Serializable {
     }
   }
 
+  /**
+   * @param caid ID
+   * @return Views
+   */
   public CertificateView[] getCACertificates(final int caid) {
     final List<CertificateView> ret = new ArrayList<>();
-    for (final Certificate certificate :
-        signsession.getCertificateChain(caid)) {
+    for (final Certificate certificate
+        : signsession.getCertificateChain(caid)) {
       RevokedInfoView revokedinfo = null;
       CertificateStatus revinfo =
           certificatesession.getStatus(
@@ -259,7 +310,7 @@ public class CAInterfaceBean implements Serializable {
   }
 
   /**
-   * Return the name of the CA based on its ID
+   * Return the name of the CA based on its ID.
    *
    * @param caId the CA ID
    * @return the name of the CA or null if it does not exists.
@@ -268,22 +319,29 @@ public class CAInterfaceBean implements Serializable {
     return casession.getCAIdToNameMap().get(caId);
   }
 
+  /**
+   * @return CAs
+   */
   public Collection<Integer> getAuthorizedCAs() {
     return casession.getAuthorizedCaIds(authenticationToken);
   }
 
+  /**
+   * @return Infos
+   * @throws Exception Fail
+   */
   public List<CaCrlStatusInfo> getAuthorizedInternalCaCrlStatusInfos()
       throws Exception {
     final List<CaCrlStatusInfo> ret = new ArrayList<>();
     final Collection<Integer> caIds = getAuthorizedCAs();
     for (final Integer caId : caIds) {
-      final CAInfo cainfo = casession.getCAInfoInternal(caId.intValue());
-      if (cainfo == null || cainfo.getStatus() == CAConstants.CA_EXTERNAL) {
+      final CAInfo acainfo = casession.getCAInfoInternal(caId.intValue());
+      if (acainfo == null || acainfo.getStatus() == CAConstants.CA_EXTERNAL) {
         continue;
       }
-      final String caName = cainfo.getName();
+      final String caName = acainfo.getName();
       boolean caTokenStatus = false;
-      final int cryptoTokenId = cainfo.getCAToken().getCryptoTokenId();
+      final int cryptoTokenId = acainfo.getCAToken().getCryptoTokenId();
       try {
         caTokenStatus =
             cryptoTokenManagementSession.isCryptoTokenStatusActive(
@@ -293,21 +351,21 @@ public class CAInterfaceBean implements Serializable {
             authenticationToken.toString()
                 + " failed to load CryptoToken status for "
                 + cryptoTokenId;
-        if (log.isDebugEnabled()) {
-          log.debug(msg, e);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(msg, e);
         } else {
-          log.info(msg);
+          LOG.info(msg);
         }
       }
       final boolean caService =
-          (cainfo.getStatus() == CAConstants.CA_ACTIVE) && caTokenStatus;
+          (acainfo.getStatus() == CAConstants.CA_ACTIVE) && caTokenStatus;
       boolean crlStatus = true;
       final Date now = new Date();
-      final CRLInfo crlinfo = getLastCRLInfo(cainfo, false);
+      final CRLInfo crlinfo = getLastCRLInfo(acainfo, false);
       if ((crlinfo != null) && (now.after(crlinfo.getExpireDate()))) {
         crlStatus = false;
       }
-      final CRLInfo deltacrlinfo = getLastCRLInfo(cainfo, true);
+      final CRLInfo deltacrlinfo = getLastCRLInfo(acainfo, true);
       if ((deltacrlinfo != null) && (now.after(deltacrlinfo.getExpireDate()))) {
         crlStatus = false;
       }
@@ -318,7 +376,7 @@ public class CAInterfaceBean implements Serializable {
   }
 
   /**
-   * Returns the profile name from id proxied
+   * Returns the profile name from id proxied.
    *
    * @param profileid Profile
    * @return Name
@@ -327,10 +385,19 @@ public class CAInterfaceBean implements Serializable {
     return certificateProfileSession.getCertificateProfileName(profileid);
   }
 
+  /**
+   * @param profilename Name
+   * @return Profile
+   */
   public int getCertificateProfileId(final String profilename) {
     return certificateProfileSession.getCertificateProfileId(profilename);
   }
 
+  /**
+   * @param name Name
+   * @return Profile
+   * @throws AuthorizationDeniedException Fail
+   */
   public CertificateProfile getCertificateProfile(final String name)
       throws AuthorizationDeniedException {
     final CertificateProfile certificateProfile =
@@ -343,6 +410,11 @@ public class CAInterfaceBean implements Serializable {
     return certificateProfile;
   }
 
+  /**
+   * @param id ID
+   * @return Profile
+   * @throws AuthorizationDeniedException Fail
+   */
   public CertificateProfile getCertificateProfile(final int id)
       throws AuthorizationDeniedException {
     final CertificateProfile certificateProfile =
@@ -369,6 +441,11 @@ public class CAInterfaceBean implements Serializable {
         .contains(Integer.valueOf(id));
   }
 
+  /**
+   * @param caid ID
+   * @throws CryptoTokenOfflineException Fail
+   * @throws CAOfflineException Fail
+   */
   public void createCRL(final int caid)
       throws CryptoTokenOfflineException, CAOfflineException {
     try {
@@ -380,6 +457,11 @@ public class CAInterfaceBean implements Serializable {
     }
   }
 
+  /**
+   * @param caid ID
+   * @throws CryptoTokenOfflineException Fail
+   * @throws CAOfflineException Fail
+   */
   public void createDeltaCRL(final int caid)
       throws CryptoTokenOfflineException, CAOfflineException {
     try {
@@ -391,6 +473,10 @@ public class CAInterfaceBean implements Serializable {
     }
   }
 
+  /**
+   * @param issuerdn DN
+   * @return CRL
+   */
   public int getLastCRLNumber(final String issuerdn) {
     return crlStoreSession.getLastCRLNumber(issuerdn, false);
   }
@@ -404,28 +490,44 @@ public class CAInterfaceBean implements Serializable {
     final String
         issuerdn; // use issuer DN from CA certificate. Might differ from DN in
                   // CAInfo.
-    {
+
       final Collection<Certificate> certs = caInfo.getCertificateChain();
       final Certificate cacert =
           !certs.isEmpty() ? certs.iterator().next() : null;
       issuerdn = cacert != null ? CertTools.getSubjectDN(cacert) : null;
-    }
+
     return crlStoreSession.getLastCRLInfo(issuerdn, deltaCRL);
   }
 
+  /**
+   * @return publisherd
+   */
   public HashMap<Integer, String> getAvailablePublishers() {
     return publishersession.getPublisherIdToNameMap();
   }
 
+  /**
+   * @return ID
+   */
   public Map<Integer, String> getAvailableKeyValidators() {
     return keyValidatorSession.getKeyValidatorIdToNameMap();
   }
 
+  /**
+   * @param publisherId ID
+   * @return Len
+   */
   public int getPublisherQueueLength(final int publisherId) {
     return publisherqueuesession.getPendingEntriesCountForPublisher(
         publisherId);
   }
 
+  /**
+   * @param publisherId id
+   * @param intervalLower min
+   * @param intervalUpper max
+   * @return len
+   */
   public int[] getPublisherQueueLength(
       final int publisherId,
       final int[] intervalLower,
@@ -434,11 +536,17 @@ public class CAInterfaceBean implements Serializable {
         publisherId, intervalLower, intervalUpper);
   }
 
+  /**
+   * @return Handler
+   */
   @Deprecated
   public PublisherDataHandler getPublisherDataHandler() {
     return this.publisherdatahandler;
   }
 
+  /**
+   * @return CA
+   */
   public CADataHandler getCADataHandler() {
     return cadatahandler;
   }
@@ -502,34 +610,59 @@ public class CAInterfaceBean implements Serializable {
     return casession.getCAInfoInternal(caid);
   }
 
+
+  /**
+   * @param caid ID
+   * @return Status
+   */
   public int getCAStatusNoAuth(final int caid) {
     final CAInfo caInfo = casession.getCAInfoInternal(caid);
     return (caInfo != null ? caInfo.getStatus() : 0);
   }
 
+  /**
+   * @param caName Name
+   * @return DN
+   */
   public String getCASubjectDNNoAuth(final String caName) {
     final CAInfo caInfo = casession.getCAInfoInternal(-1, caName, true);
     return (caInfo != null ? caInfo.getSubjectDN() : "");
   }
 
+  /**
+   * @param acainfo Info
+   */
   @Deprecated
-  public void saveRequestInfo(final CAInfo cainfo) {
-    this.cainfo = cainfo;
+  public void saveRequestInfo(final CAInfo acainfo) {
+    this.cainfo = acainfo;
   }
 
+  /**
+   * @return Info
+   */
   @Deprecated
   public CAInfo getRequestInfo() {
     return this.cainfo;
   }
 
-  public void saveRequestData(final byte[] request) {
-    this.request = request;
+  /**
+   * @param arequest Req
+   */
+  public void saveRequestData(final byte[] arequest) {
+    this.request = arequest;
   }
 
+  /**
+   * @return Req
+   */
   public byte[] getRequestData() {
     return this.request;
   }
 
+  /**
+   * @return Req
+   * @throws Exception Fail
+   */
   public String getRequestDataAsString() throws Exception {
     String returnval = null;
     if (request != null) {
@@ -541,14 +674,24 @@ public class CAInterfaceBean implements Serializable {
     return returnval;
   }
 
+  /**
+   * @param cert Cert
+   */
   public void saveProcessedCertificate(final Certificate cert) {
     this.processedcert = cert;
   }
 
+  /**
+   * @return Vert
+   */
   public Certificate getProcessedCertificate() {
     return this.processedcert;
   }
 
+  /**
+   * @param caId CA
+   * @return Cert
+   */
   public byte[] getLinkCertificate(final int caId) {
     try {
       return caadminsession.getLatestLinkCertificate(caId);
@@ -557,6 +700,10 @@ public class CAInterfaceBean implements Serializable {
     }
   }
 
+  /**
+   * @return Cert
+   * @throws Exception Fail
+   */
   public String getProcessedCertificateAsString() throws Exception {
     String returnval = null;
     if (request != null) {
@@ -568,10 +715,18 @@ public class CAInterfaceBean implements Serializable {
     return returnval;
   }
 
+  /**
+   * @return token
+   */
   public AuthenticationToken getAuthenticationToken() {
     return authenticationToken;
   }
 
+  /**
+   * @param certificateView View
+   * @return Rep
+   * @throws AuthorizationDeniedException fail
+   */
   public String republish(final CertificateView certificateView)
       throws AuthorizationDeniedException {
     String returnval = "CERTREPUBLISHFAILED";
@@ -641,7 +796,7 @@ public class CAInterfaceBean implements Serializable {
 
   /**
    * Class used to sort CertReq History by users modified time, with latest
-   * first
+   * first.
    */
   private class CertReqUserCreateComparator
       implements Comparator<CertReqHistory> {
@@ -677,10 +832,77 @@ public class CAInterfaceBean implements Serializable {
   //
   // Methods from editcas.jsp refactoring
   //
+  /**
+   * @param caName Name
+   * @param signatureAlgorithm Algo
+   * @param oextendedServiceSignatureKeySpec Spec
+   * @param keySequenceFormat Fmt
+   * @param keySequence Seq
+   * @param catype Type
+   * @param subjectdn DN
+   * @param certificateProfileIdString ID
+   * @param defaultCertificateProfileIdString ID
+   * @param useNoConflictCertificateData Data
+   * @param signedByString Signer
+   * @param description Desc
+   * @param caSerialNumberOctetSizeString Size
+   * @param validityString Validity
+   * @param approvals Approvals
+   * @param finishUser Bool
+   * @param isDoEnforceUniquePublicKeys Bool
+   * @param isDoEnforceUniqueDistinguishedName Bool
+   * @param isDoEnforceUniqueSubjectDNSerialnumber Bool
+   * @param useCertReqHistory Bool
+   * @param useUserStorage Bool
+   * @param useCertificateStorage Bool
+   * @param acceptRevocationsNonExistingEntry Bool
+   * @param subjectaltname Name
+   * @param policyid ID
+   * @param useauthoritykeyidentifier Bool
+   * @param authoritykeyidentifiercritical Bool
+   * @param crlperiod Period
+   * @param crlIssueInterval Issue
+   * @param crlOverlapTime Time
+   * @param deltacrlperiod Period
+   * @param availablePublisherValues Values
+   * @param availableKeyValidatorValues Values
+   * @param usecrlnumber Bool
+   * @param crlnumbercritical Bool
+   * @param defaultcrldistpoint CRL
+   * @param defaultcrlissuer CRL
+   * @param defaultocsplocator CRL
+   * @param authorityInformationAccessString Access
+   * @param certificateAiaDefaultCaIssuerUriString URI
+   * @param nameConstraintsPermittedString Constraints
+   * @param nameConstraintsExcludedString Constraints
+   * @param caDefinedFreshestCrlString CRL
+   * @param useutf8policytext Policy
+   * @param useprintablestringsubjectdn DN
+   * @param useldapdnorder LDAP
+   * @param usecrldistpointoncrl Vool
+   * @param crldistpointoncrlcritical Bool
+   * @param includeInHealthCheck Bool
+   * @param serviceOcspActive Bool
+   * @param serviceCmsActive Bool
+   * @param sharedCmpRaSecret Secret
+   * @param keepExpiredCertsOnCRL Bool
+   * @param buttonCreateCa Bool
+   * @param buttonMakeRequest Bool
+   * @param cryptoTokenIdString ID
+   * @param okeyAliasCertSignKey Key
+   * @param okeyAliasCrlSignKey Key
+   * @param okeyAliasDefaultKey Key
+   * @param okeyAliasHardTokenEncryptKey Key
+   * @param okeyAliasKeyEncryptKey Key
+   * @param okeyAliasKeyTestKey Key
+   * @param fileBuffer Buffer
+   * @return Bool
+   * @throws Exception Fail
+   */
   public boolean actionCreateCaMakeRequest(
       final String caName,
       final String signatureAlgorithm,
-      String extendedServiceSignatureKeySpec,
+      final String oextendedServiceSignatureKeySpec,
       final String keySequenceFormat,
       final String keySequence,
       final int catype,
@@ -734,19 +956,27 @@ public class CAInterfaceBean implements Serializable {
       final boolean buttonCreateCa,
       final boolean buttonMakeRequest,
       final String cryptoTokenIdString,
-      String keyAliasCertSignKey,
-      String keyAliasCrlSignKey,
-      String keyAliasDefaultKey,
-      String keyAliasHardTokenEncryptKey,
-      String keyAliasKeyEncryptKey,
-      String keyAliasKeyTestKey,
+      final String okeyAliasCertSignKey,
+      final String okeyAliasCrlSignKey,
+      final String okeyAliasDefaultKey,
+      final String okeyAliasHardTokenEncryptKey,
+      final String okeyAliasKeyEncryptKey,
+      final String okeyAliasKeyTestKey,
       final byte[] fileBuffer)
       throws Exception {
+
+    String extendedServiceSignatureKeySpec = oextendedServiceSignatureKeySpec;
+    String keyAliasCertSignKey = okeyAliasCertSignKey;
+    String keyAliasCrlSignKey = okeyAliasCrlSignKey;
+    String keyAliasDefaultKey = okeyAliasDefaultKey;
+    String keyAliasHardTokenEncryptKey = okeyAliasHardTokenEncryptKey;
+    String keyAliasKeyEncryptKey = okeyAliasKeyEncryptKey;
+    String keyAliasKeyTestKey = okeyAliasKeyTestKey;
     // This will occur if administrator has insufficient access to crypto
     // tokens, which won't provide any
     // selectable items for Crypto Token when creating a CA.
     if (cryptoTokenIdString.isEmpty()) {
-      log.info(
+      LOG.info(
           "No selected crypto token. Check crypto token access rules for"
               + " administrator "
               + authenticationToken);
@@ -928,9 +1158,9 @@ public class CAInterfaceBean implements Serializable {
       final String defaultCertificateProfileIdString,
       final boolean useNoConflictCertificateData,
       final String signedByString,
-      String description,
+      final String odescription,
       final String caSerialNumberOctetSizeString,
-      String validityString,
+      final String ovalidityString,
       final Map<ApprovalRequestType, Integer> approvals,
       final boolean finishUser,
       final boolean isDoEnforceUniquePublicKeys,
@@ -940,14 +1170,14 @@ public class CAInterfaceBean implements Serializable {
       final boolean useUserStorage,
       final boolean useCertificateStorage,
       final boolean acceptRevocationsNonExistingEntry,
-      String subjectAltName,
+      final String osubjectAltName,
       final String policyid,
       final boolean useAuthorityKeyIdentifier,
       final boolean authorityKeyIdentifierCritical,
-      long crlPeriod,
-      long crlIssueInterval,
-      long crlOverlapTime,
-      long deltaCrlPeriod,
+      final long ocrlPeriod,
+      final long ocrlIssueInterval,
+      final long ocrlOverlapTime,
+      final long odeltaCrlPeriod,
       final String availablePublisherValues,
       final String availableKeyValidatorValues,
       final boolean useCrlNumber,
@@ -982,13 +1212,20 @@ public class CAInterfaceBean implements Serializable {
       final byte[] fileBuffer)
       throws Exception {
 
+    String description = odescription;
+    String validityString = ovalidityString;
+    String subjectAltName = osubjectAltName;
+    long crlPeriod = ocrlPeriod;
+    long crlIssueInterval = ocrlIssueInterval;
+    long crlOverlapTime = ocrlOverlapTime;
+    long deltaCrlPeriod = odeltaCrlPeriod;
     boolean illegaldnoraltname = false;
 
     final List<String> keyPairAliases =
         cryptoTokenManagementSession.getKeyPairAliases(
             authenticationToken, cryptoTokenId);
     if (!keyPairAliases.contains(keyAliasDefaultKey)) {
-      log.info(
+      LOG.info(
           authenticationToken.toString()
               + " attempted to createa a CA with a non-existing defaultKey"
               + " alias: "
@@ -1006,7 +1243,7 @@ public class CAInterfaceBean implements Serializable {
     for (final String currentSuppliedAlias : suppliedAliases) {
       if (currentSuppliedAlias.length() > 0
           && !keyPairAliases.contains(currentSuppliedAlias)) {
-        log.info(
+        LOG.info(
             authenticationToken.toString()
                 + " attempted to create a CA with a non-existing key alias: "
                 + currentSuppliedAlias);
@@ -1314,10 +1551,10 @@ public class CAInterfaceBean implements Serializable {
           }
         }
       }
-
+      final int defaultCrlPeriod = 2400;
       if (caType == CAInfo.CATYPE_CVC) {
         // Only default values for these that are not used
-        crlPeriod = 2400;
+        crlPeriod = defaultCrlPeriod;
         crlIssueInterval = 0;
         crlOverlapTime = 0;
         deltaCrlPeriod = 0;
@@ -1374,9 +1611,9 @@ public class CAInterfaceBean implements Serializable {
       }
     }
     if (buttonMakeRequest && !illegaldnoraltname) {
-      CAInfo cainfo = getRequestInfo();
-      cadatahandler.createCA(cainfo);
-      int caid = cainfo.getCAId();
+      CAInfo acainfo = getRequestInfo();
+      cadatahandler.createCA(acainfo);
+      int caid = acainfo.getCAId();
       try {
         byte[] certreq =
             cadatahandler.makeRequest(
@@ -1403,6 +1640,10 @@ public class CAInterfaceBean implements Serializable {
     }
   }
 
+  /**
+   * @param validityString Validity
+   * @return Valid
+   */
   public String isValidityTimeValid(final String validityString) {
     // Fixed end dates are not limited
     if (ValidityDate.isValidIso8601Date(validityString)) {
@@ -1445,6 +1686,12 @@ public class CAInterfaceBean implements Serializable {
     return isCA && certProfile.getUseNameConstraints();
   }
 
+  /**
+   * @param keySpec Spec
+   * @param subjectdn DN
+   * @param serviceCmsActive Bool
+   * @return Infos
+   */
   public List<ExtendedCAServiceInfo> makeExtendedServicesInfos(
       final String keySpec,
       final String subjectdn,
@@ -1487,6 +1734,10 @@ public class CAInterfaceBean implements Serializable {
     return extendedcaservices;
   }
 
+  /**
+   * @param subjectaltname Name
+   * @return Bool
+   */
   public boolean checkSubjectAltName(final String subjectaltname) {
     if (subjectaltname != null && !subjectaltname.trim().equals("")) {
       final DNFieldExtractor subtest =
@@ -1499,6 +1750,10 @@ public class CAInterfaceBean implements Serializable {
     return true;
   }
 
+  /**
+   * @param policyid ID
+   * @return Policies
+   */
   public List<CertificatePolicy> parsePolicies(final String policyid) {
     final ArrayList<CertificatePolicy> policies = new ArrayList<>();
     if (!(policyid == null || policyid.trim().equals(""))) {
@@ -1513,6 +1768,59 @@ public class CAInterfaceBean implements Serializable {
     return policies;
   }
 
+  /**
+   * @param caid ID
+   * @param caname Name
+   * @param subjectDn DN
+   * @param catype Type
+   * @param keySequenceFormat Fmt
+   * @param keySequence Seq
+   * @param signedByString Sig
+   * @param odescription Desc
+   * @param caSerialNumberOctetSizeString Size
+   * @param ovalidityString Valid
+   * @param crlperiod CRL
+   * @param crlIssueInterval CRL
+   * @param crlOverlapTime CRL
+   * @param deltacrlperiod Bool
+   * @param finishUser User
+   * @param isDoEnforceUniquePublicKeys Bool
+   * @param isDoEnforceUniqueDistinguishedName Bool
+   * @param isDoEnforceUniqueSubjectDNSerialnumber Bool
+   * @param useCertReqHistory Bool
+   * @param useUserStorage Bool
+   * @param useCertificateStorage Bool
+   * @param acceptRevocationNonExistingEntry Bool
+   * @param defaultCertprofileId ID
+   * @param useNoConflictCertificateData Bool
+   * @param approvals Approvals
+   * @param availablePublisherValues Values
+   * @param availableKeyValidatorValues Values
+   * @param useauthoritykeyidentifier Bool
+   * @param authoritykeyidentifiercritical Bool
+   * @param usecrlnumber Bool
+   * @param crlnumbercritical Bool
+   * @param defaultcrldistpoint CRL
+   * @param defaultcrlissuer CRL
+   * @param defaultocsplocator Locator
+   * @param crlAuthorityInformationAccessParam Param
+   * @param certificateAiaDefaultCaIssuerUriParam Param
+   * @param nameConstraintsPermittedString Constraints
+   * @param nameConstraintsExcludedString Constraints
+   * @param caDefinedFreshestCrl CRL
+   * @param useutf8policytext Bool
+   * @param useprintablestringsubjectdn Bool
+   * @param useldapdnorder Bool
+   * @param usecrldistpointoncrl Bool
+   * @param crldistpointoncrlcritical Bool
+   * @param includeInHealthCheck Bool
+   * @param serviceOcspActive Bool
+   * @param serviceCmsActive Bool
+   * @param sharedCmpRaSecret Secret
+   * @param keepExpiredCertsOnCRL Bool
+   * @return Info
+   * @throws Exception Fail
+   */
   public CAInfo createCaInfo(
       final int caid,
       final String caname,
@@ -1521,9 +1829,9 @@ public class CAInterfaceBean implements Serializable {
       final String keySequenceFormat,
       final String keySequence,
       final String signedByString,
-      String description,
+      final String odescription,
       final String caSerialNumberOctetSizeString,
-      String validityString,
+      final String ovalidityString,
       final long crlperiod,
       final long crlIssueInterval,
       final long crlOverlapTime,
@@ -1564,6 +1872,8 @@ public class CAInterfaceBean implements Serializable {
       final String sharedCmpRaSecret,
       final boolean keepExpiredCertsOnCRL)
       throws Exception {
+    String validityString = ovalidityString;
+    String description = odescription;
     // We need to pick up the old CAToken, so we don't overwrite with default
     // values when we save the CA further down
     CAInfoView infoView = cadatahandler.getCAInfo(caid);
@@ -1614,7 +1924,7 @@ public class CAInterfaceBean implements Serializable {
     }
     if (caid != 0 && catype != 0) {
       // First common info for both X509 CAs and CVC CAs
-      CAInfo cainfo = null;
+      CAInfo acainfo = null;
       //           final List<Integer> approvalsettings =
       // StringTools.idStringToListOfInteger(approvalSettingValues,
       // LIST_SEPARATOR);
@@ -1664,7 +1974,7 @@ public class CAInterfaceBean implements Serializable {
         // No need to add the HardTokenEncrypt or Keyrecovery extended service
         // here, because they are only "updated" in EditCA, and there
         // is not need to update them.
-        cainfo =
+        acainfo =
             new X509CAInfo(
                 caid,
                 validityString,
@@ -1718,7 +2028,7 @@ public class CAInterfaceBean implements Serializable {
             new ArrayList<>();
         // Create the CAInfo to be used for either generating the whole CA or
         // making a request
-        cainfo =
+        acainfo =
             new CVCCAInfo(
                 caid,
                 validityString,
@@ -1743,13 +2053,19 @@ public class CAInterfaceBean implements Serializable {
                 acceptRevocationNonExistingEntry,
                 defaultCertprofileId);
       }
-      cainfo.setSubjectDN(subjectDn);
-      cainfo.setStatus(infoView.getCAInfo().getStatus());
-      return cainfo;
+      acainfo.setSubjectDN(subjectDn);
+      acainfo.setStatus(infoView.getCAInfo().getStatus());
+      return acainfo;
     }
     return null;
   }
 
+  /**
+   * @param caSigingAlgorithm Algo
+   * @param isEditingCA CA
+   * @return tokens
+   * @throws AuthorizationDeniedException fail
+   */
   public List<Entry<String, String>> getAvailableCryptoTokens(
       final String caSigingAlgorithm, final boolean isEditingCA)
       throws AuthorizationDeniedException {
@@ -1784,8 +2100,8 @@ public class CAInterfaceBean implements Serializable {
                     authenticationToken, cryptoTokenId);
             // Only allow tokens with at least one keypair
             if (cryptoTokenKeyPairInfos.size() > 0) {
-              for (final KeyPairInfo cryptoTokenKeyPairInfo :
-                  cryptoTokenKeyPairInfos) {
+              for (final KeyPairInfo cryptoTokenKeyPairInfo
+                  : cryptoTokenKeyPairInfos) {
                 String requiredKeyAlgorithm =
                     AlgorithmTools.getKeyAlgorithmFromSigAlg(caSigingAlgorithm);
                 if (requiredKeyAlgorithm.equals(
@@ -1810,6 +2126,11 @@ public class CAInterfaceBean implements Serializable {
     return availableCryptoTokens;
   }
 
+  /**
+   * @param caSigingAlgorithm Algo
+   * @return Tokens
+   * @throws AuthorizationDeniedException fail
+   */
   public List<Entry<String, String>> getFailedCryptoTokens(
       final String caSigingAlgorithm) throws AuthorizationDeniedException {
     final List<Entry<String, String>> failedCryptoTokens = new ArrayList<>();
@@ -1877,7 +2198,7 @@ public class CAInterfaceBean implements Serializable {
     final List<String> aliases = new ArrayList<>();
     if (cryptoTokenManagementSession.getCryptoTokenInfo(cryptoTokenId)
         == null) {
-      log.debug("CryptoToken didn't exist when trying to get aliases");
+      LOG.debug("CryptoToken didn't exist when trying to get aliases");
     } else {
       final List<KeyPairInfo> cryptoTokenKeyPairInfos =
           cryptoTokenManagementSession.getKeyPairInfos(
@@ -1906,7 +2227,7 @@ public class CAInterfaceBean implements Serializable {
     final List<String> aliases = new ArrayList<>();
     if (cryptoTokenManagementSession.getCryptoTokenInfo(cryptoTokenId)
         == null) {
-      log.debug("CryptoToken didn't exist when trying to get aliases");
+      LOG.debug("CryptoToken didn't exist when trying to get aliases");
     } else {
       final List<KeyPairInfo> cryptoTokenKeyPairInfos =
           cryptoTokenManagementSession.getKeyPairInfos(
@@ -1922,18 +2243,33 @@ public class CAInterfaceBean implements Serializable {
     return aliases;
   }
 
+  /**
+   * @param cryptoTokenId ID
+   * @return bool
+   * @throws AuthorizationDeniedException fail
+   */
   public boolean isCryptoTokenActive(final int cryptoTokenId)
       throws AuthorizationDeniedException {
     return cryptoTokenManagementSession.isCryptoTokenStatusActive(
         authenticationToken, cryptoTokenId);
   }
 
+  /**
+   * @param cryptoTokenId ID
+   * @return Bool
+   * @throws AuthorizationDeniedException Fail
+   */
   public boolean isCryptoTokenPresent(final int cryptoTokenId)
       throws AuthorizationDeniedException {
     return cryptoTokenManagementSession.isCryptoTokenPresent(
         authenticationToken, cryptoTokenId);
   }
 
+  /**
+   * @param cryptoTokenId ID
+   * @return Name
+   * @throws AuthorizationDeniedException Fail
+   */
   public String getCryptoTokenName(final int cryptoTokenId)
       throws AuthorizationDeniedException {
     final CryptoTokenInfo cryptoTokenInfo =
@@ -1945,6 +2281,10 @@ public class CAInterfaceBean implements Serializable {
     return cryptoTokenInfo.getName();
   }
 
+  /**
+   * @param caid ID
+   * @return bool
+   */
   public boolean isAuthorizedToCa(final int caid) {
     return casession.authorizedToCANoLogging(authenticationToken, caid);
   }
@@ -1957,11 +2297,19 @@ public class CAInterfaceBean implements Serializable {
         authenticationToken, StandardRules.CAEDIT.resource());
   }
 
+  /**
+   * @return bool
+   */
   public boolean hasCreateRight() {
     return authorizationSession.isAuthorizedNoLogging(
         authenticationToken, StandardRules.CAADD.resource());
   }
 
+  /**
+   * @param caInfo info
+   * @return bool
+   * @throws AuthorizationDeniedException fail
+   */
   public boolean isCaExportable(final CAInfo caInfo)
       throws AuthorizationDeniedException {
     boolean ret = false;
@@ -1983,6 +2331,9 @@ public class CAInterfaceBean implements Serializable {
     return ret;
   }
 
+  /**
+   * @return profiles
+   */
   public List<Entry<String, String>> getAvailableCaCertificateProfiles() {
     final int[] types = {
       CertificateConstants.CERTTYPE_ROOTCA, CertificateConstants.CERTTYPE_SUBCA
@@ -2007,17 +2358,20 @@ public class CAInterfaceBean implements Serializable {
     return ret;
   }
 
+  /**
+   * @return specs
+   */
   public List<Entry<String, String>> getAvailableKeySpecs() {
     final List<Entry<String, String>> ret = new ArrayList<>();
     // Legacy idea: Never use larger keys than 2048 bit RSA for CMS signing
     // Reference: RFC 6485 - The Profile for Algorithms and Key Sizes for Use in
     // the Resource PKI. [§ 3, and 5]
-    final int[] SIZES_RSA = {1024, 1536, 2048, 3072, 4096 /*, 6144, 8192*/};
-    final int[] SIZES_DSA = {1024};
-    for (int size : SIZES_RSA) {
+    final int[] sizesDsa = {1024, 1536, 2048, 3072, 4096 /*, 6144, 8192*/};
+    final int[] sizesRsa = {1024};
+    for (int size : sizesDsa) {
       ret.add(new SimpleEntry<>(String.valueOf(size), "RSA " + size));
     }
-    for (int size : SIZES_DSA) {
+    for (int size : sizesRsa) {
       ret.add(new SimpleEntry<>("DSA" + size, "DSA " + size));
     }
     @SuppressWarnings("unchecked")
@@ -2040,29 +2394,46 @@ public class CAInterfaceBean implements Serializable {
     return ret;
   }
 
-  public boolean createAuthCertSignRequest(final int caid, final byte[] request)
+  /**
+   * @param caid ID
+   * @param arequest Req
+   * @return req
+   * @throws CADoesntExistsException fail
+   * @throws AuthorizationDeniedException fail
+   * @throws CryptoTokenOfflineException fail
+   */
+  public boolean createAuthCertSignRequest(
+          final int caid, final byte[] arequest)
       throws CADoesntExistsException, AuthorizationDeniedException,
           CryptoTokenOfflineException {
-    if (request != null) {
-      byte[] signedreq = cadatahandler.createAuthCertSignRequest(caid, request);
+    if (arequest != null) {
+      byte[] signedreq
+          = cadatahandler.createAuthCertSignRequest(caid, arequest);
       saveRequestData(signedreq);
       return true;
     }
     return false;
   }
 
+  /**
+   * @param arequest Req
+   * @param requestMap Map
+   * @return params
+   * @throws IOException Fail
+   */
   public byte[] parseRequestParameters(
-      final HttpServletRequest request, final Map<String, String> requestMap)
+      final HttpServletRequest arequest, final Map<String, String> requestMap)
       throws IOException {
     byte[] fileBuffer = null;
     try {
-      if (ServletFileUpload.isMultipartContent(request)) {
+      final int maxSize = 60000;
+      if (ServletFileUpload.isMultipartContent(arequest)) {
         final DiskFileItemFactory diskFileItemFactory =
             new DiskFileItemFactory();
-        diskFileItemFactory.setSizeThreshold(59999);
+        diskFileItemFactory.setSizeThreshold(maxSize - 1);
         ServletFileUpload upload = new ServletFileUpload(diskFileItemFactory);
-        upload.setSizeMax(60000);
-        final List<FileItem> items = upload.parseRequest(request);
+        upload.setSizeMax(maxSize);
+        final List<FileItem> items = upload.parseRequest(arequest);
         for (final FileItem item : items) {
           if (item.isFormField()) {
             final String fieldName = item.getFieldName();
@@ -2083,9 +2454,9 @@ public class CAInterfaceBean implements Serializable {
           }
         }
       } else {
-        final Set<String> keySet = request.getParameterMap().keySet();
+        final Set<String> keySet = arequest.getParameterMap().keySet();
         for (final String key : keySet) {
-          requestMap.put(key, request.getParameter(key));
+          requestMap.put(key, arequest.getParameter(key));
         }
       }
     } catch (UnsupportedEncodingException e) {
@@ -2160,25 +2531,30 @@ public class CAInterfaceBean implements Serializable {
   //               Import CRL
   // -----------------------------------------
 
+  /**
+   * @param caname name
+   * @param crlBytes CRL
+   * @return Message
+   */
   public String importCRL(final String caname, final byte[] crlBytes) {
 
     if (crlBytes == null || crlBytes.length == 0) {
-      if (log.isDebugEnabled()) {
-        log.debug("No CRL file to import");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("No CRL file to import");
       }
       return "";
     }
 
     String retMsg = "";
     try {
-      final CAInfo cainfo = getCAInfo(caname).getCAInfo();
+      final CAInfo acainfo = getCAInfo(caname).getCAInfo();
       X509CRL x509crl = CertTools.getCRLfromByteArray(crlBytes);
 
       if (StringUtils.equals(
-          cainfo.getSubjectDN(), CertTools.getIssuerDN(x509crl))) {
+          acainfo.getSubjectDN(), CertTools.getIssuerDN(x509crl))) {
         ejbLocalHelper
             .getImportCrlSession()
-            .importCrl(authenticationToken, cainfo, crlBytes);
+            .importCrl(authenticationToken, acainfo, crlBytes);
         retMsg =
             "CRL imported successfully or a newer version is already in the"
                 + " database";
@@ -2199,7 +2575,7 @@ public class CAInterfaceBean implements Serializable {
    * not This method used while creating a new CA to warn users about keys which
    * are already in use by other CAs.
    *
-   * @param CAIds IDs
+   * @param cAIds IDs
    * @param alias Alias
    * @param currentCryptoTokenId Yoken
    * @return boolean true if crypto key is used by another CA or false
@@ -2207,13 +2583,15 @@ public class CAInterfaceBean implements Serializable {
    * @throws IllegalStateException Fail
    */
   public boolean isKeyInUse(
-      final Collection<Integer> CAIds,
+      final Collection<Integer> cAIds,
       final String alias,
       final int currentCryptoTokenId) {
-    for (final int caId : CAIds) {
+    for (final int caId : cAIds) {
       final CAInfo caInfo = casession.getCAInfoInternal(caId);
       if (currentCryptoTokenId == caInfo.getCAToken().getCryptoTokenId()
-          && caInfo.getCAToken().getProperties().contains(alias)) return true;
+          && caInfo.getCAToken().getProperties().contains(alias)) {
+          return true;
+      }
     }
     return false;
   }

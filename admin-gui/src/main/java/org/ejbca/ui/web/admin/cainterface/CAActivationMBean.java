@@ -46,114 +46,174 @@ import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
  */
 public class CAActivationMBean extends BaseManagedBean implements Serializable {
 
-  private static final Logger log = Logger.getLogger(CAActivationMBean.class);
+    /** Log. */
+  private static final Logger LOG = Logger.getLogger(CAActivationMBean.class);
 
   private static final long serialVersionUID = -2660384552215596717L;
 
-  /** GUI representation of a CA for the activation view */
-  public class CaActivationGuiInfo {
+  /** GUI representation of a CA for the activation view. */
+  public final class CaActivationGuiInfo {
+        /** Param. */
     private final int status;
+    /** Param. */
     private final String name;
+    /** Param. */
     private final int caId;
+    /** Param. */
     private final boolean monitored;
+    /** Param. */
     private boolean monitoredNewState;
+    /** Param. */
     private boolean newState;
 
     private CaActivationGuiInfo(
-        final int status,
-        final boolean monitored,
-        final String name,
-        final int caId) {
-      this.status = status;
+        final int astatus,
+        final boolean amonitored,
+        final String aname,
+        final int acaId) {
+      this.status = astatus;
       this.newState = isActive();
-      this.monitored = monitored;
-      this.monitoredNewState = monitored;
-      this.name = name;
-      this.caId = caId;
+      this.monitored = amonitored;
+      this.monitoredNewState = amonitored;
+      this.name = aname;
+      this.caId = acaId;
     }
 
+    /**
+     * @return bool
+     */
     public boolean isActive() {
       return status == CAConstants.CA_ACTIVE;
     }
 
+    /**
+     * @return bool
+     */
     public boolean isExpired() {
       return status == CAConstants.CA_EXPIRED;
     }
 
+    /**
+     * @return bool
+     */
     public boolean isRevoked() {
       return status == CAConstants.CA_REVOKED;
     }
 
+    /**
+     * @return bool
+     */
     public boolean isExternal() {
       return status == CAConstants.CA_EXTERNAL;
     }
 
+    /**
+     * @return bool
+     */
     public boolean isWaiting() {
       return status == CAConstants.CA_WAITING_CERTIFICATE_RESPONSE;
     }
 
+    /**
+     * @return bool
+     */
     public boolean isUnableToChangeState() {
       return isRevoked() || isExpired() || isExternal() || isWaiting();
     }
 
+    /**
+     * @return bool
+     */
     public boolean isOffline() {
       return !isActive() && !isExpired() && !isRevoked();
     }
 
+    /**
+     * @return bool
+     */
     public boolean isMonitoredNewState() {
       return monitoredNewState;
     }
 
-    public void setMonitoredNewState(final boolean monitoredNewState) {
-      this.monitoredNewState = monitoredNewState;
+    /**
+     * @param ismonitoredNewState bool
+     */
+    public void setMonitoredNewState(final boolean ismonitoredNewState) {
+      this.monitoredNewState = ismonitoredNewState;
     }
 
+    /**
+     * @return bool
+     */
     public boolean isMonitored() {
       return monitored;
     }
 
+    /**
+     * @return Status
+     */
     public int getStatus() {
       return status;
     }
 
+    /**
+     * @return name
+     */
     public String getName() {
       return name;
     }
 
+    /**
+     * @return ID
+     */
     public int getCaId() {
       return caId;
     }
 
+    /**
+     * @return bool
+     */
     public boolean isNewState() {
       return newState;
     }
 
-    public void setNewState(final boolean newState) {
-      this.newState = newState;
+    /**
+     * @param anewState bool
+     */
+    public void setNewState(final boolean anewState) {
+      this.newState = anewState;
     }
   }
 
   /**
-   * GUI representation of a CryptoToken and its CA(s) for the activation view
+   * GUI representation of a CryptoToken and its CA(s) for the activation view.
    */
   public class TokenAndCaActivationGuiInfo {
+        /** Param. */
     private final CryptoTokenInfo cryptoTokenInfo;
+    /** Param. */
     private final List<CaActivationGuiInfo> caActivationGuiInfos =
         new ArrayList<>();
+    /** Param. */
     private final boolean allowedActivation;
+    /** Param. */
     private final boolean allowedDeactivation;
+    /** Param. */
     private boolean cryptoTokenNewState;
 
     private TokenAndCaActivationGuiInfo(
-        final CryptoTokenInfo cryptoTokenInfo,
-        final boolean allowedActivation,
-        final boolean allowedDeactivation) {
-      this.cryptoTokenInfo = cryptoTokenInfo;
-      this.cryptoTokenNewState = cryptoTokenInfo.isActive();
-      this.allowedActivation = allowedActivation;
-      this.allowedDeactivation = allowedDeactivation;
+        final CryptoTokenInfo acryptoTokenInfo,
+        final boolean isallowedActivation,
+        final boolean isallowedDeactivation) {
+      this.cryptoTokenInfo = acryptoTokenInfo;
+      this.cryptoTokenNewState = acryptoTokenInfo.isActive();
+      this.allowedActivation = isallowedActivation;
+      this.allowedDeactivation = isallowedDeactivation;
     }
 
+    /**
+     * @param cryptoTokenId ID
+     */
     public TokenAndCaActivationGuiInfo(final Integer cryptoTokenId) {
       this.cryptoTokenInfo =
           new CryptoTokenInfo(
@@ -168,97 +228,152 @@ public class CAActivationMBean extends BaseManagedBean implements Serializable {
       this.allowedDeactivation = false;
     }
 
+    /**
+     * @param caActivationGuiInfo info
+     */
     public void add(final CaActivationGuiInfo caActivationGuiInfo) {
       caActivationGuiInfos.add(caActivationGuiInfo);
     }
 
+    /**
+     * @return CAS
+     */
     public List<CaActivationGuiInfo> getCas() {
       return caActivationGuiInfos;
     }
 
+    /**
+     * @return ID
+     */
     public int getCryptoTokenId() {
       return cryptoTokenInfo.getCryptoTokenId();
     }
 
+    /**
+     * @return name
+     */
     public String getCryptoTokenName() {
       return cryptoTokenInfo.getName();
     }
-
+    /**
+     * @return bool
+     */
     public boolean isExisting() {
       return !"NullCryptoToken".equals(cryptoTokenInfo.getType());
     }
-
+    /**
+     * @return bool
+     */
     public boolean isCryptoTokenActive() {
       return cryptoTokenInfo.isActive();
     }
-
+    /**
+     * @return bool
+     */
     public boolean isAutoActivated() {
       return cryptoTokenInfo.isAutoActivation();
     }
 
+    /**
+     * @return bool
+     */
     public boolean isStateChangeDisabled() {
       return isAutoActivated()
           || (isCryptoTokenActive() && !allowedDeactivation)
           || (!isCryptoTokenActive() && !allowedActivation);
     }
 
+    /**
+     * @return state
+     */
     public boolean isCryptoTokenNewState() {
       return cryptoTokenNewState;
     }
 
-    public void setCryptoTokenNewState(final boolean cryptoTokenNewState) {
-      this.cryptoTokenNewState = cryptoTokenNewState;
+    /**
+     * @param acryptoTokenNewState state
+     */
+    public void setCryptoTokenNewState(final boolean acryptoTokenNewState) {
+      this.cryptoTokenNewState = acryptoTokenNewState;
     }
   }
 
   /**
-   * GUI representation of a CryptoToken and its CA(s) for the activation view
+   * GUI representation of a CryptoToken and its CA(s) for the activation view.
    */
   public class TokenAndCaActivationGuiComboInfo {
+        /** Param. */
     private final boolean firstCryptoTokenListing;
+    /** Param. */
     private final TokenAndCaActivationGuiInfo cryptoTokenInfo;
+    /** Param. */
     private final CaActivationGuiInfo caActivationGuiInfo;
 
+    /**
+     * @param acryptoTokenInfo token
+     * @param acaActivationGuiInfo CA
+     * @param first bool
+     */
     public TokenAndCaActivationGuiComboInfo(
-        final TokenAndCaActivationGuiInfo cryptoTokenInfo,
-        final CaActivationGuiInfo caActivationGuiInfo,
+        final TokenAndCaActivationGuiInfo acryptoTokenInfo,
+        final CaActivationGuiInfo acaActivationGuiInfo,
         final boolean first) {
-      this.cryptoTokenInfo = cryptoTokenInfo;
-      this.caActivationGuiInfo = caActivationGuiInfo;
+      this.cryptoTokenInfo = acryptoTokenInfo;
+      this.caActivationGuiInfo = acaActivationGuiInfo;
       this.firstCryptoTokenListing = first;
     }
 
+    /**
+     * @return bool
+     */
     public boolean isFirst() {
       return firstCryptoTokenListing;
     }
 
+    /**
+     * @return Token
+     */
     public TokenAndCaActivationGuiInfo getCryptoToken() {
       return cryptoTokenInfo;
     }
 
+    /**
+     * @return CA
+     */
     public CaActivationGuiInfo getCa() {
       return caActivationGuiInfo;
     }
   }
 
+  /** Param. */
   private final AuthenticationToken authenticationToken =
       EjbcaJSFHelper.getBean().getEjbcaWebBean().getAdminObject();
+  /** Param. */
   private final EjbLocalHelper ejbLocalhelper = new EjbLocalHelper();
+  /** Param. */
   private final CAAdminSessionLocal caAdminSession =
       ejbLocalhelper.getCaAdminSession();
+  /** Param. */
   private final CaSessionLocal caSession = ejbLocalhelper.getCaSession();
+  /** Param. */
   private final CryptoTokenManagementSessionLocal cryptoTokenManagementSession =
       ejbLocalhelper.getCryptoTokenManagementSession();
+  /** Param. */
   private final AuthorizationSessionLocal authorizationSession =
       ejbLocalhelper.getAuthorizationSession();
 
+  /** Param. */
   private List<TokenAndCaActivationGuiComboInfo> authorizedTokensAndCas = null;
+  /** Param. */
   private String authenticationcode;
 
+  /**
+   * @return info
+   */
   public List<TokenAndCaActivationGuiComboInfo> getAuthorizedTokensAndCas() {
     final Map<Integer, TokenAndCaActivationGuiInfo> sortMap = new HashMap<>();
-    for (final CAInfo caInfo :
-        caSession.getAuthorizedAndEnabledCaInfos(authenticationToken)) {
+    for (final CAInfo caInfo
+        : caSession.getAuthorizedAndEnabledCaInfos(authenticationToken)) {
       final Integer cryptoTokenId =
           Integer.valueOf(caInfo.getCAToken().getCryptoTokenId());
       if (sortMap.get(cryptoTokenId) == null) {
@@ -343,13 +458,13 @@ public class CAActivationMBean extends BaseManagedBean implements Serializable {
     if (authorizedTokensAndCas == null) {
       return;
     }
-    for (final TokenAndCaActivationGuiComboInfo tokenAndCaCombo :
-        authorizedTokensAndCas) {
+    for (final TokenAndCaActivationGuiComboInfo tokenAndCaCombo
+        : authorizedTokensAndCas) {
       if (tokenAndCaCombo.isFirst()) {
         TokenAndCaActivationGuiInfo tokenAndCa =
             tokenAndCaCombo.getCryptoToken();
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "isCryptoTokenActive(): "
                   + tokenAndCa.isCryptoTokenActive()
                   + " isCryptoTokenNewState(): "
@@ -366,7 +481,7 @@ public class CAActivationMBean extends BaseManagedBean implements Serializable {
                     authenticationToken,
                     tokenAndCa.getCryptoTokenId(),
                     authenticationcode.toCharArray());
-                log.info(
+                LOG.info(
                     authenticationToken.toString()
                         + " activated CryptoToken "
                         + tokenAndCa.getCryptoTokenId());
@@ -387,7 +502,7 @@ public class CAActivationMBean extends BaseManagedBean implements Serializable {
             try {
               cryptoTokenManagementSession.deactivate(
                   authenticationToken, tokenAndCa.getCryptoTokenId());
-              log.info(
+              LOG.info(
                   authenticationToken.toString()
                       + " deactivated CryptoToken "
                       + tokenAndCa.getCryptoTokenId());
@@ -428,8 +543,8 @@ public class CAActivationMBean extends BaseManagedBean implements Serializable {
           super.addNonTranslatedErrorMessage(e.getMessage());
         }
       }
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "caId: "
                 + ca.getCaId()
                 + " monitored: "
@@ -445,8 +560,8 @@ public class CAActivationMBean extends BaseManagedBean implements Serializable {
    */
   public boolean isActivationCodeShown() {
     if (authorizedTokensAndCas != null) {
-      for (final TokenAndCaActivationGuiComboInfo tokenAndCa :
-          authorizedTokensAndCas) {
+      for (final TokenAndCaActivationGuiComboInfo tokenAndCa
+          : authorizedTokensAndCas) {
         if (tokenAndCa.isFirst()) {
           if (!tokenAndCa.getCryptoToken().isCryptoTokenActive()
               && !tokenAndCa.getCryptoToken().isStateChangeDisabled()) {
@@ -470,10 +585,16 @@ public class CAActivationMBean extends BaseManagedBean implements Serializable {
         getAdmin(), AccessRulesConstants.REGULAR_ACTIVATECA);
   }
 
-  public void setAuthenticationCode(final String authenticationcode) {
-    this.authenticationcode = authenticationcode;
+  /**
+   * @param anauthenticationcode code
+   */
+  public void setAuthenticationCode(final String anauthenticationcode) {
+    this.authenticationcode = anauthenticationcode;
   }
 
+  /**
+   * @return code
+   */
   public String getAuthenticationCode() {
     return "";
   }

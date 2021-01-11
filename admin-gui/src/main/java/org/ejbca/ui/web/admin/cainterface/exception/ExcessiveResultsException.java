@@ -22,16 +22,29 @@ public class ExcessiveResultsException extends Exception {
 
   private static final long serialVersionUID = -3569778666070980397L;
 
-  public ExcessiveResultsException() {}
+  /**
+   * Null.
+   */
+  public ExcessiveResultsException() { }
 
+  /**
+   * @param arg0 Message
+   */
   public ExcessiveResultsException(final String arg0) {
     super(arg0);
   }
 
+  /**
+   * @param arg0 Cause
+   */
   public ExcessiveResultsException(final Throwable arg0) {
     super(arg0);
   }
 
+  /**
+   * @param arg0 message
+   * @param arg1 cause
+   */
   public ExcessiveResultsException(final String arg0, final Throwable arg1) {
     super(arg0, arg1);
   }
