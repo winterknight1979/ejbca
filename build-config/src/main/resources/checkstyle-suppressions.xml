@@ -580,6 +580,14 @@
 		files="CAInterfaceBean.java" lines=" 902,1149,1824" />
 		<suppress checks="MethodLengthCheck"
 		files="EditPublisherJSPHelper.java" lines="324 " />
+		<suppress checks="MethodLengthCheck"
+		files="CertProfileBean.java" lines="206 " />
+		<suppress checks="MagicNumberCheck"
+		files="CertProfileBean.java" lines="2049-2108 " /> <!-- error codes, will finalize once I understand them -->
+		<suppress checks="MagicNumberCheck"
+		files="CertProfilesBean.java" lines="713 " />
+		<suppress checks="MethodLengthCheck"
+		files="ProfilesExportServlet.java" lines="104 " />
 	
 	
 </suppressions>

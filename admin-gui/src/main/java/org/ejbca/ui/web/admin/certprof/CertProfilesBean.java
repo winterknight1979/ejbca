@@ -56,64 +56,103 @@ import org.ejbca.ui.web.admin.BaseManagedBean;
 // @javax.faces.bean.ManagedBean(name="certProfilesBean")
 public class CertProfilesBean extends BaseManagedBean implements Serializable {
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(CertProfilesBean.class);
+  /** Param. */
+  private static final Logger LOG = Logger.getLogger(CertProfilesBean.class);
 
   // This restriction in certificate profile naming can be removed when the
   // current running version no longer has
   // to be able to run side by side (share the db) with an EJBCA 6.1.x or
   // earlier
+  /** Param. */
   @Deprecated private static final String LEGACY_FIXED_MARKER = "(FIXED)";
 
   public class CertificateProfileItem {
+        /** Param. */
     private final int id;
+    /** Param. */
     private final String name;
+    /** Param. */
     private final boolean fixed;
+    /** Param. */
     private final boolean missingCa;
 
+    /**
+     * @param anid ID
+     * @param aname Name
+     * @param iafixed Fixed
+     * @param ismissingCa Missing
+     */
     public CertificateProfileItem(
-        final int id,
-        final String name,
-        final boolean fixed,
-        final boolean missingCa) {
-      this.id = id;
-      this.name = name;
-      this.fixed = fixed;
-      this.missingCa = missingCa;
+        final int anid,
+        final String aname,
+        final boolean iafixed,
+        final boolean ismissingCa) {
+      this.id = anid;
+      this.name = aname;
+      this.fixed = iafixed;
+      this.missingCa = ismissingCa;
     }
 
+    /**
+     * @return ID
+     */
     public int getId() {
       return id;
     }
 
+    /**
+     * @return name
+     */
     public String getName() {
       return name;
     }
-
+    /**
+     * @return bool
+     */
     public boolean isFixed() {
       return fixed;
     }
 
+    /**
+     * @return bool
+     */
     public boolean isMissingCa() {
       return missingCa;
     }
   }
 
+  /** Param. */
   private Integer selectedCertProfileId = null;
+  /** Param. */
   private boolean renameInProgress = false;
+  /** Param. */
   private boolean deleteInProgress = false;
+  /** Param. */
   private boolean addFromTemplateInProgress = false;
+  /** Param. */
   private String certProfileName = "";
+  /** Param. */
   private boolean viewOnly = true;
+  /** Param. */
   private ListDataModel<CertificateProfileItem> certificateProfileItems = null;
 
+  /**
+   * @return ID
+   */
   public Integer getSelectedCertProfileId() {
     return selectedCertProfileId;
   }
 
-  public void setSelectedCertProfileId(final Integer selectedCertProfileId) {
-    this.selectedCertProfileId = selectedCertProfileId;
+  /**
+   * @param aselectedCertProfileId ID
+   */
+  public void setSelectedCertProfileId(final Integer aselectedCertProfileId) {
+    this.selectedCertProfileId = aselectedCertProfileId;
   }
 
+  /**
+   * @return name
+   */
   public String getSelectedCertProfileName() {
     final Integer profileId = getSelectedCertProfileId();
     if (profileId != null) {
@@ -127,11 +166,17 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
 
   // Force a shorter scope (than session scoped) for the ListDataModel by always
   // resetting it before it is rendered
+  /**
+   * @return empty
+   */
   public String getResetCertificateProfilesTrigger() {
     certificateProfileItems = null;
     return "";
   }
 
+  /**
+   * @return profiles
+   */
   public ListDataModel<CertificateProfileItem> getCertificateProfiles() {
     if (certificateProfileItems == null) {
       final List<CertificateProfileItem> items = new ArrayList<>();
@@ -203,23 +248,28 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
    * @return true if the specified certificate profile id is fixed
    */
   private boolean isCertProfileFixed(final int profileId) {
-    if (profileId
-        <= CertificateProfileConstants.FIXED_CERTIFICATEPROFILE_BOUNDRY) {
-      return true;
-    } else {
-      return false;
-    }
+    return (profileId
+        <= CertificateProfileConstants.FIXED_CERTIFICATEPROFILE_BOUNDRY);
   }
 
+  /**
+   * @return bool
+   */
   public boolean isAuthorizedToEdit() {
     return isAuthorizedTo(StandardRules.CERTIFICATEPROFILEEDIT.resource());
   }
 
+  /**
+   * @return bool
+   */
   public boolean isAuthorizedToOnlyView() {
     return isAuthorizedTo(StandardRules.CERTIFICATEPROFILEVIEW.resource())
         && !isAuthorizedToEdit();
   }
 
+  /**
+   * @return edit
+   */
   public String actionEdit() {
     selectCurrentRowData();
     if (selectedProfileExists()) {
@@ -230,6 +280,9 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
     }
   }
 
+  /**
+   * @return view
+   */
   public String actionView() {
     selectCurrentRowData();
     if (selectedProfileExists()) {
@@ -240,27 +293,36 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
     }
   }
 
+  /**
+   * @return bool
+   */
   public boolean getViewOnly() {
     return viewOnly;
   }
 
+  /** Select. */
   private void selectCurrentRowData() {
     final CertificateProfileItem certificateProfileItem =
         getCertificateProfiles().getRowData();
     selectedCertProfileId = certificateProfileItem.getId();
   }
 
+  /**
+   * @return bool
+   */
   public boolean isOperationInProgress() {
     return isRenameInProgress()
         || isDeleteInProgress()
         || isAddFromTemplateInProgress();
   }
 
+  /** Add.
+   */
   public void actionAdd() {
-    final String certProfileName = getCertProfileName();
-    if (certProfileName.endsWith(LEGACY_FIXED_MARKER)) {
+    final String acertProfileName = getCertProfileName();
+    if (acertProfileName.endsWith(LEGACY_FIXED_MARKER)) {
       addErrorMessage("YOUCANTEDITFIXEDCERTPROFS");
-    } else if (certProfileName.length() > 0) {
+    } else if (acertProfileName.length() > 0) {
       try {
         final CertificateProfile certificateProfile =
             new CertificateProfile(
@@ -271,7 +333,7 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
             .getEjb()
             .getCertificateProfileSession()
             .addCertificateProfile(
-                getAdmin(), certProfileName, certificateProfile);
+                getAdmin(), acertProfileName, certificateProfile);
         setCertProfileName("");
       } catch (CertificateProfileExistsException e) {
         addErrorMessage("CERTIFICATEPROFILEALREADY");
@@ -282,10 +344,14 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
     certificateProfileItems = null;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isAddFromTemplateInProgress() {
     return addFromTemplateInProgress;
   }
 
+  /** Add. */
   public void actionAddFromTemplate() {
     selectCurrentRowData();
     if (selectedProfileExists()) {
@@ -293,11 +359,12 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
     }
   }
 
+  /** Add. */
   public void actionAddFromTemplateConfirm() {
-    final String certProfileName = getCertProfileName();
-    if (certProfileName.endsWith(LEGACY_FIXED_MARKER)) {
+    final String acertProfileName = getCertProfileName();
+    if (acertProfileName.endsWith(LEGACY_FIXED_MARKER)) {
       addErrorMessage("YOUCANTEDITFIXEDCERTPROFS");
-    } else if (certProfileName.length() > 0) {
+    } else if (acertProfileName.length() > 0) {
       try {
         final List<Integer> authorizedCaIds;
         if (isCertProfileFixed(getSelectedCertProfileId())
@@ -319,7 +386,7 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
             .cloneCertificateProfile(
                 getAdmin(),
                 getSelectedCertProfileName(),
-                certProfileName,
+                acertProfileName,
                 authorizedCaIds);
         setCertProfileName("");
       } catch (CertificateProfileExistsException e) {
@@ -333,10 +400,14 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
     actionCancel();
   }
 
+  /**
+   * @return bool
+   */
   public boolean isDeleteInProgress() {
     return deleteInProgress;
   }
 
+  /** Delete. */
   public void actionDelete() {
     selectCurrentRowData();
     if (selectedProfileExists()) {
@@ -344,6 +415,7 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
     }
   }
 
+  /** Delete. */
   public void actionDeleteConfirm() {
     if (canDeleteCertProfile()) {
       try {
@@ -365,10 +437,14 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
     actionCancel();
   }
 
+  /**
+   * @return Bool
+   */
   public boolean isRenameInProgress() {
     return renameInProgress;
   }
 
+  /** Rename. */
   public void actionRename() {
     selectCurrentRowData();
     if (selectedProfileExists()) {
@@ -376,17 +452,18 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
     }
   }
 
+  /** Rename. */
   public void actionRenameConfirm() {
-    final String certProfileName = getCertProfileName();
-    if (certProfileName.endsWith(LEGACY_FIXED_MARKER)) {
+    final String acertProfileName = getCertProfileName();
+    if (acertProfileName.endsWith(LEGACY_FIXED_MARKER)) {
       addErrorMessage("YOUCANTEDITFIXEDCERTPROFS");
-    } else if (certProfileName.length() > 0) {
+    } else if (acertProfileName.length() > 0) {
       try {
         getEjbcaWebBean()
             .getEjb()
             .getCertificateProfileSession()
             .renameCertificateProfile(
-                getAdmin(), getSelectedCertProfileName(), certProfileName);
+                getAdmin(), getSelectedCertProfileName(), acertProfileName);
         setCertProfileName("");
       } catch (CertificateProfileExistsException e) {
         addErrorMessage("CERTIFICATEPROFILEALREADY");
@@ -398,6 +475,7 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
     actionCancel();
   }
 
+  /** Cancel. */
   public void actionCancel() {
     addFromTemplateInProgress = false;
     deleteInProgress = false;
@@ -432,7 +510,8 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
               .getEjb()
               .getEndEntityAccessSession()
               .countByCertificateProfileId(certificateProfileId);
-      if (numberOfEndEntitiesReferencingCP > 1000) {
+      final int max = 1000;
+      if (numberOfEndEntitiesReferencingCP > max) {
         ret = false;
         addErrorMessage("CERTPROFILEUSEDINENDENTITIES");
         addErrorMessage("CERTPROFILEUSEDINENDENTITIESEXCESSIVE");
@@ -525,32 +604,46 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
     return sb.toString();
   }
 
+  /**
+   * @return name
+   */
   public String getCertProfileName() {
     return certProfileName;
   }
 
-  public void setCertProfileName(String certProfileName) {
-    certProfileName = certProfileName.trim();
-    if (StringTools.checkFieldForLegalChars(certProfileName)) {
+  /**
+   * @param oacertProfileName name
+   */
+  public void setCertProfileName(final String oacertProfileName) {
+    String acertProfileName = oacertProfileName.trim();
+    if (StringTools.checkFieldForLegalChars(acertProfileName)) {
       addErrorMessage("ONLYCHARACTERS");
     } else {
-      this.certProfileName = certProfileName;
+      this.certProfileName = acertProfileName;
     }
   }
 
   // ----------------------------------------------
   //                Import profiles
   // ----------------------------------------------
+  /** Param. */
   private UploadedFile uploadFile;
 
+  /**
+   * @return file
+   */
   public UploadedFile getUploadFile() {
     return uploadFile;
   }
 
-  public void setUploadFile(final UploadedFile uploadFile) {
-    this.uploadFile = uploadFile;
+  /**
+   * @param auploadFile file
+   */
+  public void setUploadFile(final UploadedFile auploadFile) {
+    this.uploadFile = auploadFile;
   }
 
+  /** Import. */
   public void actionImportProfiles() {
 
     if (uploadFile == null) {
@@ -591,6 +684,13 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
     }
   }
 
+  /**
+   * @param filebuffer file
+   * @throws CertificateProfileExistsException fail
+   * @throws AuthorizationDeniedException fail
+   * @throws NumberFormatException fail
+   * @throws IOException fail
+   */
   public void importProfilesFromZip(final byte[] filebuffer)
       throws CertificateProfileExistsException, AuthorizationDeniedException,
           NumberFormatException, IOException {
@@ -609,12 +709,12 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
     if (ze == null) {
       // Print import message if the file header corresponds to an empty zip
       // archive
-      if (Arrays.equals(
+      if (Arrays.equals( // TODO: magic numbers
           Arrays.copyOfRange(filebuffer, 0, 4), new byte[] {80, 75, 5, 6})) {
         printImportMessage(nrOfFiles, importedFiles, ignoredFiles);
       } else {
         String msg = uploadFile.getName() + " is not a zip file.";
-        log.info(msg);
+        LOG.info(msg);
         FacesContext.getCurrentInstance()
             .addMessage(
                 null, new FacesMessage(FacesMessage.SEVERITY_ERROR, msg, null));
@@ -625,8 +725,8 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
     do {
       nrOfFiles++;
       String filename = ze.getName();
-      if (log.isDebugEnabled()) {
-        log.debug("Importing file: " + filename);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Importing file: " + filename);
       }
 
       if (ignoreFile(filename)) {
@@ -648,16 +748,16 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
       try {
         profileid = Integer.parseInt(filename.substring(index2 + 1, index3));
       } catch (NumberFormatException e) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "NumberFormatException parsing certificate profile id: "
                   + e.getMessage());
         }
         ignoredFiles += filename + ", ";
         continue;
       }
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Extracted profile name '"
                 + profilename
                 + "' and profile ID '"
@@ -675,7 +775,7 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
               .getCertificateProfileSession()
               .getCertificateProfile(profileid)
           != null) {
-        log.warn(
+        LOG.warn(
             "Certificate profile id '"
                 + profileid
                 + "' already exist in database. Adding with a new profile id"
@@ -684,7 +784,8 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
             -1; // means we should create a new id when adding the cert profile
       }
 
-      byte[] filebytes = new byte[102400];
+      final int siz = 102400; // 100k
+      byte[] filebytes = new byte[siz];
       int i = 0;
       while ((zis.available() == 1) && (i < filebytes.length)) {
         filebytes[i++] = (byte) zis.read();
@@ -697,7 +798,7 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
             "Faulty XML file '"
                 + filename
                 + "'. Failed to read Certificate Profile.";
-        log.info(msg + " Ignoring file.");
+        LOG.info(msg + " Ignoring file.");
         FacesContext.getCurrentInstance()
             .addMessage(
                 null, new FacesMessage(FacesMessage.SEVERITY_ERROR, msg, null));
@@ -717,8 +818,9 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
                 getAdmin(), profileid, profilename, certificateProfile);
       }
       importedFiles += filename + ", ";
-      log.info("Added Certificate profile: " + profilename);
-    } while ((ze = zis.getNextEntry()) != null);
+      LOG.info("Added Certificate profile: " + profilename);
+      ze = zis.getNextEntry();
+    } while (ze != null);
     zis.closeEntry();
     zis.close();
 
@@ -730,13 +832,17 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
    * imported files and ignored files when importing Certificate Profiles.
    *
    * @param nrOfFiles the number of files the uploaded archive contained
-   * @param importedFiles the files in the archive that were imported
-   * @param ignoredFiles the files in the archive that were ignored
+   * @param oimportedFiles the files in the archive that were imported
+   * @param oignoredFiles the files in the archive that were ignored
    */
   private void printImportMessage(
-      final int nrOfFiles, String importedFiles, String ignoredFiles) {
+      final int nrOfFiles,
+      final String oimportedFiles,
+      final String oignoredFiles) {
+    String importedFiles = oimportedFiles;
+    String ignoredFiles = oignoredFiles;
     String msg = uploadFile.getName() + " contained " + nrOfFiles + " files. ";
-    log.info(msg);
+    LOG.info(msg);
     FacesContext.getCurrentInstance()
         .addMessage(
             null, new FacesMessage(FacesMessage.SEVERITY_INFO, msg, null));
@@ -745,8 +851,8 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
       importedFiles = importedFiles.substring(0, importedFiles.length() - 2);
     }
     msg = "Imported Certificate Profiles from files: " + importedFiles;
-    if (log.isDebugEnabled()) {
-      log.debug(msg);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(msg);
     }
     FacesContext.getCurrentInstance()
         .addMessage(
@@ -756,8 +862,8 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
       ignoredFiles = ignoredFiles.substring(0, ignoredFiles.length() - 2);
     }
     msg = "Ignored files: " + ignoredFiles;
-    if (log.isDebugEnabled()) {
-      log.debug(msg);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(msg);
     }
     FacesContext.getCurrentInstance()
         .addMessage(
@@ -775,9 +881,9 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
       try {
         data = decoder.readObject();
       } catch (IOException e) {
-        log.info("Error parsing certificate profile data: " + e.getMessage());
-        if (log.isDebugEnabled()) {
-          log.debug("Full stack trace: ", e);
+        LOG.info("Error parsing certificate profile data: " + e.getMessage());
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Full stack trace: ", e);
         }
         return null;
       } finally {
@@ -798,7 +904,7 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
         }
       }
       for (Integer toRemove : casToRemove) {
-        log.warn(
+        LOG.warn(
             "Warning: CA with id "
                 + toRemove
                 + " was not found and will not be used in certificate profile '"
@@ -807,7 +913,7 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
         cas.remove(toRemove);
       }
       if (cas.size() == 0) {
-        log.warn(
+        LOG.warn(
             "Error: No CAs left in certificate profile '"
                 + profilename
                 + "' and no CA specified on command line. Using ANYCA.");
@@ -826,13 +932,13 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
                   .getPublisherSession()
                   .getPublisher(publisher);
         } catch (Exception e) {
-          log.warn(
+          LOG.warn(
               "Warning: There was an error loading publisher with id "
                   + publisher
                   + ". Use debug logging to see stack trace: "
                   + e.getMessage());
-          if (log.isDebugEnabled()) {
-            log.debug("Full stack trace: ", e);
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Full stack trace: ", e);
           }
         }
         if (pub == null) {
@@ -840,7 +946,7 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
         }
       }
       for (Integer toRemove : allToRemove) {
-        log.warn(
+        LOG.warn(
             "Warning: Publisher with id "
                 + toRemove
                 + " was not found and will not be used in certificate profile '"
@@ -867,15 +973,16 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
    *     false if it should be imported
    */
   private boolean ignoreFile(final String filename) {
-    if (filename.lastIndexOf(".xml") != (filename.length() - 4)) {
-      log.info(filename + " is not an XML file. IGNORED");
+    final int len = 4;
+    if (filename.lastIndexOf(".xml") != (filename.length() - len)) {
+      LOG.info(filename + " is not an XML file. IGNORED");
       return true;
     }
 
     if (filename.indexOf("_") < 0
         || filename.lastIndexOf("-") < 0
         || (filename.indexOf("certprofile_") < 0)) {
-      log.info(
+      LOG.info(
           filename
               + " is not in the expected format. The file name should look"
               + " like: certprofile_<profile name>-<profile id>.xml. IGNORED");
@@ -895,7 +1002,7 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
       final String filename, final String profilename, final int profileid) {
     // We don't add the fixed profiles, EJBCA handles those automagically
     if (CertificateProfileConstants.isFixedCertificateProfile(profileid)) {
-      log.info(filename + " contains a fixed profile. IGNORED");
+      LOG.info(filename + " contains a fixed profile. IGNORED");
       return true;
     }
     // Check if the profiles already exist
@@ -904,7 +1011,7 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
             .getCertificateProfileSession()
             .getCertificateProfileId(profilename)
         != CertificateProfileConstants.CERTPROFILE_NO_PROFILE) {
-      log.info(
+      LOG.info(
           "Certificate profile '"
               + profilename
               + "' already exist in database. IGNORED");

@@ -70,14 +70,21 @@ import org.ejbca.ui.web.admin.cainterface.exception.AdminWebAuthenticationExcept
 public class ProfilesExportServlet extends BaseAdminServlet {
 
   private static final long serialVersionUID = -8091852234056712787L;
-  private static final Logger log =
+  /** Param. */
+  private static final Logger LOG =
       Logger.getLogger(ProfilesExportServlet.class);
 
+  /** Param. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** Param. */
   @EJB private CertificateProfileSessionLocal certificateProfileSession;
+  /** Param. */
   @EJB private EndEntityProfileSessionLocal endEntityProfileSession;
+  /** Param. */
   @EJB private KeyValidatorSessionLocal keyValidatorSession;
+  /** Param. */
   @EJB private GlobalConfigurationSessionLocal globalConfigurationSession;
+  /** Param. */
   @EJB private WebAuthenticationProviderSessionLocal authenticationSession;
 
   @Override
@@ -89,16 +96,16 @@ public class ProfilesExportServlet extends BaseAdminServlet {
   public void doPost(
       final HttpServletRequest request, final HttpServletResponse response)
       throws IOException, ServletException {
-    log.trace(">doPost()");
+    LOG.trace(">doPost()");
     doGet(request, response);
-    log.trace("<doPost()");
+    LOG.trace("<doPost()");
   }
 
   @Override
   public void doGet(
       final HttpServletRequest request, final HttpServletResponse response)
       throws IOException, ServletException {
-    log.trace(">doGet()");
+    LOG.trace(">doGet()");
     final AuthenticationToken admin;
     try {
       admin =
@@ -106,7 +113,7 @@ public class ProfilesExportServlet extends BaseAdminServlet {
               request, response, AccessRulesConstants.ROLE_ADMINISTRATOR);
     } catch (AdminWebAuthenticationException authExc) {
       // TODO: localize this.
-      log.info("Authentication failed", authExc);
+      LOG.info("Authentication failed", authExc);
       response.sendError(
           HttpServletResponse.SC_FORBIDDEN, "Authentication failed");
       return;
@@ -152,20 +159,20 @@ public class ProfilesExportServlet extends BaseAdminServlet {
       }
 
       totalprofiles = certprofids.size();
-      log.info("Exporting non-fixed certificate profiles");
+      LOG.info("Exporting non-fixed certificate profiles");
       for (int profileid : certprofids) {
         if (profileid
             == CertificateProfileConstants
                 .CERTPROFILE_NO_PROFILE) { // Certificate profile not found i
                                            // database.
-          log.error(
+          LOG.error(
               "Couldn't find certificate profile '"
                   + profileid
                   + "' in database.");
         } else if (CertificateProfileConstants.isFixedCertificateProfile(
             profileid)) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Skipping export fixed certificate profile with id '"
                     + profileid
                     + "'.");
@@ -177,7 +184,7 @@ public class ProfilesExportServlet extends BaseAdminServlet {
               certificateProfileSession.getCertificateProfile(profileid);
           if (profile == null) {
             missingprofiles++;
-            log.error(
+            LOG.error(
                 "Couldn't find certificate profile '"
                     + profilename
                     + "'-"
@@ -212,20 +219,20 @@ public class ProfilesExportServlet extends BaseAdminServlet {
           endEntityProfileSession.getAuthorizedEndEntityProfileIds(
               admin, AccessRulesConstants.VIEW_END_ENTITY);
       totalprofiles = endentityprofids.size();
-      log.info("Exporting non-fixed end entity profiles");
+      LOG.info("Exporting non-fixed end entity profiles");
       for (int profileid : endentityprofids) {
         if (profileid
             == EndEntityConstants
                 .NO_END_ENTITY_PROFILE) { // Entity profile not found i
                                           // database.
           missingprofiles++;
-          log.error(
+          LOG.error(
               "Error : Couldn't find entity profile '"
                   + profileid
                   + "' in database.");
         } else if (profileid == EndEntityConstants.EMPTY_END_ENTITY_PROFILE) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Skipping export fixed end entity profile with id '"
                     + profileid
                     + "'.");
@@ -236,7 +243,7 @@ public class ProfilesExportServlet extends BaseAdminServlet {
           EndEntityProfile profile =
               endEntityProfileSession.getEndEntityProfile(profileid);
           if (profile == null) {
-            log.error(
+            LOG.error(
                 "Error : Couldn't find entity profile '"
                     + profilename
                     + "'-"
@@ -273,7 +280,7 @@ public class ProfilesExportServlet extends BaseAdminServlet {
     final byte[] zipfile = zbaos.toByteArray();
     zbaos.close();
 
-    log.info(
+    LOG.info(
         "Found "
             + totalprofiles
             + " profiles. "
@@ -293,7 +300,7 @@ public class ProfilesExportServlet extends BaseAdminServlet {
     response.getOutputStream().write(zipfile);
     response.flushBuffer();
 
-    log.trace("<doGet()");
+    LOG.trace("<doGet()");
   } // doGet
 
   private byte[] getProfileBytes(final UpgradeableDataHashMap profile) {
