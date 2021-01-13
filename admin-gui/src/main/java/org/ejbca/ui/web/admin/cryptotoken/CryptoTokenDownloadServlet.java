@@ -41,9 +41,11 @@ import org.ejbca.ui.web.admin.cainterface.exception.AdminWebAuthenticationExcept
 public class CryptoTokenDownloadServlet extends BaseAdminServlet {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log =
+  /** Param. */
+  private static final Logger LOG =
       Logger.getLogger(CryptoTokenDownloadServlet.class);
 
+  /** Param. */
   @EJB private CryptoTokenManagementSessionLocal cryptoTokenManagementSession;
 
   @Override
@@ -60,12 +62,12 @@ public class CryptoTokenDownloadServlet extends BaseAdminServlet {
     doGet(request, response);
   }
 
-  /** Handles HTTP GET */
+  /** Handles HTTP GET. */
   @Override
   public void doGet(
       final HttpServletRequest request, final HttpServletResponse response)
       throws IOException, ServletException {
-    log.trace(">doGet()");
+    LOG.trace(">doGet()");
     final AuthenticationToken admin;
     try {
       admin =
@@ -73,7 +75,7 @@ public class CryptoTokenDownloadServlet extends BaseAdminServlet {
               request, response, CryptoTokenRules.VIEW.resource());
     } catch (AdminWebAuthenticationException authExc) {
       // TODO: localize this.
-      log.info("Authentication failed", authExc);
+      LOG.info("Authentication failed", authExc);
       response.sendError(
           HttpServletResponse.SC_FORBIDDEN, "Authentication failed");
       return;
@@ -99,6 +101,6 @@ public class CryptoTokenDownloadServlet extends BaseAdminServlet {
     } catch (AuthorizationDeniedException e) {
       throw new ServletException(e);
     }
-    log.trace("<doGet()");
+    LOG.trace("<doGet()");
   }
 }

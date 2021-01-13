@@ -590,6 +590,8 @@
 		files="ProfilesExportServlet.java" lines="104 " />
 		<suppress checks="MethodLengthCheck"
 		files="EjbcaWebBean.java" lines="282,892" />
+		<suppress checks="MethodLengthCheck"
+		files="CryptoTokenMBean.java" lines="923" />
 	
 	
 </suppressions>
