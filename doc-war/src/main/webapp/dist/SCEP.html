@@ -188,7 +188,7 @@
      src="images/download/attachments/23859518/scep_enroll.png" alt="images/download/attachments/23859518/scep_enroll.png" width="800"  />
     </p>
 <p   
->Using the <a   href="External_RA_using_Database_Polling.html">Legacy External RA&nbsp;API</a> (not to be confused with the synchronous <a   href="EJBCA_RA.html">EJBCA RA</a> using Peers), the additional SCEP message <tt class=" ">GetCertInitial</tt> is supported for polling mode:</p>
+>Using the <a   href="External_RA_using_Database_Polling.html">Legacy External RA&nbsp;API</a> (not to be confused with the synchronous <a   href="EJBCA_RA.html">EJBCA RA</a> using Peers), the additional SCEP message <code class=" ">GetCertInitial</code> is supported for polling mode:</p>
 <p   
 >The following CA capabilities are supported:</p>
 <ul class=" "><li class=" "><p   
@@ -204,17 +204,17 @@
     <div class="section section-1" id="src-23859518_id-.SCEPv6.15.0-SCEPConfigurationSCEP_Configuration">
         <h1 class="heading "><span id="src-23859518_id-.SCEPv6.15.0-SCEP_Configuration" class="confluence-anchor-link"></span><span>SCEP Configuration </span></h1>
 <p   
->The SCEP URL is <tt class=" ">http://HOST:PORT/ejbca/publicweb/apply/scep/ALIAS/pkiclient.exe</tt>.</p>
+>The SCEP URL is <code class=" ">http://HOST:PORT/ejbca/publicweb/apply/scep/ALIAS/pkiclient.exe</code>.</p>
 <p   
 >The URL contains a reference to a configuration alias 'ALIAS'. 'ALIAS' is an alphanumeric string that refers to the set of SCEP configurations that should be used when handling the SCEP request coming through this URL. It is possible to configure as many configuration aliases as desired using the command line or the CA UI.</p>
 <p   
->Creating a SCEP alias with the name <strong class=" ">scep</strong> makes it available using the default URL (the same URL as in previous versions), <tt class=" ">http://HOST:PORT/ejbca/publicweb/apply/scep/pkiclient.exe</tt>.</p>
+>Creating a SCEP alias with the name <strong class=" ">scep</strong> makes it available using the default URL (the same URL as in previous versions), <code class=" ">http://HOST:PORT/ejbca/publicweb/apply/scep/pkiclient.exe</code>.</p>
     <div class="section section-2" id="src-23859518_id-.SCEPv6.15.0-FromtheCommandLineInterface">
         <h2 class="heading "><span>From the Command Line Interface</span></h2>
 <p   
 >For information on creating and configuring the SCEP aliases using the command line, run the following command from the EJBCA home directory:</p>
 <p   
->Creating a SCEP alias with the name <strong class=" ">scep</strong> makes it available using the default URL (the same URL as in previous versions), <tt class=" ">http://HOST:PORT/ejbca/publicweb/apply/scep/pkiclient.exe</tt>.</p>
+>Creating a SCEP alias with the name <strong class=" ">scep</strong> makes it available using the default URL (the same URL as in previous versions), <code class=" ">http://HOST:PORT/ejbca/publicweb/apply/scep/pkiclient.exe</code>.</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">./bin/ejbca.sh config scep</code></div>
@@ -608,7 +608,7 @@
 <p   
 >Cisco PIX and Cisco 3000 is supported. The following description applies for PIX:</p>
 <ul class=" "><li class=" "><p   
->Configure JBoss to use port 80 to enroll with PIX: <tt class=" ">APPSRV_HOME/server/default/deploy/jbossweb-tomcat50.sar/service.xml</tt> (or similar depending on version). You must run as root to use port 80.</p>
+>Configure JBoss to use port 80 to enroll with PIX: <code class=" ">APPSRV_HOME/server/default/deploy/jbossweb-tomcat50.sar/service.xml</code> (or similar depending on version). You must run as root to use port 80.</p>
 </li><li class=" "><p   
 >EJBCA supports the <strong class=" ">ca</strong> mode of enrollment for pix, not <strong class=" ">ra</strong>. For <strong class=" ">ra</strong> and polling enrollment, use the External RA API SCEP module.</p>
 </li><li class=" "><p   

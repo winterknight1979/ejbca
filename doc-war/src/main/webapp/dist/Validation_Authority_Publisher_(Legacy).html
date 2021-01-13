@@ -214,7 +214,7 @@
             </td>
                 <td  class="confluenceTd" rowspan="1" colspan="1">
     <p   
->If selected, only revoked certificates are stored on the VA. The OCSP responder of the VA must have the <tt class=" ">nonexistingisgood</tt> (conf/ocsp.properties) enabled if only revoked certificates are published. A publisher for CA certificates (used on an <strong class=" ">Edit Certificate Authorities</strong> page) must have this disabled.</p>
+>If selected, only revoked certificates are stored on the VA. The OCSP responder of the VA must have the <code class=" ">nonexistingisgood</code> (conf/ocsp.properties) enabled if only revoked certificates are published. A publisher for CA certificates (used on an <strong class=" ">Edit Certificate Authorities</strong> page) must have this disabled.</p>
             </td>
         </tr>
     <tr>
@@ -273,7 +273,7 @@ end entity profile ID    </span>
     <div class="section section-1" id="src-26774259_safe-id-aWQtLlZhbGlkYXRpb25BdXRob3JpdHlQdWJsaXNoZXIoTGVnYWN5KXY2LjE1LjEtSGFuZGxpbmdNdWx0aXBsZU9DU1BSZXNwb25kZXJz">
         <h1 class="heading "><span>Handling Multiple OCSP Responders</span></h1>
 <p   
->Additional OCSP DataSources for publishers on the CA have to be added manually. To do this on JBoss, clone the initially deployed OCSP DataSource <tt class=" ">JBOSS_HOME/server/default/deploy/ocsp-ds.xml</tt> to <tt class=" ">JBOSS_HOME/server/default/deploy/ocsp2-ds.xml</tt> and change the following:</p>
+>Additional OCSP DataSources for publishers on the CA have to be added manually. To do this on JBoss, clone the initially deployed OCSP DataSource <code class=" ">JBOSS_HOME/server/default/deploy/ocsp-ds.xml</code> to <code class=" ">JBOSS_HOME/server/default/deploy/ocsp2-ds.xml</code> and change the following:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">      &lt;</code><code class="keyword">jndi</code><code class="plain">-name&gt;OcspDS&lt;/</code><code class="keyword">jndi</code><code class="plain">-name&gt;</code></div>
@@ -289,7 +289,7 @@ end entity profile ID    </span>
 </div>
     </div>
 <p   
->Then configure an additional publisher to use this new DataSource <tt class=" ">java:/Ocsp2DS</tt>.</p>
+>Then configure an additional publisher to use this new DataSource <code class=" ">java:/Ocsp2DS</code>.</p>
 <p   
 >Alternatively, MySQL users can use the tools for database replication. and either replicate CertificateData from you master EJBCA database to slave-responders. Or publish to a master OCSP responders database that in turn is replicated to the other responders. For more information, refer to the following MySQL documentation (depending on version):</p>
 <ul class=" "><li class=" "><p   

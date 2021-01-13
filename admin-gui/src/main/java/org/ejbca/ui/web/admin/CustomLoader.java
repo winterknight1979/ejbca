@@ -23,9 +23,10 @@ import org.ejbca.config.WebConfiguration;
  *
  * @version $Id: CustomLoader.java 28844 2018-05-04 08:31:02Z samuellb $
  */
-public class CustomLoader {
+public final class CustomLoader {
 
-  private CustomLoader() {}
+    /** Constructor. */
+  private CustomLoader() { }
 
   /**
    * Searches for all implementations of a given interface using
@@ -58,8 +59,9 @@ public class CustomLoader {
    */
   public static boolean isDisplayedInList(
       final String className, final Class<?> interfaceClass) {
-    if (!WebConfiguration.isManualClassPathsEnabled())
+    if (!WebConfiguration.isManualClassPathsEnabled()) {
       return true; // otherwise old manual classes won't be shown in the GUI
+    }
     return getCustomClasses(interfaceClass).contains(className);
   }
 }

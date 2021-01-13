@@ -256,14 +256,14 @@
 <p   
 >To create a CA signed by an external CA using the CLI, follow the steps below:</p>
 <ul class=" "><li class=" "><p   
->Create the CA generating a CSR. Note that the Crypto token password is set to <tt class=" ">foo123</tt>:</p>
+>Create the CA generating a CSR. Note that the Crypto token password is set to <code class=" ">foo123</code>:</p>
 </li></ul>    <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">bin/ejbca.sh ca init CaSignedByExteral </code><code class="string">"CN=This CA is Signed by an external CA"</code><code class="plain"> soft foo123 secp256r1 ECDSA </code><code class="value">365</code><code class="plain"> </code><code class="keyword">null</code><code class="plain"> SHA256withECDSA --signedby External -externalcachain chain.pem</code></div>
 </div>
     </div>
 <p   style="margin-left:30px;"
->The file <tt class=" ">chain.pem</tt> contains the certificate chain of the external CA, as described above. Running the above command, a CSR named <tt class=" ">CaSignedByExteral_csr.der</tt> is saved to your disk, containing a PKCS#10 CSR in binary format. Send the CSR to the external CA and get the signed sub CA certificate returned back.</p>
+>The file <code class=" ">chain.pem</code> contains the certificate chain of the external CA, as described above. Running the above command, a CSR named <code class=" ">CaSignedByExteral_csr.der</code> is saved to your disk, containing a PKCS#10 CSR in binary format. Send the CSR to the external CA and get the signed sub CA certificate returned back.</p>
 <ul class=" "><li class=" "><p   
 >Import the sub CA certificate, activating your CA:</p>
 </li></ul>    <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
@@ -272,7 +272,7 @@
 </div>
     </div>
 <p   
->The file <tt class=" ">subcacertificate.pem</tt> contains the received sub CA certificate.</p>
+>The file <code class=" ">subcacertificate.pem</code> contains the received sub CA certificate.</p>
     </div>
         </div>
 

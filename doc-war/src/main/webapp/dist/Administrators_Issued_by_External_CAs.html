@@ -160,14 +160,14 @@
 <p   
 >To use a certificate issued by an external CA as Administrator, do the following:</p>
 <ol class=" "><li class=" "><p   
->Add the CA-certificate to p12/truststore.jks with<tt class=" "></tt></p>
+>Add the CA-certificate to p12/truststore.jks with<code class=" "></code></p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">keytool -</code><code class="keyword">import</code><code class="plain"> -trustcacerts -file externalca.pem -keystore p12/truststore.jks -storepass changeit -alias externalca</code></div>
 </div>
     </div>
 </li><li class=" "><p   
->Redeploy EJBCA truststore using <tt class=" ">ant deploy-keystore</tt> and restart the application server to make sure the new truststore is in use</p>
+>Redeploy EJBCA truststore using <code class=" ">ant deploy-keystore</code> and restart the application server to make sure the new truststore is in use</p>
 </li><li class=" "><p   
 >Import the CA-certificate under <strong class=" ">Admin GUI &gt; Certificate Authorities &gt; Import CA Certificate</strong> or use the CLI.</p>
 </li><li class=" "><p   
@@ -179,7 +179,7 @@
 <p   
 >You can install an EJBCA instance from scratch, with a certificate from an external CA as the initial SuperAdmin certificate.</p>
 <p   
->Start with deploying EJBCA as usual with <tt class=" ">ant deploy</tt>, but instead of running <tt class=" ">ant install</tt>, run the following to import the certificate of the external Administration CA and initialize the authorization system of EJBCA:</p>
+>Start with deploying EJBCA as usual with <code class=" ">ant deploy</code>, but instead of running <code class=" ">ant install</code>, run the following to import the certificate of the external Administration CA and initialize the authorization system of EJBCA:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">bin/ejbca.sh ca importcacert ManagementCA ManagementCA.cacert.pem -initauthorization -superadmincn SuperAdmin</code></div>
@@ -188,9 +188,9 @@
 <p   
 ></p>
 <p   
->You need to configure TLS and the truststore of the application server yourself, or if you have a p12/tomcat.jks and p12/truststore.jks this can be done for you on JBoss by <tt class=" ">ant deploy-keystore</tt> in the same way as configuring TLS as described in <a   href="Installation_Instructions.html">Installation Instructions</a>.</p>
+>You need to configure TLS and the truststore of the application server yourself, or if you have a p12/tomcat.jks and p12/truststore.jks this can be done for you on JBoss by <code class=" ">ant deploy-keystore</code> in the same way as configuring TLS as described in <a   href="Installation_Instructions.html">Installation Instructions</a>.</p>
 <p   
->The initial administrator that is set up has DN <strong class=" ">CN=SuperAdmin</strong>, but you can change this using the <strong class=" ">-superadmincn</strong> (run <tt class=" ">bin/ejbca.sh ca importcacert</tt> for documentation). You can also run the <tt class=" ">bin/ejbca.sh admins</tt> command for information on how to configure other admins.</p>
+>The initial administrator that is set up has DN <strong class=" ">CN=SuperAdmin</strong>, but you can change this using the <strong class=" ">-superadmincn</strong> (run <code class=" ">bin/ejbca.sh ca importcacert</code> for documentation). You can also run the <code class=" ">bin/ejbca.sh admins</code> command for information on how to configure other admins.</p>
 <p   
 >After this command is run and TLS is correctly configured, you can log in to EJBCA and create your CAs in the Admin GUI. No initial CA is created for you.</p>
     </div>

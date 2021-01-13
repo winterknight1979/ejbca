@@ -43,36 +43,42 @@ public class HardTokenProfileDataHandler implements Serializable {
 
   private static final long serialVersionUID = -2864964753767713852L;
 
+  /** Param. */
   private final HardTokenSession hardtokensession;
+  /** Param. */
   private final AuthorizationSessionLocal authorizationSession;
+  /** Param. */
   private final CertificateProfileSession certificateProfileSession;
+  /** Param. */
   private final EndEntityManagementSessionLocal endEntityManagementSession;
+  /** Param. */
   private final CaSession caSession;
+  /** Param. */
   private final AuthenticationToken administrator;
 
   /**
-   * Creates a new instance of HardTokenProfileDataHandler
+   * Creates a new instance of HardTokenProfileDataHandler.
    *
-   * @param administrator Admin
-   * @param hardtokensession Session
-   * @param certificatesession Session
-   * @param authorizationSession Session
-   * @param endEntityManagementSession Session
-   * @param caSession Session
+   * @param anadministrator Admin
+   * @param ahardtokensession Session
+   * @param acertificatesession Session
+   * @param anauthorizationSession Session
+   * @param anendEntityManagementSession Session
+   * @param acaSession Session
    */
   public HardTokenProfileDataHandler(
-      final AuthenticationToken administrator,
-      final HardTokenSession hardtokensession,
-      final CertificateProfileSession certificatesession,
-      final AuthorizationSessionLocal authorizationSession,
-      final EndEntityManagementSessionLocal endEntityManagementSession,
-      final CaSession caSession) {
-    this.hardtokensession = hardtokensession;
-    this.authorizationSession = authorizationSession;
-    this.certificateProfileSession = certificatesession;
-    this.endEntityManagementSession = endEntityManagementSession;
-    this.caSession = caSession;
-    this.administrator = administrator;
+      final AuthenticationToken anadministrator,
+      final HardTokenSession ahardtokensession,
+      final CertificateProfileSession acertificatesession,
+      final AuthorizationSessionLocal anauthorizationSession,
+      final EndEntityManagementSessionLocal anendEntityManagementSession,
+      final CaSession acaSession) {
+    this.hardtokensession = ahardtokensession;
+    this.authorizationSession = anauthorizationSession;
+    this.certificateProfileSession = acertificatesession;
+    this.endEntityManagementSession = anendEntityManagementSession;
+    this.caSession = acaSession;
+    this.administrator = anadministrator;
   }
 
   /**
@@ -155,7 +161,7 @@ public class HardTokenProfileDataHandler implements Serializable {
   }
 
   /**
-   * Metod to rename a hard token profile
+   * Metod to rename a hard token profile.
    *
    * @param oldname Name
    * @param newname Profile
@@ -172,6 +178,12 @@ public class HardTokenProfileDataHandler implements Serializable {
     }
   }
 
+  /**
+   * @param originalname Old
+   * @param newname New
+   * @throws HardTokenProfileExistsException Fail
+   * @throws AuthorizationDeniedException Fail
+   */
   public void cloneHardTokenProfile(
       final String originalname, final String newname)
       throws HardTokenProfileExistsException, AuthorizationDeniedException {
@@ -200,6 +212,11 @@ public class HardTokenProfileDataHandler implements Serializable {
     return hardtokensession.getHardTokenProfile(id);
   }
 
+  /**
+   * @param profilename NAme
+   * @return Profile
+   * @throws AuthorizationDeniedException Fail
+   */
   public HardTokenProfile getHardTokenProfile(final String profilename)
       throws AuthorizationDeniedException {
     if (!authorizedToProfileName(profilename, false)) {
@@ -209,6 +226,10 @@ public class HardTokenProfileDataHandler implements Serializable {
     return hardtokensession.getHardTokenProfile(profilename);
   }
 
+  /**
+   * @param profilename Name
+   * @return ID
+   */
   public int getHardTokenProfileId(final String profilename) {
     return hardtokensession.getHardTokenProfileId(profilename);
   }

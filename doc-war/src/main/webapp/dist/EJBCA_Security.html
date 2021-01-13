@@ -269,7 +269,7 @@
 <p  class="section" 
 >The easiest way to keep the installation secure is to block all default JBOSS ports (1099, 1476, 4444, 8082, 8083) from the outside and only allow traffic to Tomcat ports (8442 and 8443). This is because the public end-user actions can be performed through the public servlets, while administration tasks are performed directly on the beans.</p>
 <p   
->For an example on how to configure an IPTables firewall in Linux for protecting EJBCA running on JBoss, see <tt class=" ">ejbcafirewall.sh</tt>.</p>
+>For an example on how to configure an IPTables firewall in Linux for protecting EJBCA running on JBoss, see <code class=" ">ejbcafirewall.sh</code>.</p>
 <p   
 >For information on ports used in JBoss and for information on how to set up SSL with JBOSS, see documentation on <a  class="external-link" href="http://www.jboss.org">jboss.org</a>.</p>
     </div>
@@ -289,7 +289,7 @@
 </div>
     </div>
 <p   
->To remove the welcome pages, set <tt class=" ">enable-welcome-root</tt> to false (JBoss EAP 6.2):</p>
+>To remove the welcome pages, set <code class=" ">enable-welcome-root</code> to false (JBoss EAP 6.2):</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">&lt;virtual-server name=</code><code class="string">"default-host"</code><code class="plain"> enable-welcome-root=</code><code class="string">"false"</code></div>
@@ -385,15 +385,15 @@
     <div class="section section-1" id="src-23855405_id-.EJBCASecurityv6.15.0-PasswordsDefinedwhenConfiguringEJBCA">
         <h1 class="heading "><span>Passwords Defined when Configuring EJBCA</span></h1>
 <p   
->The configuration files (in $EJBCA_HOME/conf) contain some passwords. It is not considered to be a security risk to declare all these passwords in clear text. Anyone that can log on to the server with EJBCA can, apart from reading these files, also do anything he wants with the CLI of EJBCA. If an unauthorized person can use the CLI, then this is a severe security risk. Access to these passwords is itself not much of a problem, since they have no use outside of the server (except for <tt class=" ">password.encryption.key</tt> which can be used to decrypt encrypted passwords stored elsewhere, for example, external database server).</p>
+>The configuration files (in $EJBCA_HOME/conf) contain some passwords. It is not considered to be a security risk to declare all these passwords in clear text. Anyone that can log on to the server with EJBCA can, apart from reading these files, also do anything he wants with the CLI of EJBCA. If an unauthorized person can use the CLI, then this is a severe security risk. Access to these passwords is itself not much of a problem, since they have no use outside of the server (except for <code class=" ">password.encryption.key</code> which can be used to decrypt encrypted passwords stored elsewhere, for example, external database server).</p>
 <p   
->It is very important to restrict the access to the server to only a very few trusted individuals and promote separation of duties and the principle of least privilege. For example, a DBA should not have access to the application server and will thus (if <tt class=" ">password.encryption.key</tt> has been customized in the application server) not be able to decrypt passwords stored in the database he has access to.</p>
+>It is very important to restrict the access to the server to only a very few trusted individuals and promote separation of duties and the principle of least privilege. For example, a DBA should not have access to the application server and will thus (if <code class=" ">password.encryption.key</code> has been customized in the application server) not be able to decrypt passwords stored in the database he has access to.</p>
 <p   
 >If you want to do something about these passwords the subsections of this section describe what should be done:</p>
     <div class="section section-2" id="src-23855405_id-.EJBCASecurityv6.15.0-PasswordsusedbyEJBCAtakenfrompropertyfiles">
         <h2 class="heading "><span>Passwords used by EJBCA taken from property files</span></h2>
 <p  class="subsection" 
->Some of the passwords are used directly by the EJBCA code. All these passwords may be configured encrypted in the same way as PINs used for auto activation could be encrypted (except for <tt class=" ">password.encryption.key</tt> which is itself used for encrypting the other passwords). For more information, see <strong class=" ">Auto-activation of Crypto Tokens</strong> in <a   href="Hardware_Security_Modules_%28HSM%29.html">Hardware Security Modules (HSM)</a>.</p>
+>Some of the passwords are used directly by the EJBCA code. All these passwords may be configured encrypted in the same way as PINs used for auto activation could be encrypted (except for <code class=" ">password.encryption.key</code> which is itself used for encrypting the other passwords). For more information, see <strong class=" ">Auto-activation of Crypto Tokens</strong> in <a   href="Hardware_Security_Modules_%28HSM%29.html">Hardware Security Modules (HSM)</a>.</p>
 <p  class="subsection" 
 >List of these passwords across several configuration files:<br/>password.encryption.key<br/>ca.tokenpassword<br/>ca.keystorepass<br/>ca.cmskeystorepass<br/>databaseprotection.tokenpin</p>
     </div>
@@ -407,11 +407,11 @@
     <div class="section section-2" id="src-23855405_safe-id-aWQtLkVKQkNBU2VjdXJpdHl2Ni4xNS4wLVBhc3N3b3Jkc3Byb21wdGVkZm9yYnknYW50aW5zdGFsbCc">
         <h2 class="heading "><span>Passwords prompted for by 'ant install'</span></h2>
 <p   
->If you do not define superadmin.password in web.properties, then <tt class=" ">ant install</tt> will prompt for it. Since this password does not have to be known by EJBCA after the super admin token has been created, it will not exist in any file after the installation.</p>
+>If you do not define superadmin.password in web.properties, then <code class=" ">ant install</code> will prompt for it. Since this password does not have to be known by EJBCA after the super admin token has been created, it will not exist in any file after the installation.</p>
 <p   
->The passwords java.trustpassword and httpsserver.password, also in web.properties, are used to generate keystore files at <tt class=" ">ant install</tt>. If either of these passwords are not predefined, then they will be prompted for during deploy and install.</p>
+>The passwords java.trustpassword and httpsserver.password, also in web.properties, are used to generate keystore files at <code class=" ">ant install</code>. If either of these passwords are not predefined, then they will be prompted for during deploy and install.</p>
 <p   
->If you let 'ant' prompt for these passwords you must set them (encrypted, if possible) in the application server configuration. The file for the application server is copied to the application server at <tt class=" ">ant web-configure</tt> (e.g. jboss-5.1.0.GA/server/default/deploy/jbossweb.sar/server.xml) You must then manually substitute the strings 'changeThisToThePassword' in the configuration file with clear text or possible encrypted (application server specific) passwords.</p>
+>If you let 'ant' prompt for these passwords you must set them (encrypted, if possible) in the application server configuration. The file for the application server is copied to the application server at <code class=" ">ant web-configure</code> (e.g. jboss-5.1.0.GA/server/default/deploy/jbossweb.sar/server.xml) You must then manually substitute the strings 'changeThisToThePassword' in the configuration file with clear text or possible encrypted (application server specific) passwords.</p>
     </div>
     </div>
     <div class="section section-1" id="src-23855405_id-.EJBCASecurityv6.15.0-DatabaseIntegrityProtection">
@@ -423,7 +423,7 @@
     <div class="section section-2" id="src-23855405_id-.EJBCASecurityv6.15.0-Configuration">
         <h2 class="heading "><span>Configuration</span></h2>
 <p   
->Database integrity protection should be configured before EJBCA is installed and used the first time, otherwise unprotected data will be inserted into the database; once the system is configured for database protection, using that data will fail. Database protection is configured in the file: <tt class=" ">conf/databaseprotection.properties</tt>.</p>
+>Database integrity protection should be configured before EJBCA is installed and used the first time, otherwise unprotected data will be inserted into the database; once the system is configured for database protection, using that data will fail. Database protection is configured in the file: <code class=" ">conf/databaseprotection.properties</code>.</p>
     </div>
     <div class="section section-2" id="src-23855405_id-.EJBCASecurityv6.15.0-Limitations">
         <h2 class="heading "><span>Limitations</span></h2>
@@ -510,7 +510,7 @@ Local Database CLI    </span>
 <p   
 >Save and enable the below logrotate configuration for syslog, normally stored as the file syslog in the directory /etc/logrotate.d. If a previous syslog configuration exists, remove it and merge changes if required. Syslog is normally not rotated in most Linux distributions.</p>
 <p   
->After enabling the configuration, ensure that logrotate is run as often as you require. Normally logrotate is run every night and to run more frequently for syslog, add a crontab entry to run logrotate hourly for example. Call logrotate with the specified configuration file <tt class=" ">logrotate syslog.conf</tt>.</p>
+>After enabling the configuration, ensure that logrotate is run as often as you require. Normally logrotate is run every night and to run more frequently for syslog, add a crontab entry to run logrotate hourly for example. Call logrotate with the specified configuration file <code class=" ">logrotate syslog.conf</code>.</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">/var/log/syslog {</code></div>
@@ -535,7 +535,7 @@ Local Database CLI    </span>
 <p   
 >A simple shell script below for signing and verifying using OpenSSL, as well as to convert a pkcs12 file to the public key and private key files that OpenSSL uses.</p>
 <p   
->To verify, you can issue the command: <tt class=" ">log-sign.sh verify qc1.pub logfile.log lofile.log.sign</tt>.</p>
+>To verify, you can issue the command: <code class=" ">log-sign.sh verify qc1.pub logfile.log lofile.log.sign</code>.</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">#!/bin/bash</code></div>
@@ -744,7 +744,7 @@ Local Database CLI    </span>
 </div>
     </div>
 </li><li class=" "><p   
->Paste the following segment into the <tt class=" ">security-domains</tt> segment (where PLACEHOLDER_ENC is the encoded password you got from the above command):</p>
+>Paste the following segment into the <code class=" ">security-domains</code> segment (where PLACEHOLDER_ENC is the encoded password you got from the above command):</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">&lt;security-domain name=</code><code class="string">"EjbcaDsEncryptedPassword"</code><code class="plain">&gt;</code></div>
@@ -758,7 +758,7 @@ Local Database CLI    </span>
 </div>
     </div>
 </li><li class=" "><p   
->Look for the <tt class=" ">EjbcaDS</tt> datasource segment and replace the <i class=" ">security</i> segment (where PLACEHOLDER is your old clear text database password):</p>
+>Look for the <code class=" ">EjbcaDS</code> datasource segment and replace the <i class=" ">security</i> segment (where PLACEHOLDER is your old clear text database password):</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">&lt;security&gt;</code></div>
@@ -777,7 +777,7 @@ Local Database CLI    </span>
 </div>
     </div>
 <p   style="margin-left:30px;"
->You can also look into using the <tt class=" ">vault.sh</tt> script, which you can find on the Internet.</p>
+>You can also look into using the <code class=" ">vault.sh</code> script, which you can find on the Internet.</p>
     </div>
     <div class="section section-1" id="src-23855405_id-.EJBCASecurityv6.15.0-DatabasePrivileges">
         <h1 class="heading "><span>Database Privileges</span></h1>
@@ -790,7 +790,7 @@ Local Database CLI    </span>
 <ul class=" "><li class=" "><p   
 ><strong class=" ">ejbca:</strong> Used for regular operations.</p>
 </li><li class=" "><p   
-><strong class=" ">ejbca-admin:</strong> For installation and upgrades, EJBCA is re-deployed with <tt class=" ">ejbca-admin</tt> configured in <tt class=" ">conf/database.properties</tt>.</p>
+><strong class=" ">ejbca-admin:</strong> For installation and upgrades, EJBCA is re-deployed with <code class=" ">ejbca-admin</code> configured in <code class=" ">conf/database.properties</code>.</p>
 </li></ul><p   
 >The script <strong class=" ">doc/howto/mysql-privileges.sh</strong> creates an SQL script, run to limit privileges on a MySQL database. The script sets restricted privileges for every table in the EJBCA database. See the script for in-line documentation.</p>
     </div>

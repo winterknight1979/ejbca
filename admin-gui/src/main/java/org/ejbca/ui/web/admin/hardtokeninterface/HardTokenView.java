@@ -29,54 +29,94 @@ public class HardTokenView implements java.io.Serializable, Cloneable {
   private static final long serialVersionUID = 4090246269386728977L;
 
   // Public constants.
+  /**
+   * Constructor.
+   */
   public HardTokenView() {
     this.tokendata = new HardTokenInformation();
   }
 
+  /**
+   * @param newtokendata Data
+   */
   public HardTokenView(final HardTokenInformation newtokendata) {
     tokendata = newtokendata;
   }
 
+  /**
+   * @param user User
+   */
   public void setUsername(final String user) {
     tokendata.setUsername(StringTools.stripUsername(user));
   }
 
+  /**
+   * @return User
+   */
   public String getUsername() {
     return tokendata.getUsername();
   }
 
+  /**
+   * @param tokensn SN
+   */
   public void setTokenSN(final String tokensn) {
     tokendata.setTokenSN(tokensn);
   }
 
+  /**
+   * @return SN
+   */
   public String getTokenSN() {
     return tokendata.getTokenSN();
   }
 
+  /**
+   * @param createtime Time
+   */
   public void setCreateTime(final Date createtime) {
     tokendata.setCreateTime(createtime);
   }
 
+  /**
+   * @return Time
+   */
   public Date getCreateTime() {
     return tokendata.getCreateTime();
   }
 
+  /**
+   * @param modifytime Time
+   */
   public void setModifyTime(final Date modifytime) {
     tokendata.setModifyTime(modifytime);
   }
 
+  /**
+   * @return Time
+   */
   public Date getModifyTime() {
     return tokendata.getModifyTime();
   }
 
+  /**
+   * @return LAbel
+   */
   public String getLabel() {
     return tokendata.getHardToken().getLabel();
   }
 
+  /**
+   * @return Fields
+   */
   public int getNumberOfFields() {
     return tokendata.getHardToken().getNumberOfFields();
   }
 
+  /**
+   * @param index Index
+   * @return Field
+   */
   public String getTextOfField(final int index) {
     if (tokendata
         .getHardToken()
@@ -87,22 +127,38 @@ public class HardTokenView implements java.io.Serializable, Cloneable {
     return tokendata.getHardToken().getFieldText(index);
   }
 
+  /**
+   * @return bool
+   */
   public boolean isOriginal() {
     return tokendata.isOriginal();
   }
 
+  /**
+   * @return Copy
+   */
   public String getCopyOf() {
     return tokendata.getCopyOf();
   }
 
+  /**
+   * @return copies
+   */
   public Collection<String> getCopies() {
     return tokendata.getCopies();
   }
 
+  /**
+   * @return ID
+   */
   public Integer getHardTokenProfileId() {
     return Integer.valueOf(tokendata.getHardToken().getTokenProfileId());
   }
 
+  /**
+   * @param index Index
+   * @return Field
+   */
   public Object getField(final int index) {
     HardToken token = tokendata.getHardToken();
 
@@ -114,5 +170,6 @@ public class HardTokenView implements java.io.Serializable, Cloneable {
 
   // Private constants.
   // Private methods.
+  /** Param. */
   private final HardTokenInformation tokendata;
 }

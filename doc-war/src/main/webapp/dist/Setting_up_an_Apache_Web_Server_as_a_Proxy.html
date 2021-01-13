@@ -168,7 +168,7 @@
 </li></ul><p   
 >This example was created on Ubuntu 64-bit Server 7.10 using the Apache Web Server 2.2 package but should be easy to adapt to any system able to run Apache.</p>
 <p   
->To support OCSP GET requests through the proxy in recent version of Apache (2.4), you may need to activate <tt class=" ">mod_lbmethod_byrequests</tt>. You may also need to use the <tt class=" ">nocanon</tt> directory to ProxyPass in order to correctly-forward encoded slash characters (/).</p>
+>To support OCSP GET requests through the proxy in recent version of Apache (2.4), you may need to activate <code class=" ">mod_lbmethod_byrequests</code>. You may also need to use the <code class=" ">nocanon</code> directory to ProxyPass in order to correctly-forward encoded slash characters (/).</p>
 <p   
 >To set up an Apache Web Server as a Proxy in front of EJBCA, start by installing EJBCA as normal. If you intend to have the CA on the same machine as the proxy, you should modify $EJBCA_HOME/conf/web.properties to only listen to localhost:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">

@@ -172,7 +172,7 @@
 <p   
 >If your setup makes it complex to configure multiple certificate profiles and multiple publishers, you might consider writing a bespoke custom publisher.</p>
 <p   
->For more information on writing your own solution, refer to the directory <tt class=" ">modules/ejbca-common/src/org/ejbca/core/model/ca/publishers</tt>. You can use and extend the empty custom publisher <tt class=" ">DummyCustomPublisher.java</tt>.</p>
+>For more information on writing your own solution, refer to the directory <code class=" ">modules/ejbca-common/src/org/ejbca/core/model/ca/publishers</code>. You can use and extend the empty custom publisher <code class=" ">DummyCustomPublisher.java</code>.</p>
 <p   
 >Custom publishers are deployed in the same way as <a   href="Services.html#src-26774175_id-.Servicesv6.15.1-Writing_Customized_Services">custom services</a>, i.e. in a Jar with a special meta-data file. For example:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
@@ -183,7 +183,7 @@
 </div>
     </div>
 <p   
->Additionally you can have your publisher implement <tt class=" ">org.ejbca.core.model.ca.publisher.CustomPublisherUiSupport</tt> to make the configuration more user-friendly in the Admin GUI.</p>
+>Additionally you can have your publisher implement <code class=" ">org.ejbca.core.model.ca.publisher.CustomPublisherUiSupport</code> to make the configuration more user-friendly in the Admin GUI.</p>
     </div>
     <div class="section section-1" id="src-16230094_id-.CustomPublishersv6.13.0-PublishingwithanExternalApplicationPublishing_with_an_external_application">
         <h1 class="heading "><span id="src-16230094_id-.CustomPublishersv6.13.0-Publishing_with_an_external_application" class="confluence-anchor-link"></span><span>Publishing with an External Application </span></h1>
@@ -209,7 +209,7 @@
 </li><li class=" "><p   
 ><strong class=" ">Properties</strong>:</p>
 <ol class=" "><li class=" "><p   
->Full pathname of X publishing script: For example <tt class=" ">/fullpathname/exportscript.sh</tt> for Unix/Linux or <tt class=" ">C:/fullpathname/exportscript.bat</tt> on MS Windows.</p>
+>Full pathname of X publishing script: For example <code class=" ">/fullpathname/exportscript.sh</code> for Unix/Linux or <code class=" ">C:/fullpathname/exportscript.bat</code> on MS Windows.</p>
 </li><li class=" "><p   
 >Fail X publishing on script error code: Will treat the publishing as unsuccessful if the script returns with a non-zero error code.</p>
 </li><li class=" "><p   
@@ -233,7 +233,7 @@
 </li><li class=" "><p   
 >revoke.application fulltempfilepathname x509reason certificateDN issuerDN certHexSerialNumber</p>
 </li></ul><p   
->Depending on the application, the GPCP can calculate whether a CRL is a delta CRL. Set the <tt class=" ">crl.calclulateDeltaCrlLocally</tt> parameter to true to enable the GPCP calculation. Disable the parameter if you wish to check this in an external script (or not at all). The result of this check, if run, is printed last in the argument list of the script.</p>
+>Depending on the application, the GPCP can calculate whether a CRL is a delta CRL. Set the <code class=" ">crl.calclulateDeltaCrlLocally</code> parameter to true to enable the GPCP calculation. Disable the parameter if you wish to check this in an external script (or not at all). The result of this check, if run, is printed last in the argument list of the script.</p>
 <p   
 >The following displays an example Linux script for certificate publishing:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">

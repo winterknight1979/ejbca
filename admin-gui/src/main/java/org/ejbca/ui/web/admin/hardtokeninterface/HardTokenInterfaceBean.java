@@ -54,19 +54,27 @@ import org.ejbca.ui.web.admin.rainterface.RAInterfaceBean;
 public class HardTokenInterfaceBean implements Serializable {
 
   private static final long serialVersionUID = -3930279705572942527L;
+  /** Param. */
   private HardTokenSession hardtokensession;
+  /** Param. */
   private KeyRecoverySession keyrecoverysession;
+  /** Param. */
   private HardTokenBatchJobSession hardtokenbatchsession;
+  /** Param. */
   private RoleSessionLocal roleSession;
+  /** Param. */
   private AuthenticationToken admin;
+  /** Param. */
   private boolean initialized = false;
+  /** Param. */
   private HardTokenView[] result;
 
+  /** Param. */
   @SuppressWarnings("deprecation")
   private HardTokenProfileDataHandler hardtokenprofiledatahandler;
 
-  /** Creates new LogInterfaceBean */
-  public HardTokenInterfaceBean() {}
+  /** Creates new LogInterfaceBean. */
+  public HardTokenInterfaceBean() { }
 
   /**
    * Method that initialized the bean.
@@ -130,6 +138,12 @@ public class HardTokenInterfaceBean implements Serializable {
     return null;
   }
 
+  /**
+   * @param username User
+   * @param index Idx
+   * @param includePUK Bool
+   * @return View
+   */
   public HardTokenView getHardTokenViewWithIndex(
       final String username, final int index, final boolean includePUK) {
     HardTokenView returnval = null;
@@ -144,6 +158,9 @@ public class HardTokenInterfaceBean implements Serializable {
     return returnval;
   }
 
+  /**
+   * @return Cache
+   */
   public int getHardTokensInCache() {
     int returnval = 0;
     if (result != null) {
@@ -152,6 +169,12 @@ public class HardTokenInterfaceBean implements Serializable {
     return returnval;
   }
 
+  /**
+   * @param tokensn SN
+   * @param includePUK bool
+   * @return View
+   * @throws AuthorizationDeniedException Fail
+   */
   public HardTokenView getHardTokenView(
       final String tokensn, final boolean includePUK)
       throws AuthorizationDeniedException {
@@ -165,6 +188,9 @@ public class HardTokenInterfaceBean implements Serializable {
     return returnval;
   }
 
+  /**
+   * @return Aliases
+   */
   public String[] getHardTokenIssuerAliases() {
     return hardtokensession
         .getHardTokenIssuers(admin)
@@ -182,20 +208,35 @@ public class HardTokenInterfaceBean implements Serializable {
     return hardtokensession.getHardTokenIssuerAlias(id);
   }
 
+  /**
+   * @param alias ALias
+   * @return ID
+   */
   public int getHardTokenIssuerId(final String alias) {
     return hardtokensession.getHardTokenIssuerId(alias);
   }
 
+  /**
+   * @param alias Alias
+   * @return Info
+   */
   public HardTokenIssuerInformation getHardTokenIssuerInformation(
       final String alias) {
     return hardtokensession.getHardTokenIssuerInformation(alias);
   }
 
+  /**
+   * @param id ID
+   * @return INdo
+   */
   public HardTokenIssuerInformation getHardTokenIssuerInformation(
       final int id) {
     return hardtokensession.getHardTokenIssuerInformation(id);
   }
 
+  /**
+   * @return MAp
+   */
   public Map<Integer, String> getRoleIdToNameMap() {
     final HashMap<Integer, String> roleIdToNameMap = new HashMap<>();
     for (final Role role : roleSession.getAuthorizedRoles(admin)) {
@@ -204,15 +245,28 @@ public class HardTokenInterfaceBean implements Serializable {
     return roleIdToNameMap;
   }
 
+  /**
+   * @param profileId ID
+   * @return Name
+   */
   public String getHardTokenProfileName(final int profileId) {
     return hardtokensession.getHardTokenProfileName(profileId);
   }
 
+  /**
+   * @return Roles
+   */
   public List<Role> getHardTokenIssuingRoles() {
     return roleSession.getAuthorizedRolesWithAccessToResource(
         admin, AccessRulesConstants.HARDTOKEN_ISSUEHARDTOKENS);
   }
 
+  /**
+   * @param alias Alias
+   * @param roleId ID
+   * @throws HardTokenIssuerExistsException Fail
+   * @throws AuthorizationDeniedException Fail
+   */
   public void addHardTokenIssuer(final String alias, final int roleId)
       throws HardTokenIssuerExistsException, AuthorizationDeniedException {
     for (final Role role : getHardTokenIssuingRoles()) {
@@ -224,6 +278,13 @@ public class HardTokenInterfaceBean implements Serializable {
       }
     }
   }
+
+  /**
+   * @param alias Alias
+   * @param hardtokenissuer Issuer
+   * @throws HardTokenIssuerDoesntExistsException Fail
+   * @throws AuthorizationDeniedException FAil
+   */
 
   public void changeHardTokenIssuer(
       final String alias, final HardTokenIssuer hardtokenissuer)
@@ -258,6 +319,13 @@ public class HardTokenInterfaceBean implements Serializable {
     return !issuerused;
   }
 
+  /**
+   * @param oldalias old
+   * @param newalias new
+   * @param newRoleId ID
+   * @throws HardTokenIssuerExistsException Fail
+   * @throws AuthorizationDeniedException Fail
+   */
   public void renameHardTokenIssuer(
       final String oldalias, final String newalias, final int newRoleId)
       throws HardTokenIssuerExistsException, AuthorizationDeniedException {
@@ -269,6 +337,13 @@ public class HardTokenInterfaceBean implements Serializable {
     }
   }
 
+  /**
+   * @param oldalias old
+   * @param newalias new
+   * @param newRoleId ID
+   * @throws HardTokenIssuerExistsException Fail
+   * @throws AuthorizationDeniedException Fail
+   */
   public void cloneHardTokenIssuer(
       final String oldalias, final String newalias, final int newRoleId)
       throws HardTokenIssuerExistsException, AuthorizationDeniedException {
@@ -295,8 +370,8 @@ public class HardTokenInterfaceBean implements Serializable {
       throws Exception {
     boolean retval = false;
     X509Certificate keyRecCert = null;
-    for (final Certificate cert :
-        hardtokensession.findCertificatesInHardToken(tokensn)) {
+    for (final Certificate cert
+        : hardtokensession.findCertificatesInHardToken(tokensn)) {
       final X509Certificate x509cert = (X509Certificate) cert;
       if (keyrecoverysession.existsKeys(EJBTools.wrap(x509cert))) {
         keyRecCert = x509cert;
@@ -308,11 +383,17 @@ public class HardTokenInterfaceBean implements Serializable {
     return retval;
   }
 
+  /**
+   * @param tokensn Token
+   * @param username User
+   * @param rabean Bean
+   * @throws Exception Fail
+   */
   public void markTokenForKeyRecovery(
       final String tokensn, final String username, final RAInterfaceBean rabean)
       throws Exception {
-    for (final Certificate cert :
-        hardtokensession.findCertificatesInHardToken(tokensn)) {
+    for (final Certificate cert
+        : hardtokensession.findCertificatesInHardToken(tokensn)) {
       final X509Certificate x509cert = (X509Certificate) cert;
       if (keyrecoverysession.existsKeys(EJBTools.wrap(x509cert))) {
         rabean.markForRecovery(username, x509cert);
@@ -320,6 +401,9 @@ public class HardTokenInterfaceBean implements Serializable {
     }
   }
 
+  /**
+   * @return Handler
+   */
   @SuppressWarnings("deprecation")
   public HardTokenProfileDataHandler getHardTokenProfileDataHandler() {
     return hardtokenprofiledatahandler;

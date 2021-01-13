@@ -231,7 +231,7 @@
 <ol class=" "><li class=" "><p   
 >Configure your publisher in EJBCA to use TLS by checking the <strong class=" ">TLS Connection </strong>option, changing the port to port 636.</p>
 </li><li class=" "><p   
->Since using the LDAP library, the CA certificate of the (root) CA used to sign the AD server certificate must be present in the java certificate trust store (<tt class=" ">$JAVA_HOME/jre/lib/security/cacerts</tt>).<br/>Add a CA certificate to the java trust store using the following command:</p>
+>Since using the LDAP library, the CA certificate of the (root) CA used to sign the AD server certificate must be present in the java certificate trust store (<code class=" ">$JAVA_HOME/jre/lib/security/cacerts</code>).<br/>Add a CA certificate to the java trust store using the following command:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">keytool -</code><code class="keyword">import</code><code class="plain"> -trustcacert -alias MyCA -keystore $JAVA_HOME/jre/lib/security/cacerts -storepass changeit -file myca.der</code></div>

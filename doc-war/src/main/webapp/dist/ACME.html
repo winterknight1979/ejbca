@@ -820,14 +820,14 @@ CN, Common name    </span>
 <p   
 ><a  class="external-link" href="https://certbot.eff.org/">Certbot</a> used to be Let's Encrypt's official client but is now maintained by the Electronic Frontier Foundation. It is one of the most used ACME clients, supporting issuance, renewal and revocation operations, which are all supported by EJBCA. For more information, refer to the <a  class="external-link" href="https://certbot.eff.org/docs/">Certbot Documentation</a>.</p>
 <p   
->Certbot by default uses Let's Encrypts servers. To specify an alternative server URL, use the <tt class=" ">--server</tt> option:</p>
+>Certbot by default uses Let's Encrypts servers. To specify an alternative server URL, use the <code class=" ">--server</code> option:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">--server https:</code><code class="comments">//localhost:8442/ejbca/acme/directory</code></div>
 </div>
     </div>
 <p   
->Note that you can also use the <tt class=" ">server</tt> option in cli.ini.</p>
+>Note that you can also use the <code class=" ">server</code> option in cli.ini.</p>
     <div class="section section-3" id="src-16237454_id-.ACMEv6.15.0-CertbotExamples">
         <h3 class="heading "><span>Certbot Examples</span></h3>
 <p   
@@ -855,11 +855,11 @@ CN, Common name    </span>
 <p   
 >The following describes setting up a local HTTP server. Note that you can optionally use the temporary web server (or any other supported HTTP server plugins) provided by Certbot. For more information, refer to the Certbot Documentation on <a  class="external-link" href="https://certbot.eff.org/docs/using.html#getting-certificates-and-choosing-plugins">Getting certificates (and choosing plugins)</a>.</p>
 <p   
->Follow the steps below to setup a local HTTP server (for example Apache with the default working directory <tt class=" ">/var/www/html</tt>):</p>
+>Follow the steps below to setup a local HTTP server (for example Apache with the default working directory <code class=" ">/var/www/html</code>):</p>
 <ol class=" "><li class=" "><p   
 >Add the following virtual host under     <span style="color: #242729;">
     <span style="color: #242729;">
-<tt class=" ">/etc/apache2/sites-available/example.com.conf</tt>:<br/>    </span>
+<code class=" ">/etc/apache2/sites-available/example.com.conf</code>:<br/>    </span>
     </span>
 </p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
@@ -879,7 +879,7 @@ CN, Common name    </span>
 </li><li class=" "><p   
 >    <span style="color: #242729;">
     <span style="color: #242729;">
-Enable the site using the <tt class=" ">a2ensite</tt> command:<br/>    </span>
+Enable the site using the <code class=" ">a2ensite</code> command:<br/>    </span>
     </span>
 </p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
@@ -922,7 +922,7 @@ Next, restart Apache:    </span>
 <br/>    </span>
 </p>
 </li><li class=" "><p   
->Then add the following line to your <tt class=" ">/etc/hosts</tt> file:    <span style="color: #242729;">
+>Then add the following line to your <code class=" ">/etc/hosts</code> file:    <span style="color: #242729;">
     <span style="color: #242729;">
 <br/>    </span>
     </span>
@@ -946,7 +946,7 @@ issue a certificate for an identifier (in this case example.com)     </span>
 using Certbot, do the following. It requires that you have     </span>
 Certbot installed on your machine, and that EJBCA is up and running with ACME enabled and with an ACME alias configured with an appropriate end entity profile.</p>
 <ol class=" "><li class=" "><p   
->To obtain the certificate, run the Certbot <tt class=" ">certonly</tt> sub command:</p>
+>To obtain the certificate, run the Certbot <code class=" ">certonly</code> sub command:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">sudo certbot --no-verify-ssl certonly --webroot -w /var/www/html/ -d example.com --server https:</code><code class="comments">//localhost:8442/ejbca/acme/directory</code></div>
@@ -955,7 +955,7 @@ Certbot installed on your machine, and that EJBCA is up and running with ACME en
 <p   
 ></p>
 <p   
->Alternatively, to instead issue a certificate for a wildcard domain, enable the <strong class=" ">Wildcard Certificate Issuance Allowed</strong> option on the <strong class=" ">ACME Configuration Alias</strong> page (see <a   href="#src-16237454_id-.ACMEv6.15.0-AliasSpecificFields">Alias Specific Fields</a>) and run the Certbot <tt class=" ">certonly</tt> sub command providing a wildcard domain as identifier:</p>
+>Alternatively, to instead issue a certificate for a wildcard domain, enable the <strong class=" ">Wildcard Certificate Issuance Allowed</strong> option on the <strong class=" ">ACME Configuration Alias</strong> page (see <a   href="#src-16237454_id-.ACMEv6.15.0-AliasSpecificFields">Alias Specific Fields</a>) and run the Certbot <code class=" ">certonly</code> sub command providing a wildcard domain as identifier:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">sudo certbot --no-verify-ssl certonly --webroot -w /var/www/html/ -d *.example.com --server https:</code><code class="comments">//localhost:8442/ejbca/acme/directory</code></div>
@@ -983,7 +983,7 @@ Certbot installed on your machine, and that EJBCA is up and running with ACME en
                             <span class="admonition-icon confluence-information-macro-icon"></span>
                 <div class="admonition-body">
 <p   
->If you run the same <tt class=" ">certbot certonly</tt> command twice, Certbot asks if you want to renew the current certificate. To allow renewal using the same Subject DN name, the <strong class=" ">    <span style="color: #000000;">
+>If you run the same <code class=" ">certbot certonly</code> command twice, Certbot asks if you want to renew the current certificate. To allow renewal using the same Subject DN name, the <strong class=" ">    <span style="color: #000000;">
 Enforce Unique DN    </span>
 </strong> field on the <strong class=" ">Edit CA</strong> page must be cleared. For more information, see <a   href="CA_Fields.html">CA Fields</a>.</p>
         </div>
@@ -1005,7 +1005,7 @@ Enforce Unique DN    </span>
 <p   
 >This example covers how to revoke the certificate issued in the previous step.</p>
 <ol class=" "><li class=" "><p   
->To revoke the issued certificate, run the Certbot <tt class=" ">revoke</tt> command:</p>
+>To revoke the issued certificate, run the Certbot <code class=" ">revoke</code> command:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">sudo certbot --no-verify-ssl --server https:</code><code class="comments">//localhost:8442/ejbca/acme/directory revoke --cert-path /etc/letsencrypt/live/example.com/fullchain.pem</code></div>
@@ -1057,7 +1057,7 @@ DNSSEC    <span style="color: #222222;">
 , do the following.    </span>
 </p>
 <ol class=" "><li class=" "><p   
->To obtain the certificate, run the Certbot <tt class=" ">certonly</tt> sub command and specify the <tt class=" ">--manual</tt> flag to run Certbot interactively and allow preparing the DNS server with the DNS challenge offered by the ACME server:</p>
+>To obtain the certificate, run the Certbot <code class=" ">certonly</code> sub command and specify the <code class=" ">--manual</code> flag to run Certbot interactively and allow preparing the DNS server with the DNS challenge offered by the ACME server:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">sudo certbot --no-verify-ssl certonly --manual --preferred-challenges=dns -d allow.klaan.nu --server https:</code><code class="comments">//localhost:8442/ejbca/acme/directory</code></div>
@@ -1066,7 +1066,7 @@ DNSSEC    <span style="color: #222222;">
 <p   
 ></p>
 <p   
->Alternatively, to instead issue a certificate for a wildcard domain, enable the <strong class=" ">Wildcard Certificate Issuance Allowed</strong> option on the <strong class=" ">ACME Configuration Alias</strong> page (see <a   href="#src-16237454_id-.ACMEv6.15.0-AliasSpecificFields">Alias Specific Fields</a>) and run the Certbot <tt class=" ">certonly</tt> sub command providing a wildcard domain as identifier:</p>
+>Alternatively, to instead issue a certificate for a wildcard domain, enable the <strong class=" ">Wildcard Certificate Issuance Allowed</strong> option on the <strong class=" ">ACME Configuration Alias</strong> page (see <a   href="#src-16237454_id-.ACMEv6.15.0-AliasSpecificFields">Alias Specific Fields</a>) and run the Certbot <code class=" ">certonly</code> sub command providing a wildcard domain as identifier:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">sudo certbot --no-verify-ssl certonly --manual --preferred-challenges=dns -d *.allow.klaan.nu --server https:</code><code class="comments">//localhost:8442/ejbca/acme/directory</code></div>
@@ -1119,7 +1119,7 @@ DNSSEC    <span style="color: #222222;">
 <p   
 >This example covers how to revoke the certificate issued in the previous step.</p>
 <ol class=" "><li class=" "><p   
->To revoke the issued certificate, run the Certbot <tt class=" ">revoke</tt> command:</p>
+>To revoke the issued certificate, run the Certbot <code class=" ">revoke</code> command:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">sudo certbot --no-verify-ssl --server https:</code><code class="comments">//localhost:8442/ejbca/acme/directory revoke --cert-path /etc/letsencrypt/live/allow.klaan.nu/fullchain.pem</code></div>
@@ -1166,7 +1166,7 @@ To try out EJBCA with PJAC, just follow these guides for <a  class="external-lin
 >HTTP01 and DNS01 challenge types</p>
 </li></ul><p   
 ><img  class="emoticon emoticon-warning"  src="images/s/en_US/8100/b0984b7297905b7c7bd946458f753ce0130bfc8c/_/images/icons/emoticons/warning.svg" alt="images/s/en_US/8100/b0984b7297905b7c7bd946458f753ce0130bfc8c/_/images/icons/emoticons/warning.svg"   />
- Note that you need to configure PJAC to have the EJBCA instance as its ACME service, by adding the following extra parameter to every <tt class=" ">acme_client.jar</tt> command execution:</p>
+ Note that you need to configure PJAC to have the EJBCA instance as its ACME service, by adding the following extra parameter to every <code class=" ">acme_client.jar</code> command execution:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">-u https:</code><code class="comments">//localhost:8442/ejbca/acme/directory</code></div>
@@ -1220,7 +1220,7 @@ To try out EJBCA with PJAC, just follow these guides for <a  class="external-lin
 </div>
     </div>
 </li></ol><p   
->where <tt class=" ">--acme-dir ./acme-dir/</tt> might be integrated and/or point to your current web server, for example Apache2 /var/www/html/.well-known/acme-challenge/.</p>
+>where <code class=" ">--acme-dir ./acme-dir/</code> might be integrated and/or point to your current web server, for example Apache2 /var/www/html/.well-known/acme-challenge/.</p>
     </div>
     </div>
     <div class="section section-1" id="src-16237454_id-.ACMEv6.15.0-WorkflowExamplesexamples">
@@ -1257,7 +1257,7 @@ To try out EJBCA with PJAC, just follow these guides for <a  class="external-lin
     <div class="section section-2" id="src-16237454_id-.ACMEv6.15.0-newAccount">
         <h2 class="heading "><span>newAccount</span></h2>
 <p   
->Creates a new ACME account to EJBCA. EJBCA uses a public key to verify the JWS (that is, the <tt class=" ">jwk</tt> element of the JWS header) to authenticate future requests from the account. EJBCA supports RSA and EC key types.</p>
+>Creates a new ACME account to EJBCA. EJBCA uses a public key to verify the JWS (that is, the <code class=" ">jwk</code> element of the JWS header) to authenticate future requests from the account. EJBCA supports RSA and EC key types.</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">POST https:</code><code class="comments">//localhost:8442/ejbca/acme/newAccount HTTP/1.1</code></div>
@@ -1384,7 +1384,7 @@ To try out EJBCA with PJAC, just follow these guides for <a  class="external-lin
 </div>
     </div>
 <p   
->The response to the <tt class=" ">finalizeOrder</tt> call is the certificate.</p>
+>The response to the <code class=" ">finalizeOrder</code> call is the certificate.</p>
     </div>
     </div>
     <div class="section section-1" id="src-16237454_id-.ACMEv6.15.0-StatusCodesstatus_codes">

@@ -54,117 +54,174 @@ public class EditHardTokenProfileJSPHelper implements java.io.Serializable {
 
   private static final long serialVersionUID = -310960445499242212L;
 
+  /** Param. */
   public static final String ACTION = "action";
+  /** Param. */
   public static final String ACTION_EDIT_HARDTOKENPROFILES =
       "edithardtokenprofiles";
+  /** Param. */
   public static final String ACTION_EDIT_HARDTOKENPROFILE =
       "edithardtokenprofile";
+  /** Param. */
   public static final String ACTION_UPLOADENVELOPETEMP = "uploadenvelopetemp";
+  /** Param. */
   public static final String ACTION_UPLOADVISUALTEMP = "uploadvisualtemp";
+  /** Param. */
   public static final String ACTION_UPLOADRECEIPTTEMP = "uploadreceipttemp";
+  /** Param. */
   public static final String ACTION_UPLOADADRESSLABELTEMP = "uploadadresstemp";
 
+  /** Param. */
   public static final String ACTION_CHANGE_PROFILETYPE = "changeprofiletype";
 
+  /** Param. */
   public static final String CHECKBOX_VALUE = HardTokenProfile.TRUE;
 
   //      Used in profiles.jsp
+  /** Param. */
   public static final String BUTTON_EDIT_HARDTOKENPROFILES =
       "buttonedithardtokenprofile";
+  /** Param. */
   public static final String BUTTON_DELETE_HARDTOKENPROFILES =
       "buttondeletehardtokenprofile";
+  /** Param. */
   public static final String BUTTON_ADD_HARDTOKENPROFILES =
       "buttonaddhardtokenprofile";
+  /** Param. */
   public static final String BUTTON_RENAME_HARDTOKENPROFILES =
       "buttonrenamehardtokenprofile";
+  /** Param. */
   public static final String BUTTON_CLONE_HARDTOKENPROFILES =
       "buttonclonehardtokenprofile";
 
+  /** Param. */
   public static final String SELECT_HARDTOKENPROFILES =
       "selecthardtokenprofile";
+  /** Param. */
   public static final String TEXTFIELD_HARDTOKENPROFILESNAME =
       "textfieldhardtokenprofilename";
+  /** Param. */
   public static final String HIDDEN_HARDTOKENPROFILENAME =
       "hiddenhardtokenprofilename";
 
   //     Buttons used in profile.jsp
+  /** Param. */
   public static final String BUTTON_SAVE = "buttonsave";
+  /** Param. */
   public static final String BUTTON_CANCEL = "buttoncancel";
+  /** Param. */
   public static final String BUTTON_UPLOADENVELOPETEMP =
       "buttonuploadenvelopetemplate";
+  /** Param. */
   public static final String BUTTON_UPLOADVISUALTEMP =
       "buttonuploadvisualtemplate";
+  /** Param. */
   public static final String BUTTON_UPLOADRECEIPTTEMP =
       "buttonuploadreceipttemplate";
+  /** Param. */
   public static final String BUTTON_UPLOADADRESSLABELTEMP =
       "buttonuploadadresslabeltemplate";
+  /** Param. */
   public static final String BUTTON_UPLOADFILE = "buttonuploadfile";
 
+  /** Param. */
   public static final String TYPE_SWEDISHEID = "typeswedisheid";
+  /** Param. */
   public static final String TYPE_ENCHANCEDEID = "typeenchancedeid";
+  /** Param. */
   public static final String TYPE_TURKISHEID = "typeturkisheid";
 
+  /** Param. */
   public static final String TEXTFIELD_VISUALVALIDITY =
       "textfieldvisualvalidity";
+  /** Param. */
   public static final String TEXTFIELD_SNPREFIX = "textfieldsnprefix";
 
+  /** Param. */
   public static final String CHECKBOX_EREASBLE = "checkboxereasable";
+  /** Param. */
   public static final String CHECKBOX_CERTWRITABLE = "checkboxcertwritable";
+  /** Param. */
   public static final String CHECKBOX_KEYRECOVERABLE = "checkboxkeyrecoverable";
+  /** Param. */
   public static final String CHECKBOX_REUSEOLDCERT = "checkboxreuseoldcert";
+  /** Param. */
   public static final String CHECKBOX_USEIDENTICALPINS = "useidenticalpins";
 
+  /** Param. */
   public static final String HIDDEN_HARDTOKENTYPE = "hiddenhardtokentype";
 
+  /** Param. */
   public static final String SELECT_HARDTOKENTYPE = "selecthardtokentype";
+  /** Param. */
   public static final String SELECT_CERTIFICATEPROFILE =
       "selectcertificateprofile";
+  /** Param. */
   public static final String SELECT_CA = "selectca";
+  /** Param. */
   public static final String SELECT_PINTYPE = "selectpintype";
+  /** Param. */
   public static final String SELECT_MINKEYLENGTH = "selectminkeylength";
+  /** Param. */
   public static final String SELECT_ENVELOPETYPE = "selectenvelopetype";
+  /** Param. */
   public static final String SELECT_NUMOFENVELOPECOPIES =
       "selectenvelopecopies";
+  /** Param. */
   public static final String SELECT_RECEIPTTYPE = "selectreceipttype";
+  /** Param. */
   public static final String SELECT_NUMOFRECEIPTCOPIES = "selectreceiptcopies";
+  /** Param. */
   public static final String SELECT_ADRESSLABELTYPE = "selectadresslabeltype";
+  /** Param. */
   public static final String SELECT_NUMOFADRESSLABELCOPIES =
       "selectadresslabelcopies";
+  /** Param. */
   public static final String SELECT_VISUALLAYOUTTYPE = "selectvisuallayouttype";
+  /** Param. */
   public static final String SELECT_NUMOFTOKENCOPIES = "selectnumoftokencopies";
+  /** Param. */
   public static final String SELECT_MINPINLENGTH = "selectminpinlength";
 
+  /** Param. */
   public static final String FILE_TEMPLATE = "filetemplate";
 
+  /** Param. */
   public static final int UPLOADMODE_ENVELOPE = 0;
+  /** Param. */
   public static final int UPLOADMODE_VISUAL = 1;
+  /** Param. */
   public static final int UPLOADMODE_RECEIPT = 2;
+  /** Param. */
   public static final int UPLOADMODE_ADRESSLABEL = 3;
 
+  /** Param. */
   public static final String PAGE_HARDTOKENPROFILE =
       "hardtokenprofilepage.jspf";
+  /** Param. */
   public static final String PAGE_HARDTOKENPROFILES =
       "hardtokenprofilespage.jspf";
+  /** Param. */
   public static final String PAGE_UPLOADTEMPLATE = "uploadtemplate.jspf";
 
-  /** Creates new LogInterfaceBean */
-  public EditHardTokenProfileJSPHelper() {}
+  /** Creates new LogInterfaceBean. */
+  public EditHardTokenProfileJSPHelper() { }
 
   // Public methods.
   /**
    * Method that initialized the bean.
    *
    * @param ejbcawebbean Web bean
-   * @param hardtokenbean Token bean
+   * @param ahardtokenbean Token bean
    * @throws Exception Fail
    */
   public void initialize(
       final EjbcaWebBean ejbcawebbean,
-      final HardTokenInterfaceBean hardtokenbean)
+      final HardTokenInterfaceBean ahardtokenbean)
       throws Exception {
 
     if (!initialized) {
-      this.hardtokenbean = hardtokenbean;
+      this.hardtokenbean = ahardtokenbean;
       initialized = true;
       issuperadministrator =
           ejbcawebbean.isAuthorizedNoLogSilent(
@@ -172,7 +229,12 @@ public class EditHardTokenProfileJSPHelper implements java.io.Serializable {
     }
   }
 
-  @SuppressWarnings("deprecation")
+  /**
+   * @param request Req
+   * @return Req
+   * @throws AuthorizationDeniedException fail
+   */
+  @SuppressWarnings("deprecation") // TODO: len
   public String parseRequest(final HttpServletRequest request)
       throws AuthorizationDeniedException {
     String includefile = PAGE_HARDTOKENPROFILES;
@@ -193,12 +255,13 @@ public class EditHardTokenProfileJSPHelper implements java.io.Serializable {
     }
 
     if (ServletFileUpload.isMultipartContent(request)) {
+    final int threshhold = 2000000;
       try {
         final DiskFileItemFactory diskFileItemFactory =
             new DiskFileItemFactory();
-        diskFileItemFactory.setSizeThreshold(1999999);
+        diskFileItemFactory.setSizeThreshold(threshhold - 1);
         ServletFileUpload upload = new ServletFileUpload(diskFileItemFactory);
-        upload.setSizeMax(2000000);
+        upload.setSizeMax(threshhold);
         List<FileItem> items = upload.parseRequest(request);
 
         Iterator<FileItem> iter = items.iterator();
@@ -761,6 +824,7 @@ public class EditHardTokenProfileJSPHelper implements java.io.Serializable {
             case TurkishEIDProfile.TYPE_TURKISHEID:
               newprofile = new TurkishEIDProfile();
               break;
+              default: break;
           }
           if (profiledata != null && profiledata instanceof EIDProfile) {
             ((EIDProfile) profiledata).clone(newprofile);
@@ -873,6 +937,9 @@ public class EditHardTokenProfileJSPHelper implements java.io.Serializable {
     return includefile;
   }
 
+  /**
+   * @return type
+   */
   public int getProfileType() {
     int retval = SwedishEIDProfile.TYPE_SWEDISHEID;
 
@@ -889,15 +956,153 @@ public class EditHardTokenProfileJSPHelper implements java.io.Serializable {
   }
 
   // Private fields.
+  /** Param. */
   private HardTokenInterfaceBean hardtokenbean;
+  /** Param. */
   private boolean initialized = false;
-  public boolean hardtokenprofileexists = false;
-  public boolean profilemalformed = false;
-  public boolean hardtokenprofiledeletefailed = false;
-  public boolean issuperadministrator = false;
-  public boolean fileuploadsuccess = false;
-  public boolean fileuploadfailed = false;
-  public HardTokenProfile profiledata = null;
-  public String profilename = null;
-  public int uploadmode = 0;
+  /** Param. */
+  private boolean hardtokenprofileexists = false;
+  /** Param. */
+  private boolean profilemalformed = false;
+  /** Param. */
+  private boolean hardtokenprofiledeletefailed = false;
+  /** Param. */
+  private boolean issuperadministrator = false;
+  /** Param. */
+  private boolean fileuploadsuccess = false;
+  /** Param. */
+  private boolean fileuploadfailed = false;
+  /** Param. */
+  private HardTokenProfile profiledata = null;
+  /** Param. */
+  private String profilename = null;
+  /** Param. */
+  private int uploadmode = 0;
+
+/**
+ * @return the hardtokenprofileexists
+ */
+public boolean isHardtokenprofileexists() {
+    return hardtokenprofileexists;
+}
+
+/**
+ * @param ishardtokenprofileexists the hardtokenprofileexists to set
+ */
+public void setHardtokenprofileexists(final boolean ishardtokenprofileexists) {
+    this.hardtokenprofileexists = ishardtokenprofileexists;
+}
+
+/**
+ * @return the profilemalformed
+ */
+public boolean isProfilemalformed() {
+    return profilemalformed;
+}
+
+/**
+ * @param isprofilemalformed the profilemalformed to set
+ */
+public void setProfilemalformed(final boolean isprofilemalformed) {
+    this.profilemalformed = isprofilemalformed;
+}
+
+/**
+ * @return the hardtokenprofiledeletefailed
+ */
+public boolean isHardtokenprofiledeletefailed() {
+    return hardtokenprofiledeletefailed;
+}
+
+/**
+ * @param ishardtokenprofiledeletefailed the hardtokenprofiledeletefailed to set
+ */
+public void setHardtokenprofiledeletefailed(
+        final boolean ishardtokenprofiledeletefailed) {
+    this.hardtokenprofiledeletefailed = ishardtokenprofiledeletefailed;
+}
+
+/**
+ * @return the issuperadministrator
+ */
+public boolean isIssuperadministrator() {
+    return issuperadministrator;
+}
+
+/**
+ * @param aissuperadministrator the issuperadministrator to set
+ */
+public void setIssuperadministrator(final boolean aissuperadministrator) {
+    this.issuperadministrator = aissuperadministrator;
+}
+
+/**
+ * @return the fileuploadsuccess
+ */
+public boolean isFileuploadsuccess() {
+    return fileuploadsuccess;
+}
+
+/**
+ * @param isfileuploadsuccess the fileuploadsuccess to set
+ */
+public void setFileuploadsuccess(final boolean isfileuploadsuccess) {
+    this.fileuploadsuccess = isfileuploadsuccess;
+}
+
+/**
+ * @return the fileuploadfailed
+ */
+public boolean isFileuploadfailed() {
+    return fileuploadfailed;
+}
+
+/**
+ * @param isfileuploadfailed the fileuploadfailed to set
+ */
+public void setFileuploadfailed(final boolean isfileuploadfailed) {
+    this.fileuploadfailed = isfileuploadfailed;
+}
+
+/**
+ * @return the profiledata
+ */
+public HardTokenProfile getProfiledata() {
+    return profiledata;
+}
+
+/**
+ * @param aprofiledata the profiledata to set
+ */
+public void setProfiledata(final HardTokenProfile aprofiledata) {
+    this.profiledata = aprofiledata;
+}
+
+/**
+ * @return the profilename
+ */
+public String getProfilename() {
+    return profilename;
+}
+
+/**
+ * @param aprofilename the profilename to set
+ */
+public void setProfilename(final String aprofilename) {
+    this.profilename = aprofilename;
+}
+
+/**
+ * @return the uploadmode
+ */
+public int getUploadmode() {
+    return uploadmode;
+}
+
+/**
+ * @param anuploadmode the uploadmode to set
+ */
+public void setUploadmode(final int anuploadmode) {
+    this.uploadmode = anuploadmode;
+}
 }

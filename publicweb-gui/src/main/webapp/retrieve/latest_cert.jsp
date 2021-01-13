@@ -7,7 +7,7 @@
 	Note that the order or case of element descriptors in the DN (C, O, CN, etc.) is unimportant.
 	The case of elements themselves, on the other hand, <em>IS</em> important.
 </p><p> 
-    For example, <tt>cn=foo</tt> is considered equal to <tt>CN=foo</tt> but different from <tt>cn=FOO</tt>.
+    For example, <code>cn=foo</code> is considered equal to <code>CN=foo</code> but different from <code>cn=FOO</code>.
 </p>
 
 <form action="../publicweb/webdist/certdist" enctype="x-www-form-encoded" method="post">

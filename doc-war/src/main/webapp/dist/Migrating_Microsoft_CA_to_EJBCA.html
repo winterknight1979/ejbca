@@ -170,7 +170,7 @@
 </li><li class=" "><p   
 >Copy the p12-file to the EJBCA machine.</p>
 </li><li class=" "><p   
->Run: <tt class=" ">$EJBCA_HOME/bin/ejbca.sh ca importca &quot;MS CA v1&quot; /path/mscakey.p12</tt></p>
+>Run: <code class=" ">$EJBCA_HOME/bin/ejbca.sh ca importca &quot;MS CA v1&quot; /path/mscakey.p12</code></p>
 </li></ul><p   
 >The CA should now appear in the EJBCA Admin GUI.</p>
     </div>
@@ -181,9 +181,9 @@
 <ul class=" "><li class=" "><p   
 >Certificate can be exported from the CA-snap-in by opening each certificate and clicking &quot;copy to file..&quot;.</p>
 </li><li class=" "><p   
->Convert the certificate to PEM format with openssl: <tt class=" ">openssl x509 -in certificate.crt -inform DER -out certificate.pem -outform PEM</tt></p>
+>Convert the certificate to PEM format with openssl: <code class=" ">openssl x509 -in certificate.crt -inform DER -out certificate.pem -outform PEM</code></p>
 </li><li class=" "><p   
->Import to EJBCA with: <tt class=" ">$EJBCA_HOME/bin/ejbca.sh ca importcert username password &quot;MS CA v1&quot; status certificate.pem EndEntityProfile CertProfile</tt></p>
+>Import to EJBCA with: <code class=" ">$EJBCA_HOME/bin/ejbca.sh ca importcert username password &quot;MS CA v1&quot; status certificate.pem EndEntityProfile CertProfile</code></p>
 </li></ul><p   
 ><img  class="emoticon emoticon-warning"  src="images/s/en_US/8100/b0984b7297905b7c7bd946458f753ce0130bfc8c/_/images/icons/emoticons/warning.svg" alt="images/s/en_US/8100/b0984b7297905b7c7bd946458f753ce0130bfc8c/_/images/icons/emoticons/warning.svg"   />
  Note that this is only suitable if you have a few certificates.</p>
@@ -191,9 +191,9 @@
     <div class="section section-2" id="src-78941305_id-.MigratingMicrosoftCAtoEJBCAv6.10.0-Importingtheentirecertificatedatabase">
         <h2 class="heading "><span>Importing the entire certificate database</span></h2>
 <p   
->The entire certificate database is stored in <tt class=" ">\window\system32\CertLog\CA-name.edb.</tt></p>
+>The entire certificate database is stored in <code class=" ">\window\system32\CertLog\CA-name.edb.</code></p>
 <p   
->The Microsoft server provided <tt class=" ">Certutil.exe</tt> can be used to dump the different posts from the database and the following lists names of possible columns to dump:</p>
+>The Microsoft server provided <code class=" ">Certutil.exe</code> can be used to dump the different posts from the database and the following lists names of possible columns to dump:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">certutil -schema </code></div>

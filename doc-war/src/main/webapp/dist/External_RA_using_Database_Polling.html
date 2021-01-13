@@ -188,7 +188,7 @@
 </li><li class=" "><p   
 >Generate a keystore for an existing user using a shared secret</p>
 </li></ul><p   
->As of EJBCA 6.3.1, the External RA API is bundled as a part of EJBCA Enterprise Edition and can be enabled in <tt class=" ">conf/externalra.properties</tt>.</p>
+>As of EJBCA 6.3.1, the External RA API is bundled as a part of EJBCA Enterprise Edition and can be enabled in <code class=" ">conf/externalra.properties</code>.</p>
 <p   
 ><img  class="confluence-embedded-image"  src="images/download/attachments/16234704/external-ra.png" alt="images/download/attachments/16234704/external-ra.png"  height="250" />
     </p>
@@ -218,15 +218,15 @@
 <p   
 >To use External RA Service Workers in EJBCA, do the following:</p>
 <ol class=" "><li class=" "><p   
->Enable the service in <tt class=" ">EJBCA_HOME/conf/externalra.properties</tt>.</p>
+>Enable the service in <code class=" ">EJBCA_HOME/conf/externalra.properties</code>.</p>
 </li><li class=" "><p   
 >Configure DataSources in EJBCA_HOME/conf/externalra.properties.</p>
 </li><li class=" "><p   
->If applicable, install the JDBC connector JARs in the application server for databases used in <tt class=" ">EJBCA_HOME/conf/externalra.properties.</tt></p>
+>If applicable, install the JDBC connector JARs in the application server for databases used in <code class=" ">EJBCA_HOME/conf/externalra.properties.</code></p>
 </li><li class=" "><p   
->Create datasource(s) matching the configuration in <tt class=" ">externalra.properties</tt>.</p>
+>Create datasource(s) matching the configuration in <code class=" ">externalra.properties</code>.</p>
 </li><li class=" "><p   
->Re-build and deploy EJBCA using the command <tt class=" ">ant clean deployear</tt>.</p>
+>Re-build and deploy EJBCA using the command <code class=" ">ant clean deployear</code>.</p>
 </li></ol><p   
 >To create a non-jta data source for JBoss 7, a command in jboss-cli.sh can be used, for example:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
@@ -243,7 +243,7 @@
     </div>
 <p   
 ><img  class="emoticon emoticon-warning"  src="images/s/en_US/8100/b0984b7297905b7c7bd946458f753ce0130bfc8c/_/images/icons/emoticons/warning.svg" alt="images/s/en_US/8100/b0984b7297905b7c7bd946458f753ce0130bfc8c/_/images/icons/emoticons/warning.svg"   />
- Note that<tt class=" "> select 1</tt> must be different for DB2 and Oracle.</p>
+ Note that<code class=" "> select 1</code> must be different for DB2 and Oracle.</p>
 <p   
 >It is recommended to use the following indexes on the external message database:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
@@ -315,7 +315,7 @@
 <p   
 >The client is also responsible for polling the database for responses from the External RA Service Worker.</p>
 <p   
->Running <tt class=" ">ant externalra-client</tt> will build a sample client with all dependencies under EJBCA_HOME/dist/extrernalra-cli. This simple client JAR could be used directly as a library and is a good starting point for client development. See <tt class=" ">EJBCA_HOME/modules/externalra/src/org/ejbca/extra/ra/ExtRATestClient.java</tt> and <tt class=" ">EJBCA_HOME/modules/externalra/src-test/</tt> for more details on how the use the API.</p>
+>Running <code class=" ">ant externalra-client</code> will build a sample client with all dependencies under EJBCA_HOME/dist/extrernalra-cli. This simple client JAR could be used directly as a library and is a good starting point for client development. See <code class=" ">EJBCA_HOME/modules/externalra/src/org/ejbca/extra/ra/ExtRATestClient.java</code> and <code class=" ">EJBCA_HOME/modules/externalra/src-test/</code> for more details on how the use the API.</p>
 <p   
 >New submessages require a new org.ejbca.extra.db.MyRequest and org.ejbca.extra.caservice.processor.MyRequestProcessor class where 'My' is your name of choice. Dispatching of messages to a processing class is done using Java reflection to automatically instantiate the correct processor, so it is important that the class names are correct.</p>
 <p   

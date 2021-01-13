@@ -592,6 +592,8 @@
 		files="EjbcaWebBean.java" lines="282,892" />
 		<suppress checks="MethodLengthCheck"
 		files="CryptoTokenMBean.java" lines="923" />
+		<suppress checks="MethodLengthCheck"
+		files="EditHardTokenProfileJSPHelper.java" lines="237" />
 	
 	
 </suppressions>

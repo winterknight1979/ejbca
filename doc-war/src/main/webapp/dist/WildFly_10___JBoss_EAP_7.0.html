@@ -301,9 +301,9 @@
     <div class="section section-1" id="src-16237732_safe-id-aWQtLldpbGRGbHkxMC9KQm9zc0VBUDcuMHY2LjE1LjAtRGVwbG95RUpCQ0E">
         <h1 class="heading subsubsection"><span>Deploy EJBCA</span></h1>
 <p  class="subsubsection" 
->Finally build and deploy the EJBCA (application ear file) to WildFly, without touching any WildFly configuration, by running the EJBCA <tt class=" ">deployear</tt> command.</p>
+>Finally build and deploy the EJBCA (application ear file) to WildFly, without touching any WildFly configuration, by running the EJBCA <code class=" ">deployear</code> command.</p>
 <p   
->Before running <tt class=" ">deployear</tt> below, ensure to point to your application server by setting APPSRV_HOME and configure your database in conf/database.properties.</p>
+>Before running <code class=" ">deployear</code> below, ensure to point to your application server by setting APPSRV_HOME and configure your database in conf/database.properties.</p>
 <p   
 >Run the following commands at the regular command prompt in EJBCA_HOME:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
@@ -443,7 +443,7 @@
     <div class="section section-1" id="src-16237732_safe-id-aWQtLldpbGRGbHkxMC9KQm9zc0VBUDcuMHY2LjE1LjAtT3B0aW9uYWw6QWRkU3VwcG9ydGZvclBLQ1MjMTEoSFNNcyk">
         <h1 class="heading "><span>Optional: Add Support for PKCS#11 (HSMs)</span></h1>
 <p   
->WildFly by default isolates most sun classes. EJBCA configures JBoss/WildFly to expose these classes (sun/security/pkcs11/wrapper), as of EJBCA 6.6.3, by using a <tt class=" ">jboss-deployment-structure.xml</tt>. This makes configuration in <tt class=" ">modules/system/layers/base/sun/jdk/main/module.xml </tt>not needed.</p>
+>WildFly by default isolates most sun classes. EJBCA configures JBoss/WildFly to expose these classes (sun/security/pkcs11/wrapper), as of EJBCA 6.6.3, by using a <code class=" ">jboss-deployment-structure.xml</code>. This makes configuration in <code class=" ">modules/system/layers/base/sun/jdk/main/module.xml </code>not needed.</p>
     </div>
     <div class="section section-1" id="src-16237732_safe-id-aWQtLldpbGRGbHkxMC9KQm9zc0VBUDcuMHY2LjE1LjAtT3B0aW9uYWw6QWRkU3VwcG9ydGZvclNlbmRpbmdFbWFpbA">
         <h1 class="heading "><span>Optional: Add Support for Sending Email</span></h1>

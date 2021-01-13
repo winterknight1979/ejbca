@@ -159,22 +159,22 @@
     <div class="section section-1" id="src-16234296_id-.UpgradingEJBCAv6.14.0-UpgradeInstructions">
         <h1 class="heading p1"><span>Upgrade Instructions</span></h1>
 <p  class="p2" 
->When upgrading or changing a configuration setting in a properties file, it is not required to fully re-install EJBCA or re-configure the application server. Instead, deploy a new EJBCA application (ejbca.ear) to the application server using the <tt class=" ">ant deployear</tt> command.</p>
+>When upgrading or changing a configuration setting in a properties file, it is not required to fully re-install EJBCA or re-configure the application server. Instead, deploy a new EJBCA application (ejbca.ear) to the application server using the <code class=" ">ant deployear</code> command.</p>
 <p  class="p2" 
 >Follow the steps below to upgrade from one version of EJBCA to a new version.</p>
 <ol class=" "><li class="p1 "><p   
->Copy <tt class=" ">conf/*.properties</tt> from the earlier installation.<br/>This step is not required if you are using an ejbca-custom directory (see <a   href="#src-16234296_id-.UpgradingEJBCAv6.14.0-ejbca-custom">ejbca-custom</a> below).</p>
+>Copy <code class=" ">conf/*.properties</code> from the earlier installation.<br/>This step is not required if you are using an ejbca-custom directory (see <a   href="#src-16234296_id-.UpgradingEJBCAv6.14.0-ejbca-custom">ejbca-custom</a> below).</p>
 </li><li class="p1 "><p   
->Merge changes (if there are any) from <tt class=" ">*.properties.sample</tt> into your <tt class=" ">*.properties</tt>.</p>
+>Merge changes (if there are any) from <code class=" ">*.properties.sample</code> into your <code class=" ">*.properties</code>.</p>
 </li><li class="p1 "><p   
->Copy the content of the <tt class=" ">p12</tt> directory from the earlier installation and run the following command with the new version:</p>
+>Copy the content of the <code class=" ">p12</code> directory from the earlier installation and run the following command with the new version:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">$ ant deployear</code></div>
 </div>
     </div>
 <p  class="p1" 
->Note that the command <tt class=" ">deployear</tt> deploys a new <tt class=" ">ejbca.ear</tt> to the application server, not performing the same configuration work as the <tt class=" ">deploy</tt><i class=" "> </i>command.</p>
+>Note that the command <code class=" ">deployear</code> deploys a new <code class=" ">ejbca.ear</code> to the application server, not performing the same configuration work as the <code class=" ">deploy</code><i class=" "> </i>command.</p>
 </li><li class=" "><p   
 >If you have switched application server (a new version, or just unpacked a fresh installation of it), you need to run the following additional command to copy the TLS keystores over to the new server:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
@@ -185,11 +185,11 @@
 </li><li class=" "><p   
 >You also need to configure TLS for your application server. See the application server specific instructions for the installation, for example for WildFly on <a   href="Application_Servers.html">Application Servers</a>.</p>
 </li><li class=" "><p  class="p1" 
->All database upgrades require CREATE and ALTER TABLE privileges in addition to the usual privileges SELECT, UPDATE, INSERT, and DELETE. The SQL executed by database upgrades code is available in <tt class=" ">src/upgrade/&lt;oldversion&gt;_&lt;newversion&gt;/&lt;oldversion&gt;_&lt;newversion&gt;-upgrade-&lt;database&gt;.sql</tt>.</p>
+>All database upgrades require CREATE and ALTER TABLE privileges in addition to the usual privileges SELECT, UPDATE, INSERT, and DELETE. The SQL executed by database upgrades code is available in <code class=" ">src/upgrade/&lt;oldversion&gt;_&lt;newversion&gt;/&lt;oldversion&gt;_&lt;newversion&gt;-upgrade-&lt;database&gt;.sql</code>.</p>
 </li></ol>    <div class="section section-2" id="src-16234296_id-.UpgradingEJBCAv6.14.0-ejbca-custom">
         <h2 class="heading "><span>ejbca-custom</span></h2>
 <p   
->To ease upgrades and allow keeping your personal configurations from a version to another, you can store your personal EJBCA modifications in the <tt class=" ">ejbca-custom</tt> folder. Your modifications will automatically overwrite any existing files found in the <tt class=" ">EJBCA_HOME</tt> directory before executing an <tt class=" ">ant</tt> command. For more information, see <a   href="Customizing_EJBCA.html">Customizing EJBCA</a>.</p>
+>To ease upgrades and allow keeping your personal configurations from a version to another, you can store your personal EJBCA modifications in the <code class=" ">ejbca-custom</code> folder. Your modifications will automatically overwrite any existing files found in the <code class=" ">EJBCA_HOME</code> directory before executing an <code class=" ">ant</code> command. For more information, see <a   href="Customizing_EJBCA.html">Customizing EJBCA</a>.</p>
     </div>
     </div>
     <div class="section section-1" id="src-16234296_id-.UpgradingEJBCAv6.14.0-UpgradePaths">
@@ -232,9 +232,9 @@
     <ol class=" "><li class=" "><p   
 >Upgrade to EJBCA <strong class=" ">4.0.16</strong></p>
 </li><li class=" "><p   
->From the console, run <tt class=" ">ant upgrade</tt>.</p>
+>From the console, run <code class=" ">ant upgrade</code>.</p>
 </li><li class=" "><p   
->From the console, run <tt class=" ">ant post-upgrade</tt>.</p>
+>From the console, run <code class=" ">ant post-upgrade</code>.</p>
 </li><li class=" "><p   
 >Continue by following the steps below to upgrade to <strong class=" ">6.3.2.6</strong>.</p>
 </li></ol><p   
@@ -254,9 +254,9 @@
     <ol class=" "><li class=" "><p   
 >Upgrade to EJBCA <strong class=" ">6.3.2.6</strong>.</p>
 </li><li class=" "><p   
->From the console, run <tt class=" ">ant upgrade</tt>.</p>
+>From the console, run <code class=" ">ant upgrade</code>.</p>
 </li><li class=" "><p   
->From the console, run <tt class=" ">ant post-upgrade</tt>.</p>
+>From the console, run <code class=" ">ant post-upgrade</code>.</p>
 </li><li class=" "><p   
 >Upgrade to JDK7 or JDK8.</p>
 </li><li class=" "><p   
@@ -264,7 +264,7 @@
 </li><li class=" "><p   
 >Deploy the latest version of EJBCA.</p>
 </li><li class=" "><p   
->From the console, run <tt class=" ">ant upgrade</tt>.</p>
+>From the console, run <code class=" ">ant upgrade</code>.</p>
 </li><li class=" "><p   
 >Perform a post-upgrade by selecting <strong class=" ">System Upgrade</strong> in the Admin GUI.</p>
 </li></ol><p   
@@ -286,7 +286,7 @@
 </li><li class=" "><p   
 >Upgrade to latest version of EJBCA.</p>
 </li><li class=" "><p   
->From the console, run <tt class=" ">ant upgrade</tt>.</p>
+>From the console, run <code class=" ">ant upgrade</code>.</p>
 </li><li class=" "><p   
 >Perform a post-upgrade by selecting <strong class=" ">System Upgrade</strong> in the Admin GUI.</p>
 </li></ol><p   
@@ -335,13 +335,13 @@
     <div class="section section-2" id="src-16234296_id-.UpgradingEJBCAv6.14.0-UpgradeProcessChanges">
         <h2 class="heading "><span>Upgrade Process Changes</span></h2>
 <ul class=" "><li class=" "><p   
-><strong class=" ">As of EJBCA 4.0</strong>, full up-time is supported during upgrades for clustered installations, using the upgrade process steps <tt class=" ">upgrade</tt> and <tt class=" ">post-upgrade</tt>:</p>
+><strong class=" ">As of EJBCA 4.0</strong>, full up-time is supported during upgrades for clustered installations, using the upgrade process steps <code class=" ">upgrade</code> and <code class=" ">post-upgrade</code>:</p>
 <ul class=" "><li class=" "><p   
-><tt class=" ">upgrade</tt>: Performs steps required for upgrading the first node to be able to function once it comes online again.</p>
+><code class=" ">upgrade</code>: Performs steps required for upgrading the first node to be able to function once it comes online again.</p>
 </li><li class=" "><p   
-><tt class=" ">post-upgrade</tt>: Performs remaining upgrade steps (such as clean-up) that can only be performed once all nodes are running the latest code.</p>
+><code class=" ">post-upgrade</code>: Performs remaining upgrade steps (such as clean-up) that can only be performed once all nodes are running the latest code.</p>
 </li></ul></li></ul><ul class=" "><li class=" "><p   
->As of<strong class=" "> EJBCA 6.4.0</strong>, the database version is tracked internally, making the upgrade automatically run from the first run running the upgraded code, making the <tt class=" ">upgrade</tt><i class=" "> </i>command redundant.</p>
+>As of<strong class=" "> EJBCA 6.4.0</strong>, the database version is tracked internally, making the upgrade automatically run from the first run running the upgraded code, making the <code class=" ">upgrade</code><i class=" "> </i>command redundant.</p>
 </li></ul><ul class=" "><li class=" "><p   
 >As of <strong class=" ">EJBCA 6.8.0</strong>, you can perform post-upgrades from the Admin Web. When a post-upgrade is required, the <strong class=" ">System Configuration</strong> menu option <strong class=" ">System Upgrade<i class=" "> </i></strong>is available.</p>
 </li></ul><p   

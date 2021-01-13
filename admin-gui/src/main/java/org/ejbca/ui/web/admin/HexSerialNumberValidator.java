@@ -33,7 +33,8 @@ import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
  *     samuellb $
  */
 public class HexSerialNumberValidator implements Validator {
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(HexSerialNumberValidator.class);
 
   @Override
@@ -42,8 +43,8 @@ public class HexSerialNumberValidator implements Validator {
       final UIComponent textField,
       final Object object)
       throws ValidatorException {
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Validating component "
               + textField.getClientId(facesContext)
               + " with value \""

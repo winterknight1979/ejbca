@@ -240,7 +240,7 @@
 </li><li class=" "><p   
 ><strong class=" "><strong class=" ">AcmeOrderData</strong></strong></p>
 </li></ul><p   
->The indexes are found in <tt class=" ">doc/sql-scripts/create-index-ejbca.sql</tt> and we recommend applying them on any production environment using ACME.</p>
+>The indexes are found in <code class=" ">doc/sql-scripts/create-index-ejbca.sql</code> and we recommend applying them on any production environment using ACME.</p>
     </div>
     <div class="section section-2" id="src-85926584_id-.EJBCAUpgradeNotesSummaryv6.15.2.6-BehavioralChanges">
         <h2 class="heading "><span>Behavioral Changes</span></h2>
@@ -285,7 +285,7 @@ generate/    </span>
     <div class="section section-3" id="src-85926584_id-.EJBCAUpgradeNotesSummaryv6.15.2.6-EjbcaWS.getRemainingNumberOfApprovals">
         <h3 class="heading "><span>EjbcaWS.getRemainingNumberOfApprovals</span></h3>
 <p   
->The method <tt class=" ">org.ejbca.core.protocol.ws.common.IEjbcaWS.getRemainingNumberOfApprovals(int)</tt> has changed behavior to conform to real world requirements. The previous javadoc stated:</p>
+>The method <code class=" ">org.ejbca.core.protocol.ws.common.IEjbcaWS.getRemainingNumberOfApprovals(int)</code> has changed behavior to conform to real world requirements. The previous javadoc stated:</p>
     <div  class="confbox programlisting">
                 <div class="content">
         <pre><code>/**
@@ -300,7 +300,7 @@ generate/    </span>
         </div>
     </div>
 <p   
->This was incorrect as <tt class=" ">ApprovalDataVO.STATUS_REJECTED</tt> is actually -2. In order to stay true to the API we have changed the return value to be -1 for rejected results. The new javadoc states as following:</p>
+>This was incorrect as <code class=" ">ApprovalDataVO.STATUS_REJECTED</code> is actually -2. In order to stay true to the API we have changed the return value to be -1 for rejected results. The new javadoc states as following:</p>
     <div  class="confbox programlisting">
                 <div class="content">
         <pre><code>/**
@@ -327,7 +327,7 @@ denied
 <p   
 >This method was found to potentially leak information about end entity profiles and CA ID's that the requesting admin wasn't authorized to. If requesting an End Entity Profile, the requesting user must be authorized to the following rules:</p>
 <ul class=" "><li class=" "><p  class="p1" 
-><tt class=" ">/ra_functionality/view_end_entity_profiles</tt></p>
+><code class=" ">/ra_functionality/view_end_entity_profiles</code></p>
 </li><li class=" "><p   
 >to any CAs that are referenced in the EEP</p>
 </li><li class=" "><p   
@@ -335,7 +335,7 @@ denied
 </li></ul><p   
 >If requesting a Certificate Profile, the requesting user must be authorized to the following rules:</p>
 <ul class=" "><li class=" "><p  class="p1" 
-><tt class=" ">/ca_functionality/view_certificate_profiles</tt></p>
+><code class=" ">/ca_functionality/view_certificate_profiles</code></p>
 </li><li class=" "><p   
 >to any CAs that are referenced in the Certificate Profile</p>
 </li></ul>    </div>
