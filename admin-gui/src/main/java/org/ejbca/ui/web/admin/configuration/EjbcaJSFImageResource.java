@@ -17,10 +17,14 @@ import javax.ejb.EJBException;
  */
 public class EjbcaJSFImageResource implements Map<String, String> {
 
+    /** Bean. */
   private final EjbcaWebBean ejbcawebbean;
 
-  public EjbcaJSFImageResource(final EjbcaWebBean ejbcawebbean) {
-    this.ejbcawebbean = ejbcawebbean;
+  /**
+   * @param anejbcawebbean bean
+   */
+  public EjbcaJSFImageResource(final EjbcaWebBean anejbcawebbean) {
+    this.ejbcawebbean = anejbcawebbean;
   }
 
   @Override

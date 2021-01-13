@@ -47,44 +47,58 @@ import org.ejbca.ui.web.admin.BaseManagedBean;
 public class ScepConfigMBean extends BaseManagedBean implements Serializable {
 
   /** GUI table representation of a SCEP alias that can be interacted with. */
-  public class ScepAliasGuiInfo {
+  public final class ScepAliasGuiInfo {
+        /** Param. */
     private String alias;
+    /** Param. */
     private String mode;
+    /** Param. */
     private boolean includeCA;
+    /** Param. */
     private String raCertProfile;
+    /** Param. */
     private String raEEProfile;
+    /** Param. */
     private String raAuthPassword;
+    /** Param. */
     private String raDefaultCA;
+    /** Param. */
     private String raNameGenScheme;
+    /** Param. */
     private String raNameGenParameters;
+    /** Param. */
     private String raNameGenPrefix;
+    /** Param. */
     private String raNameGenPostfix;
+    /** Param. */
     private boolean clientCertificateRenewal;
+    /** Param. */
     private boolean allowClientCertificateRenewaWithOldKey;
 
     private ScepAliasGuiInfo(
-        final ScepConfiguration scepConfig, final String alias) {
-      if (alias != null) {
-        this.alias = alias;
-        if (scepConfig.aliasExists(alias)) {
+        final ScepConfiguration ascepConfig, final String analias) {
+      if (analias != null) {
+        this.alias = analias;
+        if (ascepConfig.aliasExists(analias)) {
           this.mode =
-              (scepConfig.getRAMode(alias)
+              (ascepConfig.getRAMode(analias)
                   ? ScepConfiguration.Mode.RA.getResource()
                   : ScepConfiguration.Mode.CA.getResource());
-          this.includeCA = scepConfig.getIncludeCA(alias);
-          this.raCertProfile = scepConfig.getRACertProfile(alias);
-          this.raEEProfile = scepConfig.getRAEndEntityProfile(alias);
-          this.raAuthPassword = scepConfig.getRAAuthPassword(alias);
-          this.raDefaultCA = scepConfig.getRADefaultCA(alias);
-          this.raNameGenScheme = scepConfig.getRANameGenerationScheme(alias);
+          this.includeCA = ascepConfig.getIncludeCA(analias);
+          this.raCertProfile = ascepConfig.getRACertProfile(analias);
+          this.raEEProfile = ascepConfig.getRAEndEntityProfile(analias);
+          this.raAuthPassword = ascepConfig.getRAAuthPassword(analias);
+          this.raDefaultCA = ascepConfig.getRADefaultCA(analias);
+          this.raNameGenScheme = ascepConfig.getRANameGenerationScheme(analias);
           this.raNameGenParameters =
-              scepConfig.getRANameGenerationParameters(alias);
-          this.raNameGenPrefix = scepConfig.getRANameGenerationPrefix(alias);
-          this.raNameGenPostfix = scepConfig.getRANameGenerationPostfix(alias);
+              ascepConfig.getRANameGenerationParameters(analias);
+          this.raNameGenPrefix = ascepConfig.getRANameGenerationPrefix(analias);
+          this.raNameGenPostfix
+              = ascepConfig.getRANameGenerationPostfix(analias);
           this.clientCertificateRenewal =
-              scepConfig.getClientCertificateRenewal(alias);
+              ascepConfig.getClientCertificateRenewal(analias);
           this.allowClientCertificateRenewaWithOldKey =
-              scepConfig.getAllowClientCertificateRenewalWithOldKey(alias);
+              ascepConfig.getAllowClientCertificateRenewalWithOldKey(analias);
         } else {
           this.mode = ScepConfiguration.DEFAULT_OPERATION_MODE.toUpperCase();
           this.includeCA =
@@ -112,154 +126,259 @@ public class ScepConfigMBean extends BaseManagedBean implements Serializable {
       }
     }
 
+    /**
+     * @return alias
+     */
     public String getAlias() {
       return alias;
     }
 
-    public void setAlias(final String alias) {
-      this.alias = alias;
+    /**
+     * @param analias alias
+     */
+    public void setAlias(final String analias) {
+      this.alias = analias;
     }
 
+    /**
+     * @return mode
+     */
     public String getMode() {
       return mode;
     }
 
-    public void setMode(final String mode) {
-      this.mode = mode;
+    /**
+     * @param amode mode
+     */
+    public void setMode(final String amode) {
+      this.mode = amode;
     }
 
+    /**
+     * @return Bool
+     */
     public boolean isModeRa() {
       return ScepConfiguration.Mode.RA.getResource().equals(mode);
     }
 
+    /**
+     * @return CA
+     */
     public boolean isModeCa() {
       return ScepConfiguration.Mode.CA.getResource().equals(mode);
     }
 
+    /**
+     * @return CA
+     */
     public boolean isIncludeCA() {
       return includeCA;
     }
 
+    /**
+     * @param includeca CA
+     */
     public void setIncludeCA(final boolean includeca) {
       this.includeCA = includeca;
     }
 
+    /**
+     * @return CP
+     */
     public String getRaCertProfile() {
       return raCertProfile;
     }
 
+    /**
+     * @param cp CP
+     */
     public void setRaCertProfile(final String cp) {
       this.raCertProfile = cp;
     }
 
+    /**
+     * @return EEP
+     */
     public String getRaEEProfile() {
       return raEEProfile;
     }
 
+    /**
+     * @param eep EEP
+     */
     public void setRaEEProfile(final String eep) {
       this.raEEProfile = eep;
     }
 
+    /**
+     * @return CA
+     */
     public String getRaDefaultCA() {
       return raDefaultCA;
     }
 
+    /**
+     * @param caname CA
+     */
     public void setRaDefaultCA(final String caname) {
       this.raDefaultCA = caname;
     }
 
+    /**
+     * @return pwd
+     */
     public String getRaAuthPassword() {
       return this.raAuthPassword;
     }
 
+    /**
+     * @param raAuthPwd pwd
+     */
     public void setRaAuthPassword(final String raAuthPwd) {
       this.raAuthPassword = raAuthPwd;
     }
 
+    /**
+     * @return sceme
+     */
     public String getRaNameGenScheme() {
       return raNameGenScheme;
     }
 
+    /**
+     * @param scheme scheme
+     */
     public void setRaNameGenScheme(final String scheme) {
       this.raNameGenScheme = scheme;
     }
 
+    /**
+     * @return bool
+     */
     public boolean isRaNameGenSchemeFixed() {
       return "FIXED".equals(raNameGenScheme);
     }
 
+    /**
+     * @return bool
+     */
     public boolean isRaNameGenSchemeDn() {
       return "DN".equals(raNameGenScheme);
     }
 
+    /**
+     * @return params
+     */
     public String getRaNameGenParams() {
       return raNameGenParameters;
     }
 
+    /**
+     * @param params Params
+     */
     public void setRaNameGenParams(final String params) {
       this.raNameGenParameters = params;
     }
 
+    /**
+     * @return prefix
+     */
     public String getRaNameGenPrefix() {
       return raNameGenPrefix;
     }
 
+    /**
+     * @param prefix Prefix
+     */
     public void setRaNameGenPrefix(final String prefix) {
       this.raNameGenPrefix = prefix;
     }
 
+    /**
+     * @return postfix
+     */
     public String getRaNameGenPostfix() {
       return raNameGenPostfix;
     }
 
+    /**
+     * @param postfix postfix
+     */
     public void setRaNameGenPostfix(final String postfix) {
       this.raNameGenPostfix = postfix;
     }
 
+    /**
+     * @return bool
+     */
     public boolean getClientCertificateRenewal() {
       return this.clientCertificateRenewal;
     }
 
+    /**
+     * @param aclientCertificateRenewal bool
+     */
     public void setClientCertificateRenewal(
-        final boolean clientCertificateRenewal) {
-      this.clientCertificateRenewal = clientCertificateRenewal;
+        final boolean aclientCertificateRenewal) {
+      this.clientCertificateRenewal = aclientCertificateRenewal;
     }
 
+    /**
+     * @return bool
+     */
     public boolean getAllowClientCertificateRenewaWithOldKey() {
       return this.allowClientCertificateRenewaWithOldKey;
     }
 
+    /**
+     * @param doallowClientCertificateRenewaWithOldKey bool
+     */
     public void setAllowClientCertificateRenewaWithOldKey(
-        final boolean allowClientCertificateRenewaWithOldKey) {
+        final boolean doallowClientCertificateRenewaWithOldKey) {
       this.allowClientCertificateRenewaWithOldKey =
-          allowClientCertificateRenewaWithOldKey;
+          doallowClientCertificateRenewaWithOldKey;
     }
   }
 
   private static final long serialVersionUID = 2L;
-  private static final Logger log = Logger.getLogger(ScepConfigMBean.class);
+  /** Param. */
+  private static final Logger LOG = Logger.getLogger(ScepConfigMBean.class);
 
+  /** Param. */
   private ListDataModel<ScepAliasGuiInfo> aliasGuiList = null;
+  /** Param. */
   private String currentAliasStr;
+  /** Param. */
   private ScepAliasGuiInfo currentAlias = null;
+  /** Param. */
   private String newAlias = "";
+  /** Param. */
   private ScepConfiguration scepConfig;
+  /** Param. */
   private boolean currentAliasEditMode = false;
 
+  /** Param. */
   private final GlobalConfigurationSessionLocal globalConfigSession =
       getEjbcaWebBean().getEjb().getGlobalConfigurationSession();
+  /** Param. */
   private final AuthorizationSessionLocal authorizationSession =
       getEjbcaWebBean().getEjb().getAuthorizationSession();
+  /** Param. */
   private final AuthenticationToken authenticationToken = getAdmin();
+  /** Param. */
   private final CaSessionLocal caSession =
       getEjbcaWebBean().getEjb().getCaSession();
+  /** Param. */
   private final CertificateProfileSessionLocal certProfileSession =
       getEjbcaWebBean().getEjb().getCertificateProfileSession();
+  /** Param. */
   private final EndEntityProfileSessionLocal endentityProfileSession =
       getEjbcaWebBean().getEjb().getEndEntityProfileSession();
+  /** Param. */
   private final EnterpriseEditionEjbBridgeSessionLocal editionEjbBridgeSession =
       getEjbcaWebBean().getEnterpriseEjb();
 
+  /** Constructor. */
   public ScepConfigMBean() {
     super();
     scepConfig =
@@ -270,7 +389,7 @@ public class ScepConfigMBean extends BaseManagedBean implements Serializable {
 
   /**
    * Force reload from underlying (cache) layer for the current SCEP
-   * configuration alias
+   * configuration alias.
    */
   private void flushCache() {
     currentAlias = null;
@@ -282,34 +401,50 @@ public class ScepConfigMBean extends BaseManagedBean implements Serializable {
                 ScepConfiguration.SCEP_CONFIGURATION_ID);
   }
 
+  /**
+   * @return alias
+   */
   public String getNewAlias() {
     return newAlias;
   }
 
+  /**
+   * @param na alias
+   */
   public void setNewAlias(final String na) {
     newAlias = na;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isCurrentAliasEditMode() {
     return currentAliasEditMode;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isAllowedToEdit() {
     return authorizationSession.isAuthorizedNoLogging(
         getAdmin(), StandardRules.SYSTEMCONFIGURATION_EDIT.resource());
   }
 
-  public void setCurrentAliasEditMode(final boolean currentAliasEditMode) {
-    this.currentAliasEditMode = currentAliasEditMode && isAllowedToEdit();
+  /**
+   * @param acurrentAliasEditMode bool
+   */
+  public void setCurrentAliasEditMode(final boolean acurrentAliasEditMode) {
+    this.currentAliasEditMode = acurrentAliasEditMode && isAllowedToEdit();
   }
 
+  /** Edit. */
   public void toggleCurrentAliasEditMode() {
     currentAliasEditMode ^= true;
     currentAliasEditMode = currentAliasEditMode && isAllowedToEdit();
   }
 
   /**
-   * Build a list sorted by name from the existing SCEP configuration aliases
+   * Build a list sorted by name from the existing SCEP configuration aliases.
    *
    * @return model
    */
@@ -336,6 +471,9 @@ public class ScepConfigMBean extends BaseManagedBean implements Serializable {
     return aliasGuiList;
   }
 
+  /**
+   * @param as String
+   */
   public void setCurrentAliasStr(final String as) {
     currentAliasStr = as;
   }
@@ -370,7 +508,7 @@ public class ScepConfigMBean extends BaseManagedBean implements Serializable {
     return this.currentAlias;
   }
 
-  /** Invoked when admin saves the SCEP alias configurations */
+  /** Invoked when admin saves the SCEP alias configurations. */
   public void saveCurrentAlias() {
     if (currentAlias != null) {
       String alias = currentAlias.getAlias();
@@ -398,13 +536,14 @@ public class ScepConfigMBean extends BaseManagedBean implements Serializable {
         globalConfigSession.saveConfiguration(authenticationToken, scepConfig);
       } catch (AuthorizationDeniedException e) {
         String msg = "Cannot save alias. Administrator is not authorized.";
-        log.info(msg + e.getLocalizedMessage());
+        LOG.info(msg + e.getLocalizedMessage());
         super.addNonTranslatedErrorMessage(msg);
       }
     }
     flushCache();
   }
 
+  /** Delete. */
   public void deleteAlias() {
     if (scepConfig.aliasExists(currentAliasStr)) {
       scepConfig.removeAlias(currentAliasStr);
@@ -412,17 +551,19 @@ public class ScepConfigMBean extends BaseManagedBean implements Serializable {
         globalConfigSession.saveConfiguration(authenticationToken, scepConfig);
       } catch (AuthorizationDeniedException e) {
         String msg = "Failed to remove alias: " + e.getLocalizedMessage();
-        log.info(msg, e);
+        LOG.info(msg, e);
         super.addNonTranslatedErrorMessage(msg);
       }
     } else {
       String msg = "Cannot remove alias. It does not exist.";
-      log.info(msg);
+      LOG.info(msg);
       super.addNonTranslatedErrorMessage(msg);
     }
     flushCache();
   }
 
+  /** Rename.
+   */
   public void renameAlias() {
     if (StringUtils.isNotEmpty(newAlias) && !scepConfig.aliasExists(newAlias)) {
       scepConfig.renameAlias(currentAliasStr, newAlias);
@@ -430,19 +571,22 @@ public class ScepConfigMBean extends BaseManagedBean implements Serializable {
         globalConfigSession.saveConfiguration(authenticationToken, scepConfig);
       } catch (AuthorizationDeniedException e) {
         String msg = "Failed to rename alias: " + e.getLocalizedMessage();
-        log.info(msg, e);
+        LOG.info(msg, e);
         super.addNonTranslatedErrorMessage(msg);
       }
     } else {
       String msg =
           "Cannot rename alias. Either the new alias is empty or it already"
               + " exists.";
-      log.info(msg);
+      LOG.info(msg);
       super.addNonTranslatedErrorMessage(msg);
     }
     flushCache();
   }
 
+  /**
+   * Alias.
+   */
   public void addAlias() {
     if (StringUtils.isNotEmpty(newAlias) && !scepConfig.aliasExists(newAlias)) {
       scepConfig.addAlias(newAlias);
@@ -450,12 +594,12 @@ public class ScepConfigMBean extends BaseManagedBean implements Serializable {
         globalConfigSession.saveConfiguration(authenticationToken, scepConfig);
       } catch (AuthorizationDeniedException e) {
         String msg = "Failed to add alias: " + e.getLocalizedMessage();
-        log.info(msg, e);
+        LOG.info(msg, e);
         super.addNonTranslatedErrorMessage(msg);
       }
     } else {
       String msg = "Cannot add alias. Alias '" + newAlias + "' already exists.";
-      log.info(msg);
+      LOG.info(msg);
       super.addNonTranslatedErrorMessage(msg);
     }
     flushCache();
@@ -466,6 +610,7 @@ public class ScepConfigMBean extends BaseManagedBean implements Serializable {
     flushCache();
   }
 
+  /** Update. */
   public void selectUpdate() {
     // NOOP: Only for page reload
   }
@@ -551,6 +696,9 @@ public class ScepConfigMBean extends BaseManagedBean implements Serializable {
     return ret;
   }
 
+  /**
+   * @return schemes
+   */
   public List<SelectItem> getAvailableSchemes() {
     final List<SelectItem> ret = new ArrayList<>();
     ret.add(new SelectItem("DN", "DN Part"));
@@ -563,6 +711,9 @@ public class ScepConfigMBean extends BaseManagedBean implements Serializable {
     return ret;
   }
 
+  /**
+   * @return Parts
+   */
   public List<SelectItem> getDnParts() {
     final List<SelectItem> ret = new ArrayList<>();
     ret.add(new SelectItem("CN", "CN"));
@@ -594,6 +745,9 @@ public class ScepConfigMBean extends BaseManagedBean implements Serializable {
     return ret;
   }
 
+  /**
+   * @return pool
+   */
   public boolean isExistsClientCertificateRenewalExtension() {
     return editionEjbBridgeSession.isRunningEnterprise();
   }

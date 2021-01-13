@@ -23,7 +23,7 @@ public class CacheClearException extends Exception {
   private static final long serialVersionUID = 1L;
 
   /** */
-  public CacheClearException() {}
+  public CacheClearException() { }
 
   /** @param message message */
   public CacheClearException(final String message) {

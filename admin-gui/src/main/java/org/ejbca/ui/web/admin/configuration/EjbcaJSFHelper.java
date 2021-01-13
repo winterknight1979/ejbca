@@ -18,35 +18,45 @@ import org.ejbca.core.model.authorization.AccessRulesConstants;
  * <p>$Id: EjbcaJSFHelper.java 30330 2018-11-01 10:38:35Z anatom $
  */
 public class EjbcaJSFHelper {
-  private static final Logger log = Logger.getLogger(EjbcaJSFHelper.class);
+      /** Param. */
+  private static final Logger LOG = Logger.getLogger(EjbcaJSFHelper.class);
 
+  /** Param. */
   private EjbcaJSFLanguageResource text = null;
+  /** Param. */
   private EjbcaJSFImageResource image = null;
+  /** Param. */
   private EjbcaWebBean ejbcawebbean;
+  /** Param. */
   private Boolean legacyInternetExplorer = null;
 
+  /** Param. */
   private boolean initialized = false;
 
-  public EjbcaJSFHelper() {}
+  /** Param. */
+  public EjbcaJSFHelper() { }
 
-  public void setEjbcaWebBean(final EjbcaWebBean ejbcawebbean) {
+  /**
+   * @param anejbcawebbean bean
+   */
+  public void setEjbcaWebBean(final EjbcaWebBean anejbcawebbean) {
     if (!initialized) {
-      this.ejbcawebbean = ejbcawebbean;
-      text = new EjbcaJSFLanguageResource(ejbcawebbean);
-      image = new EjbcaJSFImageResource(ejbcawebbean);
+      this.ejbcawebbean = anejbcawebbean;
+      text = new EjbcaJSFLanguageResource(anejbcawebbean);
+      image = new EjbcaJSFImageResource(anejbcawebbean);
       initialized = true;
     }
   }
 
   /**
-   * Returns the EJBCA title
+   * Returns the EJBCA title.
    *
    * @return Title
    */
   public String getEjbcaTitle() {
     GlobalConfiguration gc = getEjbcaWebBean().getGlobalConfiguration();
     if (gc == null) {
-      log.warn(
+      LOG.warn(
           "GlobalConfiguration is null trying to get from EjbcaWebBean,"
               + " returning default Title.");
       return GlobalConfiguration.getEjbcaDefaultTitle();
@@ -55,7 +65,7 @@ public class EjbcaJSFHelper {
   }
 
   /**
-   * Returns the EJBCA theme
+   * Returns the EJBCA theme.
    *
    * @return Theme
    */
@@ -64,7 +74,7 @@ public class EjbcaJSFHelper {
   }
 
   /**
-   * Returns the EJBCA base url
+   * Returns the EJBCA base url.
    *
    * @return String
    */
@@ -73,7 +83,7 @@ public class EjbcaJSFHelper {
   }
 
   /**
-   * Returns the EJBCA content string
+   * Returns the EJBCA content string.
    *
    * @return String
    */
@@ -102,7 +112,7 @@ public class EjbcaJSFHelper {
   }
 
   /**
-   * Special function for approval pages since it has two different accessrules
+   * Special function for approval pages since it has two different accessrules.
    *
    * @throws AuthorizationDeniedException fail
    */
@@ -122,10 +132,16 @@ public class EjbcaJSFHelper {
     }
   }
 
+  /**
+   * @return entries
+   */
   public int getEntriesPerPage() {
     return getEjbcaWebBean().getEntriesPerPage();
   }
 
+  /**
+   * @return Bean
+   */
   public EjbcaWebBean getEjbcaWebBean() {
     FacesContext ctx = FacesContext.getCurrentInstance();
     HttpSession session =
@@ -142,17 +158,23 @@ public class EjbcaJSFHelper {
               AccessRulesConstants.ROLE_ADMINISTRATOR);
           session.setAttribute("ejbcawebbean", ejbcawebbean);
         } catch (Exception e) {
-          log.error(e);
+          LOG.error(e);
         }
       }
     }
     return ejbcawebbean;
   }
 
+  /**
+   * @return token
+   */
   public AuthenticationToken getAdmin() {
     return getEjbcaWebBean().getAdminObject();
   }
 
+  /**
+   * @return Bean
+   */
   public static EjbcaJSFHelper getBean() {
     FacesContext context = FacesContext.getCurrentInstance();
     Application app = context.getApplication();
@@ -174,8 +196,8 @@ public class EjbcaJSFHelper {
                   .getExternalContext()
                   .getRequest();
       final String userAgent = httpServletRequest.getHeader("User-Agent");
-      if (log.isDebugEnabled()) {
-        log.debug("User-Agent: " + userAgent);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("User-Agent: " + userAgent);
       }
       // Check stolen from
       // org.ejbca.ui.web.pub.ApplyBean.detectBrowser(HttpServletRequest)

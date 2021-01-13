@@ -37,7 +37,7 @@ import org.ejbca.ui.web.admin.BaseManagedBean;
 
 /**
  * JavaServer Faces Managed Bean for managing the configuration of a single
- * CustomCertificateExtension
+ * CustomCertificateExtension.
  *
  * @version $Id: CustomCertExtensionMBean.java 29873 2018-09-13 09:36:27Z aminkh
  *     $
@@ -47,81 +47,134 @@ public class CustomCertExtensionMBean extends BaseManagedBean
 
   private static final long serialVersionUID = 1L;
 
-  /** Prefix for properties in custom certificate extensions */
+  /** Prefix for properties in custom certificate extensions. */
   private static final String CUSTOMCERTEXTENSION_PROPERTY_PREFIX =
       "CUSTOMCERTEXTENSION_PROPERTY_";
 
   public class CurrentExtensionGUIInfo implements Serializable {
     private static final long serialVersionUID = 1L;
+    /** Param. */
     private int id;
+    /** Param. */
     private String oid;
+    /** Param. */
     private String displayName;
+    /** Param. */
     private boolean critical;
+    /** Param. */
     private boolean required;
+    /** Param. */
     private Map<String, CustomExtensionPropertyGUIInfo> extensionProperties;
+    /** Param. */
     private CustomCertificateExtension extension;
 
-    public CurrentExtensionGUIInfo(CustomCertificateExtension extension) {
-      this.id = extension.getId();
-      this.oid = extension.getOID();
-      this.displayName = getEjbcaWebBean().getText(extension.getDisplayName());
-      this.critical = extension.isCriticalFlag();
-      this.required = extension.isRequiredFlag();
-      setExtension(extension);
+    /**
+     * @param anextension ext
+     */
+    public CurrentExtensionGUIInfo(
+            final CustomCertificateExtension anextension) {
+      this.id = anextension.getId();
+      this.oid = anextension.getOID();
+      this.displayName =
+              getEjbcaWebBean().getText(anextension.getDisplayName());
+      this.critical = anextension.isCriticalFlag();
+      this.required = anextension.isRequiredFlag();
+      setExtension(anextension);
     }
 
+    /**
+     * @return ID
+     */
     public int getId() {
       return this.id;
     }
 
-    public void setId(int id) {
-      this.id = id;
+    /**
+     * @param anid ID
+     */
+    public void setId(final int anid) {
+      this.id = anid;
     }
 
+    /**
+     * @return OID
+     */
     public String getOid() {
       return this.oid;
     }
 
-    public void setOid(String oid) {
-      this.oid = oid;
+    /**
+     * @param anoid OID
+     */
+    public void setOid(final String anoid) {
+      this.oid = anoid;
     }
 
+    /**
+     * @return name
+     */
     public String getDisplayName() {
       return this.displayName;
     }
 
-    public void setDisplayName(String displayName) {
-      this.displayName = displayName;
+    /**
+     * @param adisplayName name
+     */
+    public void setDisplayName(final String adisplayName) {
+      this.displayName = adisplayName;
     }
 
+    /**
+     * @return bool
+     */
     public boolean isCritical() {
       return this.critical;
     }
 
-    public void setCritical(boolean critical) {
-      this.critical = critical;
+    /**
+     * @param iscritical vool
+     */
+    public void setCritical(final boolean iscritical) {
+      this.critical = iscritical;
     }
 
+    /**
+     * @return bool
+     */
     public boolean isRequired() {
       return this.required;
     }
 
-    public void setRequired(final boolean required) {
-      this.required = required;
+    /**
+     * @param isrequired bool
+     */
+    public void setRequired(final boolean isrequired) {
+      this.required = isrequired;
     }
 
-    public void setProperty(final String key, String value)
+    /**
+     * @param key Key
+     * @param value Value
+     * @throws InvalidCustomExtensionPropertyException Fail
+     */
+    public void setProperty(final String key, final String value)
         throws InvalidCustomExtensionPropertyException {
       CustomExtensionPropertyGUIInfo property = extensionProperties.get(key);
       property.setValue(value);
       extensionProperties.put(key, property);
     }
 
+    /**
+     * @return props
+     */
     public Map<String, CustomExtensionPropertyGUIInfo>
         getExtensionProperties() {
       return extensionProperties;
     }
 
+    /**
+     * @return Props
+     */
     public Properties getProperties() {
       Properties properties = new Properties();
       for (String key : extensionProperties.keySet()) {
@@ -130,26 +183,35 @@ public class CustomCertExtensionMBean extends BaseManagedBean
       return properties;
     }
 
+    /**
+     * @return Ext
+     */
     public CustomCertificateExtension getExtension() {
       return extension;
     }
 
-    public void setClassPath(String classPath) {
+    /**
+     * @param classPath CP
+     */
+    public void setClassPath(final String classPath) {
       setExtension(availableCertificateExtensions.get(classPath));
     }
 
-    public void setExtension(CustomCertificateExtension extension) {
-      this.extension = extension;
+    /**
+     * @param anextension Ext
+     */
+    public void setExtension(final CustomCertificateExtension anextension) {
+      this.extension = anextension;
       // Load the available properties
       Map<String, CustomExtensionPropertyGUIInfo> extensionPropertiesCopy =
           new LinkedHashMap<>();
-      for (Entry<String, String[]> entry :
-          extension.getAvailableProperties().entrySet()) {
+      for (Entry<String, String[]> entry
+          : anextension.getAvailableProperties().entrySet()) {
         String key = entry.getKey();
         String label =
             getEjbcaWebBean()
                 .getText(CUSTOMCERTEXTENSION_PROPERTY_PREFIX + key);
-        Properties properties = extension.getProperties();
+        Properties properties = anextension.getProperties();
         String value =
             (properties != null && properties.get(key) != null
                 ? (String) properties.get(key)
@@ -162,6 +224,9 @@ public class CustomCertExtensionMBean extends BaseManagedBean
       extensionProperties = extensionPropertiesCopy;
     }
 
+    /**
+     * @return CP
+     */
     public String getClassPath() {
       return extension.getClass().getCanonicalName();
     }
@@ -169,38 +234,57 @@ public class CustomCertExtensionMBean extends BaseManagedBean
 
   public class CustomExtensionPropertyGUIInfo {
 
+        /** Param. */
     private final String key;
+    /** Param. */
     private final String label;
+    /** Param. */
     private String value;
+    /** Param. */
     private String[] possibleValues;
 
+    /**
+     * @param akey Key
+     * @param alabel Label
+     * @param avalue Value
+     * @param thepossibleValues Values
+     */
     public CustomExtensionPropertyGUIInfo(
-        final String key,
-        final String label,
-        final String value,
-        final String... possibleValues) {
-      this.key = key;
-      this.label = label;
-      if (value != null) {
-        this.value = value;
+        final String akey,
+        final String alabel,
+        final String avalue,
+        final String... thepossibleValues) {
+      this.key = akey;
+      this.label = alabel;
+      if (avalue != null) {
+        this.value = avalue;
       } else {
-        if (possibleValues.length > 0) {
-          this.value = possibleValues[0];
+        if (thepossibleValues.length > 0) {
+          this.value = thepossibleValues[0];
         } else {
           this.value = "";
         }
       }
-      this.possibleValues = possibleValues;
+      this.possibleValues = thepossibleValues;
     }
 
+    /**
+     * @return Key
+     */
     public String getKey() {
       return key;
     }
 
+    /**
+     * @return Label
+     */
     public String getLabel() {
       return label;
     }
 
+    /**
+     * @return value
+     */
     public String getValue() {
       return value;
     }
@@ -208,17 +292,17 @@ public class CustomCertExtensionMBean extends BaseManagedBean
     /**
      * Sets the value.
      *
-     * @param value the value to be set
+     * @param avalue the value to be set
      * @throws InvalidCustomExtensionPropertyException if a list of possible
      *     values has been set, and the given value was not in the set.
      */
-    public void setValue(String value)
+    public void setValue(final String avalue)
         throws InvalidCustomExtensionPropertyException {
       // Evaluate the value, if any defaults have been given
       valueSearch:
       if (possibleValues.length > 0) {
         for (String possibleValue : possibleValues) {
-          if (value.equals(possibleValue)) {
+          if (avalue.equals(possibleValue)) {
             break valueSearch;
           }
         }
@@ -229,35 +313,50 @@ public class CustomCertExtensionMBean extends BaseManagedBean
         // ignore unfound values.
         return;
       }
-      this.value = value;
+      this.value = avalue;
     }
 
+    /**
+     * @return values
+     */
     public String[] getPossibleValues() {
       return possibleValues;
     }
 
+    /**
+     * @return count
+     */
     public int getPossibleValuesCount() {
       return possibleValues.length;
     }
   }
 
+  /** Param. */
   private final AuthorizationSessionLocal authorizationSession =
       getEjbcaWebBean().getEjb().getAuthorizationSession();
 
   // Declarations in faces-config.xml
   // @javax.faces.bean.ManagedProperty(value="#{systemConfigMBean}")
+  /** Param. */
   private SystemConfigMBean systemConfigMBean;
 
+  /** Param. */
   private AvailableCustomCertificateExtensionsConfiguration
       availableExtensionsConfig = null;
+  /** Param. */
   private Map<String, CustomCertificateExtension>
       availableCertificateExtensions = null;
+  /** Param. */
   private List<SelectItem> availableCertificateExtensionsList = null;
+  /** Param. */
   private CurrentExtensionGUIInfo currentExtensionGUIInfo = null;
+  /** Param. */
   private ListDataModel<CustomExtensionPropertyGUIInfo>
       currentExtensionProperties = null;
+  /** Param. */
   private int currentExtensionId = 0;
 
+  /** Constructor. */
   public CustomCertExtensionMBean() {
     super();
   }
@@ -278,20 +377,32 @@ public class CustomCertExtensionMBean extends BaseManagedBean
     return availableExtensionsConfig;
   }
 
+  /**
+   * @return bean
+   */
   public SystemConfigMBean getSystemConfigMBean() {
     return systemConfigMBean;
   }
 
-  public void setSystemConfigMBean(SystemConfigMBean systemConfigMBean) {
-    this.systemConfigMBean = systemConfigMBean;
+  /**
+   * @param asystemConfigMBean bean
+   */
+  public void setSystemConfigMBean(final SystemConfigMBean asystemConfigMBean) {
+    this.systemConfigMBean = asystemConfigMBean;
   }
 
+  /**
+   * @return IS
+   */
   public int getCurrentExtensionId() {
     this.currentExtensionId =
         systemConfigMBean.getSelectedCustomCertExtensionID();
     return this.currentExtensionId;
   }
 
+  /**
+   * @return Exts
+   */
   public List<SelectItem> getAvailableCustomCertificateExtensions() {
     if (availableCertificateExtensions == null) {
       availableCertificateExtensions = new HashMap<>();
@@ -310,7 +421,7 @@ public class CustomCertExtensionMBean extends BaseManagedBean
           availableCertificateExtensionsList,
           new Comparator<SelectItem>() {
             @Override
-            public int compare(SelectItem o1, SelectItem o2) {
+            public int compare(final SelectItem o1, final SelectItem o2) {
               return o1.getLabel().compareTo(o2.getLabel());
             }
           });
@@ -336,6 +447,7 @@ public class CustomCertExtensionMBean extends BaseManagedBean
     return currentExtensionGUIInfo;
   }
 
+  /** Save. */
   @SuppressWarnings("unchecked")
   public void saveCurrentExtension() {
     if (StringUtils.isEmpty(currentExtensionGUIInfo.getOid())) {
@@ -371,8 +483,8 @@ public class CustomCertExtensionMBean extends BaseManagedBean
     }
 
     Properties properties = new Properties();
-    for (CustomExtensionPropertyGUIInfo extensionProperty :
-        (List<CustomExtensionPropertyGUIInfo>)
+    for (CustomExtensionPropertyGUIInfo extensionProperty
+       : (List<CustomExtensionPropertyGUIInfo>)
             currentExtensionProperties.getWrappedData()) {
       properties.put(extensionProperty.getKey(), extensionProperty.getValue());
     }
@@ -414,6 +526,9 @@ public class CustomCertExtensionMBean extends BaseManagedBean
   // -------------------------------------------------------------
   //              Current Extension Properties
   // ------------------------------------------------------------
+  /**
+   * @return Info
+   */
   public ListDataModel<CustomExtensionPropertyGUIInfo>
       getCurrentExtensionPropertiesList() {
     if (currentExtensionProperties == null) {
@@ -427,11 +542,17 @@ public class CustomCertExtensionMBean extends BaseManagedBean
     return currentExtensionProperties;
   }
 
+  /**
+   * @return edit
+   */
   public String update() {
     return "edit";
   }
 
-  public void updateExtension(ValueChangeEvent e) {
+  /**
+   * @param e event
+   */
+  public void updateExtension(final ValueChangeEvent e) {
     String extensionClass = (String) e.getNewValue();
     currentExtensionGUIInfo.setClassPath(extensionClass);
     currentExtensionProperties.setWrappedData(null);

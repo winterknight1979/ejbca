@@ -23,7 +23,7 @@ public class InvalidCustomExtensionPropertyException extends Exception {
   private static final long serialVersionUID = 1L;
 
   /** */
-  public InvalidCustomExtensionPropertyException() {}
+  public InvalidCustomExtensionPropertyException() { }
 
   /** @param message message */
   public InvalidCustomExtensionPropertyException(final String message) {

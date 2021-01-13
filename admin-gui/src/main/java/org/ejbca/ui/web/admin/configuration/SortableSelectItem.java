@@ -26,6 +26,12 @@ public class SortableSelectItem extends SelectItem
 
   private static final long serialVersionUID = -3282242436064530974L;
 
+  /**
+   * @param value Value
+   * @param label Label
+   * @param description Desc
+   * @param disabled Bool
+   */
   public SortableSelectItem(
       final Object value,
       final String label,
@@ -34,11 +40,20 @@ public class SortableSelectItem extends SelectItem
     super(value, label, description, disabled);
   }
 
+  /**
+   * @param value Value
+   * @param label LAbel
+   * @param description Desc
+   */
   public SortableSelectItem(
       final Object value, final String label, final String description) {
     super(value, label, description);
   }
 
+  /**
+   * @param value value
+   * @param label lavel
+   */
   public SortableSelectItem(final Object value, final String label) {
     super(value, label);
   }

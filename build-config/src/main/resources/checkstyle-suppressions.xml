@@ -588,6 +588,8 @@
 		files="CertProfilesBean.java" lines="713 " />
 		<suppress checks="MethodLengthCheck"
 		files="ProfilesExportServlet.java" lines="104 " />
+		<suppress checks="MethodLengthCheck"
+		files="EjbcaWebBean.java" lines="282,892" />
 	
 	
 </suppressions>

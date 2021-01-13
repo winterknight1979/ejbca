@@ -708,8 +708,8 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
     ZipEntry ze = zis.getNextEntry();
     if (ze == null) {
       // Print import message if the file header corresponds to an empty zip
-      // archive
-      if (Arrays.equals( // TODO: magic numbers
+      // archive// TODO: magic numbers
+      if (Arrays.equals(
           Arrays.copyOfRange(filebuffer, 0, 4), new byte[] {80, 75, 5, 6})) {
         printImportMessage(nrOfFiles, importedFiles, ignoredFiles);
       } else {

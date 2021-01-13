@@ -11,11 +11,6 @@
  *                                                                       *
  *************************************************************************/
 
-/*
- * AdminExistsException.java
- *
- * Created on den 28 mars 2002, 16:47
- */
 package org.ejbca.ui.web.admin.configuration;
 
 /**

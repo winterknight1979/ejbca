@@ -29,77 +29,119 @@ import org.ejbca.config.GlobalConfiguration;
 public class ValidatorSettings {
 
   public interface ValidatorSettingsHelper {
+      /**
+       * @return config
+       */
     GlobalConfiguration getGlobalConfiguration();
 
-    void addErrorMessage(final String languageKey, final Object... params);
+    /**
+     * @param languageKey key
+     * @param params PArams
+     */
+    void addErrorMessage(String languageKey, Object... params);
 
-    void addInfoMessage(final String languageKey);
+    /**
+     * @param languageKey key
+     */
+    void addInfoMessage(String languageKey);
 
-    void persistConfiguration(final GlobalConfiguration globalConfiguration)
+    /**
+     * @param globalConfiguration Config
+     * @throws AuthorizationDeniedException Fail
+     */
+    void persistConfiguration(GlobalConfiguration globalConfiguration)
         throws AuthorizationDeniedException;
   }
 
-  private static final Logger log = Logger.getLogger(ValidatorSettings.class);
+  /** Param. */
+  private static final Logger LOG = Logger.getLogger(ValidatorSettings.class);
+  /** Param. */
   private final ValidatorSettingsHelper validatorSettingsHelper;
+  /** Param. */
   private final ArrayList<String> validationResult = new ArrayList<>();
+  /** Param. */
   private String externalScriptsWhitelist;
+  /** Param. */
   private boolean isExternalScriptsEnabled;
+  /** Param. */
   private boolean isExternalScriptsWhitelistEnabled;
 
+  /**
+   * @param avalidatorSettingsHelper helper
+   */
   public ValidatorSettings(
-      final ValidatorSettingsHelper validatorSettingsHelper) {
-    this.validatorSettingsHelper = validatorSettingsHelper;
+      final ValidatorSettingsHelper avalidatorSettingsHelper) {
+    this.validatorSettingsHelper = avalidatorSettingsHelper;
     this.externalScriptsWhitelist =
-        validatorSettingsHelper
+        avalidatorSettingsHelper
             .getGlobalConfiguration()
             .getExternalScriptsWhitelist();
     this.isExternalScriptsEnabled =
-        validatorSettingsHelper
+        avalidatorSettingsHelper
             .getGlobalConfiguration()
             .getEnableExternalScripts();
     this.isExternalScriptsWhitelistEnabled =
-        validatorSettingsHelper
+        avalidatorSettingsHelper
             .getGlobalConfiguration()
             .getIsExternalScriptsWhitelistEnabled();
   }
 
+  /**
+   * @return bool
+   */
   public boolean getIsExternalScriptsEnabled() {
     return isExternalScriptsEnabled;
   }
 
+  /**
+   * @param anisExternalScriptsEnabled bool
+   */
   public void setIsExternalScriptsEnabled(
-      final boolean isExternalScriptsEnabled) {
-    this.isExternalScriptsEnabled = isExternalScriptsEnabled;
+      final boolean anisExternalScriptsEnabled) {
+    this.isExternalScriptsEnabled = anisExternalScriptsEnabled;
   }
 
+  /**
+   * @return bool
+   */
   public String getExternalScriptsWhitelist() {
     return externalScriptsWhitelist;
   }
 
+  /**
+   * @param value bool
+   */
   public void setExternalScriptsWhitelist(final String value) {
     this.externalScriptsWhitelist = value;
   }
 
+  /**
+   * @return bool
+   */
   public boolean getIsExternalScriptsWhitelistEnabled() {
     return isExternalScriptsWhitelistEnabled;
   }
 
+  /**
+   * @param value value
+   */
   public void setIsExternalScriptsWhitelistEnabled(final boolean value) {
     this.isExternalScriptsWhitelistEnabled = value;
   }
 
+  /** Save. */
   public void save() {
     try {
       final ExternalScriptsWhitelist whitelist =
           ExternalScriptsWhitelist.fromText(
               externalScriptsWhitelist, isExternalScriptsWhitelistEnabled);
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Saving whitelist of permitted scripts: "
                 + whitelist.getScriptsPaths());
       }
       if (isExternalScriptsWhitelistEnabled && whitelist.hasInvalidPaths()) {
-        log.info(
+        LOG.info(
             "Unable to save (enabled) whitelist containing external scripts"
                 + " permitted to be used in External Command Validators. One"
                 + " or file paths are invalid.");
@@ -115,19 +157,20 @@ public class ValidatorSettings {
       validatorSettingsHelper.persistConfiguration(globalConfiguration);
       validatorSettingsHelper.addInfoMessage("EXTERNAL_SCRIPTS_SAVED");
     } catch (final AuthorizationDeniedException e) {
-      log.warn(
+      LOG.warn(
           "Unable to save configuration, because authorization was denied.", e);
       validatorSettingsHelper.addErrorMessage(
           "EXTERNAL_SCRIPTS_SAVE_FAILED", e.getMessage());
     }
   }
 
+  /** Validate. */
   public void validateScripts() {
     final ExternalScriptsWhitelist whitelist =
         ExternalScriptsWhitelist.fromText(externalScriptsWhitelist);
     final List<String> validationMessages = new ArrayList<>();
-    for (final Entry<File, String> validationEntry :
-        whitelist.validateScripts().entrySet()) {
+    for (final Entry<File, String> validationEntry
+        : whitelist.validateScripts().entrySet()) {
       if (validationEntry.getValue() == null) {
         // No problem detected
         continue;

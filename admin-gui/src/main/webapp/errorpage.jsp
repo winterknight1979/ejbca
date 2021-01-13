@@ -7,9 +7,10 @@
 <jsp:useBean id="ejbcawebbean" scope="request" class="org.ejbca.ui.web.admin.configuration.EjbcaWebBean" />
 <jsp:setProperty name="ejbcawebbean" property="*" /> 
 
-<%  // Initialize environment
-    GlobalConfiguration globalconfiguration = ejbcawebbean.initialize_errorpage(request);
-%>
+<%
+ // Initialize environment
+     GlobalConfiguration globalconfiguration = ejbcawebbean.initializeErrorpage(request);
+ %>
 <html>
 <head>
     <title><c:out value="<%= globalconfiguration.getEjbcaTitle() %>" /></title>

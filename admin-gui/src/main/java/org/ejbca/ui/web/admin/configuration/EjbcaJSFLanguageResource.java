@@ -16,10 +16,15 @@ import org.ejbca.util.HTMLTools;
  */
 public class EjbcaJSFLanguageResource implements Map<String, String> {
 
+    /** Bean.
+     */
   private final EjbcaWebBean ejbcawebbean;
 
-  public EjbcaJSFLanguageResource(final EjbcaWebBean ejbcawebbean) {
-    this.ejbcawebbean = ejbcawebbean;
+  /**
+   * @param anejbcawebbean bean
+   */
+  public EjbcaJSFLanguageResource(final EjbcaWebBean anejbcawebbean) {
+    this.ejbcawebbean = anejbcawebbean;
   }
 
   @Override

@@ -30,18 +30,17 @@ import org.ejbca.core.model.InternalEjbcaResources;
 public class WebLanguages implements java.io.Serializable {
   private static final long serialVersionUID = -2381623760140383128L;
 
-  private static final Logger log = Logger.getLogger(WebLanguages.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(WebLanguages.class);
 
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
   /**
    * Constructor used to load static content. An instance must be declared with
    * this constructor before any WebLanguage object can be used.
-   */
-  /**
-   * Special constructor used by Ejbca web bean
+   * Special constructor used by Ejbca web bean.
    *
    * @param servletContext Context
    * @param globalconfiguration Config
@@ -91,8 +90,8 @@ public class WebLanguages implements java.io.Serializable {
               // if not available as stream, try it as a file
               is = new FileInputStream("/tmp" + propsfile);
             }
-            if (log.isDebugEnabled()) {
-              log.debug("Loading language from file: " + propsfile);
+            if (LOG.isDebugEnabled()) {
+              LOG.debug("Loading language from file: " + propsfile);
             }
             languages[i].load(is);
           } finally {
@@ -117,6 +116,12 @@ public class WebLanguages implements java.io.Serializable {
     }
   }
 
+  /**
+   * @param servletContext Ctx
+   * @param globalconfiguration Config
+   * @param preferedlang Lang
+   * @param secondarylang Lang
+   */
   public WebLanguages(
       final ServletContext servletContext,
       final GlobalConfiguration globalconfiguration,
@@ -145,7 +150,7 @@ public class WebLanguages implements java.io.Serializable {
             languages[userssecondarylanguage].getMessage(template, params);
       }
       if (returnvalue == null) {
-        returnvalue = intres.getLocalizedMessage(template, params);
+        returnvalue = INTRES.getLocalizedMessage(template, params);
       }
     } catch (java.lang.NullPointerException e) {
     }
@@ -155,27 +160,36 @@ public class WebLanguages implements java.io.Serializable {
     return returnvalue;
   }
 
-  /* Returns a text string array containing the available languages */
+  /** Returns a text string array containing the available languages.
+ * @return Names */
   public String[] getAvailableLanguages() {
     return availablelanguages;
   }
 
-  /* Returns a text string array containing the languages English names */
+  /** Returns a text string array containing the languages English names.
+ * @return names */
   public String[] getLanguagesEnglishNames() {
     return languagesenglishnames;
   }
 
-  /* Returns a text string array containing the languages native names */
+  /** Returns a text string array containing the languages native names.
+ * @return names*/
   public String[] getLanguagesNativeNames() {
     return languagesnativenames;
   }
 
   // Protected fields
+  /** Param. */
   private final int userspreferedlanguage;
+  /** Param. */
   private final int userssecondarylanguage;
 
+  /** Param. */
   private String[] availablelanguages;
+  /** Param. */
   private String[] languagesenglishnames;
+  /** Param. */
   private String[] languagesnativenames;
+  /** Param. */
   private LanguageProperties[] languages = null;
 }

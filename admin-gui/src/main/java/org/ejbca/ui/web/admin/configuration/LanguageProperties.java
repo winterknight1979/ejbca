@@ -29,12 +29,16 @@ import org.cesecore.internal.InternalResources;
 public class LanguageProperties extends Properties {
   private static final long serialVersionUID = -2652154499847668359L;
 
+  /** Param. */
   private static Logger log = Logger.getLogger(LanguageProperties.class);
 
-  private static final String keyValueSeparators = "=: \t\r\n\f";
-  private static final String strictKeyValueSeparators = "=:";
+  /** Param. */
+  private static final String KEY_VAL_SEPS = "=: \t\r\n\f";
+  /** Param. */
+  private static final String STRICT_KEY_VAL_SEPS = "=:";
   // private static final String specialSaveChars = "=: \t\r\n\f#!";
-  private static final String whiteSpaceChars = " \t\r\n\f";
+  /** Param. */
+  private static final String WHITESPACE_CHARS = " \t\r\n\f";
 
   @Override
   public synchronized void load(final InputStream inStream) throws IOException {
@@ -78,7 +82,7 @@ public class LanguageProperties extends Properties {
             // Advance beyond whitespace on new line
             int startIndex = 0;
             for (startIndex = 0; startIndex < nextLine.length(); startIndex++) {
-              if (whiteSpaceChars.indexOf(nextLine.charAt(startIndex)) == -1) {
+              if (WHITESPACE_CHARS.indexOf(nextLine.charAt(startIndex)) == -1) {
                 break;
               }
             }
@@ -89,7 +93,7 @@ public class LanguageProperties extends Properties {
           int len = line.length();
           int keyStart;
           for (keyStart = 0; keyStart < len; keyStart++) {
-            if (whiteSpaceChars.indexOf(line.charAt(keyStart)) == -1) {
+            if (WHITESPACE_CHARS.indexOf(line.charAt(keyStart)) == -1) {
               break;
             }
           }
@@ -105,27 +109,27 @@ public class LanguageProperties extends Properties {
             char currentChar = line.charAt(separatorIndex);
             if (currentChar == '\\') {
               separatorIndex++;
-            } else if (keyValueSeparators.indexOf(currentChar) != -1) {
+            } else if (KEY_VAL_SEPS.indexOf(currentChar) != -1) {
               break;
             }
           }
           // Skip over whitespace after key if any
           int valueIndex;
           for (valueIndex = separatorIndex; valueIndex < len; valueIndex++) {
-            if (whiteSpaceChars.indexOf(line.charAt(valueIndex)) == -1) {
+            if (WHITESPACE_CHARS.indexOf(line.charAt(valueIndex)) == -1) {
               break;
             }
           }
           // Skip over one non whitespace key value separators if any
           if (valueIndex < len) {
-            if (strictKeyValueSeparators.indexOf(line.charAt(valueIndex))
+            if (STRICT_KEY_VAL_SEPS.indexOf(line.charAt(valueIndex))
                 != -1) {
               valueIndex++;
               // Skip over white space after other separators if any
             }
           }
           while (valueIndex < len) {
-            if (whiteSpaceChars.indexOf(line.charAt(valueIndex)) == -1) {
+            if (WHITESPACE_CHARS.indexOf(line.charAt(valueIndex)) == -1) {
               break;
             }
             valueIndex++;
@@ -143,7 +147,7 @@ public class LanguageProperties extends Properties {
   }
   /**
    * Returns true if the given line is a line that must be appended to the next
-   * line
+   * line.
    *
    * @param line Line
    * @return bool
@@ -157,24 +161,25 @@ public class LanguageProperties extends Properties {
     return (slashCount % 2 == 1);
   }
   /**
-   * Converts encoded \\uxxxx to unicode chars and changes special saved chars
+   * Converts encoded \\uxxxx to unicode chars and changes special saved chars.
    * to their original forms
    *
    * @param theString String
    * @return String
    */
   private String loadConvert(final String theString) {
+    final int nib = 4;
     char aChar;
     int len = theString.length();
     StringBuilder outBuffer = new StringBuilder(len);
-    for (int x = 0; x < len; ) {
+    for (int x = 0; x < len;) {
       aChar = theString.charAt(x++);
       if (aChar == '\\') {
         aChar = theString.charAt(x++);
         if (aChar == 'u') {
           // Read the xxxx
           int value = 0;
-          for (int i = 0; i < 4; i++) {
+          for (int i = 0; i < nib; i++) {
             aChar = theString.charAt(x++);
             switch (aChar) {
               case '0':
@@ -187,7 +192,7 @@ public class LanguageProperties extends Properties {
               case '7':
               case '8':
               case '9':
-                value = (value << 4) + aChar - '0';
+                value = (value << nib) + aChar - '0';
                 break;
               case 'a':
               case 'b':
@@ -195,7 +200,7 @@ public class LanguageProperties extends Properties {
               case 'd':
               case 'e':
               case 'f':
-                value = (value << 4) + 10 + aChar - 'a';
+                value = (value << nib) + 10 + aChar - 'a';
                 break;
               case 'A':
               case 'B':
@@ -203,7 +208,7 @@ public class LanguageProperties extends Properties {
               case 'D':
               case 'E':
               case 'F':
-                value = (value << 4) + 10 + aChar - 'A';
+                value = (value << nib) + 10 + aChar - 'A';
                 break;
               default:
                 throw new IllegalArgumentException(

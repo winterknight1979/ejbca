@@ -30,22 +30,40 @@ import org.cesecore.keys.util.KeyTools;
  *     bastianf $
  */
 public class SystemConfigurationCtLogManager extends CtLogManager {
+    /** PAram. */
   private static final String EDIT_CT_LOG = "editCTLog";
+  /** PAram. */
   private static final String CT_LOG_SAVED = "saved";
-  private static final Logger log =
+  /** PAram. */
+  private static final Logger LOG =
       Logger.getLogger(SystemConfigurationCtLogManager.class);
+  /** PAram. */
   private final SystemConfigurationHelper systemConfigurationHelper;
+  /** PAram. */
   private final CtLogEditor ctLogEditor;
 
   public class CtLogEditor {
+
+        /** PAram. */
+    private final int def = 5000;
+    /** PAram. */
     private String url;
+    /** PAram. */
     private UploadedFile publicKeyFile;
+    /** PAram. */
     private String label;
-    private int timeout = 5000;
+    /** PAram. */
+    private int timeout = def;
+    /** PAram. */
     private CTLogInfo ctLogBeingEdited;
+    /** PAram. */
     private boolean isAcceptingByExpirationYear;
+    /** PAram. */
     private String expirationYearRequired;
 
+    /**
+     * @return URL
+     */
     public String getCtLogUrl() {
       if (StringUtils.isEmpty(url)) {
         return null;
@@ -53,34 +71,58 @@ public class SystemConfigurationCtLogManager extends CtLogManager {
       return CTLogInfo.fixUrl(url);
     }
 
+    /**
+     * @return file
+     */
     public UploadedFile getPublicKeyFile() {
       return publicKeyFile;
     }
 
+    /**
+     * @return label
+     */
     public String getCtLogLabel() {
       return label;
     }
 
+    /**
+     * @return timeoutr
+     */
     public int getCtLogTimeout() {
       return timeout;
     }
 
-    public void setCtLogUrl(final String url) {
-      this.url = url;
+    /**
+     * @param aurl URL
+     */
+    public void setCtLogUrl(final String aurl) {
+      this.url = aurl;
     }
 
-    public void setPublicKeyFile(final UploadedFile publicKeyFile) {
-      this.publicKeyFile = publicKeyFile;
+    /**
+     * @param apublicKeyFile file
+     */
+    public void setPublicKeyFile(final UploadedFile apublicKeyFile) {
+      this.publicKeyFile = apublicKeyFile;
     }
 
-    public void setCtLogLabel(final String label) {
-      this.label = label;
+    /**
+     * @param alabel label
+     */
+    public void setCtLogLabel(final String alabel) {
+      this.label = alabel;
     }
 
-    public void setCtLogTimeout(final int timeout) {
-      this.timeout = timeout;
+    /**
+     * @param atimeout timeout
+     */
+    public void setCtLogTimeout(final int atimeout) {
+      this.timeout = atimeout;
     }
 
+    /**
+     * @return bool
+     */
     public boolean hasValidUrl() {
       return url.contains("://");
     }
@@ -90,22 +132,32 @@ public class SystemConfigurationCtLogManager extends CtLogManager {
      * certificates with a certain year of expiry, e.g. all certificates
      * expiring in 2019.
      *
-     * @param isAcceptingByExpirationYear true if the log is discriminating
+     * @param anisAcceptingByExpirationYear true if the log is discriminating
      *     based on year of expiry
      */
     public void setIsAcceptingByExpirationYear(
-        final boolean isAcceptingByExpirationYear) {
-      this.isAcceptingByExpirationYear = isAcceptingByExpirationYear;
+        final boolean anisAcceptingByExpirationYear) {
+      this.isAcceptingByExpirationYear = anisAcceptingByExpirationYear;
     }
 
+    /**
+     * @return bool
+     */
     public boolean getIsAcceptingByExpirationYear() {
       return isAcceptingByExpirationYear;
     }
 
-    public void setExpirationYearRequired(final String expirationYearRequired) {
-      this.expirationYearRequired = expirationYearRequired;
+    /**
+     * @param anexpirationYearRequired year
+     */
+    public void setExpirationYearRequired(
+            final String anexpirationYearRequired) {
+      this.expirationYearRequired = anexpirationYearRequired;
     }
 
+    /**
+     * @return year
+     */
     public String getExpirationYearRequired() {
       return expirationYearRequired;
     }
@@ -135,7 +187,7 @@ public class SystemConfigurationCtLogManager extends CtLogManager {
       url = null;
       publicKeyFile = null;
       label = null;
-      timeout = 5000;
+      timeout = def;
     }
 
     /**
@@ -147,6 +199,7 @@ public class SystemConfigurationCtLogManager extends CtLogManager {
       return ctLogBeingEdited;
     }
 
+    /** Stop. */
     public void stopEditing() {
       ctLogBeingEdited = null;
       clear();
@@ -159,7 +212,7 @@ public class SystemConfigurationCtLogManager extends CtLogManager {
      *
      * @param languageKey the language key of the message to show
      */
-    public void addErrorMessage(String languageKey);
+    void addErrorMessage(String languageKey);
 
     /**
      * Displays an error message to the user with a formatted message.
@@ -167,21 +220,21 @@ public class SystemConfigurationCtLogManager extends CtLogManager {
      * @param languageKey the language key of the message to show
      * @param params additional parameters to include in the error message
      */
-    public void addErrorMessage(String languageKey, Object... params);
+    void addErrorMessage(String languageKey, Object... params);
 
     /**
      * Displays an information message to the user.
      *
      * @param languageKey the language key of the message to show
      */
-    public void addInfoMessage(String languageKey);
+    void addInfoMessage(String languageKey);
 
     /**
      * Saves a list of CT logs to persistent storage.
      *
      * @param ctLogs the CT logs to save
      */
-    public void saveCtLogs(List<CTLogInfo> ctLogs);
+    void saveCtLogs(List<CTLogInfo> ctLogs);
 
     /**
      * Get a list with names of certificate profiles which references a
@@ -191,31 +244,35 @@ public class SystemConfigurationCtLogManager extends CtLogManager {
      * @return a list of profile names, referencing the CT log given as input or
      *     empty if the CT log is not in use
      */
-    public List<String> getCertificateProfileNamesByCtLog(CTLogInfo ctLog);
+    List<String> getCertificateProfileNamesByCtLog(CTLogInfo ctLog);
   }
 
+  /**   *
+   * @param ctLogs Logs
+   * @param asystemConfigurationHelper Helper
+   */
   public SystemConfigurationCtLogManager(
       final List<CTLogInfo> ctLogs,
-      final SystemConfigurationHelper systemConfigurationHelper) {
+      final SystemConfigurationHelper asystemConfigurationHelper) {
     super(ctLogs);
-    this.systemConfigurationHelper = systemConfigurationHelper;
+    this.systemConfigurationHelper = asystemConfigurationHelper;
     this.ctLogEditor = new CtLogEditor();
   }
 
   private byte[] getCtLogPublicKey(final UploadedFile upload) {
-    if (log.isDebugEnabled()) {
-      log.debug("Received uploaded public key file: " + upload.getName());
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Received uploaded public key file: " + upload.getName());
     }
     try {
       byte[] uploadedFileBytes = upload.getBytes();
       return KeyTools.getBytesFromPublicKeyFile(uploadedFileBytes);
     } catch (final IOException e) {
-      log.info("Could not parse the public key file.", e);
+      LOG.info("Could not parse the public key file.", e);
       systemConfigurationHelper.addErrorMessage(
           "CTLOGTAB_BADKEYFILE", upload.getName(), e.getLocalizedMessage());
       return null;
     } catch (final Exception e) {
-      log.info("Failed to add CT Log.", e);
+      LOG.info("Failed to add CT Log.", e);
       systemConfigurationHelper.addErrorMessage(
           "CTLOGTAB_GENERICADDERROR", e.getLocalizedMessage());
       return null;
@@ -388,6 +445,10 @@ public class SystemConfigurationCtLogManager extends CtLogManager {
     systemConfigurationHelper.saveCtLogs(super.getAllCtLogs());
   }
 
+  /**
+   * @param ctLog Log
+   * @return Labels
+   */
   public List<String> getAvailableLabels(final CTLogInfo ctLog) {
     final List<String> labels = super.getLabels();
     // Remove labels already containing a CT log with the same URL
