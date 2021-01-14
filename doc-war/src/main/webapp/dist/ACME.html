@@ -1,5 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html
+    xmlns="http://www.w3.org/1999/xhtml" 
+    xmlns:svg="http://www.w3.org/2000/svg" 
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlns:sketch="http://www.bohemiancoding.com/sketch/ns"
+>
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -93,11 +98,11 @@
                 </form>
 
                 <a href="#" id="ht-search-button" class="ht-header-icon ht-header-icon-svg">
-                                        <svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-                        <g>
-                            <path d="M29.572,28.802 L28.801,29.571 C28.515,29.857 28.187,30 27.816,30 C27.445,30 27.116,29.857 26.831,29.571 L21.392,24.134 C20.193,24.762 18.908,25.076 17.538,25.076 C15.396,25.076 13.605,24.348 12.163,22.892 C10.721,21.436 10,19.651 10,17.538 C10,15.397 10.721,13.605 12.163,12.163 C13.605,10.721 15.396,10 17.538,10 C19.651,10 21.434,10.721 22.89,12.163 C24.347,13.605 25.075,15.397 25.075,17.538 C25.075,18.937 24.761,20.222 24.132,21.393 L29.572,26.832 C29.857,27.118 30,27.446 30,27.817 C30,28.188 29.857,28.517 29.572,28.802 L29.572,28.802 Z M13.662,21.414 C14.732,22.485 16.024,23.02 17.538,23.02 C19.051,23.02 20.343,22.485 21.413,21.414 C22.484,20.344 23.019,19.052 23.019,17.538 C23.019,16.025 22.484,14.733 21.413,13.662 C20.343,12.592 19.051,12.056 17.538,12.056 C16.024,12.056 14.732,12.592 13.662,13.662 C12.591,14.733 12.056,16.025 12.056,17.538 C12.056,19.052 12.591,20.344 13.662,21.414 L13.662,21.414 Z"></path>
-                        </g>
-                    </svg>
+                                        <svg:svg:svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" >
+                        <svg:svg:g>
+                            <svg:svg:path d="M29.572,28.802 L28.801,29.571 C28.515,29.857 28.187,30 27.816,30 C27.445,30 27.116,29.857 26.831,29.571 L21.392,24.134 C20.193,24.762 18.908,25.076 17.538,25.076 C15.396,25.076 13.605,24.348 12.163,22.892 C10.721,21.436 10,19.651 10,17.538 C10,15.397 10.721,13.605 12.163,12.163 C13.605,10.721 15.396,10 17.538,10 C19.651,10 21.434,10.721 22.89,12.163 C24.347,13.605 25.075,15.397 25.075,17.538 C25.075,18.937 24.761,20.222 24.132,21.393 L29.572,26.832 C29.857,27.118 30,27.446 30,27.817 C30,28.188 29.857,28.517 29.572,28.802 L29.572,28.802 Z M13.662,21.414 C14.732,22.485 16.024,23.02 17.538,23.02 C19.051,23.02 20.343,22.485 21.413,21.414 C22.484,20.344 23.019,19.052 23.019,17.538 C23.019,16.025 22.484,14.733 21.413,13.662 C20.343,12.592 19.051,12.056 17.538,12.056 C16.024,12.056 14.732,12.592 13.662,13.662 C12.591,14.733 12.056,16.025 12.056,17.538 C12.056,19.052 12.591,20.344 13.662,21.414 L13.662,21.414 Z"></svg:path>
+                        </svg:svg:g>
+                    </svg:svg:svg>
               	</a>
 
                 <div class="ht-search-dropdown ht-dropdown">
@@ -822,7 +827,7 @@ CN, Common name    </span>
 <p   
 >Certbot by default uses Let's Encrypts servers. To specify an alternative server URL, use the <code class=" ">--server</code> option:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
-                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+                <div  class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">--server https:</code><code class="comments">//localhost:8442/ejbca/acme/directory</code></div>
 </div>
     </div>
@@ -835,14 +840,14 @@ CN, Common name    </span>
 <p   
 >First, run the following command in the command line to ensure that a connection to the ACME server is up and running:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
-                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+                <div class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">curl -k https:</code><code class="comments">//localhost:8442/ejbca/acme/directory</code></div>
 </div>
     </div>
 <p   
 >The successful output of the above command should be as follows (showing the resources available in the EJBCA ACME server), otherwise the scenarios will fail:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
-                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+                <div  class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">{</code><code class="string">"newNonce"</code><code class="plain">:</code><code class="string">"https://localhost:8442/ejbca/acme/newNonce"</code><code class="plain">,</code><code class="string">"newAccount"</code><code class="plain">:</code><code class="string">"https://localhost:8442/ejbca/acme/newAccount"</code><code class="plain">,</code><code class="string">"newOrder"</code><code class="plain">:</code><code class="string">"https://localhost:8442/ejbca/acme/newOrder"</code><code class="plain">,</code><code class="string">"revokeCert"</code><code class="plain">:</code><code class="string">"https://localhost:8442/ejbca/acme/revokeCert"</code><code class="plain">,</code><code class="string">"keyChange"</code><code class="plain">:</code><code class="string">"https://localhost:8442/ejbca/acme/keyChange"</code><code class="plain">,</code><code class="string">"meta"</code><code class="plain">:{</code><code class="string">"termsOfService"</code><code class="plain">:</code><code class="string">"https://example.com/acme/terms"</code><code class="plain">,</code><code class="string">"website"</code><code class="plain">:</code><code class="string">"https://www.example.com/"</code><code class="plain">,</code><code class="string">"caaIdentities"</code><code class="plain">:[],</code><code class="string">"externalAccountRequired"</code><code class="plain">:</code><code class="keyword">false</code><code class="plain">}}</code></div>
 </div>
     </div>
@@ -863,7 +868,7 @@ CN, Common name    </span>
     </span>
 </p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
-                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+                <div  class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">&lt;VirtualHost *:</code><code class="value">80</code><code class="plain">&gt;</code></div>
 <div class="line"><code class="plain">  ServerName example.com</code></div>
 <div class="line"> </div>
@@ -883,7 +888,7 @@ Enable the site using the <code class=" ">a2ensite</code> command:<br/>    </spa
     </span>
 </p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
-                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+                <div  class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">sudo a2ensite example.com </code></div>
 </div>
     </div>
@@ -898,7 +903,7 @@ Reload the Apache configuration using the reload command:<br/>    </span>
     </span>
 </p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
-                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+                <div  class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">sudo service apache2 reload</code></div>
 </div>
     </div>
@@ -913,7 +918,7 @@ Next, restart Apache:    </span>
     </span>
 </p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
-                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+                <div  class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">sudo /etc/init.d/apache2 restart</code></div>
 </div>
     </div>
@@ -928,7 +933,7 @@ Next, restart Apache:    </span>
     </span>
 </p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
-                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+                <div  class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="value">127.0</code><code class="plain">.</code><code class="value">0.1</code><code class="plain">       example.com</code></div>
 </div>
     </div>
@@ -948,7 +953,7 @@ Certbot installed on your machine, and that EJBCA is up and running with ACME en
 <ol class=" "><li class=" "><p   
 >To obtain the certificate, run the Certbot <code class=" ">certonly</code> sub command:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
-                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+                <div  class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">sudo certbot --no-verify-ssl certonly --webroot -w /var/www/html/ -d example.com --server https:</code><code class="comments">//localhost:8442/ejbca/acme/directory</code></div>
 </div>
     </div>
@@ -957,7 +962,7 @@ Certbot installed on your machine, and that EJBCA is up and running with ACME en
 <p   
 >Alternatively, to instead issue a certificate for a wildcard domain, enable the <strong class=" ">Wildcard Certificate Issuance Allowed</strong> option on the <strong class=" ">ACME Configuration Alias</strong> page (see <a   href="#src-16237454_id-.ACMEv6.15.0-AliasSpecificFields">Alias Specific Fields</a>) and run the Certbot <code class=" ">certonly</code> sub command providing a wildcard domain as identifier:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
-                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+                <div class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">sudo certbot --no-verify-ssl certonly --webroot -w /var/www/html/ -d *.example.com --server https:</code><code class="comments">//localhost:8442/ejbca/acme/directory</code></div>
 </div>
     </div>
@@ -1007,7 +1012,7 @@ Enforce Unique DN    </span>
 <ol class=" "><li class=" "><p   
 >To revoke the issued certificate, run the Certbot <code class=" ">revoke</code> command:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
-                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+                <div  class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">sudo certbot --no-verify-ssl --server https:</code><code class="comments">//localhost:8442/ejbca/acme/directory revoke --cert-path /etc/letsencrypt/live/example.com/fullchain.pem</code></div>
 </div>
     </div>
@@ -1059,7 +1064,7 @@ DNSSEC    <span style="color: #222222;">
 <ol class=" "><li class=" "><p   
 >To obtain the certificate, run the Certbot <code class=" ">certonly</code> sub command and specify the <code class=" ">--manual</code> flag to run Certbot interactively and allow preparing the DNS server with the DNS challenge offered by the ACME server:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
-                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+                <div  class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">sudo certbot --no-verify-ssl certonly --manual --preferred-challenges=dns -d allow.klaan.nu --server https:</code><code class="comments">//localhost:8442/ejbca/acme/directory</code></div>
 </div>
     </div>
@@ -1068,7 +1073,7 @@ DNSSEC    <span style="color: #222222;">
 <p   
 >Alternatively, to instead issue a certificate for a wildcard domain, enable the <strong class=" ">Wildcard Certificate Issuance Allowed</strong> option on the <strong class=" ">ACME Configuration Alias</strong> page (see <a   href="#src-16237454_id-.ACMEv6.15.0-AliasSpecificFields">Alias Specific Fields</a>) and run the Certbot <code class=" ">certonly</code> sub command providing a wildcard domain as identifier:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
-                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+                <div  class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">sudo certbot --no-verify-ssl certonly --manual --preferred-challenges=dns -d *.allow.klaan.nu --server https:</code><code class="comments">//localhost:8442/ejbca/acme/directory</code></div>
 </div>
     </div>
@@ -1084,7 +1089,7 @@ DNSSEC    <span style="color: #222222;">
 </li><li class=" "><p   
 >Certbot displays the TXT record challenge offered by the ACME server which have to be provisioned in the DNS server. Before pressing <strong class=" ">Enter,</strong> run the following command to provision the TXT record in dnsmasq:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
-                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+                <div class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">sudo dnsmasq --port=</code><code class="string">"1453"</code><code class="plain"> --txt-record=</code><code class="string">"_acme-challenge.allow.klaan.nu, pULO3RjCbzqjWH0JK2FQ5BDe-5SI2Eo2Vn1l_fmrtdk"</code><code class="plain"> --listen-address=</code><code class="string">"127.0.0.1"</code><code class="plain">  --</code><code class="keyword">interface</code><code class="plain">=</code><code class="string">"lo"</code><code class="plain"> --bind-interfaces</code></div>
 </div>
     </div>
@@ -1121,7 +1126,7 @@ DNSSEC    <span style="color: #222222;">
 <ol class=" "><li class=" "><p   
 >To revoke the issued certificate, run the Certbot <code class=" ">revoke</code> command:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
-                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+                <div class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">sudo certbot --no-verify-ssl --server https:</code><code class="comments">//localhost:8442/ejbca/acme/directory revoke --cert-path /etc/letsencrypt/live/allow.klaan.nu/fullchain.pem</code></div>
 </div>
     </div>
@@ -1168,7 +1173,7 @@ To try out EJBCA with PJAC, just follow these guides for <a  class="external-lin
 ><img  class="emoticon emoticon-warning"  src="images/s/en_US/8100/b0984b7297905b7c7bd946458f753ce0130bfc8c/_/images/icons/emoticons/warning.svg" alt="images/s/en_US/8100/b0984b7297905b7c7bd946458f753ce0130bfc8c/_/images/icons/emoticons/warning.svg"   />
  Note that you need to configure PJAC to have the EJBCA instance as its ACME service, by adding the following extra parameter to every <code class=" ">acme_client.jar</code> command execution:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
-                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+                <div class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">-u https:</code><code class="comments">//localhost:8442/ejbca/acme/directory</code></div>
 </div>
     </div>
@@ -1176,7 +1181,7 @@ To try out EJBCA with PJAC, just follow these guides for <a  class="external-lin
 >For example, the 5th step in the <a  class="external-link" href="https://github.com/porunov/acme_client/wiki/Get-a-certificate-for-multiple-domains">Get a certificate for multiple domains</a> guide would look like this:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                     <div class="title">Step 5 from the PJAC guide</div>
-                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-title="Step 5 from the PJAC guide" data-linenumbers="false" data-firstline="1">
+                <div  class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-title="Step 5 from the PJAC guide" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">java -jar acme_client.jar --</code><code class="functions">command</code><code class="plain"> register -a </code><code class="plain">/etc/pjac/account</code><code class="plain">.key </code></div>
 <div class="line"><code class="plain">  --with-agreement-update -u https:</code><code class="plain">//localhost</code><code class="plain">:8442</code><code class="plain">/ejbca/acme/directory</code></div>
 </div>
@@ -1187,14 +1192,14 @@ To try out EJBCA with PJAC, just follow these guides for <a  class="external-lin
 <ol class=" "><li class=" "><p   
 >Clone the repository:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
-                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+                <div  class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">git clone https:</code><code class="comments">//github.com/diafygi/acme-tiny.git</code></div>
 </div>
     </div>
 </li><li class=" "><p   
 >Change EJBCA ACME URLs:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
-                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+                <div class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">-DEFAULT_CA = </code><code class="string">"https://acme-v02.api.letsencrypt.org"</code><code class="plain"> # DEPRECATED! USE DEFAULT_DIRECTORY_URL INSTEAD</code></div>
 <div class="line"><code class="plain">-DEFAULT_DIRECTORY_URL = </code><code class="string">"https://acme-v02.api.letsencrypt.org/directory"</code></div>
 <div class="line"><code class="plain">+</code></div>
@@ -1205,7 +1210,7 @@ To try out EJBCA with PJAC, just follow these guides for <a  class="external-lin
 </li><li class=" "><p   
 >Prepare input for ACME:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
-                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+                <div  class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain"># Generate </code><code class="keyword">private</code><code class="plain"> key</code></div>
 <div class="line"><code class="plain">openssl genrsa </code><code class="value">4096</code><code class="plain"> &gt; account.key</code></div>
 <div class="line"><code class="plain"># Generate CSR</code></div>
@@ -1215,7 +1220,7 @@ To try out EJBCA with PJAC, just follow these guides for <a  class="external-lin
 </li><li class=" "><p   
 >Launch ACME Tiny (Tested with Python2):</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
-                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+                <div class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">sudo python acme_tiny.py --account-key ./account.key --csr ./account.csr --acme-dir ./acme-dir/ --contact </code><code class="string">'mailto:acme@primekey.com'</code><code class="plain"> &gt; ./signed_chain.crt</code></div>
 </div>
     </div>
@@ -1232,7 +1237,7 @@ To try out EJBCA with PJAC, just follow these guides for <a  class="external-lin
 <p   
 >Verifies that the EJBCA ACME service is up and running.</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
-                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+                <div class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">GET /acme/directory HTTP/</code><code class="value">1.1</code></div>
 <div class="line"> </div>
 <div class="line"><code class="plain">{  </code></div>
@@ -1259,7 +1264,7 @@ To try out EJBCA with PJAC, just follow these guides for <a  class="external-lin
 <p   
 >Creates a new ACME account to EJBCA. EJBCA uses a public key to verify the JWS (that is, the <code class=" ">jwk</code> element of the JWS header) to authenticate future requests from the account. EJBCA supports RSA and EC key types.</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
-                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+                <div class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">POST https:</code><code class="comments">//localhost:8442/ejbca/acme/newAccount HTTP/1.1</code></div>
 <div class="line"><code class="plain">Content-Type: application/jose+json</code></div>
 <div class="line"> </div>
@@ -1287,7 +1292,7 @@ To try out EJBCA with PJAC, just follow these guides for <a  class="external-lin
 <p   
 >To create a new ACME order.</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
-                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+                <div  class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">POST /acme/newOrder HTTP/</code><code class="value">1.1</code></div>
 <div class="line"><code class="plain">Content-Type: application/jose+json</code></div>
 <div class="line"> </div>
@@ -1315,7 +1320,7 @@ To try out EJBCA with PJAC, just follow these guides for <a  class="external-lin
     <div class="section section-2" id="src-16237454_id-.ACMEv6.15.0-newAuthzrequest">
         <h2 class="heading "><span>newAuthz request</span></h2>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
-                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+                <div class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">POST /acme/newAuthz HTTP/</code><code class="value">1.1</code></div>
 <div class="line"><code class="plain">Host: example.com</code></div>
 <div class="line"><code class="plain">Content-Type: application/jose+json</code></div>
@@ -1343,7 +1348,7 @@ To try out EJBCA with PJAC, just follow these guides for <a  class="external-lin
 <p   
 >To prove to EJBCA's ACME service that you possess control over the domain.</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
-                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+                <div class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">POST /acme/acct/{accountId}/authz/{authorizationId}/{challengeId} HTTP/</code><code class="value">1.1</code></div>
 <div class="line"><code class="plain">Content-Type: application/jose+json</code></div>
 <div class="line"> </div>
@@ -1365,7 +1370,7 @@ To try out EJBCA with PJAC, just follow these guides for <a  class="external-lin
 <p   
 >To generate the certificate.</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
-                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+                <div class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">POST /acme/acct/{accountId}/orders/{orderId}/finalize HTTP </code><code class="value">1.1</code></div>
 <div class="line"><code class="plain">Content-Type: application/jose+json</code></div>
 <div class="line"> </div>
@@ -1495,25 +1500,25 @@ To try out EJBCA with PJAC, just follow these guides for <a  class="external-lin
 
             <nav id="ht-post-nav">
                 <a href="Protocols.html" class="ht-post-nav-prev">
-            <svg width="22px" height="22px" viewBox="0 0 22 22" version="1.1" xmlns="http://www.w3.org/2000/svg"
+            <svg:svg width="22px" height="22px" viewBox="0 0 22 22" version="1.1" xmlns="http://www.w3.org/2000/svg"
                  xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
-                <g id="ht-icon-prev" sketch:type="MSArtboardGroup">
-                    <path fill="#000000" d="M16,8 L16,6 L6,6 L6,16 L8,16 L8,8 L16,8 Z" id="Rectangle-2"
+                <svg:g id="ht-icon-prev" sketch:type="MSArtboardGroup">
+                    <svg:path fill="#000000" d="M16,8 L16,6 L6,6 L6,16 L8,16 L8,8 L16,8 Z" id="Rectangle-2"
                           sketch:type="MSShapeGroup"
-                          transform="translate(11.000000, 11.000000) rotate(-45.000000) translate(-11.000000, -11.000000) "></path>
-                </g>
-            </svg>
+                          transform="translate(11.000000, 11.000000) rotate(-45.000000) translate(-11.000000, -11.000000) "></svg:path>
+                </svg:g>
+            </svg:svg>
             <span>Protocols</span>
         </a>
                 <a href="Certificate_Management_REST_Interface.html" class="ht-post-nav-next">
-            <svg width="22px" height="22px" viewBox="0 0 22 22" version="1.1" xmlns="http://www.w3.org/2000/svg"
-                 xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
-                <g id="ht-icon-next" sketch:type="MSArtboardGroup">
-                    <path fill="#000000" d="M16,8 L16,6 L6,6 L6,16 L8,16 L8,8 L16,8 Z" id="Rectangle-2"
+            <svg:svg width="22px" height="22px" viewBox="0 0 22 22" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                 xmlns:xlink="http://www.w3.org/1999/xlink" >
+                <svg:g id="ht-icon-next" sketch:type="MSArtboardGroup">
+                    <svg:path fill="#000000" d="M16,8 L16,6 L6,6 L6,16 L8,16 L8,8 L16,8 Z" id="Rectangle-2"
                           sketch:type="MSShapeGroup"
-                          transform="translate(11.000000, 11.000000) rotate(-225.000000) translate(-11.000000, -11.000000) "></path>
-                </g>
-            </svg>
+                          transform="translate(11.000000, 11.000000) rotate(-225.000000) translate(-11.000000, -11.000000) "></svg:path>
+                </svg:g>
+            </svg:svg>
             <span>Certificate Management REST Interface</span>
         </a>
     </nav>    

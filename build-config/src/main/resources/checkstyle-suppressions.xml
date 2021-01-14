@@ -594,6 +594,8 @@
 		files="CryptoTokenMBean.java" lines="923" />
 		<suppress checks="MethodLengthCheck"
 		files="EditHardTokenProfileJSPHelper.java" lines="237" />
+	<suppress checks="ParameterNumberCheck"
+		files="InternalKeyBindingMBean.java" lines="154" />
 	
 	
 </suppressions>

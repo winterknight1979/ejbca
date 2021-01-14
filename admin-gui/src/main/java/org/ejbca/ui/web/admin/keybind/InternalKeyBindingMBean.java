@@ -98,182 +98,274 @@ import org.ejbca.util.passgen.PasswordGeneratorFactory;
 public class InternalKeyBindingMBean extends BaseManagedBean
     implements Serializable {
 
-  protected static final Logger log =
+    /** Param. */
+  protected static final Logger LOG =
       Logger.getLogger(InternalKeyBindingMBean.class);
 
+  /** Param. */
   @EJB(
       description =
           "Used to reload ocsp signing cache when user disables the internal"
               + " ocsp key binding.")
   private OcspResponseGeneratorSessionLocal ocspResponseGeneratorSession;
 
-  public class GuiInfo {
+  public final class GuiInfo {
+        /** Param. */
     public static final String TEXTKEY_PREFIX = "INTERNALKEYBINDING_STATUS_";
+    /** Param. */
     private final int internalKeyBindingId;
+    /** Param. */
     private final String name;
+    /** Param. */
     private final int cryptoTokenId;
+    /** Param. */
     private final String cryptoTokenName;
+    /** Param. */
     private final boolean authorizedToCryptotoken;
+    /** Param. */
     private final boolean authorizedToGenerateKeys;
+    /** Param. */
     private final boolean cryptoTokenActive;
+    /** Param. */
     private final String keyPairAlias;
+    /** Param. */
     private final String nextKeyPairAlias;
+    /** Param. */
     private final String status;
+    /** Param. */
     private final String operationalStatus;
+    /** Param. */
     private final String certificateId;
+    /** Param. */
     private final String certificateIssuerDn;
+    /** Param. */
     private final String certificateSerialNumber;
+    /** Param. */
     private final String caCertificateIssuerDn;
+    /** Param. */
     private final String caCertificateSerialNumber;
+    /** Param. */
     private final String certificateInternalCaName;
+    /** Param. */
     private final int certificateInternalCaId;
+    /** Param. */
     private final String certificateSubjectDn;
 
     private GuiInfo(
-        final int internalKeyBindingId,
-        final String name,
-        final int cryptoTokenId,
-        final String cryptoTokenName,
-        final boolean authorizedToCryptotoken,
-        final boolean authorizedToGenerateKeys,
-        final boolean cryptoTokenActive,
-        final String keyPairAlias,
-        final String nextKeyPairAlias,
-        final String status,
-        final String operationalStatus,
-        final String certificateId,
-        final String certificateIssuerDn,
-        final String certificateSubjectDn,
-        final String certificateInternalCaName,
-        final int certificateInternalCaId,
-        final String certificateSerialNumber,
-        final String caCertificateIssuerDn,
-        final String caCertificateSerialNumber) {
-      this.internalKeyBindingId = internalKeyBindingId;
-      this.name = name;
-      this.cryptoTokenId = cryptoTokenId;
-      this.cryptoTokenName = cryptoTokenName;
-      this.authorizedToCryptotoken = authorizedToCryptotoken;
-      this.authorizedToGenerateKeys = authorizedToGenerateKeys;
-      this.cryptoTokenActive = cryptoTokenActive;
-      this.keyPairAlias = keyPairAlias;
-      this.nextKeyPairAlias = nextKeyPairAlias;
-      this.status = TEXTKEY_PREFIX + status;
-      this.operationalStatus = operationalStatus;
-      this.certificateId = certificateId;
-      this.certificateIssuerDn = certificateIssuerDn;
-      this.certificateSerialNumber = certificateSerialNumber;
-      this.caCertificateIssuerDn = caCertificateIssuerDn;
-      this.caCertificateSerialNumber = caCertificateSerialNumber;
-      this.certificateInternalCaName = certificateInternalCaName;
-      this.certificateInternalCaId = certificateInternalCaId;
-      this.certificateSubjectDn = certificateSubjectDn;
+        final int aninternalKeyBindingId,
+        final String aname,
+        final int acryptoTokenId,
+        final String acryptoTokenName,
+        final boolean anauthorizedToCryptotoken,
+        final boolean anauthorizedToGenerateKeys,
+        final boolean acryptoTokenActive,
+        final String akeyPairAlias,
+        final String anextKeyPairAlias,
+        final String astatus,
+        final String aoperationalStatus,
+        final String acertificateId,
+        final String acertificateIssuerDn,
+        final String acertificateSubjectDn,
+        final String acertificateInternalCaName,
+        final int acertificateInternalCaId,
+        final String acertificateSerialNumber,
+        final String acaCertificateIssuerDn,
+        final String acaCertificateSerialNumber) {
+      this.internalKeyBindingId = aninternalKeyBindingId;
+      this.name = aname;
+      this.cryptoTokenId = acryptoTokenId;
+      this.cryptoTokenName = acryptoTokenName;
+      this.authorizedToCryptotoken = anauthorizedToCryptotoken;
+      this.authorizedToGenerateKeys = anauthorizedToGenerateKeys;
+      this.cryptoTokenActive = acryptoTokenActive;
+      this.keyPairAlias = akeyPairAlias;
+      this.nextKeyPairAlias = anextKeyPairAlias;
+      this.status = TEXTKEY_PREFIX + astatus;
+      this.operationalStatus = aoperationalStatus;
+      this.certificateId = acertificateId;
+      this.certificateIssuerDn = acertificateIssuerDn;
+      this.certificateSerialNumber = acertificateSerialNumber;
+      this.caCertificateIssuerDn = acaCertificateIssuerDn;
+      this.caCertificateSerialNumber = acaCertificateSerialNumber;
+      this.certificateInternalCaName = acertificateInternalCaName;
+      this.certificateInternalCaId = acertificateInternalCaId;
+      this.certificateSubjectDn = acertificateSubjectDn;
     }
 
+    /**
+     * @return ID
+     */
     public int getInternalKeyBindingId() {
       return internalKeyBindingId;
     }
 
+    /**
+     * @return Name
+     */
     public String getName() {
       return name;
     }
 
+    /**
+     * @return ID
+     */
     public int getCryptoTokenId() {
       return cryptoTokenId;
     }
 
+    /**
+     * @return Name
+     */
     public String getCryptoTokenName() {
       return cryptoTokenName;
     }
 
+    /**
+     * @return Alias
+     */
     public String getKeyPairAlias() {
       return keyPairAlias;
     }
 
+    /**
+     * @return Alias
+     */
     public String getNextKeyPairAlias() {
       return nextKeyPairAlias;
     }
 
+    /**
+     * @return Status
+     */
     public String getStatus() {
       return status;
     }
 
+    /**
+     * @return Status
+     */
     public String getOperationalStatus() {
       return operationalStatus;
     }
 
+    /**
+     * @return ID
+     */
     public String getCertificateId() {
       return certificateId;
     }
 
+    /**
+     * @return DN
+     */
     public String getCertificateIssuerDn() {
       return certificateIssuerDn;
     }
 
+    /**
+     * @return SN
+     */
     public String getCertificateSerialNumber() {
       return certificateSerialNumber;
     }
 
+    /**
+     * @return DN
+     */
     public String getCaCertificateIssuerDn() {
       return caCertificateIssuerDn;
     }
 
+    /**
+     * @return SN
+     */
     public String getCaCertificateSerialNumber() {
       return caCertificateSerialNumber;
     }
 
+    /**
+     * @return NAme
+     */
     public String getCertificateInternalCaName() {
       return certificateInternalCaName;
     }
 
+    /**
+     * @return ID
+     */
     public int getCertificateInternalCaId() {
       return certificateInternalCaId;
     }
-
+    /**
+     * @return bool
+     */
     public boolean isCertificateBound() {
       return certificateId != null;
     }
-
+    /**
+     * @return bool
+     */
     public boolean isIssuedByInternalCa() {
       return getCertificateInternalCaName() != null;
     }
-
+    /**
+     * @return bool
+     */
     public boolean isNextKeyAliasAvailable() {
       return nextKeyPairAlias != null;
     }
-
+    /**
+     * @return bool
+     */
     public boolean isAuthorizedToGenerateKeys() {
       return authorizedToGenerateKeys;
     }
 
+    /**
+     * @return bool
+     */
     public boolean isAuthorizedToCryptoToken() {
       return authorizedToCryptotoken;
     }
 
+    /**
+     * @return bool
+     */
     public boolean isCryptoTokenActive() {
       return cryptoTokenActive;
     }
 
+    /**
+     * @return DN
+     */
     public String getCertificateSubjectDn() {
       return certificateSubjectDn;
     }
   }
 
   private static final long serialVersionUID = 2L;
+  /** Param. */
   private final AuthenticationToken authenticationToken = getAdmin();
 
+  /** Param. */
   private final AuthorizationSessionLocal authorizationSession =
       getEjbcaWebBean().getEjb().getAuthorizationSession();
+  /** Param. */
   private final CaSessionLocal caSession =
       getEjbcaWebBean().getEjb().getCaSession();
+  /** Param. */
   private final CertificateStoreSessionLocal certificateStoreSession =
       getEjbcaWebBean().getEjb().getCertificateStoreSession();
+  /** Param. */
   private final CryptoTokenManagementSessionLocal cryptoTokenManagementSession =
       getEjbcaWebBean().getEjb().getCryptoTokenManagementSession();
+  /** Param. */
   private final EndEntityAccessSessionLocal endEntityAccessSessionSession =
       getEjbcaWebBean().getEjb().getEndEntityAccessSession();
+  /** Param. */
   private final InternalKeyBindingMgmtSessionLocal internalKeyBindingSession =
       getEjbcaWebBean().getEjb().getInternalKeyBindingMgmtSession();
+  /** Param. */
   private final GlobalConfigurationSessionLocal globalConfigurationSession =
       getEjbcaWebBean().getEjb().getGlobalConfigurationSession();
 
@@ -282,14 +374,24 @@ public class InternalKeyBindingMBean extends BaseManagedBean
   // InternalKeyBindings
   ////
 
+  /** Param. */
   private String selectedInternalKeyBindingType = null;
+  /** Param. */
   private ListDataModel<GuiInfo> internalKeyBindingGuiList = null;
+  /** Param. */
   private Integer uploadTarget = null;
+  /** Param. */
   private UploadedFile uploadToTargetFile;
+  /** Param. */
   private String defaultResponderTarget;
+  /** Param. */
   private Boolean nonceEnabled;
+  /** Param. */
   private OcspKeyBinding.ResponderIdType responderIdType;
 
+  /**
+   * @return Type
+   */
   public String getSelectedInternalKeyBindingType() {
     final String typeHttpParam =
         ((HttpServletRequest)
@@ -312,10 +414,16 @@ public class InternalKeyBindingMBean extends BaseManagedBean
     return selectedInternalKeyBindingType;
   }
 
+  /**
+   * @return Bool
+   */
   public boolean isOcspKeyBinding() {
     return getSelectedInternalKeyBindingType().equals("OcspKeyBinding");
   }
 
+  /**
+   * @return Text
+   */
   public String getBackLinkTranslatedText() {
     String pattern =
         super.getEjbcaWebBean().getText("INTERNALKEYBINDING_BACKTOOVERVIEW");
@@ -324,10 +432,13 @@ public class InternalKeyBindingMBean extends BaseManagedBean
     return MessageFormat.format(pattern, type);
   }
 
+  /**
+   * @return Types
+   */
   public List<String> getAvailableKeyBindingTypes() {
     final List<String> availableKeyBindingTypes = new ArrayList<>();
-    for (String current :
-        internalKeyBindingSession.getAvailableTypesAndProperties().keySet()) {
+    for (String current
+        : internalKeyBindingSession.getAvailableTypesAndProperties().keySet()) {
       availableKeyBindingTypes.add(current);
     }
     return availableKeyBindingTypes;
@@ -345,37 +456,58 @@ public class InternalKeyBindingMBean extends BaseManagedBean
     return false;
   }
 
+  /**
+   * Flush.
+   */
   private void flushListCaches() {
     internalKeyBindingGuiList = null;
   }
 
+  /**
+   * @return Target
+   */
   public Integer getUploadTarget() {
     return uploadTarget;
   }
 
-  public void setUploadTarget(final Integer uploadTarget) {
-    this.uploadTarget = uploadTarget;
+  /**
+   * @param anuploadTarget Target
+   */
+  public void setUploadTarget(final Integer anuploadTarget) {
+    this.uploadTarget = anuploadTarget;
   }
 
+  /**
+   * @return File
+   */
   public UploadedFile getUploadToTargetFile() {
     return uploadToTargetFile;
   }
 
-  public void setUploadToTargetFile(final UploadedFile uploadToTargetFile) {
-    this.uploadToTargetFile = uploadToTargetFile;
+  /**
+   * @param anuploadToTargetFile File
+   */
+  public void setUploadToTargetFile(final UploadedFile anuploadToTargetFile) {
+    this.uploadToTargetFile = anuploadToTargetFile;
   }
 
+  /**
+   * @return Targets
+   */
   @SuppressWarnings("unchecked")
   public List<SelectItem /*<Integer,String>*/> getUploadTargets() {
     final List<SelectItem> ret = new ArrayList<>();
-    for (final GuiInfo guiInfo :
-        (List<GuiInfo>) getInternalKeyBindingGuiList().getWrappedData()) {
+    for (final GuiInfo guiInfo
+        : (List<GuiInfo>) getInternalKeyBindingGuiList().getWrappedData()) {
       ret.add(
           new SelectItem(guiInfo.getInternalKeyBindingId(), guiInfo.getName()));
     }
     return ret;
   }
 
+  /**
+   * @return targets
+   */
   @SuppressWarnings("unchecked")
   public List<SelectItem /*<String,String>*/> getDefaultResponderTargets() {
     final List<SelectItem> ret = new ArrayList<>();
@@ -389,8 +521,8 @@ public class InternalKeyBindingMBean extends BaseManagedBean
     String currentValue = getDefaultResponderTarget();
     boolean currentValueMatched = false;
     Set<String> internalkeybindingSet = new HashSet<>();
-    for (final GuiInfo guiInfo :
-        (List<GuiInfo>) getInternalKeyBindingGuiList().getWrappedData()) {
+    for (final GuiInfo guiInfo
+        : (List<GuiInfo>) getInternalKeyBindingGuiList().getWrappedData()) {
       if (guiInfo
           .getStatus()
           .equalsIgnoreCase(
@@ -406,8 +538,8 @@ public class InternalKeyBindingMBean extends BaseManagedBean
         }
       }
     }
-    for (CAInfo caInfo :
-        caSession.getAuthorizedAndEnabledCaInfos(authenticationToken)) {
+    for (CAInfo caInfo
+        : caSession.getAuthorizedAndEnabledCaInfos(authenticationToken)) {
       if (caInfo.getCAType() == CAInfo.CATYPE_X509
           && caInfo.getStatus() == CAConstants.CA_ACTIVE) {
         // Checking actual certificate, because CA subject DN does not have to
@@ -424,22 +556,27 @@ public class InternalKeyBindingMBean extends BaseManagedBean
         }
       }
     }
-    if (currentValueMatched == false && !StringUtils.isEmpty(currentValue)) {
+    if (!currentValueMatched && !StringUtils.isEmpty(currentValue)) {
       ret.add(new SelectItem(currentValue, "Unmatched DN: " + currentValue));
     }
 
     return ret;
   }
 
+  /**
+   * @return Targets
+   */
   public List<SelectItem> getResponderIdTargets() {
     List<SelectItem> selectItemList = new ArrayList<>();
-    for (ResponderIdType responderIdType : ResponderIdType.values()) {
+    for (ResponderIdType aresponderIdType : ResponderIdType.values()) {
       selectItemList.add(
-          new SelectItem(responderIdType, responderIdType.getLabel()));
+          new SelectItem(aresponderIdType, aresponderIdType.getLabel()));
     }
     return selectItemList;
   }
 
+  /** Responder.
+   */
   public void saveDefaultResponder() {
     GlobalOcspConfiguration globalConfiguration =
         (GlobalOcspConfiguration)
@@ -477,6 +614,8 @@ public class InternalKeyBindingMBean extends BaseManagedBean
     }
   }
 
+  /** Nonce.
+   */
   public void saveNonceEnabled() {
     GlobalOcspConfiguration globalConfiguration =
         (GlobalOcspConfiguration)
@@ -497,6 +636,8 @@ public class InternalKeyBindingMBean extends BaseManagedBean
     }
   }
 
+  /** Type.
+   */
   public void saveResponderIdType() {
     GlobalOcspConfiguration globalConfiguration =
         (GlobalOcspConfiguration)
@@ -517,6 +658,9 @@ public class InternalKeyBindingMBean extends BaseManagedBean
     }
   }
 
+  /**
+   * @return bool
+   */
   public boolean getGloballyEnableNonce() {
     if (this.nonceEnabled == null) {
       GlobalOcspConfiguration configuration =
@@ -529,10 +673,16 @@ public class InternalKeyBindingMBean extends BaseManagedBean
     return this.nonceEnabled;
   }
 
-  public void setGloballyEnableNonce(final boolean nonceEnabled) {
-    this.nonceEnabled = nonceEnabled;
+  /**
+   * @param isnonceEnabled bool
+   */
+  public void setGloballyEnableNonce(final boolean isnonceEnabled) {
+    this.nonceEnabled = isnonceEnabled;
   }
 
+  /**
+   * @return target
+   */
   public String getDefaultResponderTarget() {
     GlobalOcspConfiguration configuration =
         (GlobalOcspConfiguration)
@@ -549,10 +699,16 @@ public class InternalKeyBindingMBean extends BaseManagedBean
     return this.defaultResponderTarget;
   }
 
-  public void setDefaultResponderTarget(final String defaultResponderTarget) {
-    this.defaultResponderTarget = defaultResponderTarget;
+  /**
+   * @param adefaultResponderTarget Target
+   */
+  public void setDefaultResponderTarget(final String adefaultResponderTarget) {
+    this.defaultResponderTarget = adefaultResponderTarget;
   }
 
+  /**
+   * @return type
+   */
   public OcspKeyBinding.ResponderIdType getResponderIdType() {
     GlobalOcspConfiguration configuration =
         (GlobalOcspConfiguration)
@@ -562,14 +718,17 @@ public class InternalKeyBindingMBean extends BaseManagedBean
     return responderIdType;
   }
 
+  /**
+   * @param aresponderIdType type
+   */
   public void setResponderIdType(
-      final OcspKeyBinding.ResponderIdType responderIdType) {
-    this.responderIdType = responderIdType;
+      final OcspKeyBinding.ResponderIdType aresponderIdType) {
+    this.responderIdType = aresponderIdType;
   }
 
   /**
    * Invoked when the user is trying to import a new certificate for an
-   * InternalKeyBinding
+   * InternalKeyBinding.
    */
   public void uploadToTarget() {
     if (uploadTarget == null) {
@@ -637,8 +796,8 @@ public class InternalKeyBindingMBean extends BaseManagedBean
       // Get the current type of tokens we operate on
       final String internalKeyBindingType = getSelectedInternalKeyBindingType();
       List<GuiInfo> internalKeyBindingList = new LinkedList<>();
-      for (InternalKeyBindingInfo current :
-          internalKeyBindingSession.getInternalKeyBindingInfos(
+      for (InternalKeyBindingInfo current
+          : internalKeyBindingSession.getInternalKeyBindingInfos(
               authenticationToken, internalKeyBindingType)) {
         final int cryptoTokenId = current.getCryptoTokenId();
         final CryptoTokenInfo cryptoTokenInfo =
@@ -785,7 +944,7 @@ public class InternalKeyBindingMBean extends BaseManagedBean
 
   /**
    * Invoked when the user wants to renew a the InternalKeyBinding certificates
-   * issued by a instance local CA
+   * issued by a instance local CA.
    */
   public void commandRenewCertificate() {
     try {
@@ -817,8 +976,9 @@ public class InternalKeyBindingMBean extends BaseManagedBean
         final IPasswordGenerator passwordGenerator =
             PasswordGeneratorFactory.getInstance(
                 PasswordGeneratorFactory.PASSWORDTYPE_ALLPRINTABLE);
+        final int len = 12;
         endEntityInformation.setPassword(
-            passwordGenerator.getNewPassword(12, 12));
+            passwordGenerator.getNewPassword(len, len));
       }
       final String certificateId =
           internalKeyBindingSession.renewInternallyIssuedCertificate(
@@ -854,7 +1014,7 @@ public class InternalKeyBindingMBean extends BaseManagedBean
 
   /**
    * Invoked when the user wants to search the database for new certificates
-   * matching an InternalKeyBinding key pair
+   * matching an InternalKeyBinding key pair.
    */
   public void commandReloadCertificate() {
     try {
@@ -894,7 +1054,7 @@ public class InternalKeyBindingMBean extends BaseManagedBean
 
   /**
    * Invoked when the user wants to generate a nextKeyPair for an
-   * InternalKeyBinding
+   * InternalKeyBinding.
    */
   public void commandGenerateNewKey() {
     try {
@@ -938,7 +1098,7 @@ public class InternalKeyBindingMBean extends BaseManagedBean
 
   /**
    * Invoked when the user wants to get a CSR for the current or next KeyPair
-   * for an InternalKeyBinding
+   * for an InternalKeyBinding.
    */
   public void commandGenerateRequest() {
     try {
@@ -984,7 +1144,7 @@ public class InternalKeyBindingMBean extends BaseManagedBean
     }
   }
 
-  /** Invoked when the user wants to disable an InternalKeyBinding */
+  /** Invoked when the user wants to disable an InternalKeyBinding. */
   public void commandDisable() {
     changeStatus(
         internalKeyBindingGuiList.getRowData().getInternalKeyBindingId(),
@@ -995,7 +1155,7 @@ public class InternalKeyBindingMBean extends BaseManagedBean
                                    // disable take effect immediately.
   }
 
-  /** Invoked when the user wants to enable an InternalKeyBinding */
+  /** Invoked when the user wants to enable an InternalKeyBinding. */
   public void commandEnable() {
     changeStatus(
         internalKeyBindingGuiList.getRowData().getInternalKeyBindingId(),
@@ -1048,7 +1208,7 @@ public class InternalKeyBindingMBean extends BaseManagedBean
     flushListCaches();
   }
 
-  /** Invoked when the user wants to remove an InternalKeyBinding */
+  /** Invoked when the user wants to remove an InternalKeyBinding. */
   public void commandDelete() {
     try {
       final GuiInfo guiInfo = internalKeyBindingGuiList.getRowData();
@@ -1078,39 +1238,66 @@ public class InternalKeyBindingMBean extends BaseManagedBean
   // Below is code related to editing/viewing a specific InternalKeyBinding
   //
 
+  /** Param. */
   private String currentInternalKeyBindingId = null;
+  /** Param. */
   private String currentName = null;
+  /** Param. */
   private Integer currentCryptoToken = null;
+  /** Param. */
   private String currentKeyPairAlias = null;
+  /** Param. */
   private String currentSignatureAlgorithm = null;
+  /** Param. */
   private String currentNextKeyPairAlias = null;
+  /** Param. */
   private ListDataModel<DynamicUiProperty<? extends Serializable>>
       internalKeyBindingPropertyList = null;
+  /** Param. */
   private boolean inEditMode = false;
+  /** Param. */
   private Integer currentCertificateAuthority = null;
+  /** Param. */
   private String currentCertificateSerialNumber = null;
+  /** Param. */
   private String currentTrustEntryDescription = null;
+  /** Param. */
   private String currentOcspExtension = null;
+  /** Param. */
   private ListDataModel<InternalKeyBindingTrustEntry> trustedCertificates =
       null;
+  /** Param. */
   private ListDataModel<String> ocspExtensions = null;
+  /** Param. */
   private final Map<String, String> ocspExtensionOidNameMap = new HashMap<>();
 
+  /**
+   * @return Auth
+   */
   public Integer getCurrentCertificateAuthority() {
     return currentCertificateAuthority;
   }
 
+  /**
+   * @param acurrentCertificateAuthority auth
+   */
   public void setCurrentCertificateAuthority(
-      final Integer currentCertificateAuthority) {
-    this.currentCertificateAuthority = currentCertificateAuthority;
+      final Integer acurrentCertificateAuthority) {
+    this.currentCertificateAuthority = acurrentCertificateAuthority;
   }
 
+  /**
+   * @return ext
+   */
   public String getCurrentOcspExtension() {
     return currentOcspExtension;
   }
 
-  public void setCurrentOcspExtension(final String currentOcspExtension) {
-    this.currentOcspExtension = currentOcspExtension;
+  /**
+   * @param acurrentOcspExtension ext
+   */
+  public void setCurrentOcspExtension(final String acurrentOcspExtension) {
+    this.currentOcspExtension = acurrentOcspExtension;
   }
 
   private void flushSingleViewCache() {
@@ -1219,6 +1406,9 @@ public class InternalKeyBindingMBean extends BaseManagedBean
     return !inEditMode && isAllowedToEdit();
   }
 
+  /**
+   * @return bool
+   */
   public boolean isAllowedToEdit() {
     return authorizationSession.isAuthorizedNoLogging(
         authenticationToken,
@@ -1227,6 +1417,9 @@ public class InternalKeyBindingMBean extends BaseManagedBean
             + getCurrentInternalKeyBindingId());
   }
 
+  /**
+   * @return bool
+   */
   public boolean isForbiddenToEdit() {
     return !isAllowedToEdit();
   }
@@ -1257,54 +1450,86 @@ public class InternalKeyBindingMBean extends BaseManagedBean
     return ret;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isBoundToCertificate() {
     return !"0".equals(getCurrentInternalKeyBindingId())
         && getBoundCertificateId() != null;
   }
 
+  /** Param. */
   private String boundCertificateId = null;
+  /** Param. */
   private String boundCertificateIssuerDn = "";
+  /** Param. */
   private String boundCertificateSerialNumber = "";
+  /** Param. */
   private String boundCaCertificateIssuerDn = "";
+  /** Param. */
   private String boundCaCertificateSerialNumber = "";
+  /** Param. */
   private String boundCertificateInternalCaName = null;
+  /** Param. */
   private String boundCertificateInternalCaId = null;
 
+  /**
+   * @return ID
+   */
   public String getBoundCertificateId() {
     loadCurrentCertificate();
     return boundCertificateId;
   }
 
+  /**
+   * @return DN
+   */
   public String getBoundCertificateIssuerDn() {
     loadCurrentCertificate();
     return boundCertificateIssuerDn;
   }
 
+  /**
+   * @return SN
+   */
   public String getBoundCertificateSerialNumber() {
     loadCurrentCertificate();
     return boundCertificateSerialNumber;
   }
 
+  /**
+   * @return DN
+   */
   public String getBoundCaCertificateIssuerDn() {
     loadCurrentCertificate();
     return boundCaCertificateIssuerDn;
   }
 
+  /**
+   * @return SN
+   */
   public String getBoundCaCertificateSerialNumber() {
     loadCurrentCertificate();
     return boundCaCertificateSerialNumber;
   }
 
+  /**
+   * @return Name
+   */
   public String getBoundCertificateInternalCaName() {
     loadCurrentCertificate();
     return boundCertificateInternalCaName;
   }
 
+  /**
+   * @return ID
+   */
   public String getBoundCertificateInternalCaId() {
     loadCurrentCertificate();
     return boundCertificateInternalCaId;
   }
 
+  /** Load. */
   private void loadCurrentCertificate() {
     final int internalKeyBindingId =
         Integer.parseInt(getCurrentInternalKeyBindingId());
@@ -1375,6 +1600,7 @@ public class InternalKeyBindingMBean extends BaseManagedBean
     }
   }
 
+  /** Vuew. */
   public void switchToView() {
     inEditMode = false;
     flushCurrentCache();
@@ -1385,21 +1611,30 @@ public class InternalKeyBindingMBean extends BaseManagedBean
     return "0".equals(getCurrentInternalKeyBindingId());
   }
 
+  /**
+   * @return token
+   */
   public Integer getCurrentCryptoToken() {
     return currentCryptoToken;
   }
 
-  public void setCurrentCryptoToken(final Integer currentCryptoToken) {
-    if (currentCryptoToken != null
-        && !currentCryptoToken.equals(this.currentCryptoToken)) {
+  /**
+   * @param acurrentCryptoToken Token
+   */
+  public void setCurrentCryptoToken(final Integer acurrentCryptoToken) {
+    if (acurrentCryptoToken != null
+        && !acurrentCryptoToken.equals(this.currentCryptoToken)) {
       // Clear if we change CryptoToken
       currentKeyPairAlias = null;
       currentSignatureAlgorithm = null;
       currentNextKeyPairAlias = null;
     }
-    this.currentCryptoToken = currentCryptoToken;
+    this.currentCryptoToken = acurrentCryptoToken;
   }
 
+  /**
+   * @return Name
+   */
   public String getCurrentCryptoTokenName() {
     if (currentCryptoToken == null) {
       final List<SelectItem> availableCryptoTokens = getAvailableCryptoTokens();
@@ -1415,48 +1650,77 @@ public class InternalKeyBindingMBean extends BaseManagedBean
     return info != null ? info.getName() : null;
   }
 
+  /**
+   * @return Name
+   */
   public String getCurrentName() {
     return currentName;
   }
 
-  public void setCurrentName(final String currentName) {
-    this.currentName = currentName;
+  /**
+   * @param acurrentName Name
+   */
+  public void setCurrentName(final String acurrentName) {
+    this.currentName = acurrentName;
   }
 
+  /**
+   * @return Alias
+   */
   public String getCurrentKeyPairAlias() {
     return currentKeyPairAlias;
   }
 
-  public void setCurrentKeyPairAlias(final String currentKeyPairAlias) {
-    if (currentKeyPairAlias != null
-        && !currentKeyPairAlias.equals(this.currentKeyPairAlias)) {
+  /**
+   * @param acurrentKeyPairAlias ALias
+   */
+  public void setCurrentKeyPairAlias(final String acurrentKeyPairAlias) {
+    if (acurrentKeyPairAlias != null
+        && !acurrentKeyPairAlias.equals(this.currentKeyPairAlias)) {
       // Clear if we change CryptoToken
       currentSignatureAlgorithm = null;
     }
-    this.currentKeyPairAlias = currentKeyPairAlias;
+    this.currentKeyPairAlias = acurrentKeyPairAlias;
   }
 
+  /**
+   * @return algo
+   */
   public String getCurrentSignatureAlgorithm() {
     return currentSignatureAlgorithm;
   }
 
+  /**
+   * @param acurrentSignatureAlgorithm Algo
+   */
   public void setCurrentSignatureAlgorithm(
-      final String currentSignatureAlgorithm) {
-    this.currentSignatureAlgorithm = currentSignatureAlgorithm;
+      final String acurrentSignatureAlgorithm) {
+    this.currentSignatureAlgorithm = acurrentSignatureAlgorithm;
   }
 
+  /**
+   * @return Alias
+   */
   public String getCurrentNextKeyPairAlias() {
     return currentNextKeyPairAlias;
   }
 
-  public void setCurrentNextKeyPairAlias(final String currentNextKeyPairAlias) {
-    this.currentNextKeyPairAlias = currentNextKeyPairAlias;
+  /**
+   * @param acurrentNextKeyPairAlias Alias
+   */
+  public void setCurrentNextKeyPairAlias(
+          final String acurrentNextKeyPairAlias) {
+    this.currentNextKeyPairAlias = acurrentNextKeyPairAlias;
   }
 
+  /**
+   * @return Tokens
+   */
   public List<SelectItem /*<Integer,String>*/> getAvailableCryptoTokens() {
     final List<SelectItem> availableCryptoTokens = new ArrayList<>();
-    for (CryptoTokenInfo current :
-        cryptoTokenManagementSession.getCryptoTokenInfos(authenticationToken)) {
+    for (CryptoTokenInfo current
+        : cryptoTokenManagementSession
+            .getCryptoTokenInfos(authenticationToken)) {
       if (current.isActive()
           && authorizationSession.isAuthorizedNoLogging(
               authenticationToken,
@@ -1484,7 +1748,7 @@ public class InternalKeyBindingMBean extends BaseManagedBean
 
   /**
    * Invoked when a CryptoToken has been selected and the "Update Next" button
-   * is clicked (or clicked by a JavaScript)
+   * is clicked (or clicked by a JavaScript).
    */
   public void reloadCryptoToken() {
     List<SelectItem> keyPairs = getAvailableKeyPairAliases();
@@ -1501,7 +1765,7 @@ public class InternalKeyBindingMBean extends BaseManagedBean
 
   /**
    * Invoked when a KeyPairAlias has been selected and the "Update Next" button
-   * is clicked (or clicked by a JavaScript)
+   * is clicked (or clicked by a JavaScript).
    */
   public void reloadKeyPairAlias() {
     if (!getAvailableSignatureAlgorithms().isEmpty()) {
@@ -1517,8 +1781,8 @@ public class InternalKeyBindingMBean extends BaseManagedBean
     final List<SelectItem> availableKeyPairAliases = new ArrayList<>();
     try {
       if (currentCryptoToken != null) {
-        for (final String alias :
-            cryptoTokenManagementSession.getKeyPairAliases(
+        for (final String alias
+            : cryptoTokenManagementSession.getKeyPairAliases(
                 authenticationToken, currentCryptoToken.intValue())) {
           availableKeyPairAliases.add(new SelectItem(alias, alias));
         }
@@ -1564,8 +1828,8 @@ public class InternalKeyBindingMBean extends BaseManagedBean
                     currentCryptoToken.intValue(),
                     currentKeyPairAlias)
                 .getPublicKey();
-        for (final String signatureAlgorithm :
-            AlgorithmTools.getSignatureAlgorithms(currentPublicKey)) {
+        for (final String signatureAlgorithm
+            : AlgorithmTools.getSignatureAlgorithms(currentPublicKey)) {
           if (OcspConfiguration.isAcceptedSignatureAlgorithm(
               signatureAlgorithm)) {
             availableSignatureAlgorithms.add(
@@ -1578,7 +1842,7 @@ public class InternalKeyBindingMBean extends BaseManagedBean
         if (currentSignatureAlgorithm != null
             && !OcspConfiguration.isAcceptedSignatureAlgorithm(
                 currentSignatureAlgorithm)) {
-          log.error(
+          LOG.error(
               "Adding '"
                   + currentSignatureAlgorithm
                   + "' because it was not one of '"
@@ -1633,6 +1897,9 @@ public class InternalKeyBindingMBean extends BaseManagedBean
     return availableCertificateAuthorities;
   }
 
+  /**
+   * @return Exts
+   */
   public List<SelectItem> getAvailableOcspExtensions() {
     final List<SelectItem> ocspExtensionItems = new ArrayList<>();
     ServiceLoader<OCSPExtension> serviceLoader =
@@ -1648,6 +1915,9 @@ public class InternalKeyBindingMBean extends BaseManagedBean
     return ocspExtensionItems;
   }
 
+  /**
+   * @return Exts
+   */
   public ListDataModel<String> getOcspExtensions() {
     if (ocspExtensions == null) {
       final int internalKeyBindingId =
@@ -1670,6 +1940,9 @@ public class InternalKeyBindingMBean extends BaseManagedBean
     return ocspExtensions;
   }
 
+  /**
+   * Add.
+   */
   @SuppressWarnings("unchecked")
   public void addOcspExtension() {
     final List<String> ocspExtensionsCurrent =
@@ -1689,6 +1962,8 @@ public class InternalKeyBindingMBean extends BaseManagedBean
     ocspExtensions.setWrappedData(ocspExtensionsCurrent);
   }
 
+  /** Remove.
+   */
   @SuppressWarnings("unchecked")
   public void removeOcspExtension() {
     final List<String> ocspExtensionsCurrent =
@@ -1703,37 +1978,61 @@ public class InternalKeyBindingMBean extends BaseManagedBean
         : ocspExtensionOidNameMap.get(oid);
   }
 
+  /**
+   * @return Name
+   */
   public String getOcspExtensionDisplayName() {
     return getOcspExtensionNameFromOid(getOcspExtensionOid());
   }
 
+  /**
+   * @return OID
+   */
   public String getOcspExtensionOid() {
     return ocspExtensions.getRowData();
   }
 
+  /**
+   * @return SN
+   */
   public String getCurrentCertificateSerialNumber() {
     return currentCertificateSerialNumber;
   }
 
+  /**
+   * @param acurrentCertificateSerialNumber SN
+   */
   public void setCurrentCertificateSerialNumber(
-      final String currentCertificateSerialNumber) {
-    this.currentCertificateSerialNumber = currentCertificateSerialNumber;
+      final String acurrentCertificateSerialNumber) {
+    this.currentCertificateSerialNumber = acurrentCertificateSerialNumber;
   }
 
+  /**
+   * @return Desc
+   */
   public String getCurrentTrustEntryDescription() {
     return currentTrustEntryDescription;
   }
 
+  /**
+   * @param description Desc
+   */
   public void setCurrentTrustEntryDescription(final String description) {
     this.currentTrustEntryDescription = description;
   }
 
+  /**
+   * @return Name
+   */
   public String getTrustedCertificatesCaName() {
     return caSession
         .getCAIdToNameMap()
         .get(trustedCertificates.getRowData().getCaId());
   }
 
+  /**
+   * @return SN
+   */
   public String getTrustedCertificatesSerialNumberHex() {
     return trustedCertificates
         .getRowData()
@@ -1771,17 +2070,17 @@ public class InternalKeyBindingMBean extends BaseManagedBean
 
   /**
    * Invoked when the user wants to a new entry to the list of trusted
-   * certificate references
+   * certificate references.
    */
   @SuppressWarnings("unchecked")
   public void addTrust() {
     final List<InternalKeyBindingTrustEntry> trustedCertificateReferences =
         (List<InternalKeyBindingTrustEntry>)
             getTrustedCertificates().getWrappedData();
-    final String currentCertificateSerialNumber =
+    final String acurrentCertificateSerialNumber =
         getCurrentCertificateSerialNumber();
-    if (currentCertificateSerialNumber == null
-        || currentCertificateSerialNumber.trim().length() == 0) {
+    if (acurrentCertificateSerialNumber == null
+        || acurrentCertificateSerialNumber.trim().length() == 0) {
       trustedCertificateReferences.add(
           new InternalKeyBindingTrustEntry(
               getCurrentCertificateAuthority(),
@@ -1791,7 +2090,7 @@ public class InternalKeyBindingMBean extends BaseManagedBean
       trustedCertificateReferences.add(
           new InternalKeyBindingTrustEntry(
               getCurrentCertificateAuthority(),
-              new BigInteger(currentCertificateSerialNumber.trim(), 16),
+              new BigInteger(acurrentCertificateSerialNumber.trim(), 16),
               currentTrustEntryDescription));
     }
     trustedCertificates.setWrappedData(trustedCertificateReferences);
@@ -1799,7 +2098,7 @@ public class InternalKeyBindingMBean extends BaseManagedBean
 
   /**
    * Invoked when the user wants to remove an entry to the list of trusted
-   * certificate references
+   * certificate references.
    */
   @SuppressWarnings("unchecked")
   public void removeTrust() {
@@ -1859,7 +2158,7 @@ public class InternalKeyBindingMBean extends BaseManagedBean
 
   /**
    * Invoked when the user is done configuring a new InternalKeyBinding and
-   * wants to persist it
+   * wants to persist it.
    */
   @SuppressWarnings("unchecked")
   public void createNew() {
@@ -1881,8 +2180,8 @@ public class InternalKeyBindingMBean extends BaseManagedBean
             internalKeyBindingProperties =
                 (List<DynamicUiProperty<? extends Serializable>>)
                     internalKeyBindingPropertyList.getWrappedData();
-        for (final DynamicUiProperty<? extends Serializable> property :
-            internalKeyBindingProperties) {
+        for (final DynamicUiProperty<? extends Serializable> property
+            : internalKeyBindingProperties) {
           dataMap.put(property.getName(), property.getValue());
         }
         currentInternalKeyBindingId =
@@ -1937,7 +2236,7 @@ public class InternalKeyBindingMBean extends BaseManagedBean
 
   /**
    * Invoked when the user is done re-configuring an InternalKeyBinding and
-   * wants to persist it
+   * wants to persist it.
    */
   @SuppressWarnings("unchecked")
   public void saveCurrent() {
@@ -1977,8 +2276,8 @@ public class InternalKeyBindingMBean extends BaseManagedBean
           internalKeyBindingProperties =
               (List<DynamicUiProperty<? extends Serializable>>)
                   internalKeyBindingPropertyList.getWrappedData();
-      for (final DynamicUiProperty<? extends Serializable> property :
-          internalKeyBindingProperties) {
+      for (final DynamicUiProperty<? extends Serializable> property
+          : internalKeyBindingProperties) {
         internalKeyBinding.setProperty(property.getName(), property.getValue());
       }
       currentInternalKeyBindingId =
@@ -2034,7 +2333,7 @@ public class InternalKeyBindingMBean extends BaseManagedBean
   }
 
   /**
-   * Just check crypto token status for keybindings other than ocsp
+   * Just check crypto token status for keybindings other than ocsp.
    *
    * @param currentKeyBindingInfo Info
    * @param cryptoTokenInfo Info
