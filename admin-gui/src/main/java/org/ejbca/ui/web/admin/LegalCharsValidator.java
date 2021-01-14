@@ -30,7 +30,8 @@ import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
  * @version $Id: LegalCharsValidator.java 29711 2018-08-21 16:29:40Z aminkh $
  */
 public class LegalCharsValidator implements Validator {
-  private static final Logger log = Logger.getLogger(LegalCharsValidator.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(LegalCharsValidator.class);
 
   @Override
   public void validate(
@@ -42,8 +43,8 @@ public class LegalCharsValidator implements Validator {
     if (object instanceof String) {
       textFieldValue = (String) object;
     }
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Validating component "
               + uIComponent.getClientId(facesContext)
               + " with value \""

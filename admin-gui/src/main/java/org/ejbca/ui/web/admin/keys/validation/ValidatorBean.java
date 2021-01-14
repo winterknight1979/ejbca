@@ -69,16 +69,18 @@ public class ValidatorBean extends BaseManagedBean implements Serializable {
   private static final long serialVersionUID = -2889613238729145716L;
 
   /** Class logger. */
-  private static final Logger log = Logger.getLogger(ValidatorBean.class);
+  private static final Logger LOG = Logger.getLogger(ValidatorBean.class);
 
+  /** Param. */
   @EJB private GlobalConfigurationSessionLocal configurationSession;
 
+  /** Param. */
   @EJB private CertificateProfileSessionLocal certificateProfileSession;
-
+  /** Param. */
   @EJB private KeyValidatorSessionLocal keyValidatorSession;
 
-  // Declarations in faces-config.xml
-  // @javax.faces.bean.ManagedProperty(value="#{validatorsBean}")
+  /** Declarations in faces-config.xml.
+   javax.faces.bean.ManagedProperty(value="#{validatorsBean}") */
   private ValidatorsBean validatorsBean;
 
   /** The validators ID. */
@@ -141,6 +143,9 @@ public class ValidatorBean extends BaseManagedBean implements Serializable {
     FacesContext.getCurrentInstance().renderResponse();
   }
 
+  /**
+   * @return Type
+   */
   public String getValidatorType() {
     return getValidator().getValidatorTypeIdentifier();
   }
@@ -154,8 +159,8 @@ public class ValidatorBean extends BaseManagedBean implements Serializable {
   public void setValidatorType(final String type) {
     final String oldType = validator.getValidatorTypeIdentifier();
     if (!oldType.equals(type)) {
-      if (log.isDebugEnabled()) {
-        log.debug("Change key validator type from " + oldType + " to " + type);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Change key validator type from " + oldType + " to " + type);
       }
       setValidator(ValidatorFactory.INSTANCE.getArcheType(type));
       getValidator().setDataMap(getValidator().getDataMap());
@@ -181,8 +186,8 @@ public class ValidatorBean extends BaseManagedBean implements Serializable {
       reset();
     }
     if (validator == null && newId != -1) {
-      if (log.isDebugEnabled()) {
-        log.debug("Request validator with id " + newId);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Request validator with id " + newId);
       }
       setValidatorId(newId);
       setValidator(keyValidatorSession.getValidator(newId));
@@ -194,8 +199,8 @@ public class ValidatorBean extends BaseManagedBean implements Serializable {
               ((DynamicUiModelAware) validator).getDynamicUiModel())) {
         ((DynamicUiModelAware) validator).initDynamicUiModel();
         uiModel = ((DynamicUiModelAware) validator).getDynamicUiModel();
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Request dynamic UI properties for validator with (id="
                   + validator.getProfileId()
                   + ") with properties "
@@ -204,7 +209,7 @@ public class ValidatorBean extends BaseManagedBean implements Serializable {
         try {
           initGrid(uiModel, validator.getClass().getSimpleName());
         } catch (DynamicUiModelException e) {
-          log.warn("Could not initialize dynamic UI PSM: " + e.getMessage(), e);
+          LOG.warn("Could not initialize dynamic UI PSM: " + e.getMessage(), e);
         }
       }
     }
@@ -214,10 +219,10 @@ public class ValidatorBean extends BaseManagedBean implements Serializable {
   /**
    * Sets the current validator.
    *
-   * @param validator the validator.
+   * @param avalidator the validator.
    */
-  public void setValidator(final Validator validator) {
-    this.validator = validator;
+  public void setValidator(final Validator avalidator) {
+    this.validator = avalidator;
   }
 
   /**
@@ -232,10 +237,10 @@ public class ValidatorBean extends BaseManagedBean implements Serializable {
   /**
    * Sets the validators ID.
    *
-   * @param validatorId the ID.
+   * @param avalidatorId the ID.
    */
-  public void setValidatorId(final int validatorId) {
-    this.validatorId = validatorId;
+  public void setValidatorId(final int avalidatorId) {
+    this.validatorId = avalidatorId;
   }
 
   /**
@@ -251,10 +256,10 @@ public class ValidatorBean extends BaseManagedBean implements Serializable {
   /**
    * Sets the dynamic UI properties PSM component as HTML data grid.
    *
-   * @param dataGrid the data grid.
+   * @param adataGrid the data grid.
    */
-  public void setDataGrid(final HtmlPanelGrid dataGrid) {
-    this.dataGrid = dataGrid;
+  public void setDataGrid(final HtmlPanelGrid adataGrid) {
+    this.dataGrid = adataGrid;
   }
 
   /**
@@ -299,11 +304,11 @@ public class ValidatorBean extends BaseManagedBean implements Serializable {
       excludeClasses.add(ExternalCommandCertificateValidator.class);
     }
     final List<SelectItem> ret = new ArrayList<>();
-    for (final Validator validator :
-        ValidatorFactory.INSTANCE.getAllImplementations(excludeClasses)) {
+    for (final Validator avalidator
+        : ValidatorFactory.INSTANCE.getAllImplementations(excludeClasses)) {
       ret.add(
           new SelectItem(
-              validator.getValidatorTypeIdentifier(), validator.getLabel()));
+              avalidator.getValidatorTypeIdentifier(), avalidator.getLabel()));
     }
     Collections.sort(
         ret,
@@ -359,8 +364,8 @@ public class ValidatorBean extends BaseManagedBean implements Serializable {
    */
   public List<SelectItem> getApplicablePhases() {
     final List<SelectItem> result = new ArrayList<>();
-    for (Integer index :
-        ((PhasedValidator) getValidator()).getApplicablePhases()) {
+    for (Integer index
+        : ((PhasedValidator) getValidator()).getApplicablePhases()) {
       result.add(
           new SelectItem(
               index,
@@ -385,12 +390,13 @@ public class ValidatorBean extends BaseManagedBean implements Serializable {
       final Object value)
       throws ValidatorException {
     final String descripion = (String) value;
+    final int max = 256;
     if (StringUtils.isNotBlank(descripion)
-        && descripion.trim().length() > 256) {
+        && descripion.trim().length() > max) {
       final String message =
           "Description must not contain more than 256 characters.";
-      if (log.isDebugEnabled()) {
-        log.debug(message);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(message);
       }
       throw new ValidatorException(
           new FacesMessage(FacesMessage.SEVERITY_ERROR, message, message));
@@ -422,7 +428,7 @@ public class ValidatorBean extends BaseManagedBean implements Serializable {
             new FacesMessage(FacesMessage.SEVERITY_ERROR, message, message));
       }
     } catch (ParseException e) {
-      log.debug("Could not parse Date: " + string);
+      LOG.debug("Could not parse Date: " + string);
     }
   }
 
@@ -475,7 +481,7 @@ public class ValidatorBean extends BaseManagedBean implements Serializable {
             new FacesMessage(FacesMessage.SEVERITY_ERROR, message, message));
       }
     } catch (ParseException e) {
-      log.debug("Could not parse Date: " + string);
+      LOG.debug("Could not parse Date: " + string);
     }
   }
 
@@ -574,23 +580,23 @@ public class ValidatorBean extends BaseManagedBean implements Serializable {
    * @return the navigation outcome defined in faces-config.xml.
    */
   public String save() {
-    final Validator validator = getValidator();
-    if (log.isDebugEnabled()) {
-      log.debug("Try to save validator: " + validator);
+    final Validator avalidator = getValidator();
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Try to save validator: " + avalidator);
     }
     try {
-      if (validator instanceof DynamicUiModelAware) {
-        ((DynamicUiModelAware) validator)
+      if (avalidator instanceof DynamicUiModelAware) {
+        ((DynamicUiModelAware) avalidator)
             .getDynamicUiModel()
-            .writeProperties(((ValidatorBase) validator).getRawData());
+            .writeProperties(((ValidatorBase) avalidator).getRawData());
       }
-      keyValidatorSession.changeKeyValidator(getAdmin(), validator);
+      keyValidatorSession.changeKeyValidator(getAdmin(), avalidator);
       addInfoMessage("VALIDATORSAVED");
       reset();
       return "done";
     } catch (AuthorizationDeniedException e) {
       addNonTranslatedErrorMessage(
-          "Not authorized to edit validator " + validator.getProfileName());
+          "Not authorized to edit validator " + avalidator.getProfileName());
     } catch (KeyValidatorDoesntExistsException e) {
       // NOPMD: ignore do nothing
     }

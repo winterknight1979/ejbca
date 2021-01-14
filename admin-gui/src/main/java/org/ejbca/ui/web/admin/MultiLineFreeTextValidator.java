@@ -30,9 +30,11 @@ import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
  *     samuellb $
  */
 public class MultiLineFreeTextValidator implements Validator {
-  private static final Logger log =
+  /** Logger. */
+    private static final Logger LOG =
       Logger.getLogger(MultiLineFreeTextValidator.class);
 
+  /** Param. */
   private static final String CONTROL_CHARS =
       "\u0000-\u0009\u000B\u000C\u000E-\u001F"; // all characters from 0x00-0x1F
                                                 // except 0A (line feed) and 0D
@@ -45,8 +47,8 @@ public class MultiLineFreeTextValidator implements Validator {
       final Object object)
       throws ValidatorException {
     final String textFieldValue = (String) object;
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Validating component "
               + uIComponent.getClientId(facesContext)
               + " with value \""

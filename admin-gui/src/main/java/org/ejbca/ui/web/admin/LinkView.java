@@ -21,34 +21,56 @@ package org.ejbca.ui.web.admin;
  */
 public class LinkView {
 
-  private final String URI;
+      /** Param. */
+  private final String uri;
+  /** Param. */
   private final String preDescription;
+  /** Param. */
   private final String description;
+  /** Param. */
   private final String postDescription;
 
+  /**
+   * @param aURI URI
+   * @param apreDescription Desc
+   * @param adescription Desc
+   * @param apostDescription Desc
+   */
   public LinkView(
-      final String URI,
-      final String preDescription,
-      final String description,
-      final String postDescription) {
-    this.URI = URI;
-    this.preDescription = preDescription;
-    this.description = description;
-    this.postDescription = postDescription;
+      final String aURI,
+      final String apreDescription,
+      final String adescription,
+      final String apostDescription) {
+    this.uri = aURI;
+    this.preDescription = apreDescription;
+    this.description = adescription;
+    this.postDescription = apostDescription;
   }
 
+  /**
+   * @return URI
+   */
   public String getURI() {
-    return URI;
+    return uri;
   }
 
+  /**
+   * @return desc
+   */
   public String getPreDescription() {
     return preDescription;
   }
 
+  /**
+   * @return desc
+   */
   public String getPostDescription() {
     return postDescription;
   }
 
+  /**
+   * @return Desc
+   */
   public String getDescription() {
     return description;
   }

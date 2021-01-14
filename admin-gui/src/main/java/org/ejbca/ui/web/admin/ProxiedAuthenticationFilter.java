@@ -42,13 +42,17 @@ import org.ejbca.core.model.util.EjbLocalHelper;
  */
 public class ProxiedAuthenticationFilter implements Filter {
 
+      /** Param. */
   private static final String ATTR_X509CERTIFICATE =
       "javax.servlet.request.X509Certificate";
+  /** Param. */
   private static final String ATTR_PROXIED_AUTH_TOKEN_STRING =
       "proxiedAuthenticationTokenString";
-  private static final Logger log =
+  /** Param. */
+  private static final Logger LOG =
       Logger.getLogger(ProxiedAuthenticationFilter.class);
 
+  /** Param. */
   private boolean proxiedAuthenticationEnabled = false;
 
   @Override
@@ -58,7 +62,7 @@ public class ProxiedAuthenticationFilter implements Filter {
   }
 
   @Override
-  public void destroy() {}
+  public void destroy() { }
 
   @Override
   public void doFilter(
@@ -72,8 +76,8 @@ public class ProxiedAuthenticationFilter implements Filter {
             (String) request.getAttribute(ATTR_PROXIED_AUTH_TOKEN_STRING);
         if (username != null) {
           final EjbLocalHelper ejb = new EjbLocalHelper();
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "No client certificate supplied through SSL/TLS. Trying"
                     + " alternative certificate emulation lookup for subject '"
                     + username
@@ -101,7 +105,7 @@ public class ProxiedAuthenticationFilter implements Filter {
                     + " subject '"
                     + username
                     + "'.";
-            log.info(msg);
+            LOG.info(msg);
             showError((HttpServletResponse) response, msg);
             return;
           } else {
@@ -117,11 +121,11 @@ public class ProxiedAuthenticationFilter implements Filter {
                       + " using client certificate. Subject was '"
                       + username
                       + "'.";
-              log.info(msg);
+              LOG.info(msg);
               showError((HttpServletResponse) response, msg);
               return;
             } else {
-              log.info(
+              LOG.info(
                   "Using client certificate emulation for subject '"
                       + username
                       + "'.");

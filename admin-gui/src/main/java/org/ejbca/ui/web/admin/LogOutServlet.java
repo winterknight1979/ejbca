@@ -30,8 +30,8 @@ public class LogOutServlet extends HttpServlet {
 
   private static final long serialVersionUID = 1L;
 
-  // JavaServlet Specification 2.5 Section 7.1.1: "...The name of the session
-  // tracking cookie must be JSESSIONID".
+  /** JavaServlet Specification 2.5 Section 7.1.1: "...The name of the session
+  * tracking cookie must be JSESSIONID". */
   private static final String SESSIONCOOKIENAME = "JSESSIONID";
 
   @Override

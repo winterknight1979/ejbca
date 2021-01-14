@@ -51,7 +51,7 @@ public class ValidatorsBean extends BaseManagedBean {
   private static final long serialVersionUID = 1969611638716145216L;
 
   /** Class logger. */
-  private static final Logger log = Logger.getLogger(ValidatorsBean.class);
+  private static final Logger LOG = Logger.getLogger(ValidatorsBean.class);
 
   /** Selected validator id. */
   private Integer validatorId = null;
@@ -77,10 +77,13 @@ public class ValidatorsBean extends BaseManagedBean {
   /** Validators list to render. */
   private ListDataModel<ValidatorItem> validatorItems = null;
 
+  /** Param. */
   @EJB private CaSessionLocal caSession;
 
+  /** Param. */
   @EJB private CertificateProfileSessionLocal certificateProfileSession;
 
+  /** Param. */
   @EJB private KeyValidatorSessionLocal keyValidatorSession;
 
   /**
@@ -113,10 +116,10 @@ public class ValidatorsBean extends BaseManagedBean {
   /**
    * Sets the validator name.
    *
-   * @param name the name.
+   * @param oname the name.
    */
-  public void setValidatorName(String name) {
-    name = name.trim();
+  public void setValidatorName(final String oname) {
+    String name = oname.trim();
     if (StringTools.checkFieldForLegalChars(name)) {
       addErrorMessage("ONLYCHARACTERS");
     } else {
@@ -144,7 +147,7 @@ public class ValidatorsBean extends BaseManagedBean {
 
   /**
    * Force a shorter scope (than session scoped) for the ListDataModel by always
-   * resetting it before it is rendered
+   * resetting it before it is rendered.
    *
    * @return Always empty string
    */
@@ -156,32 +159,45 @@ public class ValidatorsBean extends BaseManagedBean {
   /** Internal class for key validator items rendered as table. */
   public class ValidatorItem {
 
+        /** Param. */
     private final int id;
+    /** Param. */
     private final String name;
+    /** Param. */
     private final String implementationLabel;
 
     /**
      * Creates a new instance.
      *
-     * @param id the id
-     * @param name the name
-     * @param implementationLabel the label of the imlementation
+     * @param anid the id
+     * @param aname the name
+     * @param animplementationLabel the label of the imlementation
      */
     public ValidatorItem(
-        final int id, final String name, final String implementationLabel) {
-      this.id = id;
-      this.implementationLabel = implementationLabel;
-      this.name = name;
+        final int anid,
+        final String aname, final String animplementationLabel) {
+      this.id = anid;
+      this.implementationLabel = animplementationLabel;
+      this.name = aname;
     }
 
+    /**
+     * @return ID
+     */
     public int getId() {
       return id;
     }
 
+    /**
+     * @return name
+     */
     public String getName() {
       return name;
     }
 
+    /**
+     * @return label
+     */
     public String getLabel() {
       return implementationLabel;
     }
@@ -209,8 +225,8 @@ public class ValidatorsBean extends BaseManagedBean {
               new ValidatorItem(
                   id, validator.getProfileName(), validator.getLabel()));
         } else {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "User with token "
                     + getAdmin().getUniqueId()
                     + " is not authorized to access rule "
@@ -425,6 +441,11 @@ public class ValidatorsBean extends BaseManagedBean {
     validatorName = null;
   }
 
+  /**
+   * @param facesContext Faces
+   * @param uiComponent UI
+   * @param object Obj
+   */
   public void validateExternalCommand(
       final FacesContext facesContext,
       final UIComponent uiComponent,
