@@ -17,50 +17,71 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.faces.model.SelectItem;
-
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.log4j.Logger;
 
 /**
- * Comparator for sorting select items by displayed name.  
+ * Comparator for sorting select items by displayed name.
+ *
  * @version $Id: SelectItemComparator.java 29652 2018-08-15 12:05:16Z anatom $
  */
-public class SelectItemComparator implements Comparator<SelectItem>, Serializable {
+public class SelectItemComparator
+    implements Comparator<SelectItem>, Serializable {
 
-    private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(SelectItemComparator.class);
-    
-    private final Set<Object> specialObjects;
-    
-    public SelectItemComparator() {
-        this(new Object[0]);
-    }
-    
-    /** specialObjects will be placed first. Typically these will be IDs 
-     * @param specialObjects Objects*/ 
-    public SelectItemComparator(Object... specialObjects) {
-        this.specialObjects = new HashSet<>(Arrays.asList(specialObjects));
-    }
+  private static final long serialVersionUID = 1L;
+  /** Loffer. */
+  private static final Logger LOG =
+      Logger.getLogger(SelectItemComparator.class);
 
-    @Override
-    public int compare(SelectItem o1, SelectItem o2) {
-        final boolean special1 = specialObjects.contains(o1.getValue());
-        final boolean special2 = specialObjects.contains(o2.getValue());
-        if (log.isTraceEnabled()) {
-            log.trace("compare(" + o1.getLabel() + "," + o2.getLabel() + "). 1 is special: " + special1 + ",  2 is special: " + special2 + ",  value comparison: " + ObjectUtils.compare(o1.getLabel(), o2.getLabel()));
-        }
-        if (special1 == special2) {
-            if (o1.getLabel() == null && o2.getLabel() == null) { return 0; }
-            else if (o1.getLabel() == null) { return -1; }
-            else if (o2.getLabel() == null) { return 1; }
-            else { return o1.getLabel().compareToIgnoreCase(o2.getLabel()); }
-        } else if (special1) {
-            return -1;
-        } else {
-            return 1;
-        }
+  /** Param. */
+  private final Set<Object> specialObjects;
+
+  /** Construct. */
+  public SelectItemComparator() {
+    this(new Object[0]);
+  }
+
+  /**
+   * specialObjects will be placed first. Typically these will be IDs
+   *
+   * @param thespecialObjects Objects
+   */
+  public SelectItemComparator(final Object... thespecialObjects) {
+    this.specialObjects = new HashSet<>(Arrays.asList(thespecialObjects));
+  }
+
+  @Override
+  public int compare(final SelectItem o1, final SelectItem o2) {
+    final boolean special1 = specialObjects.contains(o1.getValue());
+    final boolean special2 = specialObjects.contains(o2.getValue());
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
+          "compare("
+              + o1.getLabel()
+              + ","
+              + o2.getLabel()
+              + "). 1 is special: "
+              + special1
+              + ",  2 is special: "
+              + special2
+              + ",  value comparison: "
+              + ObjectUtils.compare(o1.getLabel(), o2.getLabel()));
     }
-    
+    if (special1 == special2) {
+      if (o1.getLabel() == null && o2.getLabel() == null) {
+        return 0;
+      } else if (o1.getLabel() == null) {
+        return -1;
+      } else if (o2.getLabel() == null) {
+        return 1;
+      } else {
+        return o1.getLabel().compareToIgnoreCase(o2.getLabel());
+      }
+    } else if (special1) {
+      return -1;
+    } else {
+      return 1;
+    }
+  }
 }

@@ -14,37 +14,53 @@
 package org.ejbca.ui.web.admin;
 
 import java.math.BigInteger;
-
 import javax.faces.application.FacesMessage;
 import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 import javax.faces.validator.Validator;
 import javax.faces.validator.ValidatorException;
-
 import org.apache.log4j.Logger;
 import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
 
 /**
- * Validates hexadecimal serial numbers entered in the Admin GUI by constructing a BigInteger.
- * Like HexSerialNumberValidator, except that this one accepts an empty/null values
- * and that it doesn't support "matchValue" fields.
- * 
- * @version $Id: OptionalHexSerialNumberValidator.java 19902 2014-09-30 14:32:24Z anatom $
+ * Validates hexadecimal serial numbers entered in the Admin GUI by constructing
+ * a BigInteger. Like HexSerialNumberValidator, except that this one accepts an
+ * empty/null values and that it doesn't support "matchValue" fields.
+ *
+ * @version $Id: OptionalHexSerialNumberValidator.java 19902 2014-09-30
+ *     14:32:24Z anatom $
  */
 public class OptionalHexSerialNumberValidator implements Validator {
-	private static final Logger log = Logger.getLogger(OptionalHexSerialNumberValidator.class);
+  /** Param. */
+    private static final Logger LOG =
+      Logger.getLogger(OptionalHexSerialNumberValidator.class);
 
-    @Override
-	public void validate(FacesContext facesContext, UIComponent textField, Object object) throws ValidatorException {
-		if (log.isDebugEnabled()) {
-			log.debug("Validating component " + textField.getClientId(facesContext) + " with value \"" + object + "\"");
-		}
-		if (object != null && !((String)object).trim().isEmpty()) {
-            try {
-                new BigInteger((String) object, 16);
-            } catch (NumberFormatException e) {
-                throw new ValidatorException(new FacesMessage(FacesMessage.SEVERITY_ERROR, EjbcaJSFHelper.getBean().getEjbcaWebBean().getText("HEXREQUIRED"), null));
-            }
-		}
-	}
+  @Override
+  public void validate(
+      final FacesContext facesContext,
+      final UIComponent textField,
+      final Object object)
+      throws ValidatorException {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
+          "Validating component "
+              + textField.getClientId(facesContext)
+              + " with value \""
+              + object
+              + "\"");
+    }
+    if (object != null && !((String) object).trim().isEmpty()) {
+      try {
+        new BigInteger((String) object, 16);
+      } catch (NumberFormatException e) {
+        throw new ValidatorException(
+            new FacesMessage(
+                FacesMessage.SEVERITY_ERROR,
+                EjbcaJSFHelper.getBean()
+                    .getEjbcaWebBean()
+                    .getText("HEXREQUIRED"),
+                null));
+      }
+    }
+  }
 }

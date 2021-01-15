@@ -268,7 +268,7 @@
     <div class="section section-1" id="src-23856312_id-.WebServiceInterfacev6.15.0-ConfiguringWebServicesBehaviorConfiguring_Web_Services_Behavior">
         <h1 class="heading "><span id="src-23856312_id-.WebServiceInterfacev6.15.0-Configuring_Web_Services_Behavior" class="confluence-anchor-link"></span><span>Configuring Web Services Behavior </span></h1>
 <p   
->The sample property file <tt class=" ">conf/jaxws.properties.sample</tt> contains more information on how to configure the behavior of the EJBCA WS. Copy this to <tt class=" ">conf/jaxws.properties</tt>, edit and redeploy.</p>
+>The sample property file <code class=" ">conf/jaxws.properties.sample</code> contains more information on how to configure the behavior of the EJBCA WS. Copy this to <code class=" ">conf/jaxws.properties</code>, edit and redeploy.</p>
 <p   
 >If the end entity profile information must be used to define default values when you create a user, the flag <strong class=" ">Allow merge DN Webservices</strong> must be checked in the end entity profile.</p>
 <p   
@@ -298,7 +298,7 @@
     <div class="section section-1" id="src-23856312_id-.WebServiceInterfacev6.15.0-ConfiguringWebServicesCLIConfiguring_Web_Services_CLI">
         <h1 class="heading "><span id="src-23856312_id-.WebServiceInterfacev6.15.0-Configuring_Web_Services_CLI" class="confluence-anchor-link"></span><span>Configuring Web Services CLI </span></h1>
 <p   
->Edit the <tt class=" ">dist/ejbca-ws-cli/ejbcawsracli.properties</tt> before running the EJBCA WS CLI. The files contain descriptions of what can be configured. Note that this directory is recreated each time you build EJBCA, so copy it to a separate location if you intend to rebuild or redeploy EJBCA and keep the configuration.</p>
+>Edit the <code class=" ">dist/ejbca-ws-cli/ejbcawsracli.properties</code> before running the EJBCA WS CLI. The files contain descriptions of what can be configured. Note that this directory is recreated each time you build EJBCA, so copy it to a separate location if you intend to rebuild or redeploy EJBCA and keep the configuration.</p>
 <p   
 >Configuration for the Web Services CLI requires a P12 or JKS keystore. You can try the WS CLI using the superadmin.p12 keystore generated during the installation or generate a new JKS using the Admin GUI.</p>
 <p   
@@ -319,9 +319,9 @@
 <p   
 >To use the Web Service CLI client, copy the directory with all included files to the computer you want to remotely administer from. Then create a JKS or P12 file with the appropriate access rights (see <a   href="#src-23856312_id-.WebServiceInterfacev6.15.0-Accessrules_required_when_using_the_Web">Access rules required when using the Web Service API</a>), and finally configure the file ejbcawsracli.properties. In this file you should specify the hostname of the CA server, the name of the keystore and the password to unlock it. Documentation for each setting is in the file ejbcacsracli.properties.</p>
 <p   
->To list each sub-command, run <tt class=" ">ejbcaClientToolBox.sh EjbcaWsRaCli</tt>.</p>
+>To list each sub-command, run <code class=" ">ejbcaClientToolBox.sh EjbcaWsRaCli</code>.</p>
 <p   
->To view detailed help on using the CLI, run <tt class=" ">ejbcaClientToolBox.sh EjbcaWsRaCli &quot;subcommand&quot;</tt>.</p>
+>To view detailed help on using the CLI, run <code class=" ">ejbcaClientToolBox.sh EjbcaWsRaCli &quot;subcommand&quot;</code>.</p>
 <p   
 >Example usage:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
@@ -338,7 +338,7 @@
 <p   
 >If you are using another language than Java, start by downloading the WSDL file at http://hostname:8080/ejbca/ejbcaws/ejbcaws?wsdl. With this you can use your programming language tools to generate client stubs.</p>
 <p   
->When using Java you can find the required libs in <tt class=" ">dist/ejbcawscli</tt> and its <tt class=" ">lib</tt> subdirectory.</p>
+>When using Java you can find the required libs in <code class=" ">dist/ejbcawscli</code> and its <code class=" ">lib</code> subdirectory.</p>
 <p   
 >To initialize the Web Service:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
@@ -416,7 +416,7 @@
 <p   
 >The SOAP API is compatible with all development languages that can handle SOAP messages. This includes programming languages such as Java, C# and PHP. The normal approach is to use your programming languages tools to generate client stubs, which are classes to be used in your client program. For Java, such stub classes are already included as part of the clientToolBox WS client provided.</p>
 <p   
->Client stubs are generated from the WSDL file, which includes all information to use the WS API. The WSDL can be accessed from your installed EJBCA at https://localhost:8443/ejbca/ejbcaws/ejbcaws?wsdl. In the WSDL all methods and parameters are described, but without detailed documentation. For example, the following is described in the WSDL for the <tt class=" ">getProfile</tt> method:</p>
+>Client stubs are generated from the WSDL file, which includes all information to use the WS API. The WSDL can be accessed from your installed EJBCA at https://localhost:8443/ejbca/ejbcaws/ejbcaws?wsdl. In the WSDL all methods and parameters are described, but without detailed documentation. For example, the following is described in the WSDL for the <code class=" ">getProfile</code> method:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">&lt;xs:complexType name=</code><code class="string">"getProfile"</code><code class="plain">&gt;</code></div>
@@ -430,7 +430,7 @@
 <p   
 >There are two parameters to the method arg0 that is an integer and arg1 that is a string. The Javadoc WS API documentation contains detailed descriptions of the arguments, see <a  class="external-link" href="https://www.ejbca.org/docs/ws/index.html">WS API documentation</a> and specifically <a  class="external-link" href="https://www.ejbca.org/docs/ws/org/ejbca/core/protocol/ws/client/gen/EjbcaWS.html">EjbcaWS</a>.</p>
 <p   
->The API documentation covers methods for the parameters, return value, privileges needed to use the method (based on the TLS client certificate), and errors that can occur, returned as SOAP error classes. For example, the following is documented for the <tt class=" ">getProfile</tt> method:</p>
+>The API documentation covers methods for the parameters, return value, privileges needed to use the method (based on the TLS client certificate), and errors that can occur, returned as SOAP error classes. For example, the following is documented for the <code class=" ">getProfile</code> method:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">Parameters:</code></div>
@@ -446,7 +446,7 @@
     <div class="section section-1" id="src-23856312_id-.WebServiceInterfacev6.15.0-SampleCodeSample_code">
         <h1 class="heading "><span id="src-23856312_id-.WebServiceInterfacev6.15.0-Sample_code" class="confluence-anchor-link"></span><span>Sample Code </span></h1>
 <p   
->See the file <tt class=" ">modules/ejbca-ws/src/org/ejbca/core/protocol/ws/common/IEjbcaWS</tt> for more detailed instructions of the API. Sample code can be taken from:</p>
+>See the file <code class=" ">modules/ejbca-ws/src/org/ejbca/core/protocol/ws/common/IEjbcaWS</code> for more detailed instructions of the API. Sample code can be taken from:</p>
 <ul class=" "><li class=" "><p   
 >The JUnit tests for the WS-API: modules/systemtests/src/org/ejbca/core/protocol/ws/EjbcaWSTest.java</p>
 </li><li class=" "><p   
@@ -644,9 +644,9 @@
 </li><li class=" "><p   
 >ADMIN_ISSUER_DN: Issuer DN of the client certificate in the call</p>
 </li></ul><p   
->The configuration is specified in conf/jaxws.properties. In the JBoss logger configuration, use <tt class=" ">org.ejbca.core.protocol.ws.logger.TransactionLogger</tt> as category name for the appender.</p>
+>The configuration is specified in conf/jaxws.properties. In the JBoss logger configuration, use <code class=" ">org.ejbca.core.protocol.ws.logger.TransactionLogger</code> as category name for the appender.</p>
 <p   
->Example sections for a JBoss <tt class=" ">standalone.xml</tt> to enable WS transaction logging:</p>
+>Example sections for a JBoss <code class=" ">standalone.xml</code> to enable WS transaction logging:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">&lt;size-rotating-file-handler name=</code><code class="string">"WSTRANS"</code><code class="plain"> autoflush=</code><code class="string">"true"</code><code class="plain">&gt;</code></div>

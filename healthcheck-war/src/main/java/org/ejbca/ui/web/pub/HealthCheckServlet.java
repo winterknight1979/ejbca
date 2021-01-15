@@ -170,7 +170,7 @@ public class HealthCheckServlet extends HttpServlet {
    * @param resp response
    */
   private void respond(final String ostatus, final HttpServletResponse resp) {
-	String status = ostatus;
+    String status = ostatus;
     resp.setContentType("text/plain");
     try {
       final Writer out = resp.getWriter();

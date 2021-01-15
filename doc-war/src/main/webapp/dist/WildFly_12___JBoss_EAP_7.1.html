@@ -301,7 +301,7 @@ Support for WildFly 12 / JBoss EAP 7.1 should be considered experimental until f
     </div>
 <p  class="subsubsection" 
 ><img  class="emoticon emoticon-warning"  src="images/s/en_US/8100/b0984b7297905b7c7bd946458f753ce0130bfc8c/_/images/icons/emoticons/warning.svg" alt="images/s/en_US/8100/b0984b7297905b7c7bd946458f753ce0130bfc8c/_/images/icons/emoticons/warning.svg"   />
- Wait for the reload to complete by checking the server log or the result of <tt class=" ">:read-attribute(name=server-state)</tt> before continuing.</p>
+ Wait for the reload to complete by checking the server log or the result of <code class=" ">:read-attribute(name=server-state)</code> before continuing.</p>
     </div>
     <div class="section section-1" id="src-16237735_safe-id-aWQtLldpbGRGbHkxMi9KQm9zc0VBUDcuMXY2LjE1LjAtQ29uZmlndXJlTG9nZ2luZw">
         <h1 class="heading "><span>Configure Logging</span></h1>
@@ -327,7 +327,7 @@ Support for WildFly 12 / JBoss EAP 7.1 should be considered experimental until f
 <p  class="subsubsection" 
 >Finally, build and deploy the EJBCA (application ear file) to WildFly, without touching any WildFly configuration, by running the following EJBCA command.</p>
 <p   
->Before running <tt class=" ">deployear</tt> below, ensure to point to your application server by setting APPSRV_HOME and configure your database in conf/database.properties.</p>
+>Before running <code class=" ">deployear</code> below, ensure to point to your application server by setting APPSRV_HOME and configure your database in conf/database.properties.</p>
 <p   
 >Run the following commands at the regular command prompt in EJBCA_HOME:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
@@ -381,7 +381,7 @@ Support for WildFly 12 / JBoss EAP 7.1 should be considered experimental until f
 </div>
     </div>
 <p   
->Wait for the reload to complete by checking the server log or the result of <tt class=" ">:read-attribute(name=server-state)</tt> before continuing.</p>
+>Wait for the reload to complete by checking the server log or the result of <code class=" ">:read-attribute(name=server-state)</code> before continuing.</p>
     </div>
     <div class="section section-2" id="src-16237735_safe-id-aWQtLldpbGRGbHkxMi9KQm9zc0VBUDcuMXY2LjE1LjAtQWRkbmV3aW50ZXJmYWNlc2FuZHNvY2tldHM">
         <h2 class="heading "><span>Add new interfaces and sockets</span></h2>
@@ -473,7 +473,7 @@ Support for WildFly 12 / JBoss EAP 7.1 should be considered experimental until f
     <div class="section section-1" id="src-16237735_safe-id-aWQtLldpbGRGbHkxMi9KQm9zc0VBUDcuMXY2LjE1LjAtT3B0aW9uYWw6UmVkaXJlY3R0b3RoZUFwcGxpY2F0aW9uZm9ydW5rbm93blVSTHM">
         <h1 class="heading label"><span>Optional: Redirect to the Application for unknown URLs</span></h1>
 <p   
->Known URLs starts with <tt class=" ">/ejbca/</tt> or <tt class=" ">/.well-known/</tt> (EST) for EJBCA according to the following example:</p>
+>Known URLs starts with <code class=" ">/ejbca/</code> or <code class=" ">/.well-known/</code> (EST) for EJBCA according to the following example:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">/subsystem</code><code class="plain">=undertow</code><code class="plain">/configuration</code><code class="plain">=filter</code><code class="plain">/rewrite</code><code class="plain">=redirect-to-app:add(redirect=</code><code class="functions">true</code><code class="plain">,target=</code><code class="string">"/ejbca/"</code><code class="plain">)</code></div>
@@ -507,7 +507,7 @@ Support for WildFly 12 / JBoss EAP 7.1 should be considered experimental until f
     <div class="section section-1" id="src-16237735_safe-id-aWQtLldpbGRGbHkxMi9KQm9zc0VBUDcuMXY2LjE1LjAtT3B0aW9uYWw6QWRkU3VwcG9ydGZvclBLQ1MjMTEoSFNNcyk">
         <h1 class="heading "><span>Optional: Add Support for PKCS#11 (HSMs)</span></h1>
 <p   
->WildFly by default isolates away most sun classes. EJBCA configures JBoss/WildFly to expose these classes (sun/security/pkcs11/wrapper), as of EJBCA 6.6.3, by using a <tt class=" ">jboss-deployment-structure.xml</tt>. This makes configuration in <tt class=" ">modules/system/layers/base/sun/jdk/main/module.xml</tt> not needed.</p>
+>WildFly by default isolates away most sun classes. EJBCA configures JBoss/WildFly to expose these classes (sun/security/pkcs11/wrapper), as of EJBCA 6.6.3, by using a <code class=" ">jboss-deployment-structure.xml</code>. This makes configuration in <code class=" ">modules/system/layers/base/sun/jdk/main/module.xml</code> not needed.</p>
     </div>
     <div class="section section-1" id="src-16237735_safe-id-aWQtLldpbGRGbHkxMi9KQm9zc0VBUDcuMXY2LjE1LjAtT3B0aW9uYWw6QWRkU3VwcG9ydGZvclNlbmRpbmdFbWFpbA">
         <h1 class="heading "><span>Optional: Add Support for Sending Email</span></h1>

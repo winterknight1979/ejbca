@@ -327,7 +327,7 @@
 </div>
     </div>
 <p   
->In JBoss 7/EAP6/WildFly10, you can configure the logging section of <tt class=" ">standalone.xml.</tt></p>
+>In JBoss 7/EAP6/WildFly10, you can configure the logging section of <code class=" ">standalone.xml.</code></p>
 <p   
 >The following displays an example of a configuration specifying a more advanced logger, logging of EJBCA events to a separate ejbca.log log file that rotates by size every 32MB, and keeping maximum 31 rotated log files:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
@@ -488,7 +488,7 @@
     <div class="section section-3" id="src-23858529_id-.Loggingv6.15.0-ConfigureEJBCALogging">
         <h3 class="heading "><span>Configure EJBCA Logging</span></h3>
 <p   
->On the EJBCA server, configure WildFly to send messages to Graylog with syslog TCP. This is done by adding the following section in the logging subsystem in the JBoss/WildFly <tt class=" ">standalone.xml:</tt></p>
+>On the EJBCA server, configure WildFly to send messages to Graylog with syslog TCP. This is done by adding the following section in the logging subsystem in the JBoss/WildFly <code class=" ">standalone.xml:</code></p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">&lt;custom-handler name=</code><code class="string">"SYSLOGTCP"</code><code class="plain"> </code><code class="keyword">class</code><code class="plain">=</code><code class="string">"org.jboss.logmanager.handlers.SyslogHandler"</code><code class="plain"> module=</code><code class="string">"org.jboss.logmanager"</code><code class="plain">&gt;</code></div>
@@ -512,7 +512,7 @@
 </div>
     </div>
 <p   
->You also need to configure the root-logger to use the new handler, this will start sending the same logs to syslog. Add the new handler by modifying the root-loggers section in <tt class=" ">standalone.xml:</tt></p>
+>You also need to configure the root-logger to use the new handler, this will start sending the same logs to syslog. Add the new handler by modifying the root-loggers section in <code class=" ">standalone.xml:</code></p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">&lt;root-logger&gt;</code></div>
@@ -526,7 +526,7 @@
 </div>
     </div>
 <p   
->You can limit the logging further to only include the audit log, by configuring to only send events from <tt class=" ">org.cesecore.audit.impl.log4j.Log4jDevice</tt> to the syslog handler. This may be good if your main interest is statistics, but you will then miss things like Exceptions in the log.</p>
+>You can limit the logging further to only include the audit log, by configuring to only send events from <code class=" ">org.cesecore.audit.impl.log4j.Log4jDevice</code> to the syslog handler. This may be good if your main interest is statistics, but you will then miss things like Exceptions in the log.</p>
 <p   
 >Send some log items by performing an action in the EJBCA Admin UI, for example saving a certificate profile.</p>
     </div>

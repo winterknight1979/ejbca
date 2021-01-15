@@ -18,18 +18,19 @@ import org.ejbca.core.model.services.workers.CRLUpdateWorker;
  * @version $Id: CRLUpdateWorkerType.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public class CRLUpdateWorkerType extends BaseWorkerType {
-	
-	private static final long serialVersionUID = 1L;
-	
-	public static final String NAME = "CRLUPDATEWORKER";
-	
-	public CRLUpdateWorkerType() {
-		super("crlupdateworker.jsp", NAME, true, CRLUpdateWorker.class.getName());
 
-		// No action available for this worker
-		addCompatibleActionTypeName(NoActionType.NAME);		
-		// Only periodical interval available for this worker
-		addCompatibleIntervalTypeName(PeriodicalIntervalType.NAME);
-	}
+  private static final long serialVersionUID = 1L;
 
+  /** Param. */
+  public static final String NAME = "CRLUPDATEWORKER";
+
+  /** Param. */
+  public CRLUpdateWorkerType() {
+    super("crlupdateworker.jsp", NAME, true, CRLUpdateWorker.class.getName());
+
+    // No action available for this worker
+    addCompatibleActionTypeName(NoActionType.NAME);
+    // Only periodical interval available for this worker
+    addCompatibleIntervalTypeName(PeriodicalIntervalType.NAME);
+  }
 }

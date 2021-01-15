@@ -183,7 +183,7 @@
     <div class="section section-2" id="src-16232490_id-.CertificateTransparencyv6.14.0-CTinOCSPResponsesCT_in_OCSP_responses">
         <h2 class="heading "><span id="src-16232490_id-.CertificateTransparencyv6.14.0-CT_in_OCSP_responses" class="confluence-anchor-link"></span><span>CT in OCSP Responses </span></h2>
 <p   
->EJBCA supports CT in OCSP responses, both in live OCSP responders and for pre-production of responses. By default, EJBCA will cache up to approximately 100 000 CT response extensions in memory. Excess cached response extensions that have not been requested for 10 seconds are randomly evicted from the cache. The parameters can be adjusted in the file <tt class=" ">conf/cesecore.properties</tt>.</p>
+>EJBCA supports CT in OCSP responses, both in live OCSP responders and for pre-production of responses. By default, EJBCA will cache up to approximately 100 000 CT response extensions in memory. Excess cached response extensions that have not been requested for 10 seconds are randomly evicted from the cache. The parameters can be adjusted in the file <code class=" ">conf/cesecore.properties</code>.</p>
 <p   
 >To use CT OCSP you must also enable the corresponding extension in the OcspKeyBinding of the OCSP Responder:</p>
 <ol class=" "><li class=" "><p   
@@ -433,7 +433,7 @@
 <p   
 >The log server needs to accept certificates issued by your CAs. For local testing you can install your own instance of the sample log server from the <a  class="external-link" href="https://code.google.com/p/certificate-transparency/">CT open source project</a>, and add your root CA to the list of trusted CAs. For a production system (or testing of one), you must contact the log operator to have your root CA added.</p>
 <p   
->For redundancy, it is recommended to add more logs to each label than the minimum required. That way certificate issuance will not fail if a single log is down. It is also a good idea to specify a short timeout value and/or enable the <strong class=" ">ct.fastfail.enabled</strong> option in <tt class=" ">conf/cesecore.properties</tt>, so a failing log does not slow down all requests.</p>
+>For redundancy, it is recommended to add more logs to each label than the minimum required. That way certificate issuance will not fail if a single log is down. It is also a good idea to specify a short timeout value and/or enable the <strong class=" ">ct.fastfail.enabled</strong> option in <code class=" ">conf/cesecore.properties</code>, so a failing log does not slow down all requests.</p>
 <p   
 >Regarding performance, EJBCA will connect to every log having one of the labels selected in the certificate profile, in the order they have been added and in parallel. It will keep fetching SCTs until <strong class=" ">Maximum number of SCTs</strong> is reached. EJBCA will fail issuance if it is unable to fetch at least the number of SCTs given by the parameter <strong class=" ">Minimum number of SCTs</strong> specified in the certificate profile. If the number of retrieved SCTs exceeds the max value, the log(s) last in order will be excluded.</p>
 <p   

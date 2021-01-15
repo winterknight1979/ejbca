@@ -164,16 +164,16 @@
     <div class="section section-3" id="src-16228576_id-.StandaloneVAInstallationv6.13.0-CACertificateStore">
         <h3 class="heading "><span>CA Certificate Store</span></h3>
 <p   
->The CA certificate store allows getting a certificate chain to the root CA to verify that the certificate is signed by a valid CA (it is valid if the root is trusted). <a   href="#src-16228576_RFC_4387">RFC 4387</a> specifies how the certificates are retrieved and the service is configured in the <tt class=" ">conf/certstore.properties</tt> configuration file.</p>
+>The CA certificate store allows getting a certificate chain to the root CA to verify that the certificate is signed by a valid CA (it is valid if the root is trusted). <a   href="#src-16228576_RFC_4387">RFC 4387</a> specifies how the certificates are retrieved and the service is configured in the <code class=" ">conf/certstore.properties</code> configuration file.</p>
 <p   
->To list all URLs that can be used, view the page http://vahost:8080/certificates/search.cgi when the service is enabled. To change the default URL <tt class=" ">certificates</tt> path for the web module, update the end of the URL to <tt class=" ">ejbca/publicweb/certificates/search.cgi</tt> in the EJBCA CA configuration).</p>
+>To list all URLs that can be used, view the page http://vahost:8080/certificates/search.cgi when the service is enabled. To change the default URL <code class=" ">certificates</code> path for the web module, update the end of the URL to <code class=" ">ejbca/publicweb/certificates/search.cgi</code> in the EJBCA CA configuration).</p>
     </div>
     <div class="section section-3" id="src-16228576_id-.StandaloneVAInstallationv6.13.0-CRLStore">
         <h3 class="heading "><span>CRL Store</span></h3>
 <p   
->The CRL store allows retrieving a signed Certificate Revocation List (CRL) of revoked certificates for a CA. <a   href="#src-16228576_RFC_4387">RFC 4387</a> specifies how the CRLs are retrieved and the service is configured in the <tt class=" ">conf/crlstore.properties</tt> configuration file.</p>
+>The CRL store allows retrieving a signed Certificate Revocation List (CRL) of revoked certificates for a CA. <a   href="#src-16228576_RFC_4387">RFC 4387</a> specifies how the CRLs are retrieved and the service is configured in the <code class=" ">conf/crlstore.properties</code> configuration file.</p>
 <p   
->To list possible URLs, view the page http://vahost:8080/crls/search.cgi. To change the default URL crls path for the web module, update the end of the URL to <tt class=" ">ejbca/publicweb/crls/search.cgi</tt> in the EJBCA CA configuration.</p>
+>To list possible URLs, view the page http://vahost:8080/crls/search.cgi. To change the default URL crls path for the web module, update the end of the URL to <code class=" ">ejbca/publicweb/crls/search.cgi</code> in the EJBCA CA configuration.</p>
     </div>
     <div class="section section-3" id="src-16228576_id-.StandaloneVAInstallationv6.13.0-OCSPResponder">
         <h3 class="heading "><span>OCSP Responder</span></h3>
@@ -184,7 +184,7 @@
     <div class="section section-2" id="src-16228576_id-.StandaloneVAInstallationv6.13.0-Alias">
         <h2 class="heading "><span>Alias</span></h2>
 <p   
->To define aliases to certificates or CRLs, edit the configuration file <tt class=" ">conf/va.properties</tt>. This is an example on how to get your root certificate if you have defined an alias for it:</p>
+>To define aliases to certificates or CRLs, edit the configuration file <code class=" ">conf/va.properties</code>. This is an example on how to get your root certificate if you have defined an alias for it:</p>
     <div  class="confbox programlisting">
                 <div class="content">
         <pre><code>http://myhost.com:8080/certificates/search.cgi?alias=root</code></pre>
@@ -304,7 +304,7 @@
 </li><li class=" "><p   
 >Configure the relevant subset of information to synchronize and click <strong class=" ">Start</strong> to initiate the synchronization as a background task. The progress can be followed either in this view or in the Peer Systems overview.</p>
 </li></ol><p   
->The connecting system needs to be authorized to the <tt class=" ">/peerincoming /peerpublish/readcert /peerpublish/writecert /ca/[CAName]</tt> access rules to be able to check synchronization data and push missing or outdated certificate entries.</p>
+>The connecting system needs to be authorized to the <code class=" ">/peerincoming /peerpublish/readcert /peerpublish/writecert /ca/[CAName]</code> access rules to be able to check synchronization data and push missing or outdated certificate entries.</p>
     </div>
     </div>
     <div class="section section-2" id="src-16228576_safe-id-aWQtLlN0YW5kYWxvbmVWQUluc3RhbGxhdGlvbnY2LjEzLjAtU3RlcDQ6T250aGVFSkJDQUNBLUFkZGFQdWJsaXNoZXI">

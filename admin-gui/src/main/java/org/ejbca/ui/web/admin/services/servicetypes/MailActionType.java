@@ -15,89 +15,98 @@ package org.ejbca.ui.web.admin.services.servicetypes;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Properties;
-
 import org.ejbca.core.model.services.actions.MailAction;
 
 /**
- * Action type describing the mail notification action
- * 
+ * Action type describing the mail notification action.
  *
- * $Id: MailActionType.java 28844 2018-05-04 08:31:02Z samuellb $
+ * <p>$Id: MailActionType.java 28844 2018-05-04 08:31:02Z samuellb $
  */
 public class MailActionType extends ActionType {
-	
-	private static final long serialVersionUID = 5340503998099975329L;
-    public static final String NAME = "MAILNOTIFICATIONACTION";
 
-	public MailActionType(){
-		super("mailaction.jsp", NAME, true);
-	}
-	
-	private String senderAddress = "";
-	private String recieverAddress = "";
-	
-	public String getRecieverAddress() {
-		return recieverAddress;
-	}
+  private static final long serialVersionUID = 5340503998099975329L;
+  /** Param. */
+  public static final String NAME = "MAILNOTIFICATIONACTION";
 
+  /** Param. */
+  public MailActionType() {
+    super("mailaction.jsp", NAME, true);
+  }
 
-	public void setRecieverAddress(String recieverAddress) {
-		this.recieverAddress = recieverAddress;
-	}
+  /** Param. */
+  private String senderAddress = "";
+  /** Param. */
+  private String recieverAddress = "";
 
+  /**
+   * @return Address
+   */
+  public String getRecieverAddress() {
+    return recieverAddress;
+  }
 
-	public String getSenderAddress() {
-		return senderAddress;
-	}
+  /**
+   * @param arecieverAddress Address
+   */
+  public void setRecieverAddress(final String arecieverAddress) {
+    this.recieverAddress = arecieverAddress;
+  }
 
+  /**
+   * @return address
+   */
+  public String getSenderAddress() {
+    return senderAddress;
+  }
 
-	public void setSenderAddress(String senderAddress) {
-		this.senderAddress = senderAddress;
-	}
+  /**
+   * @param asenderAddress Address
+   */
+  public void setSenderAddress(final String asenderAddress) {
+    this.senderAddress = asenderAddress;
+  }
 
+  /**
+   * @see
+   *     org.ejbca.ui.web.admin.services.servicetypes.ServiceType#getClassPath()
+   */
+  @Override
+  public String getClassPath() {
+    return org.ejbca.core.model.services.actions.MailAction.class.getName();
+  }
 
+  /**
+   * @see org.ejbca.ui.web.admin.services.servicetypes.ServiceType#getProperties
+   */
+  @Override
+  public Properties getProperties(final ArrayList<String> errorMessages)
+      throws IOException {
+    Properties properties = new Properties();
+    if (senderAddress == null || senderAddress.trim().equals("")) {
+      errorMessages.add("MAILACTIONSENDERADDRESSERR");
+    }
+    properties.setProperty(MailAction.PROP_SENDERADDRESS, senderAddress);
+    properties.setProperty(MailAction.PROP_RECIEVERADDRESS, recieverAddress);
 
-	
-	
-	/**
-	 * @see org.ejbca.ui.web.admin.services.servicetypes.ServiceType#getClassPath()
-	 */
-	@Override
-	public String getClassPath() {
-		return org.ejbca.core.model.services.actions.MailAction.class.getName();
-	}
+    return properties;
+  }
 
-	/**
-	 * @see org.ejbca.ui.web.admin.services.servicetypes.ServiceType#getProperties
-	 */
-	@Override
-	public Properties getProperties(ArrayList<String> errorMessages) throws IOException {		
-		Properties properties = new Properties();
-		if(senderAddress == null || senderAddress.trim().equals("")){
-			errorMessages.add("MAILACTIONSENDERADDRESSERR");
-		}
-		properties.setProperty(MailAction.PROP_SENDERADDRESS, senderAddress);
-		properties.setProperty(MailAction.PROP_RECIEVERADDRESS, recieverAddress);
-		
-		return properties;
-	}
+  /**
+   * @see org.ejbca.ui.web.admin.services.servicetypes.ServiceType#isCustom()
+   */
+  @Override
+  public boolean isCustom() {
+    return false;
+  }
 
-	/**
-	 * @see org.ejbca.ui.web.admin.services.servicetypes.ServiceType#isCustom()
-	 */
-	@Override
-	public boolean isCustom() {		
-		return false;
-	}
-
-	/**
-	 * @see org.ejbca.ui.web.admin.services.servicetypes.ServiceType#setProperties(java.util.Properties)
-	 */
-	@Override
-	public void setProperties(Properties properties) throws IOException {		
-	   senderAddress = properties.getProperty(MailAction.PROP_SENDERADDRESS, "");
-	   recieverAddress = properties.getProperty(MailAction.PROP_RECIEVERADDRESS, "");
-
-	}
-
+  /**
+   * @see
+   *     org.ejbca.ui.web.admin.services.servicetypes.ServiceType#setProperties(java.util.Properties)
+   */
+  @Override
+  public void setProperties(final Properties properties) throws IOException {
+    senderAddress = properties.getProperty(MailAction.PROP_SENDERADDRESS, "");
+    recieverAddress =
+        properties.getProperty(MailAction.PROP_RECIEVERADDRESS, "");
+  }
 }

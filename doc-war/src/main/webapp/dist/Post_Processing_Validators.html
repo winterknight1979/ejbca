@@ -179,9 +179,9 @@
 The platform for MS Windows and Unix/Linux is auto-detected and the default shell command and shell options are set:    </span>
 </p>
 <ul class=" "><li class=" "><p   
->MS Windows: <tt class=" ">cmd.exe /C</tt></p>
+>MS Windows: <code class=" ">cmd.exe /C</code></p>
 </li><li class=" "><p   
->Unix/Linux: <tt class=" ">/bin/sh -c</tt></p>
+>Unix/Linux: <code class=" ">/bin/sh -c</code></p>
 </li></ul>        </div>
     </div>
 <p   
@@ -225,7 +225,7 @@ The platform for MS Windows and Unix/Linux is auto-detected and the default shel
         </div>
     </div>
 <p   style="text-align:left;"
->This whitelist allows the three scripts <tt class=" ">/opt/certlint/certlint</tt>, <tt class=" ">/opt/certlint/cablint</tt>, and <tt class=" ">/opt/scripts/zLint.sh</tt> to be executed. There is no restriction on the parameters which can be given as input to these scripts. Any input validation should be done in the script itself.</p>
+>This whitelist allows the three scripts <code class=" ">/opt/certlint/certlint</code>, <code class=" ">/opt/certlint/cablint</code>, and <code class=" ">/opt/scripts/zLint.sh</code> to be executed. There is no restriction on the parameters which can be given as input to these scripts. Any input validation should be done in the script itself.</p>
     </div>
     <div class="section section-3" id="src-16232170_id-.PostProcessingValidatorsv6.14.0-Examplecertificatelint">
         <h3 class="heading "><span>Example certificate lint</span></h3>
@@ -238,13 +238,13 @@ The platform for MS Windows and Unix/Linux is auto-detected and the default shel
 <ul class=" "><li class=" "><p   
 >For <strong class=" ">Enable External Script Access,</strong> select <strong class=" ">Activate</strong></p>
 </li><li class=" "><p   
->In <strong class=" ">Configure Scripts Whitelist,</strong> select <strong class=" ">Use the whitelist below</strong> and specify a full path. For example <tt class=" ">/opt/bin/zlint.sh</tt>.</p>
+>In <strong class=" ">Configure Scripts Whitelist,</strong> select <strong class=" ">Use the whitelist below</strong> and specify a full path. For example <code class=" ">/opt/bin/zlint.sh</code>.</p>
 </li></ul></li><li class=" "><p   
 >To add an External Command Certificate Validator, go to <strong class=" ">Navigators</strong>:</p>
 <ul class=" "><li class=" "><p   
 >In <strong class=" ">Validator Type,</strong> select <strong class=" ">External Command Certificate Validator</strong>.</p>
 </li><li class=" "><p   
->In <strong class=" ">Full pathname of script</strong>, add the full path to the script ending with <tt class=" ">%cert%</tt>. For example <tt class=" ">/opt/bin/zlint.sh %cert%.</tt></p>
+>In <strong class=" ">Full pathname of script</strong>, add the full path to the script ending with <code class=" ">%cert%</code>. For example <code class=" ">/opt/bin/zlint.sh %cert%.</code></p>
 </li><li class=" "><p   
 >Ensure that at least the options <strong class=" ">Fail on script error code </strong>and <strong class=" ">Log error out</strong> are selected.</p>
 </li></ul></li><li class=" "><p   
@@ -256,9 +256,9 @@ The platform for MS Windows and Unix/Linux is auto-detected and the default shel
 <p   
 >ZLint is a X.509 certificate linter that can be downloaded and built from the <a  class="external-link" href="https://github.com/zmap/zlint">ZLint homepage</a>.</p>
 <p   
->You must wrap zlint in a <tt class=" ">zlint.sh</tt> script to allow the script to return a <tt class=" ">0</tt> exit code on success, and <tt class=" ">1</tt> as exit code on failure.</p>
+>You must wrap zlint in a <code class=" ">zlint.sh</code> script to allow the script to return a <code class=" ">0</code> exit code on success, and <code class=" ">1</code> as exit code on failure.</p>
 <p   
->Place the <tt class=" ">zlint.sh</tt> script in the same location as ZLint:</p>
+>Place the <code class=" ">zlint.sh</code> script in the same location as ZLint:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">#!/bin/sh</code></div>

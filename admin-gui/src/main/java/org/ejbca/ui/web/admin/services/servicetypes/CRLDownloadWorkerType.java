@@ -15,74 +15,101 @@ package org.ejbca.ui.web.admin.services.servicetypes;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Properties;
-
 import org.ejbca.core.model.services.workers.CRLDownloadWorker;
 
 /**
  * Web UI backing object for configuration of the CRLDownloadWorker.
- * 
+ *
  * @version $Id: CRLDownloadWorkerType.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public class CRLDownloadWorkerType extends BaseWorkerType {
-    
-    private static final long serialVersionUID = 1L;
-    
-    public static final String NAME = "CRLDOWNLOADWORKER";
-    
-    private boolean ignoreNextUpdate = false;
-    private String maxDownloadSize = String.valueOf(CRLDownloadWorker.DEFAULT_MAX_DOWNLOAD_SIZE);
 
-    public CRLDownloadWorkerType() {
-        super("crldownloadworker.jsp", NAME, true, CRLDownloadWorker.class.getName());
-        // No action available for this worker
-        addCompatibleActionTypeName(NoActionType.NAME);     
-        // Only periodical interval available for this worker
-        addCompatibleIntervalTypeName(PeriodicalIntervalType.NAME);
-    }
+  private static final long serialVersionUID = 1L;
 
-    /** @return true if the nextUpdate field of the CRL should be ignored and the CRL should always be downloaded to see if there is a newer version. */
-    public boolean isIgnoreNextUpdate() {
-        return ignoreNextUpdate;
-    }
+  /** Param. */
+  public static final String NAME = "CRLDOWNLOADWORKER";
 
-    /** Set to true if the nextUpdate field of the CRL should be ignored and the CRL should always be downloaded to see if there is a newer version. 
-     * @param ignoreNextUpdate bool*/
-    public void setIgnoreNextUpdate(final boolean ignoreNextUpdate) {
-        this.ignoreNextUpdate = ignoreNextUpdate;
-    }
+  /** Param. */
+  private boolean ignoreNextUpdate = false;
+  /** Param. */
+  private String maxDownloadSize =
+      String.valueOf(CRLDownloadWorker.DEFAULT_MAX_DOWNLOAD_SIZE);
 
-    /** @return the size of the largest CRL that we will try to download. */
-    public String getMaxDownloadSize() {
-        return maxDownloadSize;
-    }
+  /** Param. */
+  public CRLDownloadWorkerType() {
+    super(
+        "crldownloadworker.jsp", NAME, true, CRLDownloadWorker.class.getName());
+    // No action available for this worker
+    addCompatibleActionTypeName(NoActionType.NAME);
+    // Only periodical interval available for this worker
+    addCompatibleIntervalTypeName(PeriodicalIntervalType.NAME);
+  }
 
-    /** Set the size of the largest CRL that we will try to download. 
-     * @param maxDownloadSize Size*/
-    public void setMaxDownloadSize(String maxDownloadSize) {
-        this.maxDownloadSize = maxDownloadSize;
-    }
+  /**
+   * @return true if the nextUpdate field of the CRL should be ignored and the
+   *     CRL should always be downloaded to see if there is a newer version.
+   */
+  public boolean isIgnoreNextUpdate() {
+    return ignoreNextUpdate;
+  }
 
-    @Override
-    public Properties getProperties(final ArrayList<String> errorMessages) throws IOException {
-        Properties ret = super.getProperties(errorMessages);
-        ret.setProperty(CRLDownloadWorker.PROP_IGNORE_NEXT_UPDATE, Boolean.toString(ignoreNextUpdate));
-        try {
-            final int i = Integer.parseInt(maxDownloadSize);
-            if (i>1024) {
-                ret.setProperty(CRLDownloadWorker.PROP_MAX_DOWNLOAD_SIZE, maxDownloadSize);
-            } else {
-                maxDownloadSize = String.valueOf(CRLDownloadWorker.DEFAULT_MAX_DOWNLOAD_SIZE);
-            }
-        } catch (NumberFormatException e) {
-            errorMessages.add("Invalid maximum download size.");
-        }
-        return ret;
+  /**
+   * Set to true if the nextUpdate field of the CRL should be ignored and the
+   * CRL should always be downloaded to see if there is a newer version.
+   *
+   * @param anignoreNextUpdate bool
+   */
+  public void setIgnoreNextUpdate(final boolean anignoreNextUpdate) {
+    this.ignoreNextUpdate = anignoreNextUpdate;
+  }
+
+  /** @return the size of the largest CRL that we will try to download. */
+  public String getMaxDownloadSize() {
+    return maxDownloadSize;
+  }
+
+  /**
+   * Set the size of the largest CRL that we will try to download.
+   *
+   * @param amaxDownloadSize Size
+   */
+  public void setMaxDownloadSize(final String amaxDownloadSize) {
+    this.maxDownloadSize = amaxDownloadSize;
+  }
+
+  @Override
+  public Properties getProperties(final ArrayList<String> errorMessages)
+      throws IOException {
+    Properties ret = super.getProperties(errorMessages);
+    ret.setProperty(
+        CRLDownloadWorker.PROP_IGNORE_NEXT_UPDATE,
+        Boolean.toString(ignoreNextUpdate));
+    try {
+      final int i = Integer.parseInt(maxDownloadSize);
+      final int siz = 1024;
+      if (i > siz) {
+        ret.setProperty(
+            CRLDownloadWorker.PROP_MAX_DOWNLOAD_SIZE, maxDownloadSize);
+      } else {
+        maxDownloadSize =
+            String.valueOf(CRLDownloadWorker.DEFAULT_MAX_DOWNLOAD_SIZE);
+      }
+    } catch (NumberFormatException e) {
+      errorMessages.add("Invalid maximum download size.");
     }
-    
-    @Override
-    public void setProperties(Properties properties) throws IOException {
-        super.setProperties(properties);
-        ignoreNextUpdate = Boolean.valueOf(properties.getProperty(CRLDownloadWorker.PROP_IGNORE_NEXT_UPDATE, Boolean.valueOf(ignoreNextUpdate).toString()));
-        maxDownloadSize = properties.getProperty(CRLDownloadWorker.PROP_MAX_DOWNLOAD_SIZE, maxDownloadSize);
-    }
+    return ret;
+  }
+
+  @Override
+  public void setProperties(final Properties properties) throws IOException {
+    super.setProperties(properties);
+    ignoreNextUpdate =
+        Boolean.valueOf(
+            properties.getProperty(
+                CRLDownloadWorker.PROP_IGNORE_NEXT_UPDATE,
+                Boolean.valueOf(ignoreNextUpdate).toString()));
+    maxDownloadSize =
+        properties.getProperty(
+            CRLDownloadWorker.PROP_MAX_DOWNLOAD_SIZE, maxDownloadSize);
+  }
 }

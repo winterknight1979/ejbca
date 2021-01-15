@@ -19,131 +19,179 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
-
 import org.ejbca.core.model.services.IWorker;
 
 /**
- * Base type for workers
- * 
- * @version $Id: BaseWorkerType.java 28844 2018-05-04 08:31:02Z samuellb $
+ * Base type for workers.
  *
+ * @version $Id: BaseWorkerType.java 28844 2018-05-04 08:31:02Z samuellb $
  */
-
 public abstract class BaseWorkerType extends WorkerType {
 
-    private static final long serialVersionUID = 7026884019102752494L;
+  private static final long serialVersionUID = 7026884019102752494L;
 
-    public static final String DEFAULT_TIMEUNIT = IWorker.UNIT_DAYS;
-	public static final String DEFAULT_TIMEVALUE = "7";
-	
-	private List<String> selectedCANamesToCheck = new ArrayList<>();
-	private List<String> selectedCertificateProfilesToCheck = new ArrayList<>();
-	private Collection<String> compatibleActionTypeNames = new ArrayList<>();
-	private Collection<String> compatibleIntervalTypeNames = new ArrayList<>();
-	private String classpath = null;
+  /** Param. */
+  public static final String DEFAULT_TIMEUNIT = IWorker.UNIT_DAYS;
+  /** Param. */
+  public static final String DEFAULT_TIMEVALUE = "7";
 
-	public BaseWorkerType(String subViewPage, String name, boolean translatable, String classpath) {
-		super(subViewPage, name, translatable);
-		this.classpath = classpath;
-	}
+  /** Param. */
+  private List<String> selectedCANamesToCheck = new ArrayList<>();
+  /** Param. */
+  private List<String> selectedCertificateProfilesToCheck = new ArrayList<>();
+  /** Param. */
+  private Collection<String> compatibleActionTypeNames = new ArrayList<>();
+  /** Param. */
+  private Collection<String> compatibleIntervalTypeNames = new ArrayList<>();
+  /** Param. */
+  private String classpath = null;
 
-	//
-	// Helper methods for BaseWorkerType to be used by extending classes
-	//
-	protected void addCompatibleActionTypeName(String name) {
-		compatibleActionTypeNames.add(name);
-	}
-	protected void deleteAllCompatibleActionTypes() {
-		compatibleActionTypeNames = new ArrayList<>();
-	}
-	protected void addCompatibleIntervalTypeName(String name) {
-		compatibleIntervalTypeNames.add(name);
-	}
-	protected void deleteAllCompatibleIntervalTypes() {
-		compatibleIntervalTypeNames = new ArrayList<>();
-	}
-	public List<String> getSelectedCANamesToCheck() {
-		return selectedCANamesToCheck;
-	}
-	public void setSelectedCANamesToCheck(List<String> selectedCANamesToCheck) {
-		this.selectedCANamesToCheck = selectedCANamesToCheck;
-	}
+  /**
+   * @param subViewPage Page
+   * @param name Name
+   * @param translatable bool
+   * @param aclasspath cp
+   */
+  public BaseWorkerType(
+      final String subViewPage,
+      final String name,
+      final boolean translatable,
+      final String aclasspath) {
+    super(subViewPage, name, translatable);
+    this.classpath = aclasspath;
+  }
 
-	@Override
-	public boolean isCustom() {		
-		return false;
-	}
+  //
+  // Helper methods for BaseWorkerType to be used by extending classes
+  //
+  /**
+   * @param name Name
+   */
+  protected void addCompatibleActionTypeName(final String name) {
+    compatibleActionTypeNames.add(name);
+  }
 
-	@Override
-	public Collection<String> getCompatibleActionTypeNames() {
-		return compatibleActionTypeNames;
-	}
+  /** Delete.
+   */
+  protected void deleteAllCompatibleActionTypes() {
+    compatibleActionTypeNames = new ArrayList<>();
+  }
 
-	@Override
-	public Collection<String> getCompatibleIntervalTypeNames() {
-		return compatibleIntervalTypeNames;
-	}
+  /**
+   * @param name Name
+   */
+  protected void addCompatibleIntervalTypeName(final String name) {
+    compatibleIntervalTypeNames.add(name);
+  }
 
-	@Override
-	public String getClassPath() {		
-		return classpath;
-	}
+  /**
+   * Delete.
+   */
+  protected void deleteAllCompatibleIntervalTypes() {
+    compatibleIntervalTypeNames = new ArrayList<>();
+  }
 
-	@Override
-	public Properties getProperties(ArrayList<String> errorMessages) throws IOException {		
-	    Properties retval = new Properties(); 
-        String caIdString = null;
-        for(String cAid  : getSelectedCANamesToCheck()) { 
-            if(!cAid.trim().equals("")){
-              if(caIdString == null) {
-                caIdString = cAid;
-              }else{
-                caIdString += ";"+cAid;
-              }
-            }
+  /**
+   * @return names
+   */
+  public List<String> getSelectedCANamesToCheck() {
+    return selectedCANamesToCheck;
+  }
+
+  /**
+   * @param aselectedCANamesToCheck names
+   */
+  public void setSelectedCANamesToCheck(
+      final List<String> aselectedCANamesToCheck) {
+    this.selectedCANamesToCheck = aselectedCANamesToCheck;
+  }
+
+  @Override
+  public boolean isCustom() {
+    return false;
+  }
+
+  @Override
+  public Collection<String> getCompatibleActionTypeNames() {
+    return compatibleActionTypeNames;
+  }
+
+  @Override
+  public Collection<String> getCompatibleIntervalTypeNames() {
+    return compatibleIntervalTypeNames;
+  }
+
+  @Override
+  public String getClassPath() {
+    return classpath;
+  }
+
+  @Override
+  public Properties getProperties(final ArrayList<String> errorMessages)
+      throws IOException {
+    Properties retval = new Properties();
+    String caIdString = null;
+    for (String cAid : getSelectedCANamesToCheck()) {
+      if (!cAid.trim().equals("")) {
+        if (caIdString == null) {
+          caIdString = cAid;
+        } else {
+          caIdString += ";" + cAid;
         }
-        if (caIdString != null) {           
-            retval.setProperty(IWorker.PROP_CAIDSTOCHECK, caIdString);
+      }
+    }
+    if (caIdString != null) {
+      retval.setProperty(IWorker.PROP_CAIDSTOCHECK, caIdString);
+    }
+    String certificateProfileIdString = null;
+    for (String certificateProfileId
+        : getSelectedCertificateProfilesToCheck()) {
+      if (!certificateProfileId.trim().equals("")) {
+        if (certificateProfileIdString == null) {
+          certificateProfileIdString = certificateProfileId;
+        } else {
+          certificateProfileIdString += ";" + certificateProfileId;
         }
-        String certificateProfileIdString = null;
-        for(String certificateProfileId : getSelectedCertificateProfilesToCheck()) {
-            if(!certificateProfileId.trim().equals("")){
-                  if(certificateProfileIdString == null) {
-                      certificateProfileIdString = certificateProfileId;
-                  }else{
-                      certificateProfileIdString += ";"+certificateProfileId;
-                  }
-                }
-        }
-        if (certificateProfileIdString != null) {         
-            retval.setProperty(IWorker.PROP_CERTIFICATE_PROFILE_IDS_TO_CHECK, certificateProfileIdString);
-        }
-        return retval;
-	}
+      }
+    }
+    if (certificateProfileIdString != null) {
+      retval.setProperty(
+          IWorker.PROP_CERTIFICATE_PROFILE_IDS_TO_CHECK,
+          certificateProfileIdString);
+    }
+    return retval;
+  }
 
-	@Override
-    public void setProperties(Properties properties) throws IOException {
-        ArrayList<String> selectedCANamesToCheck = new ArrayList<>();
-        selectedCANamesToCheck.addAll(Arrays.asList(properties.getProperty(IWorker.PROP_CAIDSTOCHECK, "").split(";")));
-        setSelectedCANamesToCheck(selectedCANamesToCheck);
-        ArrayList<String> selectedCertificateProfileNamesToCheck = new ArrayList<>();
-        selectedCertificateProfileNamesToCheck.addAll(Arrays.asList(properties.getProperty(IWorker.PROP_CERTIFICATE_PROFILE_IDS_TO_CHECK, "")
+  @Override
+  public void setProperties(final Properties properties) throws IOException {
+    ArrayList<String> aselectedCANamesToCheck = new ArrayList<>();
+    aselectedCANamesToCheck.addAll(
+        Arrays.asList(
+            properties.getProperty(IWorker.PROP_CAIDSTOCHECK, "").split(";")));
+    setSelectedCANamesToCheck(aselectedCANamesToCheck);
+    ArrayList<String> selectedCertificateProfileNamesToCheck =
+        new ArrayList<>();
+    selectedCertificateProfileNamesToCheck.addAll(
+        Arrays.asList(
+            properties
+                .getProperty(IWorker.PROP_CERTIFICATE_PROFILE_IDS_TO_CHECK, "")
                 .split(";")));
-        setSelectedCertificateProfilesToCheck(selectedCertificateProfileNamesToCheck);      
-    }
-    
-    /**
-     * @return the selectedCertificateProfilesToCheck
-     */
-    public List<String> getSelectedCertificateProfilesToCheck() {
-        return selectedCertificateProfilesToCheck;
-    }
+    setSelectedCertificateProfilesToCheck(
+        selectedCertificateProfileNamesToCheck);
+  }
 
-    /**
-     * @param selectedCertificateProfilesToCheck the selectedCertificateProfilesToCheck to set
-     */
-    public void setSelectedCertificateProfilesToCheck(List<String> selectedCertificateProfilesToCheck) {
-        this.selectedCertificateProfilesToCheck = selectedCertificateProfilesToCheck;
-    }
+  /** @return the selectedCertificateProfilesToCheck */
+  public List<String> getSelectedCertificateProfilesToCheck() {
+    return selectedCertificateProfilesToCheck;
+  }
 
+  /**
+   * @param aselectedCertificateProfilesToCheck the
+   *     selectedCertificateProfilesToCheck to set
+   */
+  public void setSelectedCertificateProfilesToCheck(
+      final List<String> aselectedCertificateProfilesToCheck) {
+    this.selectedCertificateProfilesToCheck =
+        aselectedCertificateProfilesToCheck;
+  }
 }

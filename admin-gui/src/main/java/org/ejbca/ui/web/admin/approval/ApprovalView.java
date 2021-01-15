@@ -15,9 +15,7 @@ package org.ejbca.ui.web.admin.approval;
 
 import java.io.UnsupportedEncodingException;
 import java.security.cert.X509Certificate;
-
 import javax.ejb.EJBException;
-
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authentication.tokens.X509CertificateAuthenticationToken;
 import org.cesecore.util.CertTools;
@@ -26,60 +24,92 @@ import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
 import org.ejbca.ui.web.admin.configuration.EjbcaWebBean;
 
 /**
- * Class used to represent the view of an approval
- * 
+ * Class used to represent the view of an approval.
+ *
  * @version $Id: ApprovalView.java 23688 2016-06-17 10:46:42Z mikekushner $
  */
 public class ApprovalView {
-	
-	private Approval approval;
-	
-	public ApprovalView(Approval approval){
-		this.approval=approval; 
-	}
 
-	public Approval getApproval() {
-		return approval;
-	}
-	
-	public String getApprovalDate(){
-		return EjbcaJSFHelper.getBean().getEjbcaWebBean().formatAsISO8601(approval.getApprovalDate());
-	}
-	
-	public String getApprovalAdmin(){
-		//return approval.getAdmin().getUsername();
-		return approval.getAdmin().toString();
-	}
-	
-	public String getAdminAction(){
-		EjbcaWebBean ejbcawebbean = EjbcaJSFHelper.getBean().getEjbcaWebBean();
-		
-		if(approval.isApproved()){
-			return ejbcawebbean.getText("APPROVED");
-		}
-		return ejbcawebbean.getText("REJECTED");
-	}
-	
-	public String getViewApproverCertLink(){
-		String link="";
-		try {
-			AuthenticationToken token = approval.getAdmin();
-			if (token instanceof X509CertificateAuthenticationToken) {
-				X509CertificateAuthenticationToken xtok = (X509CertificateAuthenticationToken) token;
-				X509Certificate adminCertificate = xtok.getCertificate();
-				String certificateSerialNumber = CertTools.getSerialNumberAsString(adminCertificate);
-				String adminIssuerDN = CertTools.getIssuerDN(adminCertificate);
-				link = EjbcaJSFHelper.getBean().getEjbcaWebBean().getBaseUrl() + EjbcaJSFHelper.getBean().getEjbcaWebBean().getGlobalConfiguration().getAdminWebPath()
-				            + "viewcertificate.jsp?certsernoparameter=" + java.net.URLEncoder.encode(certificateSerialNumber + "," + adminIssuerDN,"UTF-8");				
-			}
-			return "viewcert('" + link + "')";
-		} catch (UnsupportedEncodingException e) {
-			throw new EJBException(e);
-		}
-		
-	}
-	
-	public String getComment(){
-		return approval.getComment();
-	}
+    /** Param. */
+  private final Approval approval;
+
+  /**
+   * @param anapproval approval
+   */
+  public ApprovalView(final Approval anapproval) {
+    this.approval = anapproval;
+  }
+
+  /**
+   * @return approval
+   */
+  public Approval getApproval() {
+    return approval;
+  }
+
+  /**
+   * @return date
+   */
+  public String getApprovalDate() {
+    return EjbcaJSFHelper.getBean()
+        .getEjbcaWebBean()
+        .formatAsISO8601(approval.getApprovalDate());
+  }
+
+  /**
+   * @return admin
+   */
+  public String getApprovalAdmin() {
+    // return approval.getAdmin().getUsername();
+    return approval.getAdmin().toString();
+  }
+
+  /**
+   * @return action
+   */
+  public String getAdminAction() {
+    EjbcaWebBean ejbcawebbean = EjbcaJSFHelper.getBean().getEjbcaWebBean();
+
+    if (approval.isApproved()) {
+      return ejbcawebbean.getText("APPROVED");
+    }
+    return ejbcawebbean.getText("REJECTED");
+  }
+
+  /**
+   * @return link
+   */
+  public String getViewApproverCertLink() {
+    String link = "";
+    try {
+      AuthenticationToken token = approval.getAdmin();
+      if (token instanceof X509CertificateAuthenticationToken) {
+        X509CertificateAuthenticationToken xtok =
+            (X509CertificateAuthenticationToken) token;
+        X509Certificate adminCertificate = xtok.getCertificate();
+        String certificateSerialNumber =
+            CertTools.getSerialNumberAsString(adminCertificate);
+        String adminIssuerDN = CertTools.getIssuerDN(adminCertificate);
+        link =
+            EjbcaJSFHelper.getBean().getEjbcaWebBean().getBaseUrl()
+                + EjbcaJSFHelper.getBean()
+                    .getEjbcaWebBean()
+                    .getGlobalConfiguration()
+                    .getAdminWebPath()
+                + "viewcertificate.jsp?certsernoparameter="
+                + java.net.URLEncoder.encode(
+                    certificateSerialNumber + "," + adminIssuerDN, "UTF-8");
+      }
+      return "viewcert('" + link + "')";
+    } catch (UnsupportedEncodingException e) {
+      throw new EJBException(e);
+    }
+  }
+
+  /**
+   * @return comment
+   */
+  public String getComment() {
+    return approval.getComment();
+  }
 }

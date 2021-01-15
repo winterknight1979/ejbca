@@ -190,7 +190,7 @@
         <h1 class="heading "><span>JBoss 7/EAP 6 JDBC Drivers and Data Sources</span></h1>
 <p   
 >In JBoss 7/EAP6 it is not enough to just drop the JAR archive with a database JDBC driver into the deployments directory. Instead you will have to perform the following steps (for MySQL):</p>
-<ol class=" "><li class=" "><pre class=" ">Create the necessary directories (relative to JBoss 7 base directory): <br/>On JBoss 7.1.1 or EAP 6.0:<tt class=" "> mkdir -p modules/com/mysql/main/</tt></pre><pre class=" ">On JBoss 7.2 or EAP 6.1/6.2:<tt class=" "> mkdir -p modules/system/layers/base/com/mysql/main/</tt></pre><pre class=" ">Or for MariaDB, mariadb-java-client-1.2.0.jar:<tt class=" "> mkdir -p modules/org/mariadb/main/</tt></pre><pre class=" ">On JBoss 7.2 or EAP 6.1/6.2:<tt class=" "> mkdir -p modules/system/layers/base/org/mariadb/main/</tt></pre><pre class=" "> </pre></li><li class=" "><p   
+<ol class=" "><li class=" "><pre class=" ">Create the necessary directories (relative to JBoss 7 base directory): <br/>On JBoss 7.1.1 or EAP 6.0:<code class=" "> mkdir -p modules/com/mysql/main/</code></pre><pre class=" ">On JBoss 7.2 or EAP 6.1/6.2:<code class=" "> mkdir -p modules/system/layers/base/com/mysql/main/</code></pre><pre class=" ">Or for MariaDB, mariadb-java-client-1.2.0.jar:<code class=" "> mkdir -p modules/org/mariadb/main/</code></pre><pre class=" ">On JBoss 7.2 or EAP 6.1/6.2:<code class=" "> mkdir -p modules/system/layers/base/org/mariadb/main/</code></pre><pre class=" "> </pre></li><li class=" "><p   
 >Place the mysql.jar or mariadb.jar file in the directory you just created.</p>
 </li><li class=" "><p   
 >Create, in the created directory, the JDBC module configuration file module.xml with the following contents (replace mysql.jar with the full name of your jar file for example mysql-connector-java-5.1.18-bin.jar):</p>
@@ -303,7 +303,7 @@
 <p   
 >In JBoss EAP 6 you can also configure a completely custom Log4J configuration by:</p>
 <ul class=" "><li class=" "><p   
->Do not disable <tt class=" ">org.jboss.as.logging.per-deployment</tt> above. It is by default enabled and can also be set to true manually.</p>
+>Do not disable <code class=" ">org.jboss.as.logging.per-deployment</code> above. It is by default enabled and can also be set to true manually.</p>
 </li><li class=" "><p   
 >Create a $EJBCA_HOME/conf/log4j-jbosseap6.xml, you can use log4j-jbosseap6.xml.sample as a template. Set paths to the desired log files.</p>
 </li><li class=" "><p   
@@ -316,7 +316,7 @@
     <span style="color: #000000;">
 JBoss 7/EAP 6 by default isolates away most sun classes. As of version 6.6.3, EJBCA configures JBoss to expose these classes (sun/security/pkcs11/wrapper) by using a     </span>
     </span>
-<tt class=" ">jboss-deployment-structure.xml</tt>. This makes configuration in <tt class=" ">modules/sun/jdk/main/module.xml</tt> (JBoss 7.1/EAP6.0) or <tt class=" ">modules/system/layers/base/sun/jdk/main/module.xml </tt>(JBoss EAP 6.1 and later and WildFly) not needed. For previous versions of EJBCA, refer to the documentation for the respective release</p>
+<code class=" ">jboss-deployment-structure.xml</code>. This makes configuration in <code class=" ">modules/sun/jdk/main/module.xml</code> (JBoss 7.1/EAP6.0) or <code class=" ">modules/system/layers/base/sun/jdk/main/module.xml </code>(JBoss EAP 6.1 and later and WildFly) not needed. For previous versions of EJBCA, refer to the documentation for the respective release</p>
 <p   
 ></p>
     </div>
@@ -325,7 +325,7 @@ JBoss 7/EAP 6 by default isolates away most sun classes. As of version 6.6.3, EJ
 <p   
 >Note that the TCP transport of the CMP protocol is deprecated in the standard draft. TCP transport may be removed in future EJBCA releases.</p>
 <p   
->JBoss 7/EAP 6 isolates away most sun classes. This means that the CMP TCP library is not able to get system properties. The needed classes can be made available by editing the file <tt class=" ">modules/sun/jdk/main/module.xml</tt> (JBoss 7.1/EAP6.0) or <tt class=" ">modules/system/layers/base/sun/jdk/main/module.xml</tt> (JBoss 7.2/EAP6.1)) and adding the following package to the list of system export paths:</p>
+>JBoss 7/EAP 6 isolates away most sun classes. This means that the CMP TCP library is not able to get system properties. The needed classes can be made available by editing the file <code class=" ">modules/sun/jdk/main/module.xml</code> (JBoss 7.1/EAP6.0) or <code class=" ">modules/system/layers/base/sun/jdk/main/module.xml</code> (JBoss 7.2/EAP6.1)) and adding the following package to the list of system export paths:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">&lt;</code><code class="keyword">path</code><code class="plain"> </code><code class="color1">name</code><code class="plain">=</code><code class="string">"sun/security/action"</code><code class="plain">/&gt;</code></div>
@@ -340,7 +340,7 @@ JBoss 7/EAP 6 by default isolates away most sun classes. As of version 6.6.3, EJ
                             <span class="admonition-icon confluence-information-macro-icon"></span>
                 <div class="admonition-body">
 <p   
->This section is a reference section, the configuration here are done automatically in JBoss 7 by the <tt class=" ">ant deploy</tt> command in EJBCA.</p>
+>This section is a reference section, the configuration here are done automatically in JBoss 7 by the <code class=" ">ant deploy</code> command in EJBCA.</p>
         </div>
     </div>
 <p   

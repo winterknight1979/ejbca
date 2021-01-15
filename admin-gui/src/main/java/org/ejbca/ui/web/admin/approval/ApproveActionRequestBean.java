@@ -18,38 +18,54 @@ import javax.faces.context.FacesContext;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * Bean to set the right Approve Request Data when calling the approveaction.jsf page
- * from javascript
- * 
- * @version $Id: ApproveActionRequestBean.java 28844 2018-05-04 08:31:02Z samuellb $
+ * Bean to set the right Approve Request Data when calling the approveaction.jsf
+ * page from javascript.
+ *
+ * @version $Id: ApproveActionRequestBean.java 28844 2018-05-04 08:31:02Z
+ *     samuellb $
  */
 public class ApproveActionRequestBean {
-    private int uniqueId;
+    /** Param. */
+  private int uniqueId;
 
-    public ApproveActionRequestBean() {
-        FacesContext ctx = FacesContext.getCurrentInstance();
+  /** Constructor. */
+  public ApproveActionRequestBean() {
+    FacesContext ctx = FacesContext.getCurrentInstance();
 
-        try {
-            String param = ((HttpServletRequest) ctx.getExternalContext().getRequest()).getParameter("uniqueId");
-            if (param != null) {
-                uniqueId = Integer.parseInt(((HttpServletRequest) ctx.getExternalContext().getRequest()).getParameter("uniqueId"));
-                Application app = ctx.getApplication();
-                ApproveActionManagedBean value = app.evaluateExpressionGet(ctx, "#{approvalActionManagedBean}",
-                        ApproveActionManagedBean.class);
-                value.setUniqueId(uniqueId);
-                value.updateApprovalRequest(uniqueId);
-            }
-        } catch (NumberFormatException e) {
+    try {
+      String param =
+          ((HttpServletRequest) ctx.getExternalContext().getRequest())
+              .getParameter("uniqueId");
+      if (param != null) {
+        uniqueId =
+            Integer.parseInt(
+                ((HttpServletRequest) ctx.getExternalContext().getRequest())
+                    .getParameter("uniqueId"));
+        Application app = ctx.getApplication();
+        ApproveActionManagedBean value =
+            app.evaluateExpressionGet(
+                ctx,
+                "#{approvalActionManagedBean}",
+                ApproveActionManagedBean.class);
+        value.setUniqueId(uniqueId);
+        value.updateApprovalRequest(uniqueId);
+      }
+    } catch (NumberFormatException e) {
 
-        }
     }
+  }
 
-    public int getUniqueId() {
-        return uniqueId;
-    }
+  /**
+   * @return ID
+   */
+  public int getUniqueId() {
+    return uniqueId;
+  }
 
-    public void setUniqueId(int uniqueId) {
-        this.uniqueId = uniqueId;
-    }
-
+  /**
+   * @param auniqueId ID
+   */
+  public void setUniqueId(final int auniqueId) {
+    this.uniqueId = auniqueId;
+  }
 }

@@ -15,96 +15,122 @@ package org.ejbca.ui.psm.jsf;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Arrays;
-
 import javax.faces.component.UIComponent;
 import javax.faces.component.UIInput;
 import javax.faces.event.AbortProcessingException;
 import javax.faces.event.ValueChangeEvent;
 import javax.faces.event.ValueChangeListener;
-
 import org.apache.log4j.Logger;
 import org.apache.myfaces.custom.fileupload.UploadedFile;
 import org.cesecore.util.ui.DynamicUiModel;
 import org.cesecore.util.ui.DynamicUiProperty;
 
 /**
- * This MyFaces ValueChangeListener implementation for {@link DynamicUiModel} sets the dynamic UI property 
- * values associated with the dynamic UI model.
- * 
- * @version $Id: JsfDynamicUiValueChangeListener.java 34150 2019-12-20 14:17:40Z henriks $
+ * This MyFaces ValueChangeListener implementation for {@link DynamicUiModel}
+ * sets the dynamic UI property values associated with the dynamic UI model.
+ *
+ * @version $Id: JsfDynamicUiValueChangeListener.java 34150 2019-12-20 14:17:40Z
+ *     henriks $
  */
-public class JsfDynamicUiValueChangeListener implements Serializable, ValueChangeListener {
+public class JsfDynamicUiValueChangeListener
+    implements Serializable, ValueChangeListener {
 
-    private static final long serialVersionUID = -1L;
+  private static final long serialVersionUID = -1L;
 
-    /** Class logger. */
-    private static final Logger log = Logger.getLogger(JsfDynamicUiValueChangeListener.class);
+  /** Class logger. */
+  private static final Logger LOG =
+      Logger.getLogger(JsfDynamicUiValueChangeListener.class);
 
-    /** DynamicUIProperty reference. */
-    private DynamicUiProperty<?> dynamicUiProperty;
+  /** DynamicUIProperty reference. */
+  private DynamicUiProperty<?> dynamicUiProperty;
 
-    /**
-     * Default constructor.
-     */
-    public JsfDynamicUiValueChangeListener() {
+  /** Default constructor. */
+  public JsfDynamicUiValueChangeListener() { }
+
+  /**
+   * Constructor with DynamicUiProperty reference.
+   *
+   * @param adynamicUiProperty UI Property
+   */
+  public JsfDynamicUiValueChangeListener(
+      final DynamicUiProperty<?> adynamicUiProperty) {
+    this.dynamicUiProperty = adynamicUiProperty;
+  }
+
+  @Override
+  public void processValueChange(final ValueChangeEvent event)
+      throws AbortProcessingException {
+    final UIComponent eventSource = event.getComponent();
+    if (eventSource.isRendered() && eventSource instanceof UIInput) {
+      if (dynamicUiProperty.getHasMultipleValues()) {
+        multipleValueChanged(eventSource, dynamicUiProperty);
+      } else {
+        singleValueChanged(eventSource, dynamicUiProperty);
+      }
     }
+  }
 
-    /** 
-     * Constructor with DynamicUiProperty reference.
-     * @param dynamicUiProperty UI Property
-     */
-    public JsfDynamicUiValueChangeListener(DynamicUiProperty<?> dynamicUiProperty) {
-        this.dynamicUiProperty = dynamicUiProperty;
+  /**
+   * Implements the value changed event for single value properties.
+   *
+   * @param eventSource the event source.
+   * @param property the dynamic UI property.
+   */
+  protected void singleValueChanged(
+      final UIComponent eventSource,
+      final DynamicUiProperty<? extends Serializable> property) {
+    final Object value = ((UIInput) eventSource).getValue();
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
+          "Registered UIComponent "
+              + eventSource
+              + " for dynamic UI property "
+              + property.getName()
+              + " single value changed from "
+              + property.getValue()
+              + " to "
+              + value
+              + ".");
     }
-
-    @Override
-    public void processValueChange(final ValueChangeEvent event) throws AbortProcessingException {
-        final UIComponent eventSource = event.getComponent();
-        if (eventSource.isRendered() && eventSource instanceof UIInput) {
-            if (dynamicUiProperty.getHasMultipleValues()) {
-                multipleValueChanged(eventSource, dynamicUiProperty);
-            } else {
-                singleValueChanged(eventSource, dynamicUiProperty);
-            }
+    if (value instanceof UploadedFile) {
+      final String fileName = ((UploadedFile) value).getName();
+      try {
+        property.setValueGenericIncludeNull(((UploadedFile) value).getBytes());
+      } catch (IOException e) {
+        if (LOG.isTraceEnabled()) {
+          LOG.trace(
+              "Could not delete temp. file " + fileName + ": " + e.getMessage(),
+              e);
         }
+      }
+    } else {
+      property.setValueGenericIncludeNull((Serializable) value);
     }
+  }
 
-    /**
-     * Implements the value changed event for single value properties.
-     * @param eventSource the event source.
-     * @param property the dynamic UI property.
-     */
-    protected void singleValueChanged(final UIComponent eventSource, final DynamicUiProperty<? extends Serializable> property) {
-        final Object value = ((UIInput) eventSource).getValue();
-        if (log.isDebugEnabled()) {
-            log.debug("Registered UIComponent " + eventSource + " for dynamic UI property " + property.getName() + " single value changed from "
-                    + property.getValue() + " to " + value + ".");
-        }
-        if (value instanceof UploadedFile) {
-            final String fileName = ((UploadedFile) value).getName();
-            try {
-                property.setValueGenericIncludeNull(((UploadedFile) value).getBytes());
-            } catch (IOException e) {
-                if (log.isTraceEnabled()) {
-                    log.trace("Could not delete temp. file " + fileName + ": " + e.getMessage(), e);
-                }
-            }
-        } else {
-            property.setValueGenericIncludeNull((Serializable) value);
-        }
+  /**
+   * Implements the value changed event for multiple value properties (used for
+   * string list boxes only).
+   *
+   * @param eventSource the event source.
+   * @param property the dynamic UI property.
+   */
+  protected void multipleValueChanged(
+      final UIComponent eventSource,
+      final DynamicUiProperty<? extends Serializable> property) {
+    final String[] values = (String[]) ((UIInput) eventSource).getValue();
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
+          "Registered UIComponent "
+              + eventSource
+              + " for dynamic UI property "
+              + property.getName()
+              + " single value changed from "
+              + property.getValues()
+              + " to "
+              + values
+              + ".");
     }
-
-    /**
-     * Implements the value changed event for multiple value properties (used for string list boxes only).
-     * @param eventSource the event source.
-     * @param property the dynamic UI property.
-     */
-    protected void multipleValueChanged(final UIComponent eventSource, final DynamicUiProperty<? extends Serializable> property) {
-        final String[] values = (String[]) ((UIInput) eventSource).getValue();
-        if (log.isDebugEnabled()) {
-            log.debug("Registered UIComponent " + eventSource + " for dynamic UI property " + property.getName() + " single value changed from "
-                    + property.getValues() + " to " + values + ".");
-        }
-        property.setValuesGeneric(Arrays.asList(values));
-    }
+    property.setValuesGeneric(Arrays.asList(values));
+  }
 }

@@ -251,7 +251,7 @@ Password strength: floor(6.17 * 9) = floor(55.53) = 55 bits</code></pre>
 </div>
     </div>
 <p   
->This is because EJBCA cannot keep track of which fields you mean to set, if it is one of the required or non-required. To help EJBCA determine this you can specify the non-required OU fields with empty values, &quot;<tt class=" ">CN=Foo,OU=Bar1,OU=,OU=,OU=,OU=Bar2</tt>&quot;.</p>
+>This is because EJBCA cannot keep track of which fields you mean to set, if it is one of the required or non-required. To help EJBCA determine this you can specify the non-required OU fields with empty values, &quot;<code class=" ">CN=Foo,OU=Bar1,OU=,OU=,OU=,OU=Bar2</code>&quot;.</p>
 <p   
 >There is one particular subject DN field that deserves extra information, <strong class=" ">postalAddress</strong>.</p>
 <p   
@@ -312,16 +312,16 @@ it is configurable in <i class=" "><strong class=" ">cesecore.properties</strong
 <p   
 >An IP address can be either an IPv4 address or an IPv6 address.</p>
 <p   
->Example IPv4: <tt class=" ">192.168.2.54</tt></p>
+>Example IPv4: <code class=" ">192.168.2.54</code></p>
 <p   
->Example IPv6: <tt class=" ">2001:DB8:85A3:0:0:8A2E:370:7334</tt></p>
+>Example IPv6: <code class=" ">2001:DB8:85A3:0:0:8A2E:370:7334</code></p>
     </div>
     <div class="section section-3" id="src-23856789_id-.EndEntityProfilesv6.15.0-Krb5PrincipalName">
         <h3 class="heading subsubsection"><span>Krb5 Principal Name</span></h3>
 <p   
 >The Krb5 principal name is in the format &quot;principal1/principal2@realm&quot; and should be entered as such in the field.</p>
 <p   
->For example <tt class=" ">user@PRIMEKEY.COM</tt> for a normal user in the realm <tt class=" ">PRIMEKEY.COM</tt> or <tt class=" ">krbtgt/PRIMEKEY.COM@PRIMEKEY.COM</tt> for a <tt class=" ">KDC</tt>.</p>
+>For example <code class=" ">user@PRIMEKEY.COM</code> for a normal user in the realm <code class=" ">PRIMEKEY.COM</code> or <code class=" ">krbtgt/PRIMEKEY.COM@PRIMEKEY.COM</code> for a <code class=" ">KDC</code>.</p>
     </div>
     <div class="section section-3" id="src-23856789_safe-id-aWQtLkVuZEVudGl0eVByb2ZpbGVzdjYuMTUuMC1QZXJtYW5lbnRJZGVudGlmaWVyKFJGQzQwNDMp">
         <h3 class="heading "><span>Permanent Identifier (RFC 4043)</span></h3>
@@ -362,7 +362,7 @@ it is configurable in <i class=" "><strong class=" ">cesecore.properties</strong
 </div>
     </div>
 <p   
->Since the field is limited to 25 bytes, a suggested validation regex would be <tt class=" ">[0-9a-f]{1,50}</tt>.</p>
+>Since the field is limited to 25 bytes, a suggested validation regex would be <code class=" ">[0-9a-f]{1,50}</code>.</p>
     </div>
     </div>
     <div class="section section-2" id="src-23856789_id-.EndEntityProfilesv6.15.0-CertificateValidityCertificate_Validity">
@@ -456,7 +456,7 @@ it is configurable in <i class=" "><strong class=" ">cesecore.properties</strong
     <div class="section section-1" id="src-23856789_id-.EndEntityProfilesv6.15.0-ExportingEndEntityProfiles">
         <h1 class="heading heading"><span>Exporting End Entity Profiles</span></h1>
 <p   
->Every non-fixed end entity profile is exported to the specified local directory as an xml file inside a zip file named <tt class=" ">entityprofiles.zip</tt>. The name of the xml file has the format entityprofile_PROFILENAME-PROFILEID.xml.</p>
+>Every non-fixed end entity profile is exported to the specified local directory as an xml file inside a zip file named <code class=" ">entityprofiles.zip</code>. The name of the xml file has the format entityprofile_PROFILENAME-PROFILEID.xml.</p>
     </div>
     <div class="section section-1" id="src-23856789_id-.EndEntityProfilesv6.15.0-ImportingEndEntityProfiles">
         <h1 class="heading heading"><span>Importing End Entity Profiles</span></h1>

@@ -422,7 +422,7 @@ Therefore, a new CRL will be issued while running the service, if an issuance ti
 ><span class="status blue " >ENTERPRISE</span>
  This is an EJBCA Enterprise feature.</p>
 <p   
->The Certificate and CRL Reader allows for populating a VA from a CA using the <a   href="SCP_Publisher.html">SCP Publisher</a>. CRLs will be written in cleartext while certificates are serialized as <tt class=" ">org.ejbca.scp.publisher.ScpContainer</tt> objects, in order to retain revocation details and other pertinent information. Just like from the SCP Publisher, revocations can either be injected with complete information (including the certificate) or minimal (only the issuer, serial number and status). Upon successfully writing to the database, the certificate/CRL files will be removed automatically. If any error occurs, they will be left for future reads.</p>
+>The Certificate and CRL Reader allows for populating a VA from a CA using the <a   href="SCP_Publisher.html">SCP Publisher</a>. CRLs will be written in cleartext while certificates are serialized as <code class=" ">org.ejbca.scp.publisher.ScpContainer</code> objects, in order to retain revocation details and other pertinent information. Just like from the SCP Publisher, revocations can either be injected with complete information (including the certificate) or minimal (only the issuer, serial number and status). Upon successfully writing to the database, the certificate/CRL files will be removed automatically. If any error occurs, they will be left for future reads.</p>
     <div  class="confbox admonition admonition-note">
                             <span class="admonition-icon confluence-information-macro-icon"></span>
                 <div class="admonition-body">

@@ -14,43 +14,56 @@
 package org.ejbca.ui.web.admin;
 
 import java.util.Set;
-
 import javax.faces.application.FacesMessage;
 import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 import javax.faces.validator.Validator;
 import javax.faces.validator.ValidatorException;
-
 import org.apache.log4j.Logger;
 import org.cesecore.util.StringTools;
 import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
 
-/** JSF validator to check that input fields do not contain characters that might be dangerous for SQL queries 
- * (non parameterized queries that is).
- * 
+/**
+ * JSF validator to check that input fields do not contain characters that might
+ * be dangerous for SQL queries (non parameterized queries that is).
+ *
  * @version $Id: LegalCharsValidator.java 29711 2018-08-21 16:29:40Z aminkh $
  */
 public class LegalCharsValidator implements Validator {
-	private static final Logger log = Logger.getLogger(LegalCharsValidator.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(LegalCharsValidator.class);
 
-	@Override
-	public void validate(FacesContext facesContext, UIComponent uIComponent, Object object) throws ValidatorException {
-        String textFieldValue = null;
-        if (object instanceof String) {
-            textFieldValue = (String) object;
-        }
-        if (log.isDebugEnabled()) {
-            log.debug("Validating component " + uIComponent.getClientId(facesContext) + " with value \"" + textFieldValue + "\"");
-        }
-
-        Set<String> invalidCharacters = StringTools.hasSqlStripChars(textFieldValue);
-        if (!invalidCharacters.isEmpty()) {
-            StringBuilder sb = new StringBuilder("");
-            for (String error : invalidCharacters) {
-                sb.append(", " + error);
-            }
-            final String msg = EjbcaJSFHelper.getBean().getEjbcaWebBean().getText("INVALIDCHARS") + sb.substring(2);
-            throw new ValidatorException(new FacesMessage(FacesMessage.SEVERITY_ERROR, msg, null));
-        }
+  @Override
+  public void validate(
+      final FacesContext facesContext,
+      final UIComponent uIComponent,
+      final Object object)
+      throws ValidatorException {
+    String textFieldValue = null;
+    if (object instanceof String) {
+      textFieldValue = (String) object;
     }
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
+          "Validating component "
+              + uIComponent.getClientId(facesContext)
+              + " with value \""
+              + textFieldValue
+              + "\"");
+    }
+
+    Set<String> invalidCharacters =
+        StringTools.hasSqlStripChars(textFieldValue);
+    if (!invalidCharacters.isEmpty()) {
+      StringBuilder sb = new StringBuilder("");
+      for (String error : invalidCharacters) {
+        sb.append(", " + error);
+      }
+      final String msg =
+          EjbcaJSFHelper.getBean().getEjbcaWebBean().getText("INVALIDCHARS")
+              + sb.substring(2);
+      throw new ValidatorException(
+          new FacesMessage(FacesMessage.SEVERITY_ERROR, msg, null));
+    }
+  }
 }

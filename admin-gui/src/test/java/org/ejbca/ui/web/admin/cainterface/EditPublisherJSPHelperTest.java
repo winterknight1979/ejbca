@@ -12,123 +12,160 @@
  *************************************************************************/
 package org.ejbca.ui.web.admin.cainterface;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
-
 import org.ejbca.core.model.ca.publisher.PublisherDoesntExistsException;
 import org.ejbca.core.model.ca.publisher.PublisherExistsException;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-
 /**
- * Test for EditPublisherJSPHelper
+ * Test for EditPublisherJSPHelper.
+ *
  * @see EditPublisherJSPHelper
- * @version $Id: EditPublisherJSPHelperTest.java 29652 2018-08-15 12:05:16Z anatom $
+ * @version $Id: EditPublisherJSPHelperTest.java 29652 2018-08-15 12:05:16Z
+ *     anatom $
  */
 public class EditPublisherJSPHelperTest {
 
-    EditPublisherJSPHelper helper = new EditPublisherJSPHelper();
+    /** Param. */
+  private EditPublisherJSPHelper helper = new EditPublisherJSPHelper();
+  /**
+   * @throws Exception Fail
+   */
+  @Test
+  public void convertMultiPublishersStringToData() throws Exception {
+    String input = "Apple\nOrange\n\nKiwi\nBanan\nAvocado";
+    List<TreeSet<Integer>> result =
+        helper.convertMultiPublishersStringToData(getNameToIdMap(), input);
+    assertEquals("Sould contain 2 lists", 2, result.size());
+    assertEquals("First set contain 2 elements", 2, result.get(0).size());
+    assertEquals("Second set contain 3 elements", 3, result.get(1).size());
+    assertEquals(
+        "First element of first group should be Apple(1)",
+        Integer.valueOf(1),
+        result.get(0).first());
+    assertEquals(
+        "First element of first group should be Banan(2)",
+        Integer.valueOf(2),
+        result.get(1).first());
+  }
+  /**
+   * @throws Exception Fail
+   */
+  @Test(expected = PublisherDoesntExistsException.class)
+  public void convertMultiPublishersStringToDataNotExistinPublisher()
+      throws Exception {
+    String input = "Apple\nOrange\n\nKiwi\nblablalba\nAvocado";
+    @SuppressWarnings("unused")
+    List<TreeSet<Integer>> result =
+        helper.convertMultiPublishersStringToData(getNameToIdMap(), input);
+  }
+  /**
+   * @throws Exception Fail
+   */
+  @Test(expected = PublisherExistsException.class)
+  public void convertMultiPublishersStringToDataDoublicatePublisher()
+      throws Exception {
+    String input = "Apple\nOrange\n\nKiwi\nApple\nAvocado";
+    @SuppressWarnings("unused")
+    List<TreeSet<Integer>> result =
+        helper.convertMultiPublishersStringToData(getNameToIdMap(), input);
+  }
+  /**
+   * @throws Exception Fail
+   */
+  @Test
+  public void convertMultiPublishersStringToDataNewLinesAndSpaces()
+      throws Exception {
+    String input = "Apple \n Orange\n\n\n\nKiwi\nBanan\nAvocado\n\n\n\n\n";
+    List<TreeSet<Integer>> result =
+        helper.convertMultiPublishersStringToData(getNameToIdMap(), input);
+    assertEquals("Sould contain 2 lists", 2, result.size());
+    assertEquals("First set contain 2 elements", 2, result.get(0).size());
+    assertEquals("Second set contain 3 elements", 3, result.get(1).size());
+    assertEquals(
+        "First element of first group should be Apple(1)",
+        Integer.valueOf(1),
+        result.get(0).first());
+    assertEquals(
+        "First element of first group should be Banan(2)",
+        Integer.valueOf(2),
+        result.get(1).first());
+  }
+  /**
+   * @throws Exception Fail
+   */
+  @Test
+  public void convertMultiPublishersDataToString() throws Exception {
+    ArrayList<TreeSet<Integer>> data = new ArrayList<>();
+    TreeSet<Integer> tree = new TreeSet<>();
+    tree.add(1);
+    tree.add(5);
 
+    data.add(tree);
+    tree = new TreeSet<>();
+    tree.add(4);
+    tree.add(3);
+    data.add(tree);
 
-    @Test
-    public void convertMultiPublishersStringToData() throws Exception {
-        String input = "Apple\nOrange\n\nKiwi\nBanan\nAvocado";
-        List<TreeSet<Integer>> result = helper.convertMultiPublishersStringToData(getNameToIdMap(), input);
-        assertEquals("Sould contain 2 lists", 2, result.size());
-        assertEquals("First set contain 2 elements", 2, result.get(0).size());
-        assertEquals("Second set contain 3 elements", 3, result.get(1).size());
-        assertEquals("First element of first group should be Apple(1)", Integer.valueOf(1), result.get(0).first());
-        assertEquals("First element of first group should be Banan(2)", Integer.valueOf(2), result.get(1).first());
-    }
+    String result =
+        helper.convertMultiPublishersDataToString(getIdToNameMap(), data);
+    String expected = "Apple\nPomelo\n\nKiwi\nOrange";
+    assertEquals("Should return multi publishers string", expected, result);
+  }
 
-    @Test(expected = PublisherDoesntExistsException.class)
-    public void convertMultiPublishersStringToDataNotExistinPublisher() throws Exception {
-        String input = "Apple\nOrange\n\nKiwi\nblablalba\nAvocado";
-        @SuppressWarnings("unused")
-		List<TreeSet<Integer>> result = helper.convertMultiPublishersStringToData(getNameToIdMap(), input);
-    }
+  /**
+   * @throws Exception Fail
+   */
+  @Test
+  public void convertMultiPublishersDataToStringNameMissing() throws Exception {
+    ArrayList<TreeSet<Integer>> data = new ArrayList<>();
+    TreeSet<Integer> tree = new TreeSet<>();
+    tree.add(1);
+    tree.add(5);
+    data.add(tree);
 
-    @Test(expected = PublisherExistsException.class)
-    public void convertMultiPublishersStringToDataDoublicatePublisher() throws Exception {
-        String input = "Apple\nOrange\n\nKiwi\nApple\nAvocado";
-        @SuppressWarnings("unused")
-		List<TreeSet<Integer>> result = helper.convertMultiPublishersStringToData(getNameToIdMap(), input);
-    }
-    @Test
-    public void convertMultiPublishersStringToDataNewLinesAndSpaces() throws Exception {
-        String input = "Apple \n Orange\n\n\n\nKiwi\nBanan\nAvocado\n\n\n\n\n";
-        List<TreeSet<Integer>> result = helper.convertMultiPublishersStringToData(getNameToIdMap(), input);
-        assertEquals("Sould contain 2 lists", 2, result.size());
-        assertEquals("First set contain 2 elements", 2, result.get(0).size());
-        assertEquals("Second set contain 3 elements", 3, result.get(1).size());
-        assertEquals("First element of first group should be Apple(1)", Integer.valueOf(1), result.get(0).first());
-        assertEquals("First element of first group should be Banan(2)", Integer.valueOf(2), result.get(1).first());
-    }
+    tree = new TreeSet<>();
+    tree.add(8);
+    data.add(tree);
 
-    @Test
-    public void convertMultiPublishersDataToString() throws Exception {
-        ArrayList<TreeSet<Integer>> data = new ArrayList<>();
-        TreeSet<Integer> tree = new TreeSet<>();
-        tree.add(1);
-        tree.add(5);
+    tree = new TreeSet<>();
+    tree.add(4);
+    tree.add(3);
+    data.add(tree);
 
-        data.add(tree);
-        tree = new TreeSet<>();
-        tree.add(4);
-        tree.add(3);
-        data.add(tree);
+    String result =
+        helper.convertMultiPublishersDataToString(getIdToNameMap(), data);
+    String expected = "Apple\nPomelo\n\nKiwi\nOrange";
+    assertEquals("Should return multi publishers string", expected, result);
+  }
 
-        String result = helper.convertMultiPublishersDataToString(getIdToNameMap(), data);
-        String expected = "Apple\nPomelo\n\nKiwi\nOrange";
-        assertEquals("Should return multi publishers string", expected, result);
-    }
+  private Map<Integer, String> getIdToNameMap() {
+    Map<Integer, String> publisherNameToIdMap = new HashMap<>();
+    publisherNameToIdMap.put(1, "Apple");
+    publisherNameToIdMap.put(2, "Banan");
+    publisherNameToIdMap.put(3, "Orange");
+    publisherNameToIdMap.put(4, "Kiwi");
+    publisherNameToIdMap.put(5, "Pomelo");
+    publisherNameToIdMap.put(6, "Grape");
+    publisherNameToIdMap.put(7, "Avocado");
+    return publisherNameToIdMap;
+  }
 
-    @Test
-    public void convertMultiPublishersDataToStringNameMissing() throws Exception {
-        ArrayList<TreeSet<Integer>> data = new ArrayList<>();
-        TreeSet<Integer> tree = new TreeSet<>();
-        tree.add(1);
-        tree.add(5);
-        data.add(tree);
-
-        tree = new TreeSet<>();
-        tree.add(8);
-        data.add(tree);
-
-        tree = new TreeSet<>();
-        tree.add(4);
-        tree.add(3);
-        data.add(tree);
-
-        String result = helper.convertMultiPublishersDataToString(getIdToNameMap(), data);
-        String expected = "Apple\nPomelo\n\nKiwi\nOrange";
-        assertEquals("Should return multi publishers string", expected, result);
-    }
-
-    private Map<Integer, String> getIdToNameMap() {
-        Map<Integer, String> publisherNameToIdMap = new HashMap<>();
-        publisherNameToIdMap.put(1, "Apple");
-        publisherNameToIdMap.put(2, "Banan");
-        publisherNameToIdMap.put(3, "Orange");
-        publisherNameToIdMap.put(4, "Kiwi");
-        publisherNameToIdMap.put(5, "Pomelo");
-        publisherNameToIdMap.put(6, "Grape");
-        publisherNameToIdMap.put(7, "Avocado");
-        return publisherNameToIdMap;
-    }
-    private static Map<String, Integer> getNameToIdMap() {
-        Map<String, Integer> publisherNameToIdMap = new HashMap<>();
-        publisherNameToIdMap.put("Apple", 1);
-        publisherNameToIdMap.put("Banan", 2);
-        publisherNameToIdMap.put("Kiwi", 3);
-        publisherNameToIdMap.put("Orange", 4);
-        publisherNameToIdMap.put("Greip", 5);
-        publisherNameToIdMap.put("Grape", 6);
-        publisherNameToIdMap.put("Avocado", 7);
-        return publisherNameToIdMap;
-    }
+  private static Map<String, Integer> getNameToIdMap() {
+    Map<String, Integer> publisherNameToIdMap = new HashMap<>();
+    publisherNameToIdMap.put("Apple", 1);
+    publisherNameToIdMap.put("Banan", 2);
+    publisherNameToIdMap.put("Kiwi", 3);
+    publisherNameToIdMap.put("Orange", 4);
+    publisherNameToIdMap.put("Greip", 5);
+    publisherNameToIdMap.put("Grape", 6);
+    publisherNameToIdMap.put("Avocado", 7);
+    return publisherNameToIdMap;
+  }
 }

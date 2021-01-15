@@ -16,33 +16,50 @@ package org.ejbca.ui.web.admin.configuration;
 import javax.faces.model.SelectItem;
 
 /**
- * An extension to the SelectItem class that is
- * sortable, used by select lists that should be alphabetic
- * order. 
- * 
+ * An extension to the SelectItem class that is sortable, used by select lists
+ * that should be alphabetic order.
  *
  * @version $Id: SortableSelectItem.java 28844 2018-05-04 08:31:02Z samuellb $
  */
+public class SortableSelectItem extends SelectItem
+    implements Comparable<SelectItem> {
 
-public class SortableSelectItem extends SelectItem implements Comparable<SelectItem>{
+  private static final long serialVersionUID = -3282242436064530974L;
 
-	private static final long serialVersionUID = -3282242436064530974L;
+  /**
+   * @param value Value
+   * @param label Label
+   * @param description Desc
+   * @param disabled Bool
+   */
+  public SortableSelectItem(
+      final Object value,
+      final String label,
+      final String description,
+      final boolean disabled) {
+    super(value, label, description, disabled);
+  }
 
-    public SortableSelectItem(final Object value, final String label, final String description, final boolean disabled) {
-		super(value, label, description, disabled);
-	}
+  /**
+   * @param value Value
+   * @param label LAbel
+   * @param description Desc
+   */
+  public SortableSelectItem(
+      final Object value, final String label, final String description) {
+    super(value, label, description);
+  }
 
-	public SortableSelectItem(final Object value, final String label, final String description) {
-		super(value, label, description);
-	}
+  /**
+   * @param value value
+   * @param label lavel
+   */
+  public SortableSelectItem(final Object value, final String label) {
+    super(value, label);
+  }
 
-	public SortableSelectItem(final Object value, final String label) {
-		super(value, label);
-	}
-
-	@Override
-	public int compareTo(final SelectItem other) {
-		return this.getLabel().compareTo(other.getLabel());
-	}
-
+  @Override
+  public int compareTo(final SelectItem other) {
+    return this.getLabel().compareTo(other.getLabel());
+  }
 }

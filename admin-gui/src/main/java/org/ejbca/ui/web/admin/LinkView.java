@@ -14,38 +14,64 @@
 package org.ejbca.ui.web.admin;
 
 /**
- * Represents a link to another view. Used by approvals to link from approvals list to certificate views.
- * 
- * @version $Id: LinkView.java 19902 2014-09-30 14:32:24Z anatom $
+ * Represents a link to another view. Used by approvals to link from approvals
+ * list to certificate views.
  *
+ * @version $Id: LinkView.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public class LinkView {
 
-	private String URI;
-	private String preDescription;
-	private String description;
-	private String postDescription;
+      /** Param. */
+  private final String uri;
+  /** Param. */
+  private final String preDescription;
+  /** Param. */
+  private final String description;
+  /** Param. */
+  private final String postDescription;
 
-	public LinkView(String URI, String preDescription, String description, String postDescription) {
-		this.URI = URI;
-		this.preDescription = preDescription;
-		this.description = description;
-		this.postDescription = postDescription;
-	}
-	
-	public String getURI() {
-		return URI;
-	}
-	
-	public String getPreDescription() {
-		return preDescription;
-	}
+  /**
+   * @param aURI URI
+   * @param apreDescription Desc
+   * @param adescription Desc
+   * @param apostDescription Desc
+   */
+  public LinkView(
+      final String aURI,
+      final String apreDescription,
+      final String adescription,
+      final String apostDescription) {
+    this.uri = aURI;
+    this.preDescription = apreDescription;
+    this.description = adescription;
+    this.postDescription = apostDescription;
+  }
 
-	public String getPostDescription() {
-		return postDescription;
-	}
+  /**
+   * @return URI
+   */
+  public String getURI() {
+    return uri;
+  }
 
-	public String getDescription() {
-		return description;
-	}
+  /**
+   * @return desc
+   */
+  public String getPreDescription() {
+    return preDescription;
+  }
+
+  /**
+   * @return desc
+   */
+  public String getPostDescription() {
+    return postDescription;
+  }
+
+  /**
+   * @return Desc
+   */
+  public String getDescription() {
+    return description;
+  }
 }

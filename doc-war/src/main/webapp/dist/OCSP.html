@@ -226,7 +226,7 @@
 </li><li class=" "><p   
 >If <strong class=" ">Query OCSP responder servers to confirm the current validity of certificates</strong> in <strong class=" ">Advanced &gt; Certificates</strong> is selected, and certificates include an OCSP Service URL (AIA extension), Firefox will query the OCSP server when for example double-clicking on a certificate in the certificate manager.</p>
 </li></ol><p   
->An appropriate URL for validation is: <tt class=" ">http://hostname:8080/ejbca/publicweb/status/ocsp</tt> and doc/samples contains a sample on how to check revocation with OCSP using the new APIs as of JDK 1.5.</p>
+>An appropriate URL for validation is: <code class=" ">http://hostname:8080/ejbca/publicweb/status/ocsp</code> and doc/samples contains a sample on how to check revocation with OCSP using the new APIs as of JDK 1.5.</p>
     </div>
     <div class="section section-1" id="src-23856318_id-.OCSPv6.15.0-RevokedCACertificates">
         <h1 class="heading "><span>Revoked CA Certificates</span></h1>
@@ -311,13 +311,13 @@
     <div class="section section-1" id="src-23856318_id-.OCSPv6.15.0-OCSPResponseCertificateChain">
         <h1 class="heading "><span>OCSP Response Certificate Chain</span></h1>
 <p   
->For efficiency reasons, it is possible to configure EJBCA to either omit including the signing certificate or its certificate chain in the OCSP response. Setting the relevant configuration in the <tt class=" ">$EJBCA_HOME/conf/ocsp.properties</tt> file or in the Internal Key Binding in the GUI, has the following effect:</p>
+>For efficiency reasons, it is possible to configure EJBCA to either omit including the signing certificate or its certificate chain in the OCSP response. Setting the relevant configuration in the <code class=" ">$EJBCA_HOME/conf/ocsp.properties</code> file or in the Internal Key Binding in the GUI, has the following effect:</p>
 <ul class=" "><li class=" "><p   
->If <tt class=" ">ocsp.includesignercert=true</tt> and <tt class=" ">ocsp.includecertchain=true</tt>, the signing certificate and its chain, except for the signing certificate root CA certificate, will be included in the OCSP response. If the signing certificate IS the root CA certificate, then the root CA certificate will be included in the response any way.</p>
+>If <code class=" ">ocsp.includesignercert=true</code> and <code class=" ">ocsp.includecertchain=true</code>, the signing certificate and its chain, except for the signing certificate root CA certificate, will be included in the OCSP response. If the signing certificate IS the root CA certificate, then the root CA certificate will be included in the response any way.</p>
 </li><li class=" "><p   
->If <tt class=" ">ocsp.includesignercert=true</tt> and <tt class=" ">ocsp.includecertchain=false</tt>, only the signing certificate will be included in the OCSP response even if it was a root CA certificate.</p>
+>If <code class=" ">ocsp.includesignercert=true</code> and <code class=" ">ocsp.includecertchain=false</code>, only the signing certificate will be included in the OCSP response even if it was a root CA certificate.</p>
 </li><li class=" "><p   
->If <tt class=" ">ocsp.includesignercert=false</tt>, neither the signing certificate nor the certificate chain will be included in the OCSP response regardless of the value of <tt class=" ">ocsp.includecertchain</tt></p>
+>If <code class=" ">ocsp.includesignercert=false</code>, neither the signing certificate nor the certificate chain will be included in the OCSP response regardless of the value of <code class=" ">ocsp.includecertchain</code></p>
 </li></ul>    </div>
     <div class="section section-1" id="src-23856318_id-.OCSPv6.15.0-AuditandAccountLogging">
         <h1 class="heading "><span>Audit and Account Logging</span></h1>
@@ -686,7 +686,7 @@
                             <span class="admonition-icon confluence-information-macro-icon"></span>
                 <div class="admonition-body">
 <p   
->If using JBoss EAP 6 and an application specific log4j configuration, set the property <strong class=" ">org.jboss.as.logging.per-deployment=true</strong> in <tt class=" ">standalone.xml</tt> or using the JBoss CLI.</p>
+>If using JBoss EAP 6 and an application specific log4j configuration, set the property <strong class=" ">org.jboss.as.logging.per-deployment=true</strong> in <code class=" ">standalone.xml</code> or using the JBoss CLI.</p>
         </div>
     </div>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
@@ -786,7 +786,7 @@
     <div class="section section-1" id="src-23856318_id-.OCSPv6.15.0-UsingtheOCSPAPI">
         <h1 class="heading "><span>Using the OCSP API</span></h1>
 <p   
->The learn the API, you can study the included source code. The client API is used in the class <tt class=" ">org.ejbca.core.protocol.ocsp.OCSPUnidClient</tt>. The <a   href="EJBCA_Client_Toolbox.html">EJBCA Client Toolbox</a> can serve as a good sample for using the API, in the class <tt class=" ">org.ejbca.ui.cli.Ocsp</tt>.</p>
+>The learn the API, you can study the included source code. The client API is used in the class <code class=" ">org.ejbca.core.protocol.ocsp.OCSPUnidClient</code>. The <a   href="EJBCA_Client_Toolbox.html">EJBCA Client Toolbox</a> can serve as a good sample for using the API, in the class <code class=" ">org.ejbca.ui.cli.Ocsp</code>.</p>
     </div>
     <div class="section section-1" id="src-23856318_id-.OCSPv6.15.0-DatabaseIndexes">
         <h1 class="heading subsection"><span>Database Indexes</span></h1>
@@ -798,11 +798,11 @@
 <p   
 >The GET OCSP request is defined in <a  class="external-link" href="http://www.ietf.org/rfc/rfc6960.txt">RFC 6960</a> (and RFC2560) A.1 as:</p>
 <p   
-><tt class=" ">'GET {url}/{url-encoding of base-64 encoding of the DER encoding of the OCSPRequest}'</tt>.</p>
+><code class=" ">'GET {url}/{url-encoding of base-64 encoding of the DER encoding of the OCSPRequest}'</code>.</p>
 <p   
 >A base64-encoded request can contain the reserved characters '+', '/' and '=', but will be handled correctly both in their %-escaped and original form by the responder, since it's unclear if they do conflict as defined in <a  class="external-link" href="http://www.ietf.org/rfc/rfc2396.txt">RFC 2396</a> 2.2.</p>
 <p   
->Not all web-product handles the encoded '/' (%2F) nicely. JBoss/Tomcat has to be started with <tt class=" ">-Dorg.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH=true</tt> added to JAVA_OPT in JBOSS_HOME/bin/run.conf. On Glassfish this JVM option is configured under Application Server Settings.</p>
+>Not all web-product handles the encoded '/' (%2F) nicely. JBoss/Tomcat has to be started with <code class=" ">-Dorg.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH=true</code> added to JAVA_OPT in JBOSS_HOME/bin/run.conf. On Glassfish this JVM option is configured under Application Server Settings.</p>
     <div class="section section-2" id="src-23856318_id-.OCSPv6.15.0-Responseswithlongervalidityandcaching">
         <h2 class="heading "><span>Responses with longer validity and caching</span></h2>
 <p   

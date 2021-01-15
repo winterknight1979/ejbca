@@ -17,33 +17,39 @@ import javax.faces.context.FacesContext;
 import javax.faces.convert.Converter;
 import javax.faces.convert.ConverterException;
 import javax.faces.convert.FacesConverter;
-
 import org.cesecore.util.ui.DynamicUiProperty;
 import org.cesecore.util.ui.RadioButton;
 
 /**
- * Handles conversions of radio button labels, mainly for display reasons. 
- * 
- * @version $Id: RadioButtonLabelConverter.java 34227 2020-01-09 14:20:59Z henriks $
+ * Handles conversions of radio button labels, mainly for display reasons.
  *
+ * @version $Id: RadioButtonLabelConverter.java 34227 2020-01-09 14:20:59Z
+ *     henriks $
  */
 @FacesConverter("radioButtonLabelConverter")
-public class RadioButtonLabelConverter implements Converter{
-    
-    @Override
-    public Object getAsObject(FacesContext context, UIComponent component, String value) {
-        if (value == null || value.isEmpty()) {
-            return null;
-        }
-        return new RadioButton(value);
-    }
+public class RadioButtonLabelConverter implements Converter {
 
-    @Override
-    public String getAsString(FacesContext context, UIComponent component, Object value) throws ConverterException {
-        if (value == null) {
-            return null;
-        }
-        return DynamicUiProperty.getAsObject((String) value, RadioButton.class).toString();
+  @Override
+  public Object getAsObject(
+      final FacesContext context,
+      final UIComponent component,
+      final String value) {
+    if (value == null || value.isEmpty()) {
+      return null;
     }
+    return new RadioButton(value);
+  }
 
+  @Override
+  public String getAsString(
+      final FacesContext context,
+      final UIComponent component,
+      final Object value)
+      throws ConverterException {
+    if (value == null) {
+      return null;
+    }
+    return DynamicUiProperty.getAsObject((String) value, RadioButton.class)
+        .toString();
+  }
 }

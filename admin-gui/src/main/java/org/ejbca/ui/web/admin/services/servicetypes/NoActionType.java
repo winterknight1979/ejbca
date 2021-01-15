@@ -17,45 +17,76 @@ import java.util.ArrayList;
 import java.util.Properties;
 
 /**
- * Class used to populate the fields in the noaction subpage. 
- * 
+ * Class used to populate the fields in the noaction subpage.
  *
  * @version $Id: NoActionType.java 28844 2018-05-04 08:31:02Z samuellb $
  */
 public class NoActionType extends ActionType {
-	
-	private static final long serialVersionUID = -5063026816886312970L;
 
-    public static final String NAME = "NOACTION";
-	
-	private transient Properties properties = new Properties();
-	
-	public NoActionType() {
-		super("noaction.jsp", NAME, true);
-	}
+  private static final long serialVersionUID = -5063026816886312970L;
 
-    String unit;
-    String value;
+  /** Param. */
+  public static final String NAME = "NOACTION";
 
-    @Override
-	public String getClassPath() {
-		return org.ejbca.core.model.services.actions.NoAction.class.getName();
-	}
+  /** Param. */
+  private transient Properties properties = new Properties();
 
-    @Override
-	public Properties getProperties(ArrayList<String> errorMessages) throws IOException {		
-		return properties;
-	}
-	
-    @Override
-	public void setProperties(Properties properties) throws IOException {
-		this.properties = properties;
-	}
+  /** Param. */
+  public NoActionType() {
+    super("noaction.jsp", NAME, true);
+  }
 
-    @Override
-	public boolean isCustom() {
-		return false;
-	}
+  /** Param. */
+  private String unit;
+  /** Param. */
+  private String value;
 
+  @Override
+  public String getClassPath() {
+    return org.ejbca.core.model.services.actions.NoAction.class.getName();
+  }
 
+  @Override
+  public Properties getProperties(final ArrayList<String> errorMessages)
+      throws IOException {
+    return properties;
+  }
+
+  @Override
+  public void setProperties(final Properties theproperties) throws IOException {
+    this.properties = theproperties;
+  }
+
+  @Override
+  public boolean isCustom() {
+    return false;
+  }
+
+/**
+ * @return the value
+ */
+String getValue() {
+    return value;
+}
+
+/**
+ * @param avalue the value to set
+ */
+void setValue(final String avalue) {
+    this.value = avalue;
+}
+
+/**
+ * @return the unit
+ */
+String getUnit() {
+    return unit;
+}
+
+/**
+ * @param aunit the unit to set
+ */
+void setUnit(final String aunit) {
+    this.unit = aunit;
+}
 }

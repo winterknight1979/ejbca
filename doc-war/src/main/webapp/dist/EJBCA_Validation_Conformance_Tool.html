@@ -179,14 +179,14 @@
     <div class="section section-2" id="src-26772549_safe-id-aWQtLkVKQkNBVmFsaWRhdGlvbi9Db25mb3JtYW5jZVRvb2x2Ni4xNS4xLUJ1aWxk">
         <h2 class="heading "><span>Build</span></h2>
 <ul class=" "><li class=" "><p   
->To build the tool and create a <tt class=" ">dist/validationtool</tt> directory, run the following:</p>
+>To build the tool and create a <code class=" ">dist/validationtool</code> directory, run the following:</p>
 </li></ul>    <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">ant validationtool</code></div>
 </div>
     </div>
 <p   style="margin-left:30px;"
->You may move the directory <tt class=" ">dist/validationtool</tt> to any location.</p>
+>You may move the directory <code class=" ">dist/validationtool</code> to any location.</p>
 <ul class=" "><li class=" "><p   
 >To provide online documentation for available ValidationTool commands and options, run the following::</p>
 </li></ul>    <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
@@ -195,7 +195,7 @@
 </div>
     </div>
 <ul class=" "><li class=" "><p   
->To create a source distribution and create a <tt class=" ">dist/validationtool-src</tt> directory, run the following:</p>
+>To create a source distribution and create a <code class=" ">dist/validationtool-src</code> directory, run the following:</p>
 </li></ul>    <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">ant validationtool-src</code></div>
@@ -204,7 +204,7 @@
 <p   style="margin-left:30px;"
 >You may zip the directory and extract it in any location.</p>
 <ul class=" "><li class=" "><p   
->To build the Validation Tool, run the following in the <tt class=" ">modules/validationtool</tt> directory:</p>
+>To build the Validation Tool, run the following in the <code class=" ">modules/validationtool</code> directory:</p>
 </li></ul>    <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
                 <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
 <div class="line"><code class="plain">ant jar</code></div>
@@ -228,7 +228,7 @@
 </div>
     </div>
 <p   style="margin-left:30px;"
->This will query the OCSP responder for three different results (good, revoked and unknown) as configured in <tt class=" ">ocspchecks_adminca.properties</tt>. For the tests to succeed, replace the managementca.crt with the issuer of your OCSP responder certificates, and change the DN:s and serial numbers in the configuration file to match your installation.</p>
+>This will query the OCSP responder for three different results (good, revoked and unknown) as configured in <code class=" ">ocspchecks_adminca.properties</code>. For the tests to succeed, replace the managementca.crt with the issuer of your OCSP responder certificates, and change the DN:s and serial numbers in the configuration file to match your installation.</p>
 <ul class=" "><li class=" "><p   
 >To run certificate checks, run the following:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
@@ -237,13 +237,13 @@
 </div>
     </div>
 <p   
->The tool waits for certificate files to be placed in the folder called <tt class=" ">certfolder</tt>. When a certificate file is detected, it is parsed and the configured certificate checks are executed. You need to configure <tt class=" ">certchecks1.properties</tt> with the tests that should be performed and their properties.</p>
+>The tool waits for certificate files to be placed in the folder called <code class=" ">certfolder</code>. When a certificate file is detected, it is parsed and the configured certificate checks are executed. You need to configure <code class=" ">certchecks1.properties</code> with the tests that should be performed and their properties.</p>
 </li></ul>    </div>
     </div>
     <div class="section section-1" id="src-26772549_safe-id-aWQtLkVKQkNBVmFsaWRhdGlvbi9Db25mb3JtYW5jZVRvb2x2Ni4xNS4xLVJlc3VsdHM">
         <h1 class="heading "><span>Results</span></h1>
 <p   
->Results are written after all configured checks are run for a query or certificate file. By default, the log is written to both standard output and a log file called <tt class=" ">validationtool.log</tt>. Log4j can be configured in <tt class=" ">conf/log4j.xml</tt>.</p>
+>Results are written after all configured checks are run for a query or certificate file. By default, the log is written to both standard output and a log file called <code class=" ">validationtool.log</code>. Log4j can be configured in <code class=" ">conf/log4j.xml</code>.</p>
 <p   
 >If the validation was successful and all checks for the current query or certificate file were successful, the results are logged with the INFO priority. Otherwise the ERROR priority is used.</p>
 <p   
@@ -323,7 +323,7 @@
     <div class="section section-1" id="src-26772549_safe-id-aWQtLkVKQkNBVmFsaWRhdGlvbi9Db25mb3JtYW5jZVRvb2x2Ni4xNS4xLVZhbGlkYXRpb25Ub29sQ29tbWFuZExpbmVJbnRlcmZhY2UoQ0xJKVZhbGlkYXRpb25Ub29sQ29tbWFuZExpbmVJbnRlcmZhY2U">
         <h1 class="heading "><span id="src-26772549_safe-id-aWQtLkVKQkNBVmFsaWRhdGlvbi9Db25mb3JtYW5jZVRvb2x2Ni4xNS4xLVZhbGlkYXRpb25Ub29sQ29tbWFuZExpbmVJbnRlcmZhY2U" class="confluence-anchor-link"></span><span>Validation Tool Command Line Interface (CLI) </span></h1>
 <p   
->The Validation Tool Command Line Interface (CLI) has a <tt class=" ">ocsp</tt> and a <tt class=" ">certificate</tt> command with the following respective syntax.</p>
+>The Validation Tool Command Line Interface (CLI) has a <code class=" ">ocsp</code> and a <code class=" ">certificate</code> command with the following respective syntax.</p>
     <div class="section section-2" id="src-26772549_safe-id-aWQtLkVKQkNBVmFsaWRhdGlvbi9Db25mb3JtYW5jZVRvb2x2Ni4xNS4xLW9jc3A">
         <h2 class="heading "><span>ocsp</span></h2>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">

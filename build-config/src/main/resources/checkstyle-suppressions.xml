@@ -561,5 +561,47 @@
 	
 	<!-- clearcache-war --> 
 	
+	<!-- admin-gui -->
+	
+	
+	<suppress checks="UnusedImportsCheck"
+		files="JsfDynamicUiActionListener.java" lines="23,25" /> <!-- Used in JDOC -->
+	<suppress checks="UnusedImportsCheck"
+		files="JsfDynamicUiAjaxBehaviorListener.java" lines="21,23" /> <!-- Used in JDOC -->
+	<suppress checks="UnusedImportsCheck"
+		files="JsfDynamicUiValueChangeListener.java" lines="25" /> <!-- Used in JDOC -->
+	<suppress checks="ParameterNumberCheck"
+		files="AuditorManagedBean.java" lines=" 629" />
+		<suppress checks="MethodLengthCheck"
+		files="CACertReqServlet.java" lines="94 " />
+		<suppress checks="MethodLengthCheck"
+		files="CAInterfaceBean.java" lines="902,1149,1824 " />
+	<suppress checks="ParameterNumberCheck"
+		files="CAInterfaceBean.java" lines=" 902,1149,1824" />
+		<suppress checks="MethodLengthCheck"
+		files="EditPublisherJSPHelper.java" lines="324 " />
+		<suppress checks="MethodLengthCheck"
+		files="CertProfileBean.java" lines="206 " />
+		<suppress checks="MagicNumberCheck"
+		files="CertProfileBean.java" lines="2049-2108 " /> <!-- error codes, will finalize once I understand them -->
+		<suppress checks="MagicNumberCheck"
+		files="CertProfilesBean.java" lines="713 " />
+		<suppress checks="MethodLengthCheck"
+		files="ProfilesExportServlet.java" lines="104 " />
+		<suppress checks="MethodLengthCheck"
+		files="EjbcaWebBean.java" lines="282,892" />
+		<suppress checks="MethodLengthCheck"
+		files="CryptoTokenMBean.java" lines="923" />
+		<suppress checks="MethodLengthCheck"
+		files="EditHardTokenProfileJSPHelper.java" lines="237" />
+	<suppress checks="ParameterNumberCheck"
+		files="InternalKeyBindingMBean.java" lines="154" />
+		<suppress checks="MethodLengthCheck"
+		files="EditUserDataSourceJSPHelper.java" lines="193,451" />
+		<suppress checks="MethodLengthCheck"
+		files="RAInterfaceBean.java" lines="1762" />
+		<suppress checks="MagicNumberCheck"
+		files="RAInterfaceBean.java" lines="1791" />
+	
 	
 </suppressions>

@@ -14,40 +14,33 @@ package org.ejbca.ui.web.admin.configuration;
 
 /**
  * Thrown to indicate that a custom extension property value is invalid.
- * 
- * @version $Id: InvalidCustomExtensionPropertyException.java 21979 2015-10-07 14:06:49Z mikekushner $
  *
+ * @version $Id: InvalidCustomExtensionPropertyException.java 21979 2015-10-07
+ *     14:06:49Z mikekushner $
  */
 public class InvalidCustomExtensionPropertyException extends Exception {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * 
-     */
-    public InvalidCustomExtensionPropertyException() {
-    }
+  /** */
+  public InvalidCustomExtensionPropertyException() { }
 
-    /**
-     * @param message message
-     */
-    public InvalidCustomExtensionPropertyException(String message) {
-        super(message);
-    }
+  /** @param message message */
+  public InvalidCustomExtensionPropertyException(final String message) {
+    super(message);
+  }
 
-    /**
-     * @param cause Cause
-     */
-    public InvalidCustomExtensionPropertyException(Throwable cause) {
-        super(cause);
-    }
+  /** @param cause Cause */
+  public InvalidCustomExtensionPropertyException(final Throwable cause) {
+    super(cause);
+  }
 
-    /**
-     * @param message Message
-     * @param cause Cause
-     */
-    public InvalidCustomExtensionPropertyException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
+  /**
+   * @param message Message
+   * @param cause Cause
+   */
+  public InvalidCustomExtensionPropertyException(
+      final String message, final Throwable cause) {
+    super(message, cause);
+  }
 }

@@ -18,61 +18,64 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
 import javax.faces.model.SelectItem;
-
 import org.apache.log4j.Logger;
 import org.junit.Test;
 
 /**
- * Test for SelectItemComparator
+ * Test for SelectItemComparator.
+ *
  * @see SelectItemComparator
- * @version $Id: SelectItemComparatorTest.java 29652 2018-08-15 12:05:16Z anatom $
+ * @version $Id: SelectItemComparatorTest.java 29652 2018-08-15 12:05:16Z anatom
+ *     $
  */
 public class SelectItemComparatorTest {
-    
-    private static final Logger log = Logger.getLogger(SelectItemComparatorTest.class);
 
-    @Test
-    public void testBasic() {
-        log.debug(">testBasic");
-        List<SelectItem> items = new ArrayList<>();
-        items.add(new SelectItem(10, "A"));
-        items.add(new SelectItem(5));
-        items.add(new SelectItem(7, "1"));
-        items.add(new SelectItem(8, null));
-        items.add(new SelectItem(null, "B"));
-        Collections.sort(items, new SelectItemComparator());
-        final Object[] values = valuesToArray(items);
-        log.debug("After sorting: " + Arrays.toString(values));
-        assertArrayEquals("Wrong order of items.", new Object[] { 8, 7, 5, 10, null }, values);
-        log.debug("<testBasic");
-    }
-    
-    @Test
-    public void testWithSpecialItems() {
-        log.debug(">testWithSpecialItems");
-        List<SelectItem> items = new ArrayList<>();
-        items.add(new SelectItem(10, "A"));
-        items.add(new SelectItem(5));
-        items.add(new SelectItem(7, "1"));
-        items.add(new SelectItem(8, null));
-        items.add(new SelectItem(null, "B"));
-        Collections.sort(items, new SelectItemComparator(7, null));
-        final Object[] values = valuesToArray(items);
-        log.debug("After sorting: " + Arrays.toString(values));
-        assertArrayEquals("Wrong order of items.", new Object[] { 7, null, 8, 5, 10 }, values);
-        log.debug("<testWithSpecialItems");
-    }
+    /** Logger. */
+  private static final Logger LOG =
+      Logger.getLogger(SelectItemComparatorTest.class);
 
-    private Object[] valuesToArray(final List<SelectItem> items) {
-        final Object[] values = new Object[items.size()];
-        for (int i = 0; i < items.size(); i++) {
-            values[i] = items.get(i).getValue();
-        }
-        return values;
+  /** Test. */
+  @Test
+  public void testBasic() {
+    LOG.debug(">testBasic");
+    List<SelectItem> items = new ArrayList<>();
+    items.add(new SelectItem(10, "A"));
+    items.add(new SelectItem(5));
+    items.add(new SelectItem(7, "1"));
+    items.add(new SelectItem(8, null));
+    items.add(new SelectItem(null, "B"));
+    Collections.sort(items, new SelectItemComparator());
+    final Object[] values = valuesToArray(items);
+    LOG.debug("After sorting: " + Arrays.toString(values));
+    assertArrayEquals(
+        "Wrong order of items.", new Object[] {8, 7, 5, 10, null}, values);
+    LOG.debug("<testBasic");
+  }
+
+  /** Test. */
+  @Test
+  public void testWithSpecialItems() {
+    LOG.debug(">testWithSpecialItems");
+    List<SelectItem> items = new ArrayList<>();
+    items.add(new SelectItem(10, "A"));
+    items.add(new SelectItem(5));
+    items.add(new SelectItem(7, "1"));
+    items.add(new SelectItem(8, null));
+    items.add(new SelectItem(null, "B"));
+    Collections.sort(items, new SelectItemComparator(7, null));
+    final Object[] values = valuesToArray(items);
+    LOG.debug("After sorting: " + Arrays.toString(values));
+    assertArrayEquals(
+        "Wrong order of items.", new Object[] {7, null, 8, 5, 10}, values);
+    LOG.debug("<testWithSpecialItems");
+  }
+
+  private Object[] valuesToArray(final List<SelectItem> items) {
+    final Object[] values = new Object[items.size()];
+    for (int i = 0; i < items.size(); i++) {
+      values[i] = items.get(i).getValue();
     }
-    
-    
-    
+    return values;
+  }
 }

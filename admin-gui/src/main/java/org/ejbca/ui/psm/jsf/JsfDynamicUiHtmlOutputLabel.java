@@ -14,49 +14,55 @@ package org.ejbca.ui.psm.jsf;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-
 import javax.faces.component.html.HtmlOutputText;
-
 import org.apache.log4j.Logger;
 import org.cesecore.util.ui.DynamicUiComponent;
 import org.cesecore.util.ui.DynamicUiProperty;
 
 /**
- * MyFaces HTML UI text output component implementing the {@link PropertyChangeListener} interface 
- * to get noticed for dynamic UI property changes.
- * 
- * @version $Id: JsfDynamicUiHtmlOutputLabel.java 29319 2018-06-25 09:26:18Z bastianf $
+ * MyFaces HTML UI text output component implementing the {@link
+ * PropertyChangeListener} interface to get noticed for dynamic UI property
+ * changes.
+ *
+ * @version $Id: JsfDynamicUiHtmlOutputLabel.java 29319 2018-06-25 09:26:18Z
+ *     bastianf $
  */
-public class JsfDynamicUiHtmlOutputLabel extends HtmlOutputText implements DynamicUiComponent, PropertyChangeListener {
+public class JsfDynamicUiHtmlOutputLabel extends HtmlOutputText
+    implements DynamicUiComponent, PropertyChangeListener {
 
-    /** Class logger. */
-    private static final Logger log = Logger.getLogger(JsfDynamicUiHtmlOutputLabel.class);
+  /** Class logger. */
+  private static final Logger LOG =
+      Logger.getLogger(JsfDynamicUiHtmlOutputLabel.class);
 
-    /** DynamicUIProperty reference. */
-    private DynamicUiProperty<?> dynamicUiProperty;
+  /** DynamicUIProperty reference. */
+  private DynamicUiProperty<?> dynamicUiProperty;
 
-    /**
-     * Sets the dynamic UI property reference.
-     * @param property the dynamic UI property.
-     */
-    void setDynamicUiProperty(final DynamicUiProperty<?> property) {
-        this.dynamicUiProperty = property;
-        this.dynamicUiProperty.addDynamicUiComponent(this);
+  /**
+   * Sets the dynamic UI property reference.
+   *
+   * @param property the dynamic UI property.
+   */
+  void setDynamicUiProperty(final DynamicUiProperty<?> property) {
+    this.dynamicUiProperty = property;
+    this.dynamicUiProperty.addDynamicUiComponent(this);
+  }
+
+  @Override
+  public void propertyChange(final PropertyChangeEvent event) {
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
+          "Property change event for dynamic UI property " + dynamicUiProperty
+                  != null
+              ? dynamicUiProperty.getName()
+              : null + " fired: " + event);
     }
-
-    @Override
-    public void propertyChange(final PropertyChangeEvent event) {
-        if (log.isTraceEnabled()) {
-            log.trace("Property change event for dynamic UI property " + dynamicUiProperty != null ? dynamicUiProperty.getName()
-                    : null + " fired: " + event);
-        }
-        if (event.getOldValue() != event.getNewValue()) {
-            setValue(event.getNewValue());
-        }
+    if (event.getOldValue() != event.getNewValue()) {
+      setValue(event.getNewValue());
     }
+  }
 
-    @Override
-    public void setDisabled(boolean disabled) {
-        // NOOP.   
-    }
+  @Override
+  public void setDisabled(final boolean disabled) {
+    // NOOP.
+  }
 }

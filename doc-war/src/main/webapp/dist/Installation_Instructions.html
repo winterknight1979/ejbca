@@ -179,9 +179,9 @@
 </li></ul></li><li class=" "><p   
 >Apache Ant 1.8 or later to build (available as standard package in Linux, or <a  class="external-link" href="http://ant.apache.org/">download</a>). Note that javascript support may be needed in ant for some components.</p>
 </li></ul><p   
->Windows/Unix: When we describe command line commands below we use Unix notation, e.g. <tt class=" ">ejbca.sh</tt> for the executable command files. The same command files are available for windows as cmd-files, e.g. <tt class=" ">ejbca.cmd</tt>.</p>
+>Windows/Unix: When we describe command line commands below we use Unix notation, e.g. <code class=" ">ejbca.sh</code> for the executable command files. The same command files are available for windows as cmd-files, e.g. <code class=" ">ejbca.cmd</code>.</p>
 <p   
->If you are unsure what version of EJBCA you are running, type <tt class=" ">ant ejbcaversion</tt> in the EJBCA_HOME directory.</p>
+>If you are unsure what version of EJBCA you are running, type <code class=" ">ant ejbcaversion</code> in the EJBCA_HOME directory.</p>
     </div>
     <div class="section section-1" id="src-16232855_id-.InstallationInstructionsv6.14.0-Configure">
         <h1 class="heading "><span>Configure</span></h1>
@@ -227,9 +227,9 @@
 <p   
 >In a production environment you should use something like the following structure:</p>
 <ol class=" "><li class=" "><p   
->Go through the install process creating a ManagementCA.<br/>Use a simple DN. This CA should only be used to issue the administrator certificates, not published in LDAP. If you want to use an HSM for this CA, refer to the documentation in the configuration file <tt class=" ">conf/ejbca.properties.sample</tt>.</p>
+>Go through the install process creating a ManagementCA.<br/>Use a simple DN. This CA should only be used to issue the administrator certificates, not published in LDAP. If you want to use an HSM for this CA, refer to the documentation in the configuration file <code class=" ">conf/ejbca.properties.sample</code>.</p>
 </li><li class=" "><p   
->Once installed, create all your REAL CAs using the Admin GUI.<br/>Use your preferred certificate profiles etc. These certificates can be published in LDAP. For configuration information, refer to <tt class=" ">doc/howto/HOWTO-multiplecas.txt.</tt></p>
+>Once installed, create all your REAL CAs using the Admin GUI.<br/>Use your preferred certificate profiles etc. These certificates can be published in LDAP. For configuration information, refer to <code class=" ">doc/howto/HOWTO-multiplecas.txt.</code></p>
 </li></ol><p   
 >In a production environment, it is required to use something else than the default Hypersonic database provided with JBoss, for the following reasons:</p>
 <ul class=" "><li class=" "><p   
@@ -237,7 +237,7 @@
 </li><li class=" "><p   
 >Hypersonic does not support full SQL, in particular ALTER statements. When a new version of EJBCA is released we cannot create scripts that updates the database if some tables changed. This will complicate upgrades.</p>
 </li></ul><p   
->For information about installing JDBC drivers for other databases, refer to <tt class=" ">doc/howto/HOWTO-database.txt </tt>in the distribution.</p>
+>For information about installing JDBC drivers for other databases, refer to <code class=" ">doc/howto/HOWTO-database.txt </code>in the distribution.</p>
     </div>
     </div>
     <div class="section section-1" id="src-16232855_id-.InstallationInstructionsv6.14.0-InstallonJBoss7.1.1orJBossEAP6">
@@ -266,9 +266,9 @@
 </div>
     </div>
 <p   
->Also make sure the right java tools (javac/keytool) are available in your system PATH, ie. <tt class=" ">/usr/local/jdk1.7.0_25/bin.</tt></p>
+>Also make sure the right java tools (javac/keytool) are available in your system PATH, ie. <code class=" ">/usr/local/jdk1.7.0_25/bin.</code></p>
 </li><li class=" "><p   
->Open a console (terminal) and start JBoss. You can start JBoss with the normal command <tt class=" ">standalone.sh</tt> (JBoss 7/EAP 6/WildFly) from APPSRV_HOME/bin. You should see JBoss picking up everything and deploying the ear without errors.</p>
+>Open a console (terminal) and start JBoss. You can start JBoss with the normal command <code class=" ">standalone.sh</code> (JBoss 7/EAP 6/WildFly) from APPSRV_HOME/bin. You should see JBoss picking up everything and deploying the ear without errors.</p>
 </li><li class=" "><p   
 >Open a console and type:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
@@ -286,7 +286,7 @@
 </div>
     </div>
 <p   
->The command will generate all certificates, keys, etc needed to run with an initial CA, and configure TLS in the servlet container to use the generated keystore and truststore files (which are also copied in the process). You will find admin keys in <tt class=" ">${ejbca.home}/p12.</tt> (do not delete these files!)<br/>The command is only run once, when the CA is first installed. It creates lots of things in the database and cannot be run again (it will give an error if you try).</p>
+>The command will generate all certificates, keys, etc needed to run with an initial CA, and configure TLS in the servlet container to use the generated keystore and truststore files (which are also copied in the process). You will find admin keys in <code class=" ">${ejbca.home}/p12.</code> (do not delete these files!)<br/>The command is only run once, when the CA is first installed. It creates lots of things in the database and cannot be run again (it will give an error if you try).</p>
 <ul class=" "><li class=" "><p   
 >tomcat.jks is for the Servlet container (don't bother with it)</p>
 </li><li class=" "><p   

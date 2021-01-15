@@ -85,41 +85,53 @@
     <!-- ---------- Title -------------------- -->
 
       <tr id="Row<%=(viewendentityhelper.row++)%2%>" class="title">
-	<td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><strong><%= ejbcawebbean.getText("USERNAME") %></strong></td>
-	<td><strong><% if(viewendentityhelper.userdata.getUsername() != null) {%> <c:out value="<%= viewendentityhelper.userdata.getUsername() %>"/><%}%>
+	<td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><strong><%=ejbcawebbean.getText("USERNAME")%></strong></td>
+	<td><strong><%
+	if(viewendentityhelper.userdata.getUsername() != null) {
+	%> <c:out value="<%=viewendentityhelper.userdata.getUsername()%>"/><%
+ }
+ %>
         </strong></td>
       </tr>
 
 
     <!-- ---------- End-entity information -------------------- -->
 
-     <% if(viewendentityhelper.currentuserindex == 0){ %>
+     <%
+     if(viewendentityhelper.currentuserindex == 0){
+     %>
     <tr id="Row<%=(viewendentityhelper.row++)%2%>">
-      <td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><%= ejbcawebbean.getText("STATUS") %></td>
+      <td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><%=ejbcawebbean.getText("STATUS")%></td>
       <td>
-        <% for(int i=0; i < ViewEndEntityHelper.statusids.length; i++)
-             if(viewendentityhelper.userdata.getStatus()==ViewEndEntityHelper.statusids[i])
-               out.write(ejbcawebbean.getText(ViewEndEntityHelper.statustexts[i])); %>
+        <%
+        for(int i=0; i < ViewEndEntityHelper.STATUSIDS.length; i++)
+                                     if(viewendentityhelper.userdata.getStatus()==ViewEndEntityHelper.STATUSIDS[i])
+                                       out.write(ejbcawebbean.getText(ViewEndEntityHelper.STATUSTEXTS[i]));
+        %>
        </td>
      </tr> 
-     <% } else { %> 
+     <%
+      } else {
+      %> 
     <tr id="Row<%=(viewendentityhelper.row++)%2%>">
       <td>&nbsp;</td>
       <td>&nbsp;</td>
     </tr> 
-     <% } %> 
+     <%
+      }
+      %> 
 
     <tr id="Row<%=(viewendentityhelper.row++)%2%>">
-      <td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><%= ejbcawebbean.getText("CREATED") %></td>
+      <td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><%=ejbcawebbean.getText("CREATED")%></td>
       <td>
-         <%= ejbcawebbean.formatAsISO8601(viewendentityhelper.userdata.getTimeCreated()) %>
+         <%=ejbcawebbean.formatAsISO8601(viewendentityhelper.userdata.getTimeCreated())%>
        </td>
     </tr> 
 
     <tr id="Row<%=(viewendentityhelper.row++)%2%>">
-      <td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><%= ejbcawebbean.getText("MODIFIED") %></td>
+      <td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><%=ejbcawebbean.getText("MODIFIED")%></td>
       <td>
-         <%= ejbcawebbean.formatAsISO8601(viewendentityhelper.userdata.getTimeModified()) %>
+         <%=ejbcawebbean.formatAsISO8601(viewendentityhelper.userdata.getTimeModified())%>
        </td>
      </tr> 
 
@@ -127,16 +139,24 @@
     <!-- ---------- Index -------------------- -->
 
        <tr id="Row<%=(viewendentityhelper.row++)%2%>">
-	 <td width="<%=ViewEndEntityHelper.columnwidth%>" style="text-align:right;">
+	 <td width="<%=ViewEndEntityHelper.COLUMNWIDTH%>" style="text-align:right;">
           &nbsp;
-          <% if((viewendentityhelper.currentuserindex+1) < viewendentityhelper.userdatas.length){ %>
-           <input type="submit" name="<%= ViewEndEntityHelper.BUTTON_VIEW_OLDER %>" value="&lt; <%= ejbcawebbean.getText("VIEWOLDER") %>" tabindex="1">
-          <% } %>
+          <%
+          if((viewendentityhelper.currentuserindex+1) < viewendentityhelper.userdatas.length){
+          %>
+           <input type="submit" name="<%=ViewEndEntityHelper.BUTTON_VIEW_OLDER%>" value="&lt; <%=ejbcawebbean.getText("VIEWOLDER")%>" tabindex="1">
+          <%
+          }
+          %>
 	   </td>
 	 <td style="text-align:left;">
-          <% if(viewendentityhelper.currentuserindex > 0 ){ %>
-           <input type="submit" name="<%= ViewEndEntityHelper.BUTTON_VIEW_NEWER %>" value="<%= ejbcawebbean.getText("VIEWNEWER") %> &gt;" tabindex="2">
-          <% } %>	 
+          <%
+          if(viewendentityhelper.currentuserindex > 0 ){
+          %>
+           <input type="submit" name="<%=ViewEndEntityHelper.BUTTON_VIEW_NEWER%>" value="<%=ejbcawebbean.getText("VIEWNEWER")%> &gt;" tabindex="2">
+          <%
+          }
+          %>	 
           &nbsp;
        </td>
        </tr> 
@@ -145,220 +165,305 @@
     <!-- ---------- Main -------------------- -->
 
       <tr id="Row<%=(viewendentityhelper.row++)%2%>">
-	<td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><%= ejbcawebbean.getText("ENDENTITYPROFILE") %></td>
-	<td><% if(viewendentityhelper.userdata.getEndEntityProfileId() != 0) {%>
-	                <c:out value="<%= rabean.getEndEntityProfileName(viewendentityhelper.userdata.getEndEntityProfileId()) %>"/>
-                 <%} else out.write(ejbcawebbean.getText("NOENDENTITYPROFILEDEFINED"));%>
+	<td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><%=ejbcawebbean.getText("ENDENTITYPROFILE")%></td>
+	<td><%
+	if(viewendentityhelper.userdata.getEndEntityProfileId() != 0) {
+	%>
+	                <c:out value="<%=rabean.getEndEntityProfileName(viewendentityhelper.userdata.getEndEntityProfileId())%>"/>
+                 <%
+                 } else out.write(ejbcawebbean.getText("NOENDENTITYPROFILEDEFINED"));
+                 %>
         </td>
       </tr>
 
-      <% if(viewendentityhelper.profile.getUse(EndEntityProfile.CLEARTEXTPASSWORD,0)){ %>
+      <%
+      if(viewendentityhelper.profile.getUse(EndEntityProfile.CLEARTEXTPASSWORD,0)){
+      %>
       <tr id="Row<%=(viewendentityhelper.row++)%2%>">
-	<td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><%= ejbcawebbean.getText("USEINBATCH_ABBR") %></td>
-	<td><% if(viewendentityhelper.userdata.getClearTextPassword())
-                out.write(ejbcawebbean.getText("YES"));
-           else out.write(ejbcawebbean.getText("NO"));%>
+	<td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><%=ejbcawebbean.getText("USEINBATCH_ABBR")%></td>
+	<td><%
+	if(viewendentityhelper.userdata.getClearTextPassword())
+	                out.write(ejbcawebbean.getText("YES"));
+	           else out.write(ejbcawebbean.getText("NO"));
+	%>
         </td>
       </tr>
-      <% } %>
+      <%
+      }
+      %>
 
-      <% if(viewendentityhelper.profile.getUse(EndEntityProfile.EMAIL,0)){ %>
+      <%
+      if(viewendentityhelper.profile.getUse(EndEntityProfile.EMAIL,0)){
+      %>
        <tr id="Row<%=(viewendentityhelper.row++)%2%>">
-	 <td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><%= ejbcawebbean.getText("EMAIL") %></td>
-	 <td><% if(viewendentityhelper.userdata.getEmail() != null) {%><c:out value="<%= viewendentityhelper.userdata.getEmail() %>"/><%}%>
+	 <td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><%=ejbcawebbean.getText("EMAIL")%></td>
+	 <td><%
+	 if(viewendentityhelper.userdata.getEmail() != null) {
+	 %><c:out value="<%=viewendentityhelper.userdata.getEmail()%>"/><%
+	 }
+	 %>
          </td>
        </tr>
-       <% } %>
+       <%
+       }
+       %>
 
 
     <!-- ---------- Subject DN -------------------- -->
 
        <tr id="Row<%=(viewendentityhelper.row++)%2%>" class="section">
-	 <td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><strong><%= ejbcawebbean.getText("CERT_SUBJECTDN") %></strong></td>
+	 <td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><strong><%=ejbcawebbean.getText("CERT_SUBJECTDN")%></strong></td>
 	 <td>&nbsp;</td>
        </tr>
 
-      <% int subjectfieldsize = viewendentityhelper.profile.getSubjectDNFieldOrderLength();
-         for(int i = 0; i < subjectfieldsize; i++){
-        	 viewendentityhelper.fielddata = viewendentityhelper.profile.getSubjectDNFieldsInOrder(i);
-        	 viewendentityhelper.fieldvalue = viewendentityhelper.userdata.getSubjectDNField(DnComponents.profileIdToDnId(viewendentityhelper.fielddata[EndEntityProfile.FIELDTYPE]),viewendentityhelper.fielddata[EndEntityProfile.NUMBER]);
-         %>
+      <%
+      int subjectfieldsize = viewendentityhelper.profile.getSubjectDNFieldOrderLength();
+               for(int i = 0; i < subjectfieldsize; i++){
+              	 viewendentityhelper.fielddata = viewendentityhelper.profile.getSubjectDNFieldsInOrder(i);
+              	 viewendentityhelper.fieldvalue = viewendentityhelper.userdata.getSubjectDNField(DnComponents.profileIdToDnId(viewendentityhelper.fielddata[EndEntityProfile.FIELDTYPE]),viewendentityhelper.fielddata[EndEntityProfile.NUMBER]);
+      %>
        <tr id="Row<%=(viewendentityhelper.row++)%2%>">
-	 <td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><%= ejbcawebbean.getText(DnComponents.getLanguageConstantFromProfileId(viewendentityhelper.fielddata[EndEntityProfile.FIELDTYPE])) %></td>
-	 <td><span class="attribute"><% if(viewendentityhelper.fieldvalue != null) {%><c:out value="<%= viewendentityhelper.fieldvalue %>"/><%}%></span>
+	 <td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><%=ejbcawebbean.getText(DnComponents.getLanguageConstantFromProfileId(viewendentityhelper.fielddata[EndEntityProfile.FIELDTYPE]))%></td>
+	 <td><span class="attribute"><%
+	 if(viewendentityhelper.fieldvalue != null) {
+	 %><c:out value="<%=viewendentityhelper.fieldvalue%>"/><%
+	 }
+	 %></span>
          </td>
        </tr>
-       <% } %>
+       <%
+       }
+       %>
 
 
     <!-- ---------- Other subject attributes -------------------- -->
 
-       <% if (  viewendentityhelper.profile.getSubjectAltNameFieldOrderLength() > 0
-             || viewendentityhelper.profile.getSubjectDirAttrFieldOrderLength() > 0
-             ) {
+       <%
+       if (  viewendentityhelper.profile.getSubjectAltNameFieldOrderLength() > 0
+                    || viewendentityhelper.profile.getSubjectDirAttrFieldOrderLength() > 0
+                    ) {
        %> 
        <tr id="Row<%=(viewendentityhelper.row++)%2%>" class="section">
-	 <td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><strong><%= ejbcawebbean.getText("OTHERSUBJECTATTR") %></strong></td>
+	 <td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><strong><%=ejbcawebbean.getText("OTHERSUBJECTATTR")%></strong></td>
 	 <td>&nbsp;</td>
        </tr>
-       <% } %>
+       <%
+       }
+       %>
 
-       <% subjectfieldsize = viewendentityhelper.profile.getSubjectAltNameFieldOrderLength();
-          if(subjectfieldsize > 0){
+       <%
+       subjectfieldsize = viewendentityhelper.profile.getSubjectAltNameFieldOrderLength();
+                 if(subjectfieldsize > 0){
        %> 
        <tr id="Row<%=(viewendentityhelper.row++)%2%>">
-	 <td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><strong><%= ejbcawebbean.getText("EXT_ABBR_SUBJECTALTNAME") %></strong></td>
+	 <td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><strong><%=ejbcawebbean.getText("EXT_ABBR_SUBJECTALTNAME")%></strong></td>
 	 <td>&nbsp;</td>
        </tr>
-      <% }
-         for(int i = 0; i < subjectfieldsize; i++){
-        	 viewendentityhelper.fielddata = viewendentityhelper.profile.getSubjectAltNameFieldsInOrder(i);
-            int fieldtype = viewendentityhelper.fielddata[EndEntityProfile.FIELDTYPE];
-            if(EndEntityProfile.isFieldImplemented(fieldtype)){
-            	viewendentityhelper.fieldvalue = viewendentityhelper.userdata.getSubjectAltNameField(DnComponents.profileIdToDnId(viewendentityhelper.fielddata[EndEntityProfile.FIELDTYPE]),viewendentityhelper.fielddata[EndEntityProfile.NUMBER]);
-         %>
+      <%
+      }
+               for(int i = 0; i < subjectfieldsize; i++){
+              	 viewendentityhelper.fielddata = viewendentityhelper.profile.getSubjectAltNameFieldsInOrder(i);
+                  int fieldtype = viewendentityhelper.fielddata[EndEntityProfile.FIELDTYPE];
+                  if(EndEntityProfile.isFieldImplemented(fieldtype)){
+                  	viewendentityhelper.fieldvalue = viewendentityhelper.userdata.getSubjectAltNameField(DnComponents.profileIdToDnId(viewendentityhelper.fielddata[EndEntityProfile.FIELDTYPE]),viewendentityhelper.fielddata[EndEntityProfile.NUMBER]);
+      %>
        <tr id="Row<%=(viewendentityhelper.row++)%2%>">
-	 <td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><%= ejbcawebbean.getText(DnComponents.getLanguageConstantFromProfileId(viewendentityhelper.fielddata[EndEntityProfile.FIELDTYPE])) %></td>
-	 <td><% if(viewendentityhelper.fieldvalue != null) {%> <c:out value="<%= viewendentityhelper.fieldvalue %>"/><%}%> 
+	 <td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><%=ejbcawebbean.getText(DnComponents.getLanguageConstantFromProfileId(viewendentityhelper.fielddata[EndEntityProfile.FIELDTYPE]))%></td>
+	 <td><%
+	 if(viewendentityhelper.fieldvalue != null) {
+	 %> <c:out value="<%=viewendentityhelper.fieldvalue%>"/><%
+ }
+ %> 
          </td>
        </tr>
-       <%   }
-          } %>
+       <%
+       }
+                 }
+       %>
 
-       <%   subjectfieldsize = viewendentityhelper.profile.getSubjectDirAttrFieldOrderLength();
-          if(subjectfieldsize > 0){
+       <%
+       subjectfieldsize = viewendentityhelper.profile.getSubjectDirAttrFieldOrderLength();
+                 if(subjectfieldsize > 0){
        %>
        <tr id="Row<%=(viewendentityhelper.row++)%2%>">
-	 <td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><strong><%= ejbcawebbean.getText("EXT_ABBR_SUBJECTDIRATTRS") %></strong></td>
+	 <td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><strong><%=ejbcawebbean.getText("EXT_ABBR_SUBJECTDIRATTRS")%></strong></td>
 	 <td>&nbsp;</td>
        </tr>
-      <% }
-         for(int i = 0; i < subjectfieldsize; i++){
-        	 viewendentityhelper.fielddata = viewendentityhelper.profile.getSubjectDirAttrFieldsInOrder(i);
-            int fieldtype = viewendentityhelper.fielddata[EndEntityProfile.FIELDTYPE];
-          	viewendentityhelper.fieldvalue = viewendentityhelper.userdata.getSubjectDirAttributeField(DnComponents.profileIdToDnId(viewendentityhelper.fielddata[EndEntityProfile.FIELDTYPE]),viewendentityhelper.fielddata[EndEntityProfile.NUMBER]);
-         %>
+      <%
+      }
+               for(int i = 0; i < subjectfieldsize; i++){
+              	 viewendentityhelper.fielddata = viewendentityhelper.profile.getSubjectDirAttrFieldsInOrder(i);
+                  int fieldtype = viewendentityhelper.fielddata[EndEntityProfile.FIELDTYPE];
+                	viewendentityhelper.fieldvalue = viewendentityhelper.userdata.getSubjectDirAttributeField(DnComponents.profileIdToDnId(viewendentityhelper.fielddata[EndEntityProfile.FIELDTYPE]),viewendentityhelper.fielddata[EndEntityProfile.NUMBER]);
+      %>
        <tr id="Row<%=(viewendentityhelper.row++)%2%>">
-	 <td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><%= ejbcawebbean.getText(DnComponents.getLanguageConstantFromProfileId(viewendentityhelper.fielddata[EndEntityProfile.FIELDTYPE])) %></td>
-	 <td><% if(viewendentityhelper.fieldvalue != null) {%> <c:out value="<%= viewendentityhelper.fieldvalue %>"/><%}%> 
+	 <td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><%=ejbcawebbean.getText(DnComponents.getLanguageConstantFromProfileId(viewendentityhelper.fielddata[EndEntityProfile.FIELDTYPE]))%></td>
+	 <td><%
+	 if(viewendentityhelper.fieldvalue != null) {
+	 %> <c:out value="<%=viewendentityhelper.fieldvalue%>"/><%
+ }
+ %> 
          </td>
        </tr>
-       <% } %>  
+       <%
+       }
+       %>  
 
 
     <!-- ---------- Main certificate data -------------------- -->
 
        <tr id="Row<%=(viewendentityhelper.row++)%2%>" class="section">
-	 <td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><strong><%= ejbcawebbean.getText("MAINCERTIFICATEDATA") %></strong></td>
+	 <td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><strong><%=ejbcawebbean.getText("MAINCERTIFICATEDATA")%></strong></td>
 	 <td>&nbsp;</td>
        </tr>
 
        <tr id="Row<%=(viewendentityhelper.row++)%2%>">
-	 <td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><%= ejbcawebbean.getText("CERTIFICATEPROFILE") %></td>
-	 <td><% if(viewendentityhelper.userdata.getCertificateProfileId() != 0){%>
+	 <td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><%=ejbcawebbean.getText("CERTIFICATEPROFILE")%></td>
+	 <td><%
+	 if(viewendentityhelper.userdata.getCertificateProfileId() != 0){
+	 %>
                   <c:out value="<%=rabean.getCertificateProfileName(viewendentityhelper.userdata.getCertificateProfileId())%>"/>
-                <%} else out.write(ejbcawebbean.getText("NOCERTIFICATEPROFILEDEFINED")); %>
+                <%
+                } else out.write(ejbcawebbean.getText("NOCERTIFICATEPROFILEDEFINED"));
+                %>
          </td>
        </tr>
 
        <tr id="Row<%=(viewendentityhelper.row++)%2%>">
-	 <td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><%= ejbcawebbean.getText("CA") %></td>
-	 <td><c:out value="<%= viewendentityhelper.userdata.getCAName() %>"/>
+	 <td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><%=ejbcawebbean.getText("CA")%></td>
+	 <td><c:out value="<%=viewendentityhelper.userdata.getCAName()%>"/>
          </td>
        </tr>
 
        <tr id="Row<%=(viewendentityhelper.row++)%2%>">
-	 <td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><%= ejbcawebbean.getText("TOKEN") %></td>
+	 <td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><%=ejbcawebbean.getText("TOKEN")%></td>
          <td>   
-            <% for(int i=0; i < viewendentityhelper.tokentexts.length;i++){
-                if(viewendentityhelper.tokenids[i] == viewendentityhelper.userdata.getTokenType())
-                   if( viewendentityhelper.tokenids[i] > SecConst.TOKEN_SOFT) {%>
-                     <c:out value="<%= viewendentityhelper.tokentexts[i] %>"/>
-                   <%} else
-                     out.write(ejbcawebbean.getText(viewendentityhelper.tokentexts[i]));
-              } %>
+            <%
+               for(int i=0; i < viewendentityhelper.tokentexts.length;i++){
+                               if(viewendentityhelper.tokenids[i] == viewendentityhelper.userdata.getTokenType())
+                                  if( viewendentityhelper.tokenids[i] > SecConst.TOKEN_SOFT) {
+               %>
+                     <c:out value="<%=viewendentityhelper.tokentexts[i]%>"/>
+                   <%
+                   } else
+                                        out.write(ejbcawebbean.getText(viewendentityhelper.tokentexts[i]));
+                                 }
+                   %>
          </td> 
        </tr>
 
-       <% if(globalconfiguration.getIssueHardwareTokens()){ %>
+       <%
+       if(globalconfiguration.getIssueHardwareTokens()){
+       %>
        <tr id="Row<%=(viewendentityhelper.row++)%2%>">
-	 <td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><%= ejbcawebbean.getText("HARDTOKENISSUER") %></td>
+	 <td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><%=ejbcawebbean.getText("HARDTOKENISSUER")%></td>
          <td>   
-            <% if(viewendentityhelper.userdata.getHardTokenIssuerId() == SecConst.NO_HARDTOKENISSUER)
-                 out.write(ejbcawebbean.getText("NONE"));
-               else {%>
-                 <c:out value="<%= tokenbean.getHardTokenIssuerAlias(viewendentityhelper.userdata.getHardTokenIssuerId()) %>"/>
-               <%}
-            %>
+            <%
+               if(viewendentityhelper.userdata.getHardTokenIssuerId() == SecConst.NO_HARDTOKENISSUER)
+                                out.write(ejbcawebbean.getText("NONE"));
+                              else {
+               %>
+                 <c:out value="<%=tokenbean.getHardTokenIssuerAlias(viewendentityhelper.userdata.getHardTokenIssuerId())%>"/>
+               <%
+               }
+               %>
          </td> 
        </tr>
-       <% } %>
+       <%
+       }
+       %>
 
 
     <!-- ---------- Other certificate data -------------------- -->
 
-    <% if (  viewendentityhelper.profile.getUse(EndEntityProfile.CERTSERIALNR, 0)
-    	  || viewendentityhelper.profile.getUse(EndEntityProfile.STARTTIME, 0) 
-    	  || viewendentityhelper.profile.getUse(EndEntityProfile.ENDTIME, 0)
-    	  || viewendentityhelper.profile.getUse(EndEntityProfile.CARDNUMBER, 0)
-    	  ) {
-        %>
+    <%
+    if (  viewendentityhelper.profile.getUse(EndEntityProfile.CERTSERIALNR, 0)
+        	  || viewendentityhelper.profile.getUse(EndEntityProfile.STARTTIME, 0) 
+        	  || viewendentityhelper.profile.getUse(EndEntityProfile.ENDTIME, 0)
+        	  || viewendentityhelper.profile.getUse(EndEntityProfile.CARDNUMBER, 0)
+        	  ) {
+    %>
        <tr id="Row<%=(viewendentityhelper.row++)%2%>" class="section">
-	 <td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><strong><%= ejbcawebbean.getText("OTHERCERTIFICATEDATA") %></strong></td>
+	 <td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><strong><%=ejbcawebbean.getText("OTHERCERTIFICATEDATA")%></strong></td>
 	 <td>&nbsp;</td>
        </tr>
-    <% } %>
-
-	<%{
-		final ExtendedInformation ei = viewendentityhelper.userdata.getExtendedInformation();
-		final BigInteger oldNr = ei!=null ? ei.certificateSerialNumber() : null;
-		final String certSerialNr = oldNr!=null ? oldNr.toString(16) : null;
-		if ( certSerialNr!=null ) { %>
-			<tr id="Row<%=(viewendentityhelper.row++)%2%>">
-			<td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><%= ejbcawebbean.getText("CERT_SERIALNUMBER") %></td>
-			<td><span class="hexa"><c:out value="<%= certSerialNr %>"/></span></td>
-			</tr> 
-	<%	}
-	  } %>
+    <%
+    }
+    %>
 
 	<%
-		String startTime = null;
-		String endTime = null;
-		if ( viewendentityhelper.profile.getUse(EndEntityProfile.STARTTIME, 0) || viewendentityhelper.profile.getUse(EndEntityProfile.ENDTIME, 0) ) {
-			ExtendedInformation ei = viewendentityhelper.userdata.getExtendedInformation();
-			if ( ei != null ) {
-				startTime = ei.getCustomData(EndEntityProfile.STARTTIME);
-				endTime = ei.getCustomData(EndEntityProfile.ENDTIME);
-			} 
-		} %>
-	<% if ( startTime != null ) { %>
-    <tr id="Row<%=(viewendentityhelper.row++)%2%>">
-		<td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><%= ejbcawebbean.getText("TIMEOFSTART") %></td>
-		<td>
-			<%= ejbcawebbean.getISO8601FromImpliedUTCOrRelative(startTime) %>
-		</td>
-    </tr> 
-	<%	} %>
-	<% if ( endTime != null ) { %>
-    <tr id="Row<%=(viewendentityhelper.row++)%2%>">
-		<td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><%= ejbcawebbean.getText("TIMEOFEND") %></td>
-		<td>
-			<%= ejbcawebbean.getISO8601FromImpliedUTCOrRelative(endTime) %>
-		</td>
-    </tr> 
-	<%	} %>
+	{
+			final ExtendedInformation ei = viewendentityhelper.userdata.getExtendedInformation();
+			final BigInteger oldNr = ei!=null ? ei.certificateSerialNumber() : null;
+			final String certSerialNr = oldNr!=null ? oldNr.toString(16) : null;
+			if ( certSerialNr!=null ) {
+	%>
+			<tr id="Row<%=(viewendentityhelper.row++)%2%>">
+			<td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><%=ejbcawebbean.getText("CERT_SERIALNUMBER")%></td>
+			<td><span class="hexa"><c:out value="<%=certSerialNr%>"/></span></td>
+			</tr> 
+	<%
+ 	}
+ 		  }
+ 	%>
 
-      <% if(viewendentityhelper.profile.getUse(EndEntityProfile.CARDNUMBER,0)){ %>
+	<%
+	String startTime = null;
+			String endTime = null;
+			if ( viewendentityhelper.profile.getUse(EndEntityProfile.STARTTIME, 0) || viewendentityhelper.profile.getUse(EndEntityProfile.ENDTIME, 0) ) {
+		ExtendedInformation ei = viewendentityhelper.userdata.getExtendedInformation();
+		if ( ei != null ) {
+			startTime = ei.getCustomData(EndEntityProfile.STARTTIME);
+			endTime = ei.getCustomData(EndEntityProfile.ENDTIME);
+		} 
+			}
+	%>
+	<%
+	if ( startTime != null ) {
+	%>
+    <tr id="Row<%=(viewendentityhelper.row++)%2%>">
+		<td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><%=ejbcawebbean.getText("TIMEOFSTART")%></td>
+		<td>
+			<%=ejbcawebbean.getISO8601FromImpliedUTCOrRelative(startTime)%>
+		</td>
+    </tr> 
+	<%
+ 	}
+ 	%>
+	<%
+	if ( endTime != null ) {
+	%>
+    <tr id="Row<%=(viewendentityhelper.row++)%2%>">
+		<td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><%=ejbcawebbean.getText("TIMEOFEND")%></td>
+		<td>
+			<%=ejbcawebbean.getISO8601FromImpliedUTCOrRelative(endTime)%>
+		</td>
+    </tr> 
+	<%
+ 	}
+ 	%>
+
+      <%
+      if(viewendentityhelper.profile.getUse(EndEntityProfile.CARDNUMBER,0)){
+      %>
        <tr id="Row<%=(viewendentityhelper.row++)%2%>">
-	 <td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><%= ejbcawebbean.getText("CARDNUMBER") %></td>
-	 <td><% if(viewendentityhelper.userdata.getCardNumber() != null) {%><c:out value="<%= viewendentityhelper.userdata.getCardNumber() %>"/><%}%>
+	 <td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><%=ejbcawebbean.getText("CARDNUMBER")%></td>
+	 <td><%
+	 if(viewendentityhelper.userdata.getCardNumber() != null) {
+	 %><c:out value="<%=viewendentityhelper.userdata.getCardNumber()%>"/><%
+	 }
+	 %>
          </td>
        </tr>
-      <% } %>
+      <%
+      }
+      %>
 
-      <% if(viewendentityhelper.profile.getUseExtensiondata() || !editendentitybean.getExtensionDataAsMap().isEmpty()){ %>
+      <%
+      if(viewendentityhelper.profile.getUseExtensiondata() || !editendentitybean.getExtensionDataAsMap().isEmpty()){
+      %>
        <tr id="Row<%=(viewendentityhelper.row++)%2%>">
-	 <td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><%= ejbcawebbean.getText("CERT_EXTENSIONDATA") %></td>
+	 <td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><%=ejbcawebbean.getText("CERT_EXTENSIONDATA")%></td>
 	 <td><table width="100%">
              <c:forEach var="item" items="${editendentitybean.extensionDataAsMap}">
                <tr>
@@ -372,141 +477,226 @@
              </c:forEach>
             </table></td>
        </tr>
-      <% } %>
+      <%
+      }
+      %>
 
-    <% if (viewendentityhelper.userdata.getExtendedInformation() != null && viewendentityhelper.userdata.getExtendedInformation().getRawSubjectDn() != null) { %>
+    <%
+    if (viewendentityhelper.userdata.getExtendedInformation() != null && viewendentityhelper.userdata.getExtendedInformation().getRawSubjectDn() != null) {
+    %>
 			<tr id="Row<%=(viewendentityhelper.row++)%2%>">
-			<td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><%= ejbcawebbean.getText("RAWSUBJECTDN") %></td>
-			<td><c:out value="<%= viewendentityhelper.userdata.getExtendedInformation().getRawSubjectDn() %>"/></td>
+			<td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><%=ejbcawebbean.getText("RAWSUBJECTDN")%></td>
+			<td><c:out value="<%=viewendentityhelper.userdata.getExtendedInformation().getRawSubjectDn()%>"/></td>
 			</tr> 
-    <%  } %>
+    <%
+     }
+     %>
 
     <!-- ---------- Other data -------------------- -->
 
-    <% if (  viewendentityhelper.profile.getUse(EndEntityProfile.ALLOWEDREQUESTS,0)
-      	  ||(viewendentityhelper.profile.getUse(EndEntityProfile.KEYRECOVERABLE,0) && globalconfiguration.getEnableKeyRecovery())
-    	  || viewendentityhelper.profile.getUse(EndEntityProfile.ISSUANCEREVOCATIONREASON,0)
-    	  || viewendentityhelper.profile.getUse(EndEntityProfile.SENDNOTIFICATION,0)
-    	  || viewendentityhelper.profile.getUsePrinting()
-    	  ) {
-        %>
+    <%
+    if (  viewendentityhelper.profile.getUse(EndEntityProfile.ALLOWEDREQUESTS,0)
+          	  ||(viewendentityhelper.profile.getUse(EndEntityProfile.KEYRECOVERABLE,0) && globalconfiguration.getEnableKeyRecovery())
+        	  || viewendentityhelper.profile.getUse(EndEntityProfile.ISSUANCEREVOCATIONREASON,0)
+        	  || viewendentityhelper.profile.getUse(EndEntityProfile.SENDNOTIFICATION,0)
+        	  || viewendentityhelper.profile.getUsePrinting()
+        	  ) {
+    %>
        <tr id="Row<%=(viewendentityhelper.row++)%2%>" class="section">
-	 <td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><strong><%= ejbcawebbean.getText("OTHERDATA") %></strong></td>
+	 <td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><strong><%=ejbcawebbean.getText("OTHERDATA")%></strong></td>
 	 <td>&nbsp;</td>
        </tr>
-    <% } %>
+    <%
+    }
+    %>
 
-    <% if(viewendentityhelper.profile.getUse(EndEntityProfile.ALLOWEDREQUESTS,0)){ %>
-    <% 
-        ExtendedInformation ei = viewendentityhelper.userdata.getExtendedInformation();
-        String counter = ei!=null ? ei.getCustomData(ExtendedInformationFields.CUSTOM_REQUESTCOUNTER) : null;
+    <%
+    if(viewendentityhelper.profile.getUse(EndEntityProfile.ALLOWEDREQUESTS,0)){
+    %>
+    <%
+    ExtendedInformation ei = viewendentityhelper.userdata.getExtendedInformation();
+            String counter = ei!=null ? ei.getCustomData(ExtendedInformationFields.CUSTOM_REQUESTCOUNTER) : null;
+    %>
+    <tr  id="Row<%=(viewendentityhelper.row++)%2%>"> 
+      <td  align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"> 
+        <%=ejbcawebbean.getText("ALLOWEDREQUESTS")%> 
+      </td>
+      <td><%
+      if (counter != null)
+                        out.write(counter);
+                   else out.write("&nbsp;");
+      %>
+      </td>
+    </tr>
+    <%
+    }
+    %>
+
+      <%
+      if(viewendentityhelper.profile.getUse(EndEntityProfile.KEYRECOVERABLE,0) && globalconfiguration.getEnableKeyRecovery()){
       %>
     <tr  id="Row<%=(viewendentityhelper.row++)%2%>"> 
-      <td  align="right" width="<%=ViewEndEntityHelper.columnwidth%>"> 
-        <%= ejbcawebbean.getText("ALLOWEDREQUESTS") %> 
+      <td  align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"> 
+        <%=ejbcawebbean.getText("KEYRECOVERABLE")%> 
       </td>
-      <td><% if (counter != null)
-                  out.write(counter);
-             else out.write("&nbsp;"); %>
-      </td>
-    </tr>
-    <% } %>
-
-      <% if(viewendentityhelper.profile.getUse(EndEntityProfile.KEYRECOVERABLE,0) && globalconfiguration.getEnableKeyRecovery()){ %>
-    <tr  id="Row<%=(viewendentityhelper.row++)%2%>"> 
-      <td  align="right" width="<%=ViewEndEntityHelper.columnwidth%>"> 
-        <%= ejbcawebbean.getText("KEYRECOVERABLE") %> 
-      </td>
-      <td><% if(viewendentityhelper.userdata.getKeyRecoverable())
-                  out.write(ejbcawebbean.getText("YES"));
-             else out.write(ejbcawebbean.getText("NO"));%>
+      <td><%
+      if(viewendentityhelper.userdata.getKeyRecoverable())
+                        out.write(ejbcawebbean.getText("YES"));
+                   else out.write(ejbcawebbean.getText("NO"));
+      %>
       </td>
     </tr>
-      <% } %>
+      <%
+      }
+      %>
 
-        <% int revstatus = RevokedCertInfo.NOT_REVOKED;
-           ExtendedInformation revei = viewendentityhelper.userdata.getExtendedInformation();
-		   if ( revei != null ) {
- 		       String value = revei.getCustomData(ExtendedInformation.CUSTOM_REVOCATIONREASON);
-	           if((value != null) && (((String) value).length() > 0)) {
-	               revstatus = (Integer.valueOf(value).intValue());
-	           }
-		   }
+        <%
+        int revstatus = RevokedCertInfo.NOT_REVOKED;
+                   ExtendedInformation revei = viewendentityhelper.userdata.getExtendedInformation();
+        		   if ( revei != null ) {
+         		       String value = revei.getCustomData(ExtendedInformation.CUSTOM_REVOCATIONREASON);
+        	           if((value != null) && (((String) value).length() > 0)) {
+        	               revstatus = (Integer.valueOf(value).intValue());
+        	           }
+        		   }
         %>
-      <% if(viewendentityhelper.profile.getUse(EndEntityProfile.ISSUANCEREVOCATIONREASON,0)){ %>
+      <%
+      if(viewendentityhelper.profile.getUse(EndEntityProfile.ISSUANCEREVOCATIONREASON,0)){
+      %>
        <tr id="Row<%=(viewendentityhelper.row++)%2%>">
-    	 <td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><%= ejbcawebbean.getText("ISSUANCEREVOCATIONREASON") %></td>
+    	 <td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><%=ejbcawebbean.getText("ISSUANCEREVOCATIONREASON")%></td>
 	     <td>
-	     <% if(revstatus == RevokedCertInfo.NOT_REVOKED) {%><%= ejbcawebbean.getText("ACTIVE") %><%}%>
-	     <% if(revstatus == RevokedCertInfo.REVOCATION_REASON_REMOVEFROMCRL) {%><%= ejbcawebbean.getText("REACTIVATED_REMOVEFROMCRL") %><%}%>
-	     <% if(revstatus == RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD) {%><%= ejbcawebbean.getText("SUSPENDED") %>: <%= ejbcawebbean.getText("REV_CERTIFICATEHOLD")  %><%}%>
-	     <% if(revstatus == RevokedCertInfo.REVOCATION_REASON_UNSPECIFIED) {%><%= ejbcawebbean.getText("REVOKED") %>: <%= ejbcawebbean.getText("REV_UNSPECIFIED")  %><%}%>
-	     <% if(revstatus == RevokedCertInfo.REVOCATION_REASON_KEYCOMPROMISE) {%><%= ejbcawebbean.getText("REVOKED") %>: <%= ejbcawebbean.getText("REV_KEYCOMPROMISE")  %><%}%>
-	     <% if(revstatus == RevokedCertInfo.REVOCATION_REASON_CACOMPROMISE) {%><%= ejbcawebbean.getText("REVOKED") %>: <%= ejbcawebbean.getText("REV_CACOMPROMISE")  %><%}%>
-	     <% if(revstatus == RevokedCertInfo.REVOCATION_REASON_AFFILIATIONCHANGED) {%><%= ejbcawebbean.getText("REVOKED") %>: <%= ejbcawebbean.getText("REV_AFFILIATIONCHANGED")  %><%}%>
-	     <% if(revstatus == RevokedCertInfo.REVOCATION_REASON_SUPERSEDED) {%><%= ejbcawebbean.getText("REVOKED") %>: <%= ejbcawebbean.getText("REV_SUPERSEDED")  %><%}%>
-	     <% if(revstatus == RevokedCertInfo.REVOCATION_REASON_CESSATIONOFOPERATION) {%><%= ejbcawebbean.getText("REVOKED") %>: <%= ejbcawebbean.getText("REV_CESSATIONOFOPERATION")  %><%}%>
-	     <% if(revstatus == RevokedCertInfo.REVOCATION_REASON_PRIVILEGESWITHDRAWN) {%><%= ejbcawebbean.getText("REVOKED") %>: <%= ejbcawebbean.getText("REV_PRIVILEGEWITHDRAWN")  %><%}%>
-	     <% if(revstatus == RevokedCertInfo.REVOCATION_REASON_AACOMPROMISE) {%><%= ejbcawebbean.getText("REVOKED") %>: <%= ejbcawebbean.getText("REV_AACOMPROMISE")  %><%}%>
+	     <%
+	     if(revstatus == RevokedCertInfo.NOT_REVOKED) {
+	     %><%=ejbcawebbean.getText("ACTIVE")%><%
+	     }
+	     %>
+	     <%
+	     if(revstatus == RevokedCertInfo.REVOCATION_REASON_REMOVEFROMCRL) {
+	     %><%=ejbcawebbean.getText("REACTIVATED_REMOVEFROMCRL")%><%
+	     }
+	     %>
+	     <%
+	     if(revstatus == RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD) {
+	     %><%=ejbcawebbean.getText("SUSPENDED")%>: <%=ejbcawebbean.getText("REV_CERTIFICATEHOLD")%><%
+	     }
+	     %>
+	     <%
+	     if(revstatus == RevokedCertInfo.REVOCATION_REASON_UNSPECIFIED) {
+	     %><%=ejbcawebbean.getText("REVOKED")%>: <%=ejbcawebbean.getText("REV_UNSPECIFIED")%><%
+	     }
+	     %>
+	     <%
+	     if(revstatus == RevokedCertInfo.REVOCATION_REASON_KEYCOMPROMISE) {
+	     %><%=ejbcawebbean.getText("REVOKED")%>: <%=ejbcawebbean.getText("REV_KEYCOMPROMISE")%><%
+	     }
+	     %>
+	     <%
+	     if(revstatus == RevokedCertInfo.REVOCATION_REASON_CACOMPROMISE) {
+	     %><%=ejbcawebbean.getText("REVOKED")%>: <%=ejbcawebbean.getText("REV_CACOMPROMISE")%><%
+	     }
+	     %>
+	     <%
+	     if(revstatus == RevokedCertInfo.REVOCATION_REASON_AFFILIATIONCHANGED) {
+	     %><%=ejbcawebbean.getText("REVOKED")%>: <%=ejbcawebbean.getText("REV_AFFILIATIONCHANGED")%><%
+	     }
+	     %>
+	     <%
+	     if(revstatus == RevokedCertInfo.REVOCATION_REASON_SUPERSEDED) {
+	     %><%=ejbcawebbean.getText("REVOKED")%>: <%=ejbcawebbean.getText("REV_SUPERSEDED")%><%
+	     }
+	     %>
+	     <%
+	     if(revstatus == RevokedCertInfo.REVOCATION_REASON_CESSATIONOFOPERATION) {
+	     %><%=ejbcawebbean.getText("REVOKED")%>: <%=ejbcawebbean.getText("REV_CESSATIONOFOPERATION")%><%
+	     }
+	     %>
+	     <%
+	     if(revstatus == RevokedCertInfo.REVOCATION_REASON_PRIVILEGESWITHDRAWN) {
+	     %><%=ejbcawebbean.getText("REVOKED")%>: <%=ejbcawebbean.getText("REV_PRIVILEGEWITHDRAWN")%><%
+	     }
+	     %>
+	     <%
+	     if(revstatus == RevokedCertInfo.REVOCATION_REASON_AACOMPROMISE) {
+	     %><%=ejbcawebbean.getText("REVOKED")%>: <%=ejbcawebbean.getText("REV_AACOMPROMISE")%><%
+	     }
+	     %>
          </td>
        </tr>
-      <% } %>
+      <%
+      }
+      %>
 
-      <% if(viewendentityhelper.profile.getUse(EndEntityProfile.SENDNOTIFICATION,0)){ %>
+      <%
+      if(viewendentityhelper.profile.getUse(EndEntityProfile.SENDNOTIFICATION,0)){
+      %>
     <tr  id="Row<%=(viewendentityhelper.row++)%2%>"> 
-      <td  align="right" width="<%=ViewEndEntityHelper.columnwidth%>"> 
-        <%= ejbcawebbean.getText("SENDNOTIFICATION") %>
+      <td  align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"> 
+        <%=ejbcawebbean.getText("SENDNOTIFICATION")%>
       </td>
-      <td><% if(viewendentityhelper.userdata.getSendNotification())
-                  out.write(ejbcawebbean.getText("YES"));
-             else out.write(ejbcawebbean.getText("NO"));%>
+      <td><%
+      if(viewendentityhelper.userdata.getSendNotification())
+                        out.write(ejbcawebbean.getText("YES"));
+                   else out.write(ejbcawebbean.getText("NO"));
+      %>
       </td>
     </tr>
-      <% } %>
+      <%
+      }
+      %>
 
-      <% if(viewendentityhelper.profile.getUsePrinting()){ %>
+      <%
+      if(viewendentityhelper.profile.getUsePrinting()){
+      %>
     <tr  id="Row<%=(viewendentityhelper.row++)%2%>"> 
-      <td  align="right" width="<%=ViewEndEntityHelper.columnwidth%>"> 
-        <%= ejbcawebbean.getText("PRINTUSERDATA") %>
+      <td  align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"> 
+        <%=ejbcawebbean.getText("PRINTUSERDATA")%>
       </td>
-      <td><% if(viewendentityhelper.userdata.getPrintUserData())
-                  out.write(ejbcawebbean.getText("YES"));
-             else out.write(ejbcawebbean.getText("NO"));%>
+      <td><%
+      if(viewendentityhelper.userdata.getPrintUserData())
+                        out.write(ejbcawebbean.getText("YES"));
+                   else out.write(ejbcawebbean.getText("NO"));
+      %>
       </td>
     </tr>
-      <% } %>
+      <%
+      }
+      %>
 
     <!-- ---------- CSR -------------------- -->
-    <% if (  viewendentityhelper.userdata.getExtendedInformation() != null
-    	  && (viewendentityhelper.userdata.getExtendedInformation().getCertificateRequest() != null || viewendentityhelper.userdata.getExtendedInformation().getKeyStoreAlgorithmType() != null) 
-    	  ) {
-        %>
+    <%
+    if (  viewendentityhelper.userdata.getExtendedInformation() != null
+        	  && (viewendentityhelper.userdata.getExtendedInformation().getCertificateRequest() != null || viewendentityhelper.userdata.getExtendedInformation().getKeyStoreAlgorithmType() != null) 
+        	  ) {
+    %>
 
        <tr id="Row<%=(viewendentityhelper.row++)%2%>" class="section">
-	 <td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><strong><%= ejbcawebbean.getText("CERTIFICATEREQUESTDATA") %></strong></td>
+	 <td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><strong><%=ejbcawebbean.getText("CERTIFICATEREQUESTDATA")%></strong></td>
 	 <td>&nbsp;</td>
        </tr>
-	  <%{
-		final ExtendedInformation ei = viewendentityhelper.userdata.getExtendedInformation();
-		final byte[] csr = viewendentityhelper.userdata.getExtendedInformation().getCertificateRequest();
-		if (csr != null) {
-		    final String csrPem = new String(CertTools.getPEMFromCertificateRequest(csr));
-		%>
+	  <%
+	  {
+	  		final ExtendedInformation ei = viewendentityhelper.userdata.getExtendedInformation();
+	  		final byte[] csr = viewendentityhelper.userdata.getExtendedInformation().getCertificateRequest();
+	  		if (csr != null) {
+	  		    final String csrPem = new String(CertTools.getPEMFromCertificateRequest(csr));
+	  %>
 			<tr id="Row<%=(viewendentityhelper.row++)%2%>">
-			<td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><%= ejbcawebbean.getText("CSR") %></td>
-			<td><pre><c:out value="<%= csrPem %>"/></pre></td>
+			<td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><%=ejbcawebbean.getText("CSR")%></td>
+			<td><pre><c:out value="<%=csrPem%>"/></pre></td>
 			</tr> 
-      <% }
-        String ksAlgType = viewendentityhelper.userdata.getExtendedInformation().getKeyStoreAlgorithmType();
-        String ksAlgSubType = viewendentityhelper.userdata.getExtendedInformation().getKeyStoreAlgorithmSubType(); // can be null but it's ok
-		if (ksAlgType != null) {
-		%>
+      <%
+       }
+               String ksAlgType = viewendentityhelper.userdata.getExtendedInformation().getKeyStoreAlgorithmType();
+               String ksAlgSubType = viewendentityhelper.userdata.getExtendedInformation().getKeyStoreAlgorithmSubType(); // can be null but it's ok
+       		if (ksAlgType != null) {
+       %>
 			<tr id="Row<%=(viewendentityhelper.row++)%2%>">
-			<td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><%= ejbcawebbean.getText("REQKSALGTYPE") %></td>
-			<td><c:out value="<%= ksAlgType %>"/></td>
+			<td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><%=ejbcawebbean.getText("REQKSALGTYPE")%></td>
+			<td><c:out value="<%=ksAlgType%>"/></td>
 			</tr> 
 			<tr id="Row<%=(viewendentityhelper.row++)%2%>">
-			<td align="right" width="<%=ViewEndEntityHelper.columnwidth%>"><%= ejbcawebbean.getText("REQKSALGSUBTYPE") %></td>
+			<td align="right" width="<%=ViewEndEntityHelper.COLUMNWIDTH%>"><%= ejbcawebbean.getText("REQKSALGSUBTYPE") %></td>
 			<td><c:out value="<%= ksAlgSubType %>"/></td>
 			</tr> 
       <% }

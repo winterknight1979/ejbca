@@ -14,31 +14,31 @@ package org.ejbca.ui.web.admin.services.servicetypes;
 
 import java.util.Collection;
 
-
 /**
- * Class representing an Worker Type, should be registered in the 
+ * Class representing an Worker Type, should be registered in the
  * ServiceTypeManager. Should be inherited by all worker managed beans.
- * 
- * Defines which actions and interval that are compatible with this worker
+ *
+ * <p>Defines which actions and interval that are compatible with this worker
  *
  * @version $Id: WorkerType.java 22758 2016-02-08 11:33:49Z anatom $
  */
 public abstract class WorkerType extends ServiceType {
 
-	private static final long serialVersionUID = -7391225892972793605L;
+  private static final long serialVersionUID = -7391225892972793605L;
 
-    public WorkerType(String subViewPage, String name, boolean translatable) {
-		super(subViewPage, name, translatable);
-	}
+  /**
+   * @param subViewPage Page
+   * @param name Name
+   * @param translatable Bool
+   */
+  public WorkerType(
+      final String subViewPage, final String name, final boolean translatable) {
+    super(subViewPage, name, translatable);
+  }
 
-	/**
-	 * @return the names of the Compatible Action Types
-	 */
-	public abstract Collection<String> getCompatibleActionTypeNames();
+  /** @return the names of the Compatible Action Types */
+  public abstract Collection<String> getCompatibleActionTypeNames();
 
-	/**
-	 * @return the names of the Compatible Interval Types
-	 */
-	public abstract Collection<String> getCompatibleIntervalTypeNames();
-
+  /** @return the names of the Compatible Interval Types */
+  public abstract Collection<String> getCompatibleIntervalTypeNames();
 }

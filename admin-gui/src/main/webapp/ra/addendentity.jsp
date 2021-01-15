@@ -98,7 +98,7 @@
     static final String HIDDEN_USERNAME = "hiddenusername";
     static final String HIDDEN_PROFILE = "hiddenprofile";%>
 <%
-    // Initialize environment.
+// Initialize environment.
 
     GlobalConfiguration globalconfiguration = ejbcawebbean.initialize(request, AccessRulesConstants.ROLE_ADMINISTRATOR,
     AccessRulesConstants.REGULAR_CREATEENDENTITY);
@@ -721,23 +721,23 @@
     } else
         profile = new EndEntityProfile();
 
-    String[] tokentexts = RAInterfaceBean.tokentexts;
-    int[] tokenids = RAInterfaceBean.tokenids;
+    String[] tokentexts = RAInterfaceBean.TOKENTEXTS;
+    int[] tokenids = RAInterfaceBean.TOKENIDS;
 
     if (globalconfiguration.getIssueHardwareTokens()) {
         TreeMap<String, Integer> hardtokenprofiles = ejbcawebbean.getHardTokenProfiles();
 
-        tokentexts = new String[RAInterfaceBean.tokentexts.length + hardtokenprofiles.keySet().size()];
+        tokentexts = new String[RAInterfaceBean.TOKENTEXTS.length + hardtokenprofiles.keySet().size()];
         tokenids = new int[tokentexts.length];
-        for (int i = 0; i < RAInterfaceBean.tokentexts.length; i++) {
- 			tokentexts[i] = RAInterfaceBean.tokentexts[i];
-   			tokenids[i] = RAInterfaceBean.tokenids[i];
+        for (int i = 0; i < RAInterfaceBean.TOKENTEXTS.length; i++) {
+ 			tokentexts[i] = RAInterfaceBean.TOKENTEXTS[i];
+   			tokenids[i] = RAInterfaceBean.TOKENIDS[i];
         }
 
         int index = 0;
         for(String name : hardtokenprofiles.keySet()) {
-    		tokentexts[index + RAInterfaceBean.tokentexts.length] = name;
-    		tokenids[index + RAInterfaceBean.tokentexts.length] = ((Integer) hardtokenprofiles.get(name)).intValue();
+    		tokentexts[index + RAInterfaceBean.TOKENTEXTS.length] = name;
+    		tokenids[index + RAInterfaceBean.TOKENTEXTS.length] = ((Integer) hardtokenprofiles.get(name)).intValue();
     		index++;
         }
     }

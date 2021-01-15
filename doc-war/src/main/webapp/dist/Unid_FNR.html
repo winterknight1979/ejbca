@@ -201,7 +201,7 @@
         </div>
     </div>
 <p   
->The following configuration is available for the Unid extension. For information on all available OCSP options, refer to the <tt class=" ">ocsp.properties.sample</tt>.</p>
+>The following configuration is available for the Unid extension. For information on all available OCSP options, refer to the <code class=" ">ocsp.properties.sample</code>.</p>
     <div  class="tablewrap">
         <table class="wrapped confluenceTable">
                     <colgroup>
@@ -264,16 +264,16 @@
 </li><li class=" "><p   
 >Extended key usage: <strong class=" ">TLS server</strong></p>
 </li></ul><p   
->The Common Name (CN) for a TLS server should be the same as the machine's fully qualified DNS name used to call the server. For example <tt class=" ">CN=ocsp.primekey.com</tt>. For the other DN components, you can choose freely.</p>
+>The Common Name (CN) for a TLS server should be the same as the machine's fully qualified DNS name used to call the server. For example <code class=" ">CN=ocsp.primekey.com</code>. For the other DN components, you can choose freely.</p>
 <p   
->Once the JKS keystore is issued, you can configure TLS on the OCSP server in the same way as on the EJBCA server. It is configured in the file <tt class=" ">JBOSS_HOME/server/default/deploy/jbossweb.sar/server.xml</tt> on the CA server. The Connectors for port 8442 and 8443 is the TLS configuration. The keystoreFile, keystorePass, truststoreFile and truststorePass are important to get right.</p>
+>Once the JKS keystore is issued, you can configure TLS on the OCSP server in the same way as on the EJBCA server. It is configured in the file <code class=" ">JBOSS_HOME/server/default/deploy/jbossweb.sar/server.xml</code> on the CA server. The Connectors for port 8442 and 8443 is the TLS configuration. The keystoreFile, keystorePass, truststoreFile and truststorePass are important to get right.</p>
 <p   
->Place the keystore for the TLS server in the file <tt class=" ">p12/tomcat.jks</tt> on the external OCSP responder to allow it to be deployed correctly when using <tt class=" ">ant ocsp-deploy</tt>, and you will not have to change the <tt class=" ">server.xml</tt> file which is over-written by <tt class=" ">ant ocsp-deploy</tt>.</p>
+>Place the keystore for the TLS server in the file <code class=" ">p12/tomcat.jks</code> on the external OCSP responder to allow it to be deployed correctly when using <code class=" ">ant ocsp-deploy</code>, and you will not have to change the <code class=" ">server.xml</code> file which is over-written by <code class=" ">ant ocsp-deploy</code>.</p>
     </div>
     <div class="section section-2" id="src-23859502_id-.UnidFNRv6.15.0-SecurityoftheLookupServer">
         <h2 class="heading "><span>Security of the Lookup Server</span></h2>
 <p   
->The lookup server always checks that each client is using TLS with client authentication, that the certificate is valid and is one of the certificates placed in the directory pointed to by <tt class=" ">ocsp.unidtrustdir</tt>.</p>
+>The lookup server always checks that each client is using TLS with client authentication, that the certificate is valid and is one of the certificates placed in the directory pointed to by <code class=" ">ocsp.unidtrustdir</code>.</p>
 <p   
 >Note that if these conditions are not met, no Fnr is returned.</p>
     </div>
@@ -299,9 +299,9 @@
 <ul class=" "><li class=" "><p   
 >A CMP Certificate Request is performed with KeyId holding a Certificate Profile with name &quot;pppp-pppp-...&quot;</p>
 </li><li class=" "><p   
->The Certificate Request contains a DN serialNumber attribute holding the ll-digit FNR + 5-digt LRA according to the following: <tt class=" ">Subject DN: CN=Alexander Rybak, serialNumber=fffffffffff-lllll, C=NO</tt></p>
+>The Certificate Request contains a DN serialNumber attribute holding the ll-digit FNR + 5-digt LRA according to the following: <code class=" ">Subject DN: CN=Alexander Rybak, serialNumber=fffffffffff-lllll, C=NO</code></p>
 </li><li class=" "><p   
->Now EJBCA creates a random 6-character alphanumeric string &quot;rrrrrr&quot; and rewrites the Subject DN so that the resulting certificate will be like:<br/><tt class=" ">Subject DN: CN=Alexander Rybak, serialNumber=pppp-pppp-lllllrrrrrr, C=NO</tt></p>
+>Now EJBCA creates a random 6-character alphanumeric string &quot;rrrrrr&quot; and rewrites the Subject DN so that the resulting certificate will be like:<br/><code class=" ">Subject DN: CN=Alexander Rybak, serialNumber=pppp-pppp-lllllrrrrrr, C=NO</code></p>
 </li><li class=" "><p   
 >In the database, the FNR is set to &quot;fffffffffff&quot; and UNID to &quot;pppp-pppp-lllllrrrrrr&quot;. UNID is a primary key in the DB to guarantee that it is unique.</p>
 </li></ul><p   

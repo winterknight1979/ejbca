@@ -182,25 +182,25 @@
     <div class="section section-1" id="src-22381505_safe-id-aWQtLkN1c3RvbWl6aW5nRUpCQ0F2Ni4xNS4wLUhhbmRsaW5nQ2hhbmdlc2luYVNlcGFyYXRlVHJlZUhhbmRsaW5nX2NoYW5nZXNfaW5fYV9zZXBhcmF0ZV90cmVlXyhFSkI">
         <h1 class="heading "><span id="src-22381505_safe-id-aWQtLkN1c3RvbWl6aW5nRUpCQ0F2Ni4xNS4wLUhhbmRsaW5nX2NoYW5nZXNfaW5fYV9zZXBhcmF0ZV90cmVlXyhFSkI" class="confluence-anchor-link"></span><span>Handling Changes in a Separate Tree </span></h1>
 <p   
->You can keep your personal modifications of EJBCA in a separate tree (as of EJBCA 3.5). Set the location of your personal modifications in conf/custom.properties or use the default location <tt class=" ">$EJBCA_HOME/../ejbca-custom</tt>. Your modifications will automatically overwrite any existing file(s) found in the EJBCA_HOME-directory or its subdirectories before executing an ant command. A sample, <tt class=" ">conf/custom.properties.sample</tt>, is provided.</p>
+>You can keep your personal modifications of EJBCA in a separate tree (as of EJBCA 3.5). Set the location of your personal modifications in conf/custom.properties or use the default location <code class=" ">$EJBCA_HOME/../ejbca-custom</code>. Your modifications will automatically overwrite any existing file(s) found in the EJBCA_HOME-directory or its subdirectories before executing an ant command. A sample, <code class=" ">conf/custom.properties.sample</code>, is provided.</p>
 <p   
 >Example usage: You have a working set of configuration files and database from the latest stable release and want to try the latest trunk snapshot.</p>
 <ol class=" "><li class=" "><p   
 >Backup your database</p>
 </li><li class=" "><p   
->Copy <tt class=" ">$EJBCA_HOME/conf/ to $EJBCA_HOME/../ejbca-custom/conf/</tt></p>
+>Copy <code class=" ">$EJBCA_HOME/conf/ to $EJBCA_HOME/../ejbca-custom/conf/</code></p>
 </li><li class=" "><p   
->Copy <tt class=" ">$EJBCA_HOME/p12/ to $EJBCA_HOME/../ejbca-custom/p12/</tt></p>
+>Copy <code class=" ">$EJBCA_HOME/p12/ to $EJBCA_HOME/../ejbca-custom/p12/</code></p>
 </li><li class=" "><p   
->Copy <tt class=" ">$EJBCA_HOME/src/java/.properties and modules/ejbca-common/src/.properties</tt> to <tt class=" ">$EJBCA_HOME/../ejbca-custom/src/java/</tt> and <tt class=" ">../ejbca-custom/modules/ejbca-common/src/</tt></p>
+>Copy <code class=" ">$EJBCA_HOME/src/java/.properties and modules/ejbca-common/src/.properties</code> to <code class=" ">$EJBCA_HOME/../ejbca-custom/src/java/</code> and <code class=" ">../ejbca-custom/modules/ejbca-common/src/</code></p>
 </li></ol><p   
->You can now remove the entire <tt class=" ">$EJBCA_HOME</tt> directory and replace it with the fresh snapshot from the trunk. Restore the database and all the configurations and generated keys will be restored to $EJBCA_HOME next time you run <tt class=" ">ant deploy</tt> etc.</p>
+>You can now remove the entire <code class=" ">$EJBCA_HOME</code> directory and replace it with the fresh snapshot from the trunk. Restore the database and all the configurations and generated keys will be restored to $EJBCA_HOME next time you run <code class=" ">ant deploy</code> etc.</p>
 <p   
 >Note the following:</p>
 <ul class=" "><li class=" "><p   
 >There is no way to recover overwritten files, so you have to manually restore files if needed.</p>
 </li><li class=" "><p   
->Ant will not be able to detect if your changes are incompatible with newer versions of EJBCA. Always use <tt class=" ">diff</tt> on the different versions to see if any file you override is affected.</p>
+>Ant will not be able to detect if your changes are incompatible with newer versions of EJBCA. Always use <code class=" ">diff</code> on the different versions to see if any file you override is affected.</p>
 </li><li class=" "><p   
 >Contributed new features or improvements that many would benefit from is greatly appreciated by the community and makes your maintenance easier.</p>
 </li></ul>    </div>
@@ -214,11 +214,11 @@
     <div class="section section-2" id="src-22381505_id-.CustomizingEJBCAv6.15.0-PublicWebAdding_your_own_public_web-pages">
         <h2 class="heading "><span id="src-22381505_id-.CustomizingEJBCAv6.15.0-Adding_your_own_public_web-pages" class="confluence-anchor-link"></span><span>Public Web </span></h2>
 <p   
->The Public Web pages are written in JSP and can be found under <tt class=" ">modules/publicweb-gui/resources/</tt>. You can modify the pages (directly or by using a separate tree), rebuild and redeploy. The changes should show on http://<i class=" ">ejbcahost</i>:8080/ejbca.</p>
+>The Public Web pages are written in JSP and can be found under <code class=" ">modules/publicweb-gui/resources/</code>. You can modify the pages (directly or by using a separate tree), rebuild and redeploy. The changes should show on http://<i class=" ">ejbcahost</i>:8080/ejbca.</p>
     <div class="section section-3" id="src-22381505_id-.CustomizingEJBCAv6.15.0-CustomizingPublicWebPagesusingejba-custom">
         <h3 class="heading "><span>Customizing Public Web Pages using ejba-custom</span></h3>
 <p   
->You can use the ejbca-custom feature to override the default files in EJBCA. To customize the Pubic Web pages, modify the style sheets and JSP pages located in <tt class=" ">modules/publicweb/resources</tt>.</p>
+>You can use the ejbca-custom feature to override the default files in EJBCA. To customize the Pubic Web pages, modify the style sheets and JSP pages located in <code class=" ">modules/publicweb/resources</code>.</p>
 <p   
 >Using the ejbca-custom feature, place your override files in an identical file structure in parallel, according to the following example:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
@@ -232,7 +232,7 @@
 </div>
     </div>
 <p   
->When you build using the <tt class=" ">ant build</tt> command, the files in your ejbca-custom directory will override those in the EJBCA distribution, thus making it easy to maintain the changes also when EJBCA is upgraded.</p>
+>When you build using the <code class=" ">ant build</code> command, the files in your ejbca-custom directory will override those in the EJBCA distribution, thus making it easy to maintain the changes also when EJBCA is upgraded.</p>
     </div>
     </div>
     </div>
@@ -241,7 +241,7 @@
     <div class="section section-2" id="src-22381505_id-.CustomizingEJBCAv6.15.0-EJBCAPluginBuildSystemEJBCA_plugin_build_system">
         <h2 class="heading "><span id="src-22381505_id-.CustomizingEJBCAv6.15.0-EJBCA_plugin_build_system" class="confluence-anchor-link"></span><span>EJBCA Plugin Build System </span></h2>
 <p   
->To for example, extend the RA functionality considerably, possibly including additional database tables as well, you may consider using the EJBCA plugin scheme which provides custom applications with the core EJBCA environment data. In the directory <tt class=" ">src/samples/plug-ins</tt> you will find a couple of complete demo plugins that can be added to an existing EJBCA installation without any configuration.</p>
+>To for example, extend the RA functionality considerably, possibly including additional database tables as well, you may consider using the EJBCA plugin scheme which provides custom applications with the core EJBCA environment data. In the directory <code class=" ">src/samples/plug-ins</code> you will find a couple of complete demo plugins that can be added to an existing EJBCA installation without any configuration.</p>
 <p  class="p1" 
 >There are two methods of creating plugins for EJBCA:</p>
     <div class="section section-3" id="src-22381505_id-.CustomizingEJBCAv6.15.0-IncludingExternalJARsontheClasspath">
@@ -249,7 +249,7 @@
 <p   
 >This may be the easier method for some and involves pre-compiling your own JAR (preferably using one of our plugin interfaces and a manifest file, see below) and making sure it's available on the classpath. To enable this:</p>
 <ol class=" "><li class=" "><p   
->Modify the file <tt class=" ">plugin.properties.sample</tt> (renaming it to for example <tt class=" ">widget.properties</tt>) and place it in either <tt class=" ">conf/plugins</tt> in your local EJBCA directory, or under <tt class=" ">ejbca_custom/conf/plugins </tt>if you're using an external configuration directory.</p>
+>Modify the file <code class=" ">plugin.properties.sample</code> (renaming it to for example <code class=" ">widget.properties</code>) and place it in either <code class=" ">conf/plugins</code> in your local EJBCA directory, or under <code class=" ">ejbca_custom/conf/plugins </code>if you're using an external configuration directory.</p>
 </li><li class=" "><p   
 >Make sure that the file contains the following line:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
@@ -265,7 +265,7 @@
 <p   
 >The other variant is to create a source directory alongside EJBCA from which EJBCA can copy source files from. While this variant may be simpler to maintain due to sourcing the EJBCA libs directly from EJBCA, it may also be more difficult to set up a development environment against. To enable this:</p>
 <ol class=" "><li class=" "><p   
->Modify the file <tt class=" ">plugin.properties.sample</tt> (renaming it to for example <tt class=" ">widget.properties</tt>) and place it in either <tt class=" ">conf/plugins</tt> in your local EJBCA directory, or under <tt class=" ">ejbca_custom/conf/plugins</tt> if you're using an external configuration directory.</p>
+>Modify the file <code class=" ">plugin.properties.sample</code> (renaming it to for example <code class=" ">widget.properties</code>) and place it in either <code class=" ">conf/plugins</code> in your local EJBCA directory, or under <code class=" ">ejbca_custom/conf/plugins</code> if you're using an external configuration directory.</p>
 </li><li class=" "><p   
 >Make sure that the file contains the following line:</p>
     <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
@@ -276,7 +276,7 @@
 <p   
 >which points to the build file of your plugin.</p>
 </li></ol><p   
->For more information on setting this up, see <tt class=" ">plugin.properties.sample</tt>.</p>
+>For more information on setting this up, see <code class=" ">plugin.properties.sample</code>.</p>
     </div>
     </div>
     <div class="section section-2" id="src-22381505_id-.CustomizingEJBCAv6.15.0-PluginInterfacesPlug-in_interfaces">
@@ -302,9 +302,9 @@
 <p   
 >It is possible to define a set of rules to control the format of the End Entity fields. For example, it is possible to ensure that the subject DN serial number is always a number of six digits, or should always end with the letter <strong class=" ">N</strong>.</p>
 <p   
->Setting such rules is done by implementing the static function <tt class=" ">org.ejbca.core.model.ra.FieldValidator.validate()</tt>. In this function, you can define a rule that is applicable to a specific field in a specific End Entity profile. Should the field value not match the rule, a CustomFieldException should be thrown and the error message you set in the exception will be shown as the error message in the GUI. This rule will be checked each time an end entity is added or changed, whether it was added or changed by the GUI or otherwise.</p>
+>Setting such rules is done by implementing the static function <code class=" ">org.ejbca.core.model.ra.FieldValidator.validate()</code>. In this function, you can define a rule that is applicable to a specific field in a specific End Entity profile. Should the field value not match the rule, a CustomFieldException should be thrown and the error message you set in the exception will be shown as the error message in the GUI. This rule will be checked each time an end entity is added or changed, whether it was added or changed by the GUI or otherwise.</p>
 <p   
->To avoid losing these rules when updating the EJBCA version, the new FieldValidator class should be stored in an <tt class=" ">ejbca-custom</tt> folder. See the <a   href="#src-22381505_safe-id-aWQtLkN1c3RvbWl6aW5nRUpCQ0F2Ni4xNS4wLUhhbmRsaW5nX2NoYW5nZXNfaW5fYV9zZXBhcmF0ZV90cmVlXyhFSkI">Handling changes in a separate tree</a> section above.</p>
+>To avoid losing these rules when updating the EJBCA version, the new FieldValidator class should be stored in an <code class=" ">ejbca-custom</code> folder. See the <a   href="#src-22381505_safe-id-aWQtLkN1c3RvbWl6aW5nRUpCQ0F2Ni4xNS4wLUhhbmRsaW5nX2NoYW5nZXNfaW5fYV9zZXBhcmF0ZV90cmVlXyhFSkI">Handling changes in a separate tree</a> section above.</p>
 <p   
 ></p>
     </div>

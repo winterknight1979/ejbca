@@ -12,20 +12,23 @@
  *************************************************************************/
 package org.ejbca.ui.web.admin.services.servicetypes;
 
-
 /**
- * Class representing an Action Type, should be registered in the 
+ * Class representing an Action Type, should be registered in the
  * ServiceTypesManager. Should be inherited by all action managed beans.
- * 
  *
  * @version $Id: ActionType.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public abstract class ActionType extends ServiceType {
 
-	private static final long serialVersionUID = -7411725269781465619L;
+  private static final long serialVersionUID = -7411725269781465619L;
 
-	public ActionType(String subViewPage, String name, boolean translatable) {
-		super(subViewPage, name, translatable);
-	}
-
+  /**
+   * @param subViewPage Page
+   * @param name NAme
+   * @param translatable bool
+   */
+  public ActionType(
+      final String subViewPage, final String name, final boolean translatable) {
+    super(subViewPage, name, translatable);
+  }
 }

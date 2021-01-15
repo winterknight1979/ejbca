@@ -16,35 +16,51 @@ package org.ejbca.ui.web.admin.approval;
 import java.io.Serializable;
 
 /**
- * Class used to present comparable data with red text for rows that doesn't match.
- * 
- * @version $Id: TextComparisonView.java 23688 2016-06-17 10:46:42Z mikekushner $
+ * Class used to present comparable data with red text for rows that doesn't
+ * match.
+ *
+ * @version $Id: TextComparisonView.java 23688 2016-06-17 10:46:42Z mikekushner
+ *     $
  */
 public class TextComparisonView implements Serializable {
-	
-	private static final long serialVersionUID = 47502248806073893L;
-    private  String orgvalue;
-	private  String newvalue;
-	
-	public TextComparisonView(String orgvalue, String newvalue){
-		this.orgvalue = orgvalue;
-		this.newvalue = newvalue;	
-	}
-	
-	
-	public String getTextComparisonColor(){
-	  if(orgvalue != null && !orgvalue.equals(newvalue)) {
-	  	return "alert";
-	  }
-	  	
-	  
-	  return "";
-	}
 
-	public String getNewvalue() {
-		return newvalue;
-	}
-	public String getOrgvalue() {
-		return orgvalue;
-	}
+  private static final long serialVersionUID = 47502248806073893L;
+  /** Param. */
+  private final String orgvalue;
+  /** Param. */
+  private final String newvalue;
+
+  /**
+   * @param anorgvalue old
+   * @param anewvalue new
+   */
+  public TextComparisonView(final String anorgvalue, final String anewvalue) {
+    this.orgvalue = anorgvalue;
+    this.newvalue = anewvalue;
+  }
+
+  /**
+   * @return colot
+   */
+  public String getTextComparisonColor() {
+    if (orgvalue != null && !orgvalue.equals(newvalue)) {
+      return "alert";
+    }
+
+    return "";
+  }
+
+  /**
+   * @return Value
+   */
+  public String getNewvalue() {
+    return newvalue;
+  }
+
+  /**
+   * @return value
+   */
+  public String getOrgvalue() {
+    return orgvalue;
+  }
 }
