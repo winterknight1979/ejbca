@@ -30,7 +30,7 @@ import org.ejbca.ui.web.admin.configuration.SortableSelectItem;
 
 /**
  * Class used to manage the listservices.jsp page Contains and manages the
- * available services
+ * available services.
  *
  * @version $Id: ListServicesManagedBean.java 28844 2018-05-04 08:31:02Z
  *     samuellb $
@@ -38,20 +38,33 @@ import org.ejbca.ui.web.admin.configuration.SortableSelectItem;
 public class ListServicesManagedBean extends BaseManagedBean {
 
   private static final long serialVersionUID = 1L;
+  /** Name. */
   private final EjbLocalHelper ejb = new EjbLocalHelper();
+  /** Name. */
   private String selectedServiceName;
+  /** Name. */
   private String newServiceName = "";
 
-  public ListServicesManagedBean() {}
+  /** Constructor. */
+  public ListServicesManagedBean() { }
 
+  /**
+   * @return name
+   */
   public String getSelectedServiceName() {
     return selectedServiceName;
   }
 
+  /**
+   * @param string Name
+   */
   public void setSelectedServiceName(final String string) {
     selectedServiceName = string;
   }
 
+  /**
+   * @return Services
+   */
   public List<SortableSelectItem> getAvailableServices() {
     List<SortableSelectItem> availableServices = new ArrayList<>();
     Collection<Integer> availableServicesIds =
@@ -89,6 +102,9 @@ public class ListServicesManagedBean extends BaseManagedBean {
     return availableServices;
   }
 
+  /**
+   * @return redirect
+   */
   public String editService() {
     String retval = "editservice";
     if (StringUtils.isNotEmpty(selectedServiceName)) {
@@ -104,6 +120,9 @@ public class ListServicesManagedBean extends BaseManagedBean {
     return retval;
   }
 
+  /**
+   * @return redirect
+   */
   public String deleteService() {
     if (StringUtils.isNotEmpty(selectedServiceName)) {
       ejb.getServiceSession().removeService(getAdmin(), selectedServiceName);
@@ -114,6 +133,9 @@ public class ListServicesManagedBean extends BaseManagedBean {
     return "listservices";
   }
 
+  /**
+   * @return redirect
+   */
   public String renameService() {
     if (StringUtils.isEmpty(selectedServiceName)) {
       addErrorMessage("YOUHAVETOSELECTASERVICE");
@@ -134,6 +156,9 @@ public class ListServicesManagedBean extends BaseManagedBean {
     return "listservices";
   }
 
+  /**
+   * @return redirect
+   */
   public String addService() {
     if (StringUtils.isEmpty(StringUtils.trim(newServiceName))) {
       addErrorMessage("YOUHAVETOENTERASERVICE");
@@ -155,6 +180,9 @@ public class ListServicesManagedBean extends BaseManagedBean {
     return "listservices";
   }
 
+  /**
+   * @return redirect
+   */
   public String cloneService() {
     if (StringUtils.isEmpty(selectedServiceName)) {
       addErrorMessage("YOUHAVETOSELECTASERVICE");
@@ -179,9 +207,9 @@ public class ListServicesManagedBean extends BaseManagedBean {
     return newServiceName;
   }
 
-  /** @param newServiceName the newServiceName to set */
-  public void setNewServiceName(final String newServiceName) {
-    this.newServiceName = newServiceName;
+  /** @param anewServiceName the newServiceName to set */
+  public void setNewServiceName(final String anewServiceName) {
+    this.newServiceName = anewServiceName;
   }
 
   /** @return true if admin has access to /services/edit */
@@ -193,11 +221,11 @@ public class ListServicesManagedBean extends BaseManagedBean {
   /**
    * returns true if the is a faulty service name.
    *
-   * @param newServiceName name
+   * @param anewServiceName name
    * @return bool
    */
-  private boolean errorInServiceName(final String newServiceName) {
-    return StringUtils.contains(newServiceName, ";");
+  private boolean errorInServiceName(final String anewServiceName) {
+    return StringUtils.contains(anewServiceName, ";");
   }
 
   private EditServiceManagedBean getEditServiceBean() {

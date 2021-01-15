@@ -49,12 +49,16 @@ public class ServiceTypeManager implements Serializable {
 
   private static final long serialVersionUID = -7328709803784066077L;
 
+  /** Param. */
   private final HashMap<String, ServiceType> availableTypesByName =
       new HashMap<>();
+  /** Param. */
   private final HashMap<String, ServiceType> availableTypesByClassPath =
       new HashMap<>();
+  /** Param. */
   private final ArrayList<ServiceType> workerTypes = new ArrayList<>();
 
+  /** Constructor. */
   public ServiceTypeManager() {
     registerServiceType(new CustomIntervalType());
     registerServiceType(new PeriodicalIntervalType());

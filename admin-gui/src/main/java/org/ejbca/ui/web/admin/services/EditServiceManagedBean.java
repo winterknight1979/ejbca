@@ -70,7 +70,7 @@ import org.ejbca.ui.web.admin.services.servicetypes.UserPasswordExpireWorkerType
 import org.ejbca.ui.web.admin.services.servicetypes.WorkerType;
 
 /**
- * Class used to manage the GUI editing of a Service Configuration
+ * Class used to manage the GUI editing of a Service Configuration.
  *
  * @version $Id: EditServiceManagedBean.java 28844 2018-05-04 08:31:02Z samuellb
  *     $
@@ -78,19 +78,28 @@ import org.ejbca.ui.web.admin.services.servicetypes.WorkerType;
 public class EditServiceManagedBean extends BaseManagedBean {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log =
+  /** Param. */
+  private static final Logger LOG =
       Logger.getLogger(EditServiceManagedBean.class);
 
+  /** Param. */
   private final EjbLocalHelper ejb = new EjbLocalHelper();
+  /** Param. */
   private final CertificateProfileSessionLocal certificateProfileSession =
       ejb.getCertificateProfileSession();
+  /** Param. */
   private ServiceConfigurationView serviceConfigurationView;
+  /** Param. */
   private String serviceName = "";
 
+  /** Constructor. */
   public EditServiceManagedBean() {
     setServiceConfiguration(new ServiceConfiguration());
   }
 
+  /**
+   * @return bean
+   */
   public static EditServiceManagedBean getBean() {
     FacesContext context = FacesContext.getCurrentInstance();
     Application app = context.getApplication();
@@ -105,9 +114,9 @@ public class EditServiceManagedBean extends BaseManagedBean {
     return serviceName;
   }
 
-  /** @param serviceName the serviceName to set */
-  public void setServiceName(final String serviceName) {
-    this.serviceName = serviceName;
+  /** @param aserviceName the serviceName to set */
+  public void setServiceName(final String aserviceName) {
+    this.serviceName = aserviceName;
   }
 
   /** @return the serviceConfigurationView */
@@ -115,12 +124,18 @@ public class EditServiceManagedBean extends BaseManagedBean {
     return serviceConfigurationView;
   }
 
+  /**
+   * @param serviceConfiguration config
+   */
   public void setServiceConfiguration(
       final ServiceConfiguration serviceConfiguration) {
     this.serviceConfigurationView =
         new ServiceConfigurationView(serviceConfiguration);
   }
 
+  /**
+   * @return redirect
+   */
   public String save() {
     String retval = "listservices";
     ArrayList<String> errorMessages = new ArrayList<>();
@@ -149,11 +164,16 @@ public class EditServiceManagedBean extends BaseManagedBean {
     }
     return retval;
   }
-
+  /**
+   * @return redirect
+   */
   public String cancel() {
     return "listservices";
   }
 
+  /**
+   * @return redirect
+   */
   public String update() {
     return "editservice";
   }
@@ -212,6 +232,9 @@ public class EditServiceManagedBean extends BaseManagedBean {
             .getServiceTypeByName(MailActionType.NAME);
   }
 
+  /**
+   * @return Type
+   */
   public BaseWorkerType getBaseWorkerType() {
     String name = null;
     try {
@@ -221,10 +244,10 @@ public class EditServiceManagedBean extends BaseManagedBean {
       String cp = conf.getWorkerClassPath();
       name = getTypeNameFromClassPath(cp);
     } catch (IOException e) {
-      log.error(e);
+      LOG.error(e);
     }
-    if (log.isDebugEnabled()) {
-      log.debug("Get baseWorkerType by name: " + name);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Get baseWorkerType by name: " + name);
     }
     BaseWorkerType ret =
         (BaseWorkerType)
@@ -240,7 +263,7 @@ public class EditServiceManagedBean extends BaseManagedBean {
    * @return type
    */
   public BaseEmailNotifyingWorkerType getNotifyingType() {
-    log.trace(">getNotifyingType");
+    LOG.trace(">getNotifyingType");
     BaseEmailNotifyingWorkerType ret = null;
     BaseWorkerType type = getBaseWorkerType();
     if (type instanceof BaseEmailNotifyingWorkerType) {
@@ -258,12 +281,12 @@ public class EditServiceManagedBean extends BaseManagedBean {
                   .getServiceTypeByName(
                       CertificateExpirationNotifierWorkerType.NAME);
     }
-    log.trace("<getNotifyingType");
+    LOG.trace("<getNotifyingType");
     return ret;
   }
 
   private String getTypeNameFromClassPath(final String cp) {
-    log.debug("ClassPath: " + cp);
+    LOG.debug("ClassPath: " + cp);
     String ret = null;
     if ((cp != null)
         && cp.equals(CertificateExpirationNotifierWorker.class.getName())) {
@@ -310,7 +333,7 @@ public class EditServiceManagedBean extends BaseManagedBean {
   }
 
   /**
-   * Help method to edit data in the publish queue worker type
+   * Help method to edit data in the publish queue worker type.
    *
    * @return Type
    */
@@ -346,6 +369,9 @@ public class EditServiceManagedBean extends BaseManagedBean {
             .getServiceTypeByName(PeriodicalIntervalType.NAME);
   }
 
+  /**
+   * @param e event
+   */
   public void changeInterval(final ValueChangeEvent e) {
     String newName = (String) e.getNewValue();
     WorkerType workerType = serviceConfigurationView.getWorkerType();
@@ -360,6 +386,9 @@ public class EditServiceManagedBean extends BaseManagedBean {
     }
   }
 
+  /**
+   * @param e event
+   */
   public void changeAction(final ValueChangeEvent e) {
     String newName = (String) e.getNewValue();
     WorkerType workerType = serviceConfigurationView.getWorkerType();
@@ -389,7 +418,7 @@ public class EditServiceManagedBean extends BaseManagedBean {
                 caid.toString(),
                 ejb.getCaSession().getCAInfo(getAdmin(), caid).getName()));
       } catch (AuthorizationDeniedException e) {
-        log.debug("Not authorized to CA: " + caid);
+        LOG.debug("Not authorized to CA: " + caid);
       }
     }
     return availableCANames;
@@ -422,8 +451,8 @@ public class EditServiceManagedBean extends BaseManagedBean {
     final String caname = EjbcaJSFHelper.getBean().getText().get("ANYCA");
     availableCANames.add(
         new SelectItem(String.valueOf(SecConst.ALLCAS), caname));
-    for (final Integer caid :
-        ejb.getCaSession().getAuthorizedCaIds(getAdmin())) {
+    for (final Integer caid
+        : ejb.getCaSession().getAuthorizedCaIds(getAdmin())) {
       try {
         CAInfo caInfo = ejb.getCaSession().getCAInfo(getAdmin(), caid);
         availableCANames.add(
@@ -434,7 +463,7 @@ public class EditServiceManagedBean extends BaseManagedBean {
                 caInfo.getCAType() != CAInfo.CATYPE_X509
                     || caInfo.getStatus() != CAConstants.CA_EXTERNAL));
       } catch (AuthorizationDeniedException e) {
-        log.debug("Not authorized to CA: " + caid);
+        LOG.debug("Not authorized to CA: " + caid);
       }
     }
     return availableCANames;
@@ -476,10 +505,13 @@ public class EditServiceManagedBean extends BaseManagedBean {
     return certificateProfiles.values();
   }
 
+  /**
+   * @return Pubs
+   */
   public List<SelectItem> getAvailablePublishers() {
     List<SelectItem> availablePublisherNames = new ArrayList<>();
-    for (int next :
-        ejb.getCaAdminSession().getAuthorizedPublisherIds(getAdmin())) {
+    for (int next
+        : ejb.getCaAdminSession().getAuthorizedPublisherIds(getAdmin())) {
       // Display it in the list as "PublisherName (publisherId)" with
       // publisherId as the value sent
       availablePublisherNames.add(
@@ -501,25 +533,40 @@ public class EditServiceManagedBean extends BaseManagedBean {
     return availablePublisherNames;
   }
 
-  /** Return type used by getManualCustomActionItems */
+  /** Return type used by getManualCustomActionItems. */
   public static class ManualCustomItems {
+        /** Param. */
     private final List<SelectItem> workers = new ArrayList<>();
+    /** Param. */
     private final List<SelectItem> intervals = new ArrayList<>();
+    /** Param. */
     private final List<SelectItem> actions = new ArrayList<>();
 
+    /**
+     * @return workers
+     */
     public List<SelectItem> getWorkers() {
       return workers;
     }
 
+    /**
+     * @return Intervals
+     */
     public List<SelectItem> getIntervals() {
       return intervals;
     }
 
+    /**
+     * @return Actions
+     */
     public List<SelectItem> getActions() {
       return actions;
     }
   }
 
+  /**
+   * @return Items
+   */
   public ManualCustomItems getManualCustomItems() {
     ManualCustomItems manual = new ManualCustomItems();
     final String workerClass = getCustomWorkerType().getAutoClassPath();

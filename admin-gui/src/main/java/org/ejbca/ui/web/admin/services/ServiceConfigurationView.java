@@ -43,7 +43,7 @@ import org.ejbca.ui.web.admin.services.servicetypes.WorkerType;
 
 /**
  * Class responsible for converting the data between the GUI and a
- * ServiceConfiguration VO
+ * ServiceConfiguration VO.
  *
  * @version $Id: ServiceConfigurationView.java 28844 2018-05-04 08:31:02Z
  *     samuellb $
@@ -51,96 +51,112 @@ import org.ejbca.ui.web.admin.services.servicetypes.WorkerType;
 public class ServiceConfigurationView implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log =
+  /** Log. */
+  private static final Logger LOG =
       Logger.getLogger(ServiceConfigurationView.class);
 
+  /** Param. */
   private WorkerType workerType;
+  /** Param. */
   private ActionType actionType;
+  /** Param. */
   private IntervalType intervalType;
 
+  /** Param. */
   private String selectedInterval;
+  /** Param. */
   private String selectedAction;
 
+  /** Param. */
   private final ServiceTypeManager typeManager;
+  /** Param. */
 
   private boolean active = false;
+  /** Param. */
   private boolean hidden = false;
+  /** Param. */
   private String description = "";
+  /** Param. */
   private String[] pinToNodes = new String[0];
+  /** Param. */
   private boolean runOnAllNodes = false;
 
+  /** Param. */
   private final ServiceConfiguration serviceConfiguration;
 
+  /**
+   * @param aserviceConfiguration config.
+   */
   public ServiceConfigurationView(
-      final ServiceConfiguration serviceConfiguration) {
+      final ServiceConfiguration aserviceConfiguration) {
 
     typeManager = new ServiceTypeManager();
 
-    this.serviceConfiguration = serviceConfiguration;
-    WorkerType workerType =
+    this.serviceConfiguration = aserviceConfiguration;
+    WorkerType aworkerType =
         (WorkerType)
             typeManager.getServiceTypeByClassPath(
-                serviceConfiguration.getWorkerClassPath());
-    if (workerType == null) {
-      workerType =
+                aserviceConfiguration.getWorkerClassPath());
+    if (aworkerType == null) {
+      aworkerType =
           (WorkerType) typeManager.getServiceTypeByName(CustomWorkerType.NAME);
-      ((CustomWorkerType) workerType)
-          .setClassPath(serviceConfiguration.getWorkerClassPath());
+      ((CustomWorkerType) aworkerType)
+          .setClassPath(aserviceConfiguration.getWorkerClassPath());
     }
-    setWorkerType(workerType);
+    setWorkerType(aworkerType);
 
-    IntervalType intervalType =
+    IntervalType anintervalType =
         (IntervalType)
             typeManager.getServiceTypeByClassPath(
-                serviceConfiguration.getIntervalClassPath());
-    if (intervalType == null) {
-      if (workerType
+                aserviceConfiguration.getIntervalClassPath());
+    if (anintervalType == null) {
+      if (aworkerType
           .getCompatibleIntervalTypeNames()
           .contains(PeriodicalIntervalType.NAME)) {
         // It seems most likely that the admin wants to configure a periodic
         // interval even if custom interval are available
-        intervalType =
+        anintervalType =
             (IntervalType)
                 typeManager.getServiceTypeByName(PeriodicalIntervalType.NAME);
       } else {
-        intervalType =
+        anintervalType =
             (IntervalType)
                 typeManager.getServiceTypeByName(CustomIntervalType.NAME);
-        ((CustomIntervalType) intervalType)
-            .setClassPath(serviceConfiguration.getIntervalClassPath());
+        ((CustomIntervalType) anintervalType)
+            .setClassPath(aserviceConfiguration.getIntervalClassPath());
       }
     }
-    setIntervalType(intervalType);
-    selectedInterval = intervalType.getName();
+    setIntervalType(anintervalType);
+    selectedInterval = anintervalType.getName();
 
-    ActionType actionType =
+    ActionType anactionType =
         (ActionType)
             typeManager.getServiceTypeByClassPath(
-                serviceConfiguration.getActionClassPath());
-    if (actionType == null) {
-      if (workerType
+                aserviceConfiguration.getActionClassPath());
+    if (anactionType == null) {
+      if (aworkerType
           .getCompatibleActionTypeNames()
           .contains(NoActionType.NAME)) {
         // It seems most likely that the admin wants to configure a "no action"
         // action even if custom actions are available
-        actionType =
+        anactionType =
             (ActionType) typeManager.getServiceTypeByName(NoActionType.NAME);
       } else {
-        actionType =
+        anactionType =
             (ActionType)
                 typeManager.getServiceTypeByName(CustomActionType.NAME);
-        ((CustomActionType) actionType)
-            .setClassPath(serviceConfiguration.getActionClassPath());
+        ((CustomActionType) anactionType)
+            .setClassPath(aserviceConfiguration.getActionClassPath());
       }
     }
-    setActionType(actionType);
-    selectedAction = actionType.getName();
+    setActionType(anactionType);
+    selectedAction = anactionType.getName();
 
-    setDescription(serviceConfiguration.getDescription());
-    setActive(serviceConfiguration.isActive());
-    setHidden(serviceConfiguration.isHidden());
-    setPinToNodes(serviceConfiguration.getPinToNodes());
-    setRunOnAllNodes(serviceConfiguration.isRunOnAllNodes());
+    setDescription(aserviceConfiguration.getDescription());
+    setActive(aserviceConfiguration.isActive());
+    setHidden(aserviceConfiguration.isHidden());
+    setPinToNodes(aserviceConfiguration.getPinToNodes());
+    setRunOnAllNodes(aserviceConfiguration.isRunOnAllNodes());
   }
 
   /**
@@ -173,14 +189,14 @@ public class ServiceConfigurationView implements Serializable {
     return actionType;
   }
 
-  /** @param actionType the actionType to set */
-  public void setActionType(final ActionType actionType) {
+  /** @param anactionType the actionType to set */
+  public void setActionType(final ActionType anactionType) {
     try {
-      actionType.setProperties(serviceConfiguration.getActionProperties());
+      anactionType.setProperties(serviceConfiguration.getActionProperties());
     } catch (IOException e) {
-      log.error(e);
+      LOG.error(e);
     }
-    this.actionType = actionType;
+    this.actionType = anactionType;
   }
 
   /** @return the active flag */
@@ -188,18 +204,21 @@ public class ServiceConfigurationView implements Serializable {
     return active;
   }
 
-  /** @param active the active flag to set */
-  public void setActive(final boolean active) {
-    this.active = active;
+  /** @param isactive the active flag to set */
+  public void setActive(final boolean isactive) {
+    this.active = isactive;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isHidden() {
     return hidden;
   }
 
-  /** @param hidden the hidden flag to set */
-  public void setHidden(final boolean hidden) {
-    this.hidden = hidden;
+  /** @param ishidden the hidden flag to set */
+  public void setHidden(final boolean ishidden) {
+    this.hidden = ishidden;
   }
 
   /** @return the description */
@@ -207,9 +226,9 @@ public class ServiceConfigurationView implements Serializable {
     return description;
   }
 
-  /** @param description the description to set */
-  public void setDescription(final String description) {
-    this.description = description;
+  /** @param adescription the description to set */
+  public void setDescription(final String adescription) {
+    this.description = adescription;
   }
 
   /** @return the intervalType */
@@ -217,14 +236,15 @@ public class ServiceConfigurationView implements Serializable {
     return intervalType;
   }
 
-  /** @param intervalType the intervalType to set */
-  public void setIntervalType(final IntervalType intervalType) {
+  /** @param anintervalType the intervalType to set */
+  public void setIntervalType(final IntervalType anintervalType) {
     try {
-      intervalType.setProperties(serviceConfiguration.getIntervalProperties());
+      anintervalType.setProperties(
+              serviceConfiguration.getIntervalProperties());
     } catch (IOException e) {
-      log.error(e);
+      LOG.error(e);
     }
-    this.intervalType = intervalType;
+    this.intervalType = anintervalType;
   }
 
   /** @return the workerType */
@@ -232,35 +252,35 @@ public class ServiceConfigurationView implements Serializable {
     return workerType;
   }
 
-  /** @param workerType the workerType to set */
-  public void setWorkerType(final WorkerType workerType) {
+  /** @param aworkerType the workerType to set */
+  public void setWorkerType(final WorkerType aworkerType) {
     try {
-      workerType.setProperties(serviceConfiguration.getWorkerProperties());
-      this.workerType = workerType;
+      aworkerType.setProperties(serviceConfiguration.getWorkerProperties());
+      this.workerType = aworkerType;
 
       if (selectedInterval != null
-          && !workerType
+          && !aworkerType
               .getCompatibleIntervalTypeNames()
               .contains(selectedInterval)) {
         setSelectedInterval(
-            workerType.getCompatibleIntervalTypeNames().iterator().next());
+            aworkerType.getCompatibleIntervalTypeNames().iterator().next());
         setIntervalType(
             (IntervalType)
                 typeManager.getServiceTypeByName(getSelectedInterval()));
       }
 
       if (selectedAction != null
-          && !workerType
+          && !aworkerType
               .getCompatibleActionTypeNames()
               .contains(selectedAction)) {
         setSelectedAction(
-            workerType.getCompatibleActionTypeNames().iterator().next());
+            aworkerType.getCompatibleActionTypeNames().iterator().next());
         setActionType(
             (ActionType) typeManager.getServiceTypeByName(getSelectedAction()));
       }
 
     } catch (IOException e) {
-      log.error(e);
+      LOG.error(e);
     }
   }
 
@@ -269,9 +289,9 @@ public class ServiceConfigurationView implements Serializable {
     return selectedAction;
   }
 
-  /** @param selectedAction the selectedAction to set */
-  public void setSelectedAction(final String selectedAction) {
-    this.selectedAction = selectedAction;
+  /** @param aselectedAction the selectedAction to set */
+  public void setSelectedAction(final String aselectedAction) {
+    this.selectedAction = aselectedAction;
   }
 
   /** @return the selectedInterval */
@@ -279,44 +299,47 @@ public class ServiceConfigurationView implements Serializable {
     return selectedInterval;
   }
 
-  /** @param selectedInterval the selectedInterval to set */
-  public void setSelectedInterval(final String selectedInterval) {
-    this.selectedInterval = selectedInterval;
+  /** @param aselectedInterval the selectedInterval to set */
+  public void setSelectedInterval(final String aselectedInterval) {
+    this.selectedInterval = aselectedInterval;
   }
 
   /** @return the selectedWorker */
   public String getSelectedWorker() {
-    final WorkerType workerType = getWorkerType();
-    if (workerType instanceof CustomWorkerType) {
-      final CustomWorkerType customWorkerType = (CustomWorkerType) workerType;
+    final WorkerType aworkerType = getWorkerType();
+    if (aworkerType instanceof CustomWorkerType) {
+      final CustomWorkerType customWorkerType = (CustomWorkerType) aworkerType;
       if (customWorkerType.getClassPath() != null
           && customWorkerType.getClassPath().length() > 0) {
-        return workerType.getName() + "-" + customWorkerType.getClassPath();
+        return aworkerType.getName() + "-" + customWorkerType.getClassPath();
       }
     }
-    return workerType.getName();
+    return aworkerType.getName();
   }
 
   /** @param selectedWorker the selectedWorker to set */
   public void setSelectedWorker(final String selectedWorker) {
     final int separatorPos = selectedWorker.indexOf('-');
     if (separatorPos == -1) {
-      final WorkerType workerType =
+      final WorkerType aworkerType =
           (WorkerType)
               getServiceTypeManager().getServiceTypeByName(selectedWorker);
-      if (workerType instanceof CustomWorkerType) {
-        ((CustomWorkerType) workerType).setClassPath("");
+      if (aworkerType instanceof CustomWorkerType) {
+        ((CustomWorkerType) aworkerType).setClassPath("");
       }
-      setWorkerType(workerType);
+      setWorkerType(aworkerType);
     } else {
       final String customClassPath = selectedWorker.split("-")[1];
-      final WorkerType workerType =
+      final WorkerType aworkerType =
           (WorkerType) typeManager.getServiceTypeByName(CustomWorkerType.NAME);
-      ((CustomWorkerType) workerType).setClassPath(customClassPath);
-      setWorkerType(workerType);
+      ((CustomWorkerType) aworkerType).setClassPath(customClassPath);
+      setWorkerType(aworkerType);
     }
   }
 
+  /**
+   * @return workers
+   */
   public List<SelectItem> getAvailableWorkers() {
     final ArrayList<SelectItem> retval = new ArrayList<>();
     final Collection<ServiceType> available =
@@ -359,11 +382,14 @@ public class ServiceConfigurationView implements Serializable {
     return retval;
   }
 
+  /**
+   * @return intervals
+   */
   public List<SelectItem> getAvailableIntervals() {
     final ArrayList<SelectItem> retval = new ArrayList<>();
     final WorkerType currentWorkerType = getWorkerType();
-    for (final String name :
-        currentWorkerType.getCompatibleIntervalTypeNames()) {
+    for (final String name
+        : currentWorkerType.getCompatibleIntervalTypeNames()) {
       final ServiceType next = typeManager.getServiceTypeByName(name);
       String label = name;
       if (next.isTranslatable()) {
@@ -374,6 +400,9 @@ public class ServiceConfigurationView implements Serializable {
     return retval;
   }
 
+  /**
+   * @return actions
+   */
   public List<SelectItem> getAvailableActions() {
     final ArrayList<SelectItem> retval = new ArrayList<>();
     final WorkerType currentWorkerType = getWorkerType();
@@ -396,6 +425,9 @@ public class ServiceConfigurationView implements Serializable {
     return itemList;
   }
 
+  /**
+   * @return items
+   */
   public List<SelectItem> getAvailableCustomWorkerItems() {
     final List<String> customClasses =
         CustomLoader.getCustomClasses(IWorker.class);
@@ -410,16 +442,22 @@ public class ServiceConfigurationView implements Serializable {
     return stringsToItems(customClassesWithoutUiSupport);
   }
 
+  /**
+   * @return items
+   */
   public List<SelectItem> getAvailableCustomIntervalItems() {
     return stringsToItems(CustomLoader.getCustomClasses(IInterval.class));
   }
 
+  /**
+   * @return items
+   */
   public List<SelectItem> getAvailableCustomActionItems() {
     return stringsToItems(CustomLoader.getCustomClasses(IAction.class));
   }
 
   /**
-   * returns this sessions service type manager
+   * returns this sessions service type manager.
    *
    * @return Manager
    */
@@ -427,28 +465,43 @@ public class ServiceConfigurationView implements Serializable {
     return typeManager;
   }
 
+  /**
+   * @return nodes
+   */
   public String[] getPinToNodes() {
     return pinToNodes;
   }
 
-  public void setPinToNodes(final String[] pinToNodes) {
-    if (log.isDebugEnabled()) {
-      log.debug("view setPinToNodes: " + Arrays.toString(pinToNodes));
+  /**
+   * @param apinToNodes nodes
+   */
+  public void setPinToNodes(final String[] apinToNodes) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("view setPinToNodes: " + Arrays.toString(apinToNodes));
     }
-    this.pinToNodes = pinToNodes;
+    this.pinToNodes = apinToNodes;
   }
 
+  /**
+   * @return nodes
+   */
   public boolean isRunOnAllNodes() {
     return runOnAllNodes;
   }
 
-  public void setRunOnAllNodes(final boolean runOnAllNodes) {
-    if (log.isDebugEnabled()) {
-      log.debug("view setRunOnAllNodes: " + runOnAllNodes);
+  /**
+   * @param arunOnAllNodes nodes
+   */
+  public void setRunOnAllNodes(final boolean arunOnAllNodes) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("view setRunOnAllNodes: " + arunOnAllNodes);
     }
-    this.runOnAllNodes = runOnAllNodes;
+    this.runOnAllNodes = arunOnAllNodes;
   }
 
+  /**
+   * @return nodes
+   */
   public List<SelectItem> getNodesInCluster() {
     final List<SelectItem> ret = new LinkedList<>();
     final Set<String> nodes =
