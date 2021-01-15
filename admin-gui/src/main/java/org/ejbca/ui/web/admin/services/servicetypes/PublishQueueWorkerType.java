@@ -19,7 +19,7 @@ import java.util.Properties;
 import org.ejbca.core.model.services.workers.PublishQueueProcessWorker;
 
 /**
- * Class managing the view of the Renew CA Worker
+ * Class managing the view of the Renew CA Worker.
  *
  * @version $Id: PublishQueueWorkerType.java 28844 2018-05-04 08:31:02Z samuellb
  *     $
@@ -28,10 +28,13 @@ public class PublishQueueWorkerType extends BaseEmailNotifyingWorkerType {
 
   private static final long serialVersionUID = -5012349995138960737L;
 
+  /** Param. */
   public static final String NAME = "PUBLISHQUEUEWORKER";
 
+  /** Param. */
   private List<String> selectedPublisherIdsToCheck = new ArrayList<>();
 
+  /** Construct. */
   public PublishQueueWorkerType() {
     super(
         NAME,
@@ -43,7 +46,7 @@ public class PublishQueueWorkerType extends BaseEmailNotifyingWorkerType {
   }
 
   /**
-   * Overrides
+   * Overrides.
    *
    * @see org.ejbca.ui.web.admin.services.servicetypes.ServiceType#getProperties
    */
@@ -67,7 +70,7 @@ public class PublishQueueWorkerType extends BaseEmailNotifyingWorkerType {
   }
 
   /**
-   * Overrides
+   * Overrides.
    *
    * @see
    *     org.ejbca.ui.web.admin.services.servicetypes.ServiceType#setProperties(java.util.Properties)
@@ -85,12 +88,18 @@ public class PublishQueueWorkerType extends BaseEmailNotifyingWorkerType {
     }
   }
 
+  /**
+   * @return IDs
+   */
   public List<String> getSelectedPublisherIdsToCheck() {
     return selectedPublisherIdsToCheck;
   }
 
+  /**
+   * @param theselectedPublisherIdsToCheck IDs
+   */
   public void setSelectedPublisherIdsToCheck(
-      final List<String> selectedPublisherIdsToCheck) {
-    this.selectedPublisherIdsToCheck = selectedPublisherIdsToCheck;
+      final List<String> theselectedPublisherIdsToCheck) {
+    this.selectedPublisherIdsToCheck = theselectedPublisherIdsToCheck;
   }
 }

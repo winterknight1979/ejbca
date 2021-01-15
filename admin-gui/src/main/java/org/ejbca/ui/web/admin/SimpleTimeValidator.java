@@ -33,7 +33,8 @@ import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
  */
 public class SimpleTimeValidator implements Validator {
 
-  private static final Logger log = Logger.getLogger(SimpleTimeValidator.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(SimpleTimeValidator.class);
 
   @Override
   public void validate(
@@ -69,8 +70,8 @@ public class SimpleTimeValidator implements Validator {
       }
     }
     if (failed) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Validating component "
                 + component.getClientId(facesContext)
                 + " with value \""
@@ -84,8 +85,8 @@ public class SimpleTimeValidator implements Validator {
       throw new ValidatorException(
           new FacesMessage(FacesMessage.SEVERITY_ERROR, message, null));
     } else {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Validating component "
                 + component.getClientId(facesContext)
                 + " with value \""

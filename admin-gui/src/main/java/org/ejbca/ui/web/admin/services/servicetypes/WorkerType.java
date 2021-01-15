@@ -26,6 +26,11 @@ public abstract class WorkerType extends ServiceType {
 
   private static final long serialVersionUID = -7391225892972793605L;
 
+  /**
+   * @param subViewPage Page
+   * @param name Name
+   * @param translatable Bool
+   */
   public WorkerType(
       final String subViewPage, final String name, final boolean translatable) {
     super(subViewPage, name, translatable);

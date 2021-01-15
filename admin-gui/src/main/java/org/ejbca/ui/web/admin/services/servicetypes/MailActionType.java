@@ -18,36 +18,52 @@ import java.util.Properties;
 import org.ejbca.core.model.services.actions.MailAction;
 
 /**
- * Action type describing the mail notification action
+ * Action type describing the mail notification action.
  *
  * <p>$Id: MailActionType.java 28844 2018-05-04 08:31:02Z samuellb $
  */
 public class MailActionType extends ActionType {
 
   private static final long serialVersionUID = 5340503998099975329L;
+  /** Param. */
   public static final String NAME = "MAILNOTIFICATIONACTION";
 
+  /** Param. */
   public MailActionType() {
     super("mailaction.jsp", NAME, true);
   }
 
+  /** Param. */
   private String senderAddress = "";
+  /** Param. */
   private String recieverAddress = "";
 
+  /**
+   * @return Address
+   */
   public String getRecieverAddress() {
     return recieverAddress;
   }
 
-  public void setRecieverAddress(final String recieverAddress) {
-    this.recieverAddress = recieverAddress;
+  /**
+   * @param arecieverAddress Address
+   */
+  public void setRecieverAddress(final String arecieverAddress) {
+    this.recieverAddress = arecieverAddress;
   }
 
+  /**
+   * @return address
+   */
   public String getSenderAddress() {
     return senderAddress;
   }
 
-  public void setSenderAddress(final String senderAddress) {
-    this.senderAddress = senderAddress;
+  /**
+   * @param asenderAddress Address
+   */
+  public void setSenderAddress(final String asenderAddress) {
+    this.senderAddress = asenderAddress;
   }
 
   /**

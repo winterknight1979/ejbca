@@ -29,15 +29,20 @@ public class CustomIntervalType extends IntervalType {
 
   private static final long serialVersionUID = -8378607303311336382L;
 
+  /** Param. */
   public static final String NAME = "CUSTOMINTERVAL";
 
+  /** Param. */
   public CustomIntervalType() {
     super("custominterval.jsp", NAME, true);
   }
 
+  /** Param. */
   private String autoClassPath;
+  /** Param. */
   private String manualClassPath;
 
+  /** Param. */
   private String propertyText;
 
   /** @return the propertyText */
@@ -45,9 +50,9 @@ public class CustomIntervalType extends IntervalType {
     return propertyText;
   }
 
-  /** @param propertyText the propertyText to set */
-  public void setPropertyText(final String propertyText) {
-    this.propertyText = propertyText;
+  /** @param apropertyText the propertyText to set */
+  public void setPropertyText(final String apropertyText) {
+    this.propertyText = apropertyText;
   }
 
   /**
@@ -74,18 +79,30 @@ public class CustomIntervalType extends IntervalType {
         : manualClassPath;
   }
 
+  /**
+   * @param classPath CP
+   */
   public void setAutoClassPath(final String classPath) {
     autoClassPath = classPath;
   }
 
+  /**
+   * @return CP
+   */
   public String getAutoClassPath() {
     return autoClassPath;
   }
 
+  /**
+   * @param classPath CP
+   */
   public void setManualClassPath(final String classPath) {
     manualClassPath = classPath;
   }
 
+  /**
+   * @return CP
+   */
   public String getManualClassPath() {
     return manualClassPath;
   }

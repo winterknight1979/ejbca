@@ -22,7 +22,7 @@ import java.util.Properties;
 import org.ejbca.core.model.services.IWorker;
 
 /**
- * Base type for workers
+ * Base type for workers.
  *
  * @version $Id: BaseWorkerType.java 28844 2018-05-04 08:31:02Z samuellb $
  */
@@ -30,50 +30,80 @@ public abstract class BaseWorkerType extends WorkerType {
 
   private static final long serialVersionUID = 7026884019102752494L;
 
+  /** Param. */
   public static final String DEFAULT_TIMEUNIT = IWorker.UNIT_DAYS;
+  /** Param. */
   public static final String DEFAULT_TIMEVALUE = "7";
 
+  /** Param. */
   private List<String> selectedCANamesToCheck = new ArrayList<>();
+  /** Param. */
   private List<String> selectedCertificateProfilesToCheck = new ArrayList<>();
+  /** Param. */
   private Collection<String> compatibleActionTypeNames = new ArrayList<>();
+  /** Param. */
   private Collection<String> compatibleIntervalTypeNames = new ArrayList<>();
+  /** Param. */
   private String classpath = null;
 
+  /**
+   * @param subViewPage Page
+   * @param name Name
+   * @param translatable bool
+   * @param aclasspath cp
+   */
   public BaseWorkerType(
       final String subViewPage,
       final String name,
       final boolean translatable,
-      final String classpath) {
+      final String aclasspath) {
     super(subViewPage, name, translatable);
-    this.classpath = classpath;
+    this.classpath = aclasspath;
   }
 
   //
   // Helper methods for BaseWorkerType to be used by extending classes
   //
+  /**
+   * @param name Name
+   */
   protected void addCompatibleActionTypeName(final String name) {
     compatibleActionTypeNames.add(name);
   }
 
+  /** Delete.
+   */
   protected void deleteAllCompatibleActionTypes() {
     compatibleActionTypeNames = new ArrayList<>();
   }
 
+  /**
+   * @param name Name
+   */
   protected void addCompatibleIntervalTypeName(final String name) {
     compatibleIntervalTypeNames.add(name);
   }
 
+  /**
+   * Delete.
+   */
   protected void deleteAllCompatibleIntervalTypes() {
     compatibleIntervalTypeNames = new ArrayList<>();
   }
 
+  /**
+   * @return names
+   */
   public List<String> getSelectedCANamesToCheck() {
     return selectedCANamesToCheck;
   }
 
+  /**
+   * @param aselectedCANamesToCheck names
+   */
   public void setSelectedCANamesToCheck(
-      final List<String> selectedCANamesToCheck) {
-    this.selectedCANamesToCheck = selectedCANamesToCheck;
+      final List<String> aselectedCANamesToCheck) {
+    this.selectedCANamesToCheck = aselectedCANamesToCheck;
   }
 
   @Override
@@ -114,8 +144,8 @@ public abstract class BaseWorkerType extends WorkerType {
       retval.setProperty(IWorker.PROP_CAIDSTOCHECK, caIdString);
     }
     String certificateProfileIdString = null;
-    for (String certificateProfileId :
-        getSelectedCertificateProfilesToCheck()) {
+    for (String certificateProfileId
+        : getSelectedCertificateProfilesToCheck()) {
       if (!certificateProfileId.trim().equals("")) {
         if (certificateProfileIdString == null) {
           certificateProfileIdString = certificateProfileId;
@@ -134,11 +164,11 @@ public abstract class BaseWorkerType extends WorkerType {
 
   @Override
   public void setProperties(final Properties properties) throws IOException {
-    ArrayList<String> selectedCANamesToCheck = new ArrayList<>();
-    selectedCANamesToCheck.addAll(
+    ArrayList<String> aselectedCANamesToCheck = new ArrayList<>();
+    aselectedCANamesToCheck.addAll(
         Arrays.asList(
             properties.getProperty(IWorker.PROP_CAIDSTOCHECK, "").split(";")));
-    setSelectedCANamesToCheck(selectedCANamesToCheck);
+    setSelectedCANamesToCheck(aselectedCANamesToCheck);
     ArrayList<String> selectedCertificateProfileNamesToCheck =
         new ArrayList<>();
     selectedCertificateProfileNamesToCheck.addAll(
@@ -156,12 +186,12 @@ public abstract class BaseWorkerType extends WorkerType {
   }
 
   /**
-   * @param selectedCertificateProfilesToCheck the
+   * @param aselectedCertificateProfilesToCheck the
    *     selectedCertificateProfilesToCheck to set
    */
   public void setSelectedCertificateProfilesToCheck(
-      final List<String> selectedCertificateProfilesToCheck) {
+      final List<String> aselectedCertificateProfilesToCheck) {
     this.selectedCertificateProfilesToCheck =
-        selectedCertificateProfilesToCheck;
+        aselectedCertificateProfilesToCheck;
   }
 }

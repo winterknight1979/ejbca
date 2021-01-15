@@ -19,29 +19,33 @@ import java.util.Properties;
 
 /**
  * Abstract base class of all type of service components. Used to manages
- * available and compatible JSF SubViews
+ * available and compatible JSF SubViews.
  *
  * @version $Id: ServiceType.java 28844 2018-05-04 08:31:02Z samuellb $
  */
 public abstract class ServiceType implements Serializable {
 
   private static final long serialVersionUID = -1788904631086719809L;
+  /** Param. */
   private final String jSFSubViewPage;
+  /** Param. */
   private final String name;
+  /** Param. */
   private final boolean translatable;
 
   /**
    * @param subViewPage the name of the subViewPage to link in the page
-   * @param name the name of the page when it is selected in the GUI
-   * @param translatable if the name should be looked up in the resource files
+   * @param aname the name of the page when it is selected in the GUI
+   * @param istranslatable if the name should be looked up in the resource files
    *     or not.
    */
   public ServiceType(
-      final String subViewPage, final String name, final boolean translatable) {
+      final String subViewPage,
+      final String aname, final boolean istranslatable) {
     super();
     jSFSubViewPage = subViewPage;
-    this.name = name;
-    this.translatable = translatable;
+    this.name = aname;
+    this.translatable = istranslatable;
   }
 
   /** @return the name of the subViewPage to link in the page */
@@ -60,7 +64,7 @@ public abstract class ServiceType implements Serializable {
   }
 
   /**
-   * All implementing classes should populate the properties
+   * All implementing classes should populate the properties.
    *
    * @param errorMessages error
    * @return props
@@ -70,7 +74,7 @@ public abstract class ServiceType implements Serializable {
       throws IOException;
 
   /**
-   * All implementing classes should populate the gui data
+   * All implementing classes should populate the gui data.
    *
    * @param properties props
    * @throws IOException fail
@@ -78,14 +82,14 @@ public abstract class ServiceType implements Serializable {
   public abstract void setProperties(Properties properties) throws IOException;
 
   /**
-   * The classPath of the component in the model
+   * The classPath of the component in the model.
    *
    * @return string
    */
   public abstract String getClassPath();
 
   /**
-   * Return true if this type is a custom type
+   * Return true if this type is a custom type.
    *
    * @return bool
    */

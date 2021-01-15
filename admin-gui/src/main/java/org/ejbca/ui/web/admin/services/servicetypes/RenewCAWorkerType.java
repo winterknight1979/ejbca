@@ -18,7 +18,7 @@ import java.util.Properties;
 import org.ejbca.core.model.services.workers.RenewCAWorker;
 
 /**
- * Class managing the view of the Renew CA Worker
+ * Class managing the view of the Renew CA Worker.
  *
  * @author Tomas Gustavsson
  * @version $Id: RenewCAWorkerType.java 28844 2018-05-04 08:31:02Z samuellb $
@@ -26,24 +26,39 @@ import org.ejbca.core.model.services.workers.RenewCAWorker;
 public class RenewCAWorkerType extends BaseEmailNotifyingWorkerType {
   private static final long serialVersionUID = 2L;
 
+  /**
+   * Param.
+   */
   public static final String NAME = "RENEWCAWORKER";
 
+  /**
+   * Param.
+   */
   private boolean renewkeys = false;
 
+  /**
+   * Construct.
+   */
   public RenewCAWorkerType() {
     super(NAME, "renewcaworker.jsp", RenewCAWorker.class.getName());
   }
 
+  /**
+   * @return bool
+   */
   public boolean isRenewKeys() {
     return renewkeys;
   }
 
-  public void setRenewKeys(final boolean renewkeys) {
-    this.renewkeys = renewkeys;
+  /**
+   * @param dorenewkeys bool
+   */
+  public void setRenewKeys(final boolean dorenewkeys) {
+    this.renewkeys = dorenewkeys;
   }
 
   /**
-   * Overrides
+   * Overrides.
    *
    * @see org.ejbca.ui.web.admin.services.servicetypes.ServiceType#getProperties
    */
@@ -60,7 +75,7 @@ public class RenewCAWorkerType extends BaseEmailNotifyingWorkerType {
   }
 
   /**
-   * Overrides
+   * Overrides.
    *
    * @see
    *     org.ejbca.ui.web.admin.services.servicetypes.ServiceType#setProperties(java.util.Properties)

@@ -23,27 +23,42 @@ import org.ejbca.core.model.services.workers.EmailSendingWorkerConstants;
 import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
 
 /**
- * Class managing the view of the Certificate Expiration Notifier Worker
+ * Class managing the view of the Certificate Expiration Notifier Worker.
  *
  * @version $Id: BaseEmailNotifyingWorkerType.java 28844 2018-05-04 08:31:02Z
  *     samuellb $
  */
 public abstract class BaseEmailNotifyingWorkerType extends BaseWorkerType {
 
+      /** Param. */
   public static final boolean DEFAULT_USEENDUSERNOTIFICATIONS = false;
+  /** Param. */
   public static final boolean DEFAULT_USEADMINNOTIFICATIONS = false;
 
   private static final long serialVersionUID = -4521088640797284656L;
 
+  /** Param. */
   private String timeUnit = DEFAULT_TIMEUNIT;
+  /** Param. */
   private String timeValue = DEFAULT_TIMEVALUE;
+  /** Param. */
   private boolean useEndUserNotifications = DEFAULT_USEENDUSERNOTIFICATIONS;
+  /** Param. */
   private boolean useAdminNotifications = DEFAULT_USEADMINNOTIFICATIONS;
+  /** Param. */
   private String endUserSubject = "";
+  /** Param. */
   private String adminSubject = "";
+  /** Param. */
   private String endUserMessage = "";
+  /** Param. */
   private String adminMessage = "";
 
+  /**
+   * @param name Name
+   * @param jsp PAge
+   * @param classpath CP
+   */
   public BaseEmailNotifyingWorkerType(
       final String name, final String jsp, final String classpath) {
     super(jsp, name, true, classpath);
@@ -55,7 +70,7 @@ public abstract class BaseEmailNotifyingWorkerType extends BaseWorkerType {
   }
 
   /**
-   * Overrides
+   * Overrides.
    *
    * @see org.ejbca.ui.web.admin.services.servicetypes.ServiceType#getProperties
    */
@@ -107,7 +122,7 @@ public abstract class BaseEmailNotifyingWorkerType extends BaseWorkerType {
   }
 
   /**
-   * Overrides
+   * Overrides.
    *
    * @see
    *     org.ejbca.ui.web.admin.services.servicetypes.ServiceType#setProperties(java.util.Properties)
@@ -144,14 +159,23 @@ public abstract class BaseEmailNotifyingWorkerType extends BaseWorkerType {
             EmailSendingWorkerConstants.PROP_ADMINMESSAGE, "");
   }
 
+  /**
+   * @return Unit
+   */
   public String getTimeUnit() {
     return timeUnit;
   }
 
+  /**
+   * @param unit unit
+   */
   public void setTimeUnit(final String unit) {
     this.timeUnit = unit;
   }
 
+  /**
+   * @return units
+   */
   public List<SelectItem> getAvailableUnits() {
     ArrayList<SelectItem> retval = new ArrayList<>();
     for (int i = 0; i < PeriodicalInterval.AVAILABLE_UNITS.length; i++) {
@@ -166,60 +190,102 @@ public abstract class BaseEmailNotifyingWorkerType extends BaseWorkerType {
     return retval;
   }
 
+  /**
+   * @return message
+   */
   public String getAdminMessage() {
     return adminMessage;
   }
 
-  public void setAdminMessage(final String adminMessage) {
-    this.adminMessage = adminMessage;
+  /**
+   * @param anadminMessage message
+   */
+  public void setAdminMessage(final String anadminMessage) {
+    this.adminMessage = anadminMessage;
   }
 
+  /**
+   * @return subj
+   */
   public String getAdminSubject() {
     return adminSubject;
   }
 
-  public void setAdminSubject(final String adminSubject) {
-    this.adminSubject = adminSubject;
+  /**
+   * @param anadminSubject subj
+   */
+  public void setAdminSubject(final String anadminSubject) {
+    this.adminSubject = anadminSubject;
   }
 
+  /**
+   * @return message
+   */
   public String getEndUserMessage() {
     return endUserMessage;
   }
 
-  public void setEndUserMessage(final String endUserMessage) {
-    this.endUserMessage = endUserMessage;
+  /**
+   * @param anendUserMessage USer
+   */
+  public void setEndUserMessage(final String anendUserMessage) {
+    this.endUserMessage = anendUserMessage;
   }
 
+  /**
+   * @return subj
+   */
   public String getEndUserSubject() {
     return endUserSubject;
   }
 
-  public void setEndUserSubject(final String endUserSubject) {
-    this.endUserSubject = endUserSubject;
+  /**
+   * @param anendUserSubject subj
+   */
+  public void setEndUserSubject(final String anendUserSubject) {
+    this.endUserSubject = anendUserSubject;
   }
 
+  /**
+   * @return a
+   */
   public String getTimeValue() {
     return timeValue;
   }
 
-  public void setTimeValue(final String timeValue) {
-    this.timeValue = timeValue;
+  /**
+   * @param atimeValue time
+   */
+  public void setTimeValue(final String atimeValue) {
+    this.timeValue = atimeValue;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isUseAdminNotifications() {
     return useAdminNotifications;
   }
 
-  public void setUseAdminNotifications(final boolean useAdminNotifications) {
-    this.useAdminNotifications = useAdminNotifications;
+  /**
+   * @param douseAdminNotifications bool
+   */
+  public void setUseAdminNotifications(final boolean douseAdminNotifications) {
+    this.useAdminNotifications = douseAdminNotifications;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isUseEndUserNotifications() {
     return useEndUserNotifications;
   }
 
+  /**
+   * @param douseEndUserNotifications bool
+   */
   public void setUseEndUserNotifications(
-      final boolean useEndUserNotifications) {
-    this.useEndUserNotifications = useEndUserNotifications;
+      final boolean douseEndUserNotifications) {
+    this.useEndUserNotifications = douseEndUserNotifications;
   }
 }

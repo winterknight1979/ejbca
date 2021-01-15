@@ -26,12 +26,16 @@ public class CRLDownloadWorkerType extends BaseWorkerType {
 
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   public static final String NAME = "CRLDOWNLOADWORKER";
 
+  /** Param. */
   private boolean ignoreNextUpdate = false;
+  /** Param. */
   private String maxDownloadSize =
       String.valueOf(CRLDownloadWorker.DEFAULT_MAX_DOWNLOAD_SIZE);
 
+  /** Param. */
   public CRLDownloadWorkerType() {
     super(
         "crldownloadworker.jsp", NAME, true, CRLDownloadWorker.class.getName());
@@ -53,10 +57,10 @@ public class CRLDownloadWorkerType extends BaseWorkerType {
    * Set to true if the nextUpdate field of the CRL should be ignored and the
    * CRL should always be downloaded to see if there is a newer version.
    *
-   * @param ignoreNextUpdate bool
+   * @param anignoreNextUpdate bool
    */
-  public void setIgnoreNextUpdate(final boolean ignoreNextUpdate) {
-    this.ignoreNextUpdate = ignoreNextUpdate;
+  public void setIgnoreNextUpdate(final boolean anignoreNextUpdate) {
+    this.ignoreNextUpdate = anignoreNextUpdate;
   }
 
   /** @return the size of the largest CRL that we will try to download. */
@@ -67,10 +71,10 @@ public class CRLDownloadWorkerType extends BaseWorkerType {
   /**
    * Set the size of the largest CRL that we will try to download.
    *
-   * @param maxDownloadSize Size
+   * @param amaxDownloadSize Size
    */
-  public void setMaxDownloadSize(final String maxDownloadSize) {
-    this.maxDownloadSize = maxDownloadSize;
+  public void setMaxDownloadSize(final String amaxDownloadSize) {
+    this.maxDownloadSize = amaxDownloadSize;
   }
 
   @Override
@@ -82,7 +86,8 @@ public class CRLDownloadWorkerType extends BaseWorkerType {
         Boolean.toString(ignoreNextUpdate));
     try {
       final int i = Integer.parseInt(maxDownloadSize);
-      if (i > 1024) {
+      final int siz = 1024;
+      if (i > siz) {
         ret.setProperty(
             CRLDownloadWorker.PROP_MAX_DOWNLOAD_SIZE, maxDownloadSize);
       } else {

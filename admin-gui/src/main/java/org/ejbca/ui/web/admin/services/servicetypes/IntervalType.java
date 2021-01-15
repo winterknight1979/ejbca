@@ -23,6 +23,11 @@ public abstract class IntervalType extends ServiceType {
 
   private static final long serialVersionUID = 8886202461182296185L;
 
+  /**
+   * @param subViewPage Page
+   * @param name Name
+   * @param translatable Bool
+   */
   public IntervalType(
       final String subViewPage, final String name, final boolean translatable) {
     super(subViewPage, name, translatable);

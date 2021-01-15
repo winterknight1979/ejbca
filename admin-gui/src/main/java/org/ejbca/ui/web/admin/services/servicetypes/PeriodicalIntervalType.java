@@ -30,14 +30,20 @@ public class PeriodicalIntervalType extends IntervalType {
 
   private static final long serialVersionUID = -1076212040665563240L;
 
+  /** Param. */
   public static final String NAME = "PERIODICALINTERVAL";
 
+  /** Param. */
   public static final String DEFAULT_UNIT = PeriodicalInterval.UNIT_MINUTES;
+  /** Param. */
   public static final String DEFAULT_VALUE = "5";
 
+  /** Param. */
   private String unit;
+  /** Param. */
   private String value;
 
+  /** Construct. */
   public PeriodicalIntervalType() {
     super("periodicalinterval.jsp", NAME, true);
     this.unit = DEFAULT_UNIT;
@@ -80,14 +86,23 @@ public class PeriodicalIntervalType extends IntervalType {
     return false;
   }
 
+  /**
+   * @return unit
+   */
   public String getUnit() {
     return unit;
   }
 
-  public void setUnit(final String unit) {
-    this.unit = unit;
+  /**
+   * @param aunit unit
+   */
+  public void setUnit(final String aunit) {
+    this.unit = aunit;
   }
 
+  /**
+   * @return units
+   */
   public List<SelectItem> getAvailableUnits() {
     final List<SelectItem> retval =
         new ArrayList<>(PeriodicalInterval.AVAILABLE_UNITS.length);
@@ -99,11 +114,17 @@ public class PeriodicalIntervalType extends IntervalType {
     return retval;
   }
 
+  /**
+   * @return value
+   */
   public String getValue() {
     return value;
   }
 
-  public void setValue(final String value) {
-    this.value = value;
+  /**
+   * @param avalue value
+   */
+  public void setValue(final String avalue) {
+    this.value = avalue;
   }
 }

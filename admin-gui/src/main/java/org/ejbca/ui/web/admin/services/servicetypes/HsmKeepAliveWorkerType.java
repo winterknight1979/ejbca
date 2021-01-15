@@ -23,10 +23,12 @@ import org.ejbca.core.model.services.workers.HsmKeepAliveWorker;
  */
 public class HsmKeepAliveWorkerType extends BaseWorkerType {
 
+      /** Param. */
   public static final String NAME = "HSMKEEPALIVEWORKER";
 
   private static final long serialVersionUID = -1598910154971679252L;
 
+  /** Param. */
   public HsmKeepAliveWorkerType() {
     super(
         "hsmkeepaliveworker.jsp",

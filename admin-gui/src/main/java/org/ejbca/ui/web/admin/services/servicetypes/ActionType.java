@@ -22,6 +22,11 @@ public abstract class ActionType extends ServiceType {
 
   private static final long serialVersionUID = -7411725269781465619L;
 
+  /**
+   * @param subViewPage Page
+   * @param name NAme
+   * @param translatable bool
+   */
   public ActionType(
       final String subViewPage, final String name, final boolean translatable) {
     super(subViewPage, name, translatable);

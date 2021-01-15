@@ -38,19 +38,28 @@ import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
  */
 public class CustomWorkerType extends WorkerType {
 
+      /** Param. */
   private static final long serialVersionUID = 1790314768357040269L;
+  /** Param. */
   public static final String NAME = "CUSTOMWORKER";
 
+  /** Param. */
   private String autoClassPath;
+  /** Param. */
   private String manualClassPath;
+  /** Param. */
   private String propertyText;
+  /** Param. */
   private final Collection<String> compatibleActionTypeNames =
       new ArrayList<>();
+  /** Param. */
   private final Collection<String> compatibleIntervalTypeNames =
       new ArrayList<>();
+  /** Param. */
   private ListDataModel<CustomServiceWorkerProperty>
       customUiPropertyListDataModel = null;
 
+  /** Constructor. */
   public CustomWorkerType() {
     super("customworker.jsp", NAME, true);
 
@@ -67,9 +76,9 @@ public class CustomWorkerType extends WorkerType {
     return propertyText;
   }
 
-  /** @param propertyText the propertyText to set */
-  public void setPropertyText(final String propertyText) {
-    this.propertyText = propertyText;
+  /** @param apropertyText the propertyText to set */
+  public void setPropertyText(final String apropertyText) {
+    this.propertyText = apropertyText;
   }
 
   /**
@@ -96,18 +105,30 @@ public class CustomWorkerType extends WorkerType {
         : manualClassPath;
   }
 
+  /**
+   * @param classPath CP
+   */
   public void setAutoClassPath(final String classPath) {
     autoClassPath = classPath;
   }
 
+  /**
+   * @return CP
+   */
   public String getAutoClassPath() {
     return autoClassPath;
   }
 
+  /**
+   * @param classPath CP
+   */
   public void setManualClassPath(final String classPath) {
     manualClassPath = classPath;
   }
 
+  /**
+   * @return CP
+   */
   public String getManualClassPath() {
     return manualClassPath;
   }
@@ -120,8 +141,8 @@ public class CustomWorkerType extends WorkerType {
     if (customUiPropertyListDataModel == null) {
       retval.load(new ByteArrayInputStream(getPropertyText().getBytes()));
     } else {
-      for (final CustomServiceWorkerProperty customUiProperty :
-          (List<CustomServiceWorkerProperty>)
+      for (final CustomServiceWorkerProperty customUiProperty
+          : (List<CustomServiceWorkerProperty>)
               customUiPropertyListDataModel.getWrappedData()) {
         retval.setProperty(
             customUiProperty.getName(), customUiProperty.getValue());
@@ -154,10 +175,17 @@ public class CustomWorkerType extends WorkerType {
     return true;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isCustomUiRenderingSupported() {
     return isCustomUiRenderingSupported(getClassPath());
   }
 
+  /**
+   * @param classPath CP
+   * @return Bool
+   */
   public static boolean isCustomUiRenderingSupported(final String classPath) {
     try {
       return Arrays.asList(Class.forName(classPath).getInterfaces())
@@ -167,6 +195,8 @@ public class CustomWorkerType extends WorkerType {
     }
   }
 
+  /**
+   * @return Param. */
   public ListDataModel<CustomServiceWorkerProperty> getCustomUiPropertyList() {
     if (isCustomUiRenderingSupported()) {
       if (customUiPropertyListDataModel == null) {
@@ -200,6 +230,9 @@ public class CustomWorkerType extends WorkerType {
     return customUiPropertyListDataModel;
   }
 
+  /**
+   * @return Items
+   */
   public List<SelectItem> getCustomUiPropertySelectItems() {
     final List<SelectItem> ret = new ArrayList<>();
     final CustomServiceWorkerProperty customServiceWorkerProperty =
@@ -214,6 +247,9 @@ public class CustomWorkerType extends WorkerType {
     return ret;
   }
 
+  /**
+   * @return Text
+   */
   public String getCustomUiTitleText() {
     final String customClassSimpleName =
         getClassPath().substring(getClassPath().lastIndexOf('.') + 1);
@@ -222,6 +258,9 @@ public class CustomWorkerType extends WorkerType {
         .get(customClassSimpleName.toUpperCase() + "_TITLE");
   }
 
+  /**
+   * @return Text
+   */
   public String getCustomUiPropertyText() {
     final String customClassSimpleName =
         getClassPath().substring(getClassPath().lastIndexOf('.') + 1);

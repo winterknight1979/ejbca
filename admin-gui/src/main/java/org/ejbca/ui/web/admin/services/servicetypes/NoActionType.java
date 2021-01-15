@@ -25,16 +25,21 @@ public class NoActionType extends ActionType {
 
   private static final long serialVersionUID = -5063026816886312970L;
 
+  /** Param. */
   public static final String NAME = "NOACTION";
 
+  /** Param. */
   private transient Properties properties = new Properties();
 
+  /** Param. */
   public NoActionType() {
     super("noaction.jsp", NAME, true);
   }
 
-  String unit;
-  String value;
+  /** Param. */
+  private String unit;
+  /** Param. */
+  private String value;
 
   @Override
   public String getClassPath() {
@@ -48,12 +53,40 @@ public class NoActionType extends ActionType {
   }
 
   @Override
-  public void setProperties(final Properties properties) throws IOException {
-    this.properties = properties;
+  public void setProperties(final Properties theproperties) throws IOException {
+    this.properties = theproperties;
   }
 
   @Override
   public boolean isCustom() {
     return false;
   }
+
+/**
+ * @return the value
+ */
+String getValue() {
+    return value;
+}
+
+/**
+ * @param avalue the value to set
+ */
+void setValue(final String avalue) {
+    this.value = avalue;
+}
+
+/**
+ * @return the unit
+ */
+String getUnit() {
+    return unit;
+}
+
+/**
+ * @param aunit the unit to set
+ */
+void setUnit(final String aunit) {
+    this.unit = aunit;
+}
 }

@@ -21,8 +21,10 @@ public class CRLUpdateWorkerType extends BaseWorkerType {
 
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   public static final String NAME = "CRLUPDATEWORKER";
 
+  /** Param. */
   public CRLUpdateWorkerType() {
     super("crlupdateworker.jsp", NAME, true, CRLUpdateWorker.class.getName());
 

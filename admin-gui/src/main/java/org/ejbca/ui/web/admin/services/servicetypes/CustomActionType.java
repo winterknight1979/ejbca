@@ -29,15 +29,19 @@ public class CustomActionType extends ActionType {
 
   private static final long serialVersionUID = -1897582972418437359L;
 
+  /** PAram. */
   public static final String NAME = "CUSTOMACTION";
 
+  /** PAram. */
   public CustomActionType() {
     super("customaction.jsp", NAME, true);
   }
 
+  /** PAram. */
   private String autoClassPath;
+  /** PAram. */
   private String manualClassPath;
-
+  /** PAram. */
   private String propertyText;
 
   /** @return the propertyText */
@@ -45,9 +49,9 @@ public class CustomActionType extends ActionType {
     return propertyText;
   }
 
-  /** @param propertyText the propertyText to set */
-  public void setPropertyText(final String propertyText) {
-    this.propertyText = propertyText;
+  /** @param apropertyText the propertyText to set */
+  public void setPropertyText(final String apropertyText) {
+    this.propertyText = apropertyText;
   }
 
   /**
@@ -74,18 +78,30 @@ public class CustomActionType extends ActionType {
         : manualClassPath;
   }
 
+  /**
+   * @param classPath CP
+   */
   public void setAutoClassPath(final String classPath) {
     autoClassPath = classPath;
   }
 
+  /**
+   * @return CP
+   */
   public String getAutoClassPath() {
     return autoClassPath;
   }
 
+  /**
+   * @param classPath CP
+   */
   public void setManualClassPath(final String classPath) {
     manualClassPath = classPath;
   }
 
+  /**
+   * @return CP
+   */
   public String getManualClassPath() {
     return manualClassPath;
   }
