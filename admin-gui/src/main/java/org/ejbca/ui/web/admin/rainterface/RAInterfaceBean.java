@@ -112,60 +112,90 @@ import org.ejbca.util.query.Query;
 public class RAInterfaceBean implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static Logger log = Logger.getLogger(RAInterfaceBean.class);
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+  /** Param. */
+  private static final Logger LOG = Logger.getLogger(RAInterfaceBean.class);
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
+  /** Param. */
 
-  public static final String[] tokentexts = SecConst.TOKENTEXTS;
-  public static final int[] tokenids = SecConst.TOKENIDS;
+  public static final String[] TOKENTEXTS = SecConst.TOKENTEXTS;
+  /** Param. */
+  public static final int[] TOKENIDS = SecConst.TOKENIDS;
 
+  /** Param. */
   private final EjbLocalHelper ejbLocalHelper = new EjbLocalHelper();
 
+  /** Param. */
   private AuthorizationSessionLocal authorizationSession;
+  /** Param. */
   private CaSessionLocal caSession;
+  /** Param. */
   private CertificateProfileSession certificateProfileSession;
+  /** Param. */
   private CertificateStoreSession certificatesession;
+  /** Param. */
   private EndEntityAccessSessionLocal endEntityAccessSession;
+  /** Param. */
   private EndEntityManagementSessionLocal endEntityManagementSession;
+  /** Param. */
   private EndEntityProfileSessionLocal endEntityProfileSession;
+  /** Param. */
   private GlobalConfigurationSessionLocal globalConfigurationSession;
+  /** Param. */
   private HardTokenSessionLocal hardtokensession;
+  /** Param. */
   private KeyRecoverySession keyrecoverysession;
+  /** Param. */
   private UserDataSourceSession userdatasourcesession;
 
+  /** Param. */
   private final UsersView usersView;
+  /** Param. */
   private CertificateView[] certificates;
+  /** Param. */
   private final AddedUserMemory addedusermemory;
+  /** Param. */
   private AuthenticationToken administrator;
+  /** Param. */
   private EjbcaWebBean ejbcawebbean;
+  /** Param. */
   private RAAuthorization raauthorization;
+  /** Param. */
   private boolean initialized = false;
 
+  /** Param. */
   private String[] printerNames = null;
+  /** Param. */
   private String importedProfileName = null;
 
+  /** Param. */
   private EndEntityProfile temporaryEndEntityProfile = null;
+  /** Param. */
   private UserNotification temporaryNotification = null;
 
-  /** Creates new RaInterfaceBean */
+  /** Creates new RaInterfaceBean. */
   public RAInterfaceBean() {
     usersView = new UsersView();
     addedusermemory = new AddedUserMemory();
   }
 
+  /**
+   * @param request req
+   * @param anejbcawebbean bean
+   */
   public void initialize(
-      final HttpServletRequest request, final EjbcaWebBean ejbcawebbean) {
-    log.trace(">initialize()");
+      final HttpServletRequest request, final EjbcaWebBean anejbcawebbean) {
+    LOG.trace(">initialize()");
     if (!initialized) {
       if (request.getAttribute("javax.servlet.request.X509Certificate")
           != null) {
-        administrator = ejbcawebbean.getAdminObject();
+        administrator = anejbcawebbean.getAdminObject();
       } else {
         administrator =
             new PublicAccessAuthenticationToken(request.getRemoteAddr(), true);
       }
-      this.ejbcawebbean = ejbcawebbean;
+      this.ejbcawebbean = anejbcawebbean;
       endEntityManagementSession =
           ejbLocalHelper.getEndEntityManagementSession();
       certificatesession = ejbLocalHelper.getCertificateStoreSession();
@@ -188,9 +218,9 @@ public class RAInterfaceBean implements Serializable {
               endEntityProfileSession);
       initialized = true;
     } else {
-      log.debug("=initialize(): already initialized");
+      LOG.debug("=initialize(): already initialized");
     }
-    log.trace("<initialize()");
+    LOG.trace("<initialize()");
   }
 
   private GlobalConfiguration getGlobalConfiguration() {
@@ -223,7 +253,7 @@ public class RAInterfaceBean implements Serializable {
           WaitingForApprovalException, IllegalNameException,
           CustomFieldException, ApprovalException,
           CertificateSerialNumberException {
-    log.trace(">addUser()");
+    LOG.trace(">addUser()");
     if (userdata.getEndEntityProfileId() != 0) {
       EndEntityInformation uservo =
           new EndEntityInformation(
@@ -256,9 +286,9 @@ public class RAInterfaceBean implements Serializable {
       addedusermemory.addUser(userdata);
       return uservo;
     } else {
-      log.debug("=addUser(): profile id not set, user not created");
+      LOG.debug("=addUser(): profile id not set, user not created");
     }
-    log.trace("<addUser()");
+    LOG.trace("<addUser()");
     return null;
   }
 
@@ -273,7 +303,7 @@ public class RAInterfaceBean implements Serializable {
    */
   public boolean deleteUsers(final String[] usernames)
       throws NoSuchEndEntityException, CouldNotRemoveEndEntityException {
-    log.trace(">deleteUsers()");
+    LOG.trace(">deleteUsers()");
     boolean success = true;
     for (String username : usernames) {
       try {
@@ -283,7 +313,7 @@ public class RAInterfaceBean implements Serializable {
         success = false;
       }
     }
-    log.trace("<deleteUsers(): " + success);
+    LOG.trace("<deleteUsers(): " + success);
     return success;
   }
 
@@ -302,7 +332,7 @@ public class RAInterfaceBean implements Serializable {
   public boolean setUserStatuses(final String[] usernames, final String status)
       throws ApprovalException, NoSuchEndEntityException,
           WaitingForApprovalException {
-    log.trace(">setUserStatuses()");
+    LOG.trace(">setUserStatuses()");
     boolean success = true;
     int intstatus = 0;
     try {
@@ -317,7 +347,7 @@ public class RAInterfaceBean implements Serializable {
         success = false;
       }
     }
-    log.trace("<setUserStatuses(): " + success);
+    LOG.trace("<setUserStatuses(): " + success);
     return success;
   }
 
@@ -336,19 +366,28 @@ public class RAInterfaceBean implements Serializable {
       throws AuthorizationDeniedException, NoSuchEndEntityException,
           ApprovalException, WaitingForApprovalException,
           AlreadyRevokedException {
-    log.trace(">revokeUser()");
+    LOG.trace(">revokeUser()");
     endEntityManagementSession.revokeUser(administrator, username, reason);
-    log.trace("<revokeUser()");
+    LOG.trace("<revokeUser()");
   }
 
+  /**
+   * @param username User
+   * @param reason Reason
+   * @throws AuthorizationDeniedException Fail
+   * @throws ApprovalException Fail
+   * @throws WaitingForApprovalException Fail
+   * @throws NoSuchEndEntityException Fail
+   * @throws CouldNotRemoveEndEntityException Fail
+   */
   public void revokeAndDeleteUser(final String username, final int reason)
       throws AuthorizationDeniedException, ApprovalException,
           WaitingForApprovalException, NoSuchEndEntityException,
           CouldNotRemoveEndEntityException {
-    log.trace(">revokeUser()");
+    LOG.trace(">revokeUser()");
     endEntityManagementSession.revokeAndDeleteUser(
         administrator, username, reason);
-    log.trace("<revokeUser()");
+    LOG.trace("<revokeUser()");
   }
 
   /**
@@ -369,8 +408,8 @@ public class RAInterfaceBean implements Serializable {
       final String username,
       final int reason)
       throws ApprovalException, WaitingForApprovalException {
-    if (log.isTraceEnabled()) {
-      log.trace(">revokeCert(): " + username + ", " + reason);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">revokeCert(): " + username + ", " + reason);
     }
     boolean success = false;
     try {
@@ -381,8 +420,8 @@ public class RAInterfaceBean implements Serializable {
     } catch (NoSuchEndEntityException e) {
     } catch (AlreadyRevokedException e) {
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<revokeCert(): " + success);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<revokeCert(): " + success);
     }
     return success;
   }
@@ -405,6 +444,13 @@ public class RAInterfaceBean implements Serializable {
     return revokeCert(serno, issuerdn, username, RevokedCertInfo.NOT_REVOKED);
   }
 
+  /**
+   * @param currentUsername User
+   * @param newUsername User
+   * @return bool
+   * @throws AuthorizationDeniedException fail
+   * @throws EndEntityExistsException fail
+   */
   public boolean renameUser(
       final String currentUsername, final String newUsername)
       throws AuthorizationDeniedException, EndEntityExistsException {
@@ -413,7 +459,7 @@ public class RAInterfaceBean implements Serializable {
   }
 
   /**
-   * Changes the userdata
+   * Changes the userdata.
    *
    * @param userdata the UserView object with the desired changes
    * @param newUsername the new username if it should be changed
@@ -436,7 +482,7 @@ public class RAInterfaceBean implements Serializable {
           EndEntityProfileValidationException, WaitingForApprovalException,
           ApprovalException, CertificateSerialNumberException,
           IllegalNameException, NoSuchEndEntityException, CustomFieldException {
-    log.trace(">changeUserData()");
+    LOG.trace(">changeUserData()");
     addedusermemory.changeUser(userdata);
     if (userdata.getPassword() != null
         && userdata.getPassword().trim().equals("")) {
@@ -468,17 +514,17 @@ public class RAInterfaceBean implements Serializable {
       endEntityManagementSession.changeUser(
           administrator, uservo, userdata.getClearTextPassword(), newUsername);
     }
-    log.trace("<changeUserData()");
+    LOG.trace("<changeUserData()");
   }
 
   /**
-   * Method to filter out a user by it's username
+   * Method to filter out a user by it's username.
    *
    * @param username User
    * @return View
    */
   public UserView[] filterByUsername(final String username) {
-    log.trace(">filterByUserName()");
+    LOG.trace(">filterByUserName()");
     EndEntityInformation[] userarray = new EndEntityInformation[1];
     EndEntityInformation user = null;
     try {
@@ -492,12 +538,12 @@ public class RAInterfaceBean implements Serializable {
       usersView.setUsers(
           (EndEntityInformation[]) null, caSession.getCAIdToNameMap());
     }
-    log.trace("<filterByUserName()");
+    LOG.trace("<filterByUserName()");
     return usersView.getUsers(0, 1);
   }
 
   /**
-   * Method used to check if user exists
+   * Method used to check if user exists.
    *
    * @param username User
    * @return View
@@ -509,15 +555,15 @@ public class RAInterfaceBean implements Serializable {
 
   /**
    * Method to retrieve a user from the database without inserting it into users
-   * data, used by 'viewuser.jsp' and page
+   * data, used by 'viewuser.jsp' and page.
    *
    * @param username User
    * @return View
    * @throws Exception fail
    */
   public UserView findUser(final String username) throws Exception {
-    if (log.isTraceEnabled()) {
-      log.trace(">findUser(" + username + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">findUser(" + username + ")");
     }
     EndEntityInformation user =
         endEntityAccessSession.findUser(administrator, username);
@@ -525,15 +571,15 @@ public class RAInterfaceBean implements Serializable {
     if (user != null) {
       userview = new UserView(user, caSession.getCAIdToNameMap());
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<findUser(" + username + "): " + userview);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<findUser(" + username + "): " + userview);
     }
     return userview;
   }
 
   /**
    * Method to retrieve a user from the database without inserting it into users
-   * data, used by 'edituser.jsp' and page
+   * data, used by 'edituser.jsp' and page.
    *
    * @param username User
    * @return View
@@ -561,7 +607,7 @@ public class RAInterfaceBean implements Serializable {
   }
 
   /**
-   * Method to find all users in database
+   * Method to find all users in database.
    *
    * @param index Index
    * @param size Size
@@ -575,7 +621,7 @@ public class RAInterfaceBean implements Serializable {
   }
 
   /**
-   * Method to find all users in database
+   * Method to find all users in database.
    *
    * @param tokensn SN
    * @param index Index
@@ -668,7 +714,8 @@ public class RAInterfaceBean implements Serializable {
     UserView[] returnval = null;
     long d = Long.parseLong(days);
     Date finddate = new Date();
-    long millis = (d * 86400000); // One day in milliseconds.
+    final long oneday = 86400000;
+    long millis = (d * oneday); // One day in milliseconds.
     finddate.setTime(finddate.getTime() + millis);
     Collection<String> usernames =
         certificatesession.findUsernamesByExpireTimeWithLimit(finddate);
@@ -690,6 +737,14 @@ public class RAInterfaceBean implements Serializable {
     return returnval;
   }
 
+  /**
+   * @param query Query
+   * @param index Index
+   * @param size Size
+   * @param endentityAccessRule Rule
+   * @return View
+   * @throws IllegalQueryException fail
+   */
   public UserView[] filterByQuery(
       final Query query,
       final int index,
@@ -709,10 +764,18 @@ public class RAInterfaceBean implements Serializable {
     return usersView.getUsers(index, size);
   }
 
+  /**
+   * @return size
+   */
   public int getResultSize() {
     return usersView.size();
   }
 
+  /**
+   * @param username user
+   * @return bool
+   * @throws AuthorizationDeniedException fail
+   */
   public boolean isAuthorizedToViewUserHistory(final String username)
       throws AuthorizationDeniedException {
     EndEntityInformation user =
@@ -724,6 +787,11 @@ public class RAInterfaceBean implements Serializable {
         false);
   }
 
+  /**
+   * @param username User
+   * @return Boiol
+   * @throws AuthorizationDeniedException Fail
+   */
   public boolean isAuthorizedToEditUser(final String username)
       throws AuthorizationDeniedException {
     EndEntityInformation user =
@@ -762,10 +830,18 @@ public class RAInterfaceBean implements Serializable {
     usersView.clear();
   }
 
+  /**
+   * @param index Index
+   * @param size Size
+   * @return Bool
+   */
   public boolean nextButton(final int index, final int size) {
     return index + size < usersView.size();
   }
-
+/**
+   * @param index Index
+   * @return Bool
+   */
   public boolean previousButton(final int index) {
     return index > 0;
   }
@@ -783,18 +859,25 @@ public class RAInterfaceBean implements Serializable {
   }
 
   // Methods dealing with profiles.
+  /**
+   * @param endentityAccessRule Rule
+   * @return Names
+   */
   public TreeMap<String, String> getAuthorizedEndEntityProfileNames(
       final String endentityAccessRule) {
     return raauthorization.getAuthorizedEndEntityProfileNames(
         endentityAccessRule);
   }
 
+  /**
+   * @return CA
+   */
   public List<String> getAuthorizedEndEntityProfileIdsWithMissingCAs() {
     return raauthorization.getViewAuthorizedEndEntityProfilesWithMissingCAs();
   }
 
   /**
-   * Returns the profile name from id proxied
+   * Returns the profile name from id proxied.
    *
    * @param profileid ID
    * @return Name
@@ -813,24 +896,45 @@ public class RAInterfaceBean implements Serializable {
     return endEntityProfileSession.getEndEntityProfileId(profilename);
   }
 
+  /**
+   * @param sourceid ID
+   * @return Name
+   */
   public String getUserDataSourceName(final int sourceid) {
     return this.userdatasourcesession.getUserDataSourceName(
         administrator, sourceid);
   }
 
+  /**
+   * @param sourcename name
+   * @return ID
+   */
   public int getUserDataSourceId(final String sourcename) {
     return this.userdatasourcesession.getUserDataSourceId(
         administrator, sourcename);
   }
 
+  /**
+   * @param name name
+   * @return prof
+   */
   public EndEntityProfile getEndEntityProfile(final String name) {
     return endEntityProfileSession.getEndEntityProfile(name);
   }
 
+  /**
+   * @param id ID
+   * @return prof
+   */
   public EndEntityProfile getEndEntityProfile(final int id) {
     return endEntityProfileSession.getEndEntityProfile(id);
   }
 
+  /**
+   * @param name name
+   * @throws EndEntityProfileExistsException fail
+   * @throws AuthorizationDeniedException fail
+   */
   public void addEndEntityProfile(final String name)
       throws EndEntityProfileExistsException, AuthorizationDeniedException {
     EndEntityProfile profile = new EndEntityProfile();
@@ -843,6 +947,12 @@ public class RAInterfaceBean implements Serializable {
     endEntityProfileSession.addEndEntityProfile(administrator, name, profile);
   }
 
+  /**
+   * @param name name
+   * @param profile profile
+   * @throws AuthorizationDeniedException fail
+   * @throws EndEntityProfileNotFoundException fail
+   */
   public void changeEndEntityProfile(
       final String name, final EndEntityProfile profile)
       throws AuthorizationDeniedException, EndEntityProfileNotFoundException {
@@ -908,8 +1018,8 @@ public class RAInterfaceBean implements Serializable {
    *     explicitly defined in the role's access rules
    */
   private List<String> getRulesWithEndEntityProfile(final int profileId) {
-    if (log.isTraceEnabled()) {
-      log.trace(">getRulesWithEndEntityProfile(" + profileId + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getRulesWithEndEntityProfile(" + profileId + ")");
     }
     final List<String> rolenames = new ArrayList<>();
     final Pattern idInRulename =
@@ -927,34 +1037,52 @@ public class RAInterfaceBean implements Serializable {
         }
       }
     }
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "End entity profile with id "
               + profileId
               + " is present in roles: "
               + StringUtils.join(rolenames, ", "));
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<getRulesWithEndEntityProfile(" + profileId + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<getRulesWithEndEntityProfile(" + profileId + ")");
     }
     return rolenames;
   }
 
+  /**
+   * @param oldname old
+   * @param newname new
+   * @throws EndEntityProfileExistsException fail
+   * @throws AuthorizationDeniedException fail
+   */
   public void renameEndEntityProfile(final String oldname, final String newname)
       throws EndEntityProfileExistsException, AuthorizationDeniedException {
     endEntityProfileSession.renameEndEntityProfile(
         administrator, oldname, newname);
   }
 
+  /**
+   * @param userNotification notif
+   */
   public void setTemporaryEndEntityProfileNotification(
       final UserNotification userNotification) {
     temporaryNotification = userNotification;
   }
 
+  /**
+   * @return notif
+   */
   public UserNotification getTemporaryEndEntityProfileNotification() {
     return temporaryNotification;
   }
 
+  /**
+   * @param originalname Name
+   * @param newname NAme
+   * @throws EndEntityProfileExistsException Fail
+   * @throws AuthorizationDeniedException Fail
+   */
   public void cloneEndEntityProfile(
       final String originalname, final String newname)
       throws EndEntityProfileExistsException, AuthorizationDeniedException {
@@ -962,22 +1090,32 @@ public class RAInterfaceBean implements Serializable {
         administrator, originalname, newname);
   }
 
+  /**
+   * @param username User
+   */
   public void loadCertificates(final String username) {
     loadTokenCertificates(
         certificatesession.getCertificateDataByUsername(username, false, null));
   }
 
+  /**
+   * @param tokensn SN
+   */
   public void loadTokenCertificates(final String tokensn) {
     loadTokenCertificates(
         hardtokensession.getCertificateDatasFromHardToken(tokensn));
   }
 
+  /**
+   * @param cdws wrappers
+   */
   private void loadTokenCertificates(final List<CertificateDataWrapper> cdws) {
+    final int max = 50;
     if (!cdws.isEmpty()) {
-      if (cdws.size() <= 50) {
+      if (cdws.size() <= max) {
         Collections.sort(cdws);
       } else {
-        log.debug("User has more than 50 certificates, we will not sort them");
+        LOG.debug("User has more than 50 certificates, we will not sort them");
       }
       certificates = new CertificateView[cdws.size()];
       for (int i = 0; i < certificates.length; i++) {
@@ -988,6 +1126,15 @@ public class RAInterfaceBean implements Serializable {
     }
   }
 
+  /**
+   * @param tokensn SN
+   * @param username Name
+   * @param reason Reason
+   * @return Certs
+   * @throws ApprovalException Fail
+   * @throws WaitingForApprovalException Fail
+   * @throws AlreadyRevokedException Fail
+   */
   public boolean revokeTokenCertificates(
       final String tokensn, final String username, final int reason)
       throws ApprovalException, WaitingForApprovalException,
@@ -1033,6 +1180,11 @@ public class RAInterfaceBean implements Serializable {
     return success;
   }
 
+  /**
+   * @param tokensn SN
+   * @param username User
+   * @return Fail
+   */
   public boolean isAllTokenCertificatesRevoked(
       final String tokensn, final String username) {
     Collection<Certificate> certs =
@@ -1053,22 +1205,35 @@ public class RAInterfaceBean implements Serializable {
     return allrevoked;
   }
 
+  /**
+   * @param cacerts Certs
+   */
   public void loadCACertificates(final CertificateView[] cacerts) {
     certificates = cacerts;
   }
 
+  /**
+   * @param serno SN
+   * @param caId ID
+   * @throws AuthorizationDeniedException Fail
+   */
   public void loadCertificates(final BigInteger serno, final int caId)
       throws AuthorizationDeniedException {
     loadCertificates(
         serno, caSession.getCAInfo(administrator, caId).getSubjectDN());
   }
 
+  /**
+   * @param serno SN
+   * @param issuerdn DN
+   * @throws AuthorizationDeniedException Fail
+   */
   public void loadCertificates(final BigInteger serno, final String issuerdn)
       throws AuthorizationDeniedException {
     if (!authorizationSession.isAuthorizedNoLogging(
         administrator, AccessRulesConstants.REGULAR_VIEWCERTIFICATE)) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "authorization.notauthorizedtoresource",
               AccessRulesConstants.REGULAR_VIEWCERTIFICATE,
               "Not authorized to view certificate.");
@@ -1104,6 +1269,9 @@ public class RAInterfaceBean implements Serializable {
     return globalConfiguration.getMaximumQueryCount();
   }
 
+  /**
+   * @return num
+   */
   public int getNumberOfCertificates() {
     int returnval = 0;
     if (certificates != null) {
@@ -1112,6 +1280,11 @@ public class RAInterfaceBean implements Serializable {
     return returnval;
   }
 
+
+  /**
+   * @param index index
+   * @return view
+   */
   public CertificateView getCertificate(final int index) {
     CertificateView returnval = null;
     if (certificates != null) {
@@ -1120,16 +1293,27 @@ public class RAInterfaceBean implements Serializable {
     return returnval;
   }
 
+  /**
+   * @return bool
+   */
   public boolean authorizedToEditEndEntityProfiles() {
     return authorizationSession.isAuthorizedNoLogging(
         administrator, AccessRulesConstants.REGULAR_EDITENDENTITYPROFILES);
   }
 
+  /**
+   * @param profileid ID
+   * @return Bool
+   */
   public boolean authorizedToEditUser(final int profileid) {
     return endEntityAuthorization(
         administrator, profileid, AccessRulesConstants.EDIT_END_ENTITY, false);
   }
 
+  /**
+   * @param profileid ID
+   * @return bool
+   */
   public boolean authorizedToViewHistory(final int profileid) {
     return endEntityAuthorization(
         administrator,
@@ -1138,6 +1322,11 @@ public class RAInterfaceBean implements Serializable {
         false);
   }
 
+  /**
+   * @param username name
+   * @return bool
+   * @throws AuthorizationDeniedException fail
+   */
   public boolean authorizedToViewHardToken(final String username)
       throws AuthorizationDeniedException {
     int profileid =
@@ -1161,11 +1350,20 @@ public class RAInterfaceBean implements Serializable {
         false);
   }
 
+  /**
+   * @param profileid ID
+   * @return bool
+   */
   public boolean authorizedToViewHardToken(final int profileid) {
     return endEntityAuthorization(
         administrator, profileid, AccessRulesConstants.HARDTOKEN_RIGHTS, false);
   }
 
+  /**
+   * @param username name
+   * @return bool
+   * @throws AuthorizationDeniedException fail
+   */
   public boolean authorizedToRevokeCert(final String username)
       throws AuthorizationDeniedException {
     boolean returnval = false;
@@ -1188,6 +1386,12 @@ public class RAInterfaceBean implements Serializable {
     return returnval;
   }
 
+  /**
+   * @param cert Cert
+   * @param username Name
+   * @return bool
+   * @throws AuthorizationDeniedException fail
+   */
   public boolean keyRecoveryPossible(
       final Certificate cert, final String username)
       throws AuthorizationDeniedException {
@@ -1215,6 +1419,14 @@ public class RAInterfaceBean implements Serializable {
         && !keyrecoverysession.isUserMarked(username);
   }
 
+  /**
+   * @param username Name
+   * @param cert Cert
+   * @throws AuthorizationDeniedException Fail
+   * @throws ApprovalException Fail
+   * @throws WaitingForApprovalException Fail
+   * @throws CADoesntExistsException Fail
+   */
   public void markForRecovery(final String username, final Certificate cert)
       throws AuthorizationDeniedException, ApprovalException,
           WaitingForApprovalException, CADoesntExistsException {
@@ -1237,6 +1449,9 @@ public class RAInterfaceBean implements Serializable {
     }
   }
 
+  /**
+   * @return Names
+   */
   public String[] getCertificateProfileNames() {
     String[] dummy = {""};
     Collection<String> certprofilenames =
@@ -1247,16 +1462,28 @@ public class RAInterfaceBean implements Serializable {
     return certprofilenames.toArray(dummy);
   }
 
+  /**
+   * @param certificateprofilename Name
+   * @return ID
+   */
   public int getCertificateProfileId(final String certificateprofilename) {
     return certificateProfileSession.getCertificateProfileId(
         certificateprofilename);
   }
 
+  /**
+   * @param certificateprofileid ID
+   * @return Nmae
+   */
   public String getCertificateProfileName(final int certificateprofileid) {
     return certificateProfileSession.getCertificateProfileName(
         certificateprofileid);
   }
 
+  /**
+   * @param parameter Param
+   * @return Bool
+   */
   public boolean getEndEntityParameter(final String parameter) {
     if (parameter == null) {
       return false;
@@ -1270,16 +1497,16 @@ public class RAInterfaceBean implements Serializable {
    * @param admin Admin
    * @param profileid ID
    * @param rights Rights
-   * @param log Log
+   * @param alog Log
    * @return Auth
    */
   public boolean endEntityAuthorization(
       final AuthenticationToken admin,
       final int profileid,
       final String rights,
-      final boolean log) {
+      final boolean alog) {
     boolean returnval = false;
-    if (log) {
+    if (alog) {
       returnval =
           authorizationSession.isAuthorized(
               admin,
@@ -1301,7 +1528,7 @@ public class RAInterfaceBean implements Serializable {
 
   /**
    * Help function used by edit end entity pages used to temporary save a
-   * profile so things can be canceled later
+   * profile so things can be canceled later.
    *
    * @return Profile
    */
@@ -1309,14 +1536,23 @@ public class RAInterfaceBean implements Serializable {
     return this.temporaryEndEntityProfile;
   }
 
+  /**
+   * @param profile profile
+   */
   public void setTemporaryEndEntityProfile(final EndEntityProfile profile) {
     this.temporaryEndEntityProfile = profile;
   }
 
+  /**
+   * @return session
+   */
   UserDataSourceSession getUserDataSourceSession() {
     return userdatasourcesession;
   }
 
+  /**
+   * @return printers
+   */
   public String[] listPrinters() {
     if (printerNames == null) {
       printerNames = org.ejbca.util.PrinterManager.listPrinters();
@@ -1324,6 +1560,10 @@ public class RAInterfaceBean implements Serializable {
     return printerNames;
   }
 
+  /**
+   * @param certificateData Cert
+   * @return SN
+   */
   public String getFormatedCertSN(final CertificateView certificateData) {
 
     String serialnumber = certificateData.getSerialNumber();
@@ -1332,8 +1572,9 @@ public class RAInterfaceBean implements Serializable {
         serialnumber = "0" + serialnumber;
       }
 
+      final int max = 7;
       int octetChar = serialnumber.charAt(0) - '0';
-      if (octetChar > 7) {
+      if (octetChar > max) {
         serialnumber = "00" + serialnumber;
       }
     }
@@ -1400,8 +1641,8 @@ public class RAInterfaceBean implements Serializable {
               }
             });
     // 1. Retrieve a list of all CA's the current user is authorized to
-    for (CAInfo caInfo :
-        caSession.getAuthorizedAndNonExternalCaInfos(administrator)) {
+    for (CAInfo caInfo
+        : caSession.getAuthorizedAndNonExternalCaInfos(administrator)) {
       sortedMap.put(caInfo, caInfo.getCAId());
     }
     final Collection<Integer> authorizedCas = sortedMap.values();
@@ -1417,8 +1658,8 @@ public class RAInterfaceBean implements Serializable {
     }
     // 3. Next retrieve all certificate profiles defined in the end entity
     // profile
-    for (final Integer certificateProfileId :
-        endentityprofile.getAvailableCertificateProfileIds()) {
+    for (final Integer certificateProfileId
+        : endentityprofile.getAvailableCertificateProfileIds()) {
       final CertificateProfile certprofile =
           certificateProfileSession.getCertificateProfile(
               certificateProfileId.intValue());
@@ -1449,12 +1690,28 @@ public class RAInterfaceBean implements Serializable {
   // -------------------------------------------------------
   //         Import/Export  profiles related code
   // -------------------------------------------------------
+  /**
+   * @param request req
+   * @param requestMap Map
+   * @return Buffer
+   * @throws IOException Fail
+   * @throws FileUploadException Fail
+   */
   public byte[] getfileBuffer(
       final HttpServletRequest request, final Map<String, String> requestMap)
       throws IOException, FileUploadException {
-    return getFileBuffer(request, requestMap, 60_000);
+    final int siz = 60000;
+    return getFileBuffer(request, requestMap, siz);
   }
 
+  /**
+   * @param request Req
+   * @param requestMap Map
+   * @param maxSize Max
+   * @return Buffer
+   * @throws IOException Fail
+   * @throws FileUploadException Fail
+   */
   public byte[] getFileBuffer(
       final HttpServletRequest request,
       final Map<String, String> requestMap,
@@ -1498,9 +1755,13 @@ public class RAInterfaceBean implements Serializable {
     return fileBuffer;
   }
 
+  /**
+   * @param filebuffer buffer
+   * @return profiles
+   */
   public String importProfilesFromZip(final byte[] filebuffer) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">importProfiles(): "
               + importedProfileName
               + " - "
@@ -1513,7 +1774,7 @@ public class RAInterfaceBean implements Serializable {
 
     if (StringUtils.isEmpty(importedProfileName) || filebuffer.length == 0) {
       retmsg = "Error: No input file";
-      log.error(retmsg);
+      LOG.error(retmsg);
       return retmsg;
     }
 
@@ -1531,13 +1792,13 @@ public class RAInterfaceBean implements Serializable {
           retmsg =
               getSuccessImportMessage(
                   importedProfileName, nrOfFiles, importedFiles, ignoredFiles);
-          log.info(retmsg);
+          LOG.info(retmsg);
         } else {
           retmsg =
               "Error: Expected a zip file. '"
                   + importedProfileName
                   + "' is not a  zip file.";
-          log.error(retmsg);
+          LOG.error(retmsg);
         }
         return retmsg;
       }
@@ -1545,8 +1806,8 @@ public class RAInterfaceBean implements Serializable {
       do {
         nrOfFiles++;
         String filename = ze.getName();
-        if (log.isDebugEnabled()) {
-          log.debug("Importing file: " + filename);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Importing file: " + filename);
         }
 
         if (ignoreFile(filename)) {
@@ -1565,16 +1826,16 @@ public class RAInterfaceBean implements Serializable {
         try {
           profileid = Integer.parseInt(filename.substring(index2 + 1, index3));
         } catch (NumberFormatException e) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "NumberFormatException parsing certificate profile id: "
                     + e.getMessage());
           }
           ignoredFiles++;
           continue;
         }
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Extracted profile name '"
                   + profilename
                   + "' and profile ID '"
@@ -1590,7 +1851,7 @@ public class RAInterfaceBean implements Serializable {
         if (endEntityProfileSession.getEndEntityProfile(profileid) != null) {
           int newprofileid =
               endEntityProfileSession.findFreeEndEntityProfileId();
-          log.warn(
+          LOG.warn(
               "Entity profileid '"
                   + profileid
                   + "' already exist in database. Using "
@@ -1598,8 +1859,8 @@ public class RAInterfaceBean implements Serializable {
                   + " instead.");
           profileid = newprofileid;
         }
-
-        byte[] filebytes = new byte[102400];
+        final int siz = 102400; // 100k
+        byte[] filebytes = new byte[siz];
         int i = 0;
         while ((zis.available() == 1) && (i < filebytes.length)) {
           filebytes[i++] = (byte) zis.read();
@@ -1612,7 +1873,7 @@ public class RAInterfaceBean implements Serializable {
               "Faulty XML file '"
                   + filename
                   + "'. Failed to read End Entity Profile.";
-          log.info(msg + " Ignoring file.");
+          LOG.info(msg + " Ignoring file.");
           ignoredFiles++;
           faultXMLmsg += filename + ", ";
           continue;
@@ -1621,24 +1882,24 @@ public class RAInterfaceBean implements Serializable {
         endEntityProfileSession.addEndEntityProfile(
             administrator, profilename, eprofile);
         importedFiles++;
-        log.info("Added EndEntity profile: " + profilename);
-
-      } while ((ze = zis.getNextEntry()) != null);
+        LOG.info("Added EndEntity profile: " + profilename);
+        ze = zis.getNextEntry();
+      } while (ze != null);
       zis.closeEntry();
     } catch (UnsupportedEncodingException e) {
       retmsg = "Error: UTF-8 was not a known character encoding.";
-      log.error(retmsg, e);
+      LOG.error(retmsg, e);
       return retmsg;
     } catch (IOException e) {
-      log.error(e);
+      LOG.error(e);
       retmsg = "Error: " + e.getLocalizedMessage();
       return retmsg;
     } catch (AuthorizationDeniedException e) {
-      log.error(e);
+      LOG.error(e);
       retmsg = "Error: " + e.getLocalizedMessage();
       return retmsg;
     } catch (EndEntityProfileExistsException e) {
-      log.error(e);
+      LOG.error(e);
       retmsg = "Error: " + e.getLocalizedMessage();
       return retmsg;
     }
@@ -1656,7 +1917,7 @@ public class RAInterfaceBean implements Serializable {
           getSuccessImportMessage(
               importedProfileName, nrOfFiles, importedFiles, ignoredFiles);
     }
-    log.info(retmsg);
+    LOG.info(retmsg);
 
     return retmsg;
   }
@@ -1676,6 +1937,11 @@ public class RAInterfaceBean implements Serializable {
         + " files  were ignored.";
   }
 
+  /**
+   * @param defaulthardtokenissuer Issuer
+   * @param values Values
+   * @return issuers
+   */
   public String getAvailableHardTokenIssuers(
       final String defaulthardtokenissuer, final String[] values) {
     String availablehardtokenissuers = defaulthardtokenissuer;
@@ -1689,6 +1955,11 @@ public class RAInterfaceBean implements Serializable {
     return availablehardtokenissuers;
   }
 
+  /**
+   * @param defaulttokentype def
+   * @param values vals
+   * @return types
+   */
   public String getAvailableTokenTypes(
       final String defaulttokentype, final String[] values) {
     String availabletokentypes = defaulttokentype;
@@ -1723,6 +1994,10 @@ public class RAInterfaceBean implements Serializable {
     return availablecertprofiles;
   }
 
+  /**
+   * @param validationRegex regex
+   * @return val
+   */
   public LinkedHashMap<String, Serializable> getValidationFromRegexp(
       final String validationRegex) {
     // We must accept an empty value in case the user has Javascript turned
@@ -1732,7 +2007,14 @@ public class RAInterfaceBean implements Serializable {
     validation.put(RegexFieldValidator.class.getName(), regex);
     return validation;
   }
-
+  /**
+   * @param sender sender
+   * @param rcpt recp
+   * @param subject subj
+   * @param msg message
+   * @param val value
+   * @return notif
+   */
   public UserNotification getNotificationForDelete(
       final String sender,
       final String rcpt,
@@ -1752,12 +2034,21 @@ public class RAInterfaceBean implements Serializable {
     return new UserNotification(sender, rcpt, subject, msg, events);
   }
 
+  /**
+   * @param sender sender
+   * @param orcpt recp
+   * @param subject subj
+   * @param msg message
+   * @param val value
+   * @return notif
+   */
   public UserNotification getNotificationForAdd(
       final String sender,
-      String rcpt,
+      final String orcpt,
       final String subject,
       final String msg,
       final String[] val) {
+    String rcpt = orcpt;
     UserNotification not = new UserNotification();
     not.setNotificationSender(sender);
     not.setNotificationSubject(subject);
@@ -1791,8 +2082,8 @@ public class RAInterfaceBean implements Serializable {
       try {
         data = decoder.readObject();
       } catch (IOException e) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Error parsing certificate profile data: " + e.getMessage());
         }
         return null;
@@ -1805,8 +2096,8 @@ public class RAInterfaceBean implements Serializable {
       String availableCertProfiles = "";
       String defaultCertProfile =
           eprofile.getValue(EndEntityProfile.DEFAULTCERTPROFILE, 0);
-      for (String currentCertProfile :
-          eprofile.getAvailableCertificateProfileIdsAsStrings()) {
+      for (String currentCertProfile
+          : eprofile.getAvailableCertificateProfileIdsAsStrings()) {
         Integer currentCertProfileId = Integer.parseInt(currentCertProfile);
 
         if (certificateProfileSession.getCertificateProfile(
@@ -1818,7 +2109,7 @@ public class RAInterfaceBean implements Serializable {
               (availableCertProfiles.equals("") ? "" : ";")
                   + currentCertProfile;
         } else {
-          log.warn(
+          LOG.warn(
               "End Entity Profile '"
                   + profilename
                   + "' references certificate profile "
@@ -1830,7 +2121,7 @@ public class RAInterfaceBean implements Serializable {
         }
       }
       if (availableCertProfiles.equals("")) {
-        log.warn(
+        LOG.warn(
             "End Entity Profile only references certificate profile(s) that"
                 + " does not exist. Using ENDUSER profile.");
         availableCertProfiles =
@@ -1861,7 +2152,7 @@ public class RAInterfaceBean implements Serializable {
                 (availableCAs.equals("") ? "" : ";")
                     + currentCA; // No Exception means CA exists
           } else {
-            log.warn(
+            LOG.warn(
                 "CA with id "
                     + currentCA
                     + " was not found and will not be used in end entity"
@@ -1875,7 +2166,7 @@ public class RAInterfaceBean implements Serializable {
         }
       }
       if (availableCAs.equals("")) {
-        log.error(
+        LOG.error(
             "No CAs left in end entity profile '"
                 + profilename
                 + "'. Using ALLCAs.");
@@ -1883,7 +2174,7 @@ public class RAInterfaceBean implements Serializable {
       }
       if (defaultCA.equals("")) {
         defaultCA = availableCAs.split(";")[0]; // Use first available
-        log.warn(
+        LOG.warn(
             "Changing default CA in end entity profile '"
                 + profilename
                 + "' to "
@@ -1904,9 +2195,10 @@ public class RAInterfaceBean implements Serializable {
   }
 
   private boolean ignoreFile(final String filename) {
-    if (filename.lastIndexOf(".xml") != (filename.length() - 4)) {
-      if (log.isDebugEnabled()) {
-        log.debug(filename + " is not an XML file. IGNORED");
+    final int len = 4;
+    if (filename.lastIndexOf(".xml") != (filename.length() - len)) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(filename + " is not an XML file. IGNORED");
       }
       return true;
     }
@@ -1914,8 +2206,8 @@ public class RAInterfaceBean implements Serializable {
     if (filename.indexOf("_") < 0
         || filename.lastIndexOf("-") < 0
         || (filename.indexOf("entityprofile_") < 0)) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             filename
                 + " is not in the expected format. The file name should look"
                 + " like: entityprofile_<profile name>-<profile id>.xml."
@@ -1930,14 +2222,14 @@ public class RAInterfaceBean implements Serializable {
       final String filename, final String profilename, final int profileid) {
     // We don't add the fixed profiles, EJBCA handles those automagically
     if (profileid == EndEntityConstants.EMPTY_END_ENTITY_PROFILE) {
-      log.info(filename + " contains a fixed profile. IGNORED");
+      LOG.info(filename + " contains a fixed profile. IGNORED");
       return true;
     }
 
     // Check if the profiles already exist, and change the name and id if
     // already taken
     if (endEntityProfileSession.getEndEntityProfile(profilename) != null) {
-      log.info(
+      LOG.info(
           "Entity profile '"
               + profilename
               + "' already exist in database. IGNORED");

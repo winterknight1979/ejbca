@@ -32,15 +32,25 @@ public class UserView implements Serializable, Comparable<UserView> {
 
   private static final long serialVersionUID = 2390294870669249774L;
 
+  /** Param. */
   private SortBy sortby;
+  /** Param. */
   private final EndEntityInformation userdata;
+  /** Param. */
   private final DNFieldExtractor subjectdnfields;
+  /** Param. */
   private final DNFieldExtractor subjectaltnames;
+  /** Param. */
   private final DNFieldExtractor subjectdirattrs;
+  /** Param. */
   private String commonname = "";
+  /** Param. */
   private String caname;
+  /** Param. */
   private boolean cleartextpwd;
 
+  /** Constructor.
+   */
   public UserView() {
     userdata = new EndEntityInformation();
     userdata.setType(EndEntityTypes.ENDUSER.toEndEntityType());
@@ -51,6 +61,10 @@ public class UserView implements Serializable, Comparable<UserView> {
         new DNFieldExtractor("", DNFieldExtractor.TYPE_SUBJECTDIRATTR);
   }
 
+  /**
+   * @param newuserdata data
+   * @param caidtonamemap ID
+   */
   public UserView(
       final EndEntityInformation newuserdata,
       final Map<Integer, String> caidtonamemap) {
@@ -72,14 +86,23 @@ public class UserView implements Serializable, Comparable<UserView> {
     cleartextpwd = userdata.getPassword() != null;
   }
 
+  /**
+   * @param user user
+   */
   public void setUsername(final String user) {
     userdata.setUsername(StringTools.stripUsername(user));
   }
 
+  /**
+   * @return user
+   */
   public String getUsername() {
     return userdata.getUsername();
   }
 
+  /**
+   * @param dn DN
+   */
   public void setSubjectDN(final String dn) {
     userdata.setDN(dn);
     subjectdnfields.setDN(dn, DNFieldExtractor.TYPE_SUBJECTDN);
@@ -87,19 +110,31 @@ public class UserView implements Serializable, Comparable<UserView> {
     setCommonName();
   }
 
+  /**
+   * @return DN
+   */
   public String getSubjectDN() {
     return userdata.getDN();
   }
 
+  /**
+   * @param subjectaltname name
+   */
   public void setSubjectAltName(final String subjectaltname) {
     userdata.setSubjectAltName(subjectaltname);
     subjectaltnames.setDN(subjectaltname, DNFieldExtractor.TYPE_SUBJECTALTNAME);
   }
 
+  /**
+   * @return name
+   */
   public String getSubjectAltName() {
     return userdata.getSubjectAltName();
   }
 
+  /**
+   * @param subjectdirattr attrs
+   */
   public void setSubjectDirAttributes(final String subjectdirattr) {
     ExtendedInformation ext = userdata.getExtendedInformation();
     if (ext == null) {
@@ -110,163 +145,284 @@ public class UserView implements Serializable, Comparable<UserView> {
     subjectdirattrs.setDN(subjectdirattr, DNFieldExtractor.TYPE_SUBJECTDIRATTR);
   }
 
+  /**
+   * @return sttrs
+   */
   public String getSubjectDirAttributes() {
     return userdata.getExtendedInformation() != null
         ? userdata.getExtendedInformation().getSubjectDirectoryAttributes()
         : null;
   }
 
+  /**
+   * @param email email
+   */
   public void setEmail(final String email) {
     userdata.setEmail(email);
   }
 
+  /**
+   * @return email
+   */
   public String getEmail() {
     return userdata.getEmail();
   }
 
+  /**
+   * @param pwd pwd
+   */
   public void setPassword(final String pwd) {
     userdata.setPassword(pwd);
   }
 
+  /**
+   * @return pwd
+   */
   public String getPassword() {
     return userdata.getPassword();
   }
 
+  /**
+   * @return bool
+   */
   public boolean getClearTextPassword() {
     return cleartextpwd;
   }
 
-  public void setClearTextPassword(final boolean cleartextpwd) {
-    this.cleartextpwd = cleartextpwd;
+  /**
+   * @param acleartextpwd bool
+   */
+  public void setClearTextPassword(final boolean acleartextpwd) {
+    this.cleartextpwd = acleartextpwd;
   }
 
+  /**
+   * @param status status
+   */
   public void setStatus(final int status) {
     userdata.setStatus(status);
   }
 
+  /**
+   * @return status
+   */
   public int getStatus() {
     return userdata.getStatus();
   }
 
+  /**
+   * @param type type
+   */
   public void setType(final EndEntityType type) {
     userdata.setType(type);
   }
 
+  /**
+   * @return type
+   */
   public EndEntityType getType() {
     return userdata.getType();
   }
 
+  /**
+   * @param keyrecoverable bool
+   */
   public void setKeyRecoverable(final boolean keyrecoverable) {
     userdata.setKeyRecoverable(keyrecoverable);
   }
 
+  /**
+   * @return key
+   */
   public boolean getKeyRecoverable() {
     return userdata.getKeyRecoverable();
   }
 
+  /**
+   * @param cardNumber num
+   */
   public void setCardNumber(final String cardNumber) {
     userdata.setCardNumber(cardNumber);
   }
 
+  /**
+   * @return num
+   */
   public String getCardNumber() {
     return userdata.getCardNumber();
   }
 
+  /**
+   * @param sendnotification bool
+   */
   public void setSendNotification(final boolean sendnotification) {
     userdata.setSendNotification(sendnotification);
   }
 
+  /**
+   * @return bool
+   */
   public boolean getSendNotification() {
     return userdata.getSendNotification();
   }
 
+  /**
+   * @param printUserData Data
+   */
   public void setPrintUserData(final boolean printUserData) {
     userdata.setPrintUserData(printUserData);
   }
 
+  /**
+   * @return Data
+   */
   public boolean getPrintUserData() {
     return userdata.getPrintUserData();
   }
 
+  /**
+   * @param profileid ID
+   */
   public void setEndEntityProfileId(final int profileid) {
     userdata.setEndEntityProfileId(profileid);
   }
 
+  /**
+   * @return ID
+   */
   public int getEndEntityProfileId() {
     return userdata.getEndEntityProfileId();
   }
 
+  /**
+   * @param profileid ID
+   */
   public void setCertificateProfileId(final int profileid) {
     userdata.setCertificateProfileId(profileid);
   }
 
+  /**
+   * @return ID
+   */
   public int getCertificateProfileId() {
     return userdata.getCertificateProfileId();
   }
 
+  /**
+   * @param timecreated toime
+   */
   public void setTimeCreated(final Date timecreated) {
     userdata.setTimeCreated(timecreated);
   }
 
+  /**
+   * @return time
+   */
   public Date getTimeCreated() {
     return userdata.getTimeCreated();
   }
 
+  /**
+   * @param timemodified time
+   */
   public void setTimeModified(final Date timemodified) {
     userdata.setTimeModified(timemodified);
   }
 
+  /**
+   * @return time
+   */
   public Date getTimeModified() {
     return userdata.getTimeModified();
   }
 
+  /**
+   * @return type
+   */
   public int getTokenType() {
     return userdata.getTokenType();
   }
 
+  /**
+   * @param tokentype type
+   */
   public void setTokenType(final int tokentype) {
     userdata.setTokenType(tokentype);
   }
 
+  /**
+   * @return ID
+   */
   public int getHardTokenIssuerId() {
     return userdata.getHardTokenIssuerId();
   }
 
+  /**
+   * @param hardtokenissuerid ID
+   */
   public void setHardTokenIssuerId(final int hardtokenissuerid) {
     userdata.setHardTokenIssuerId(hardtokenissuerid);
   }
 
+  /**
+   * @return ID
+   */
   public int getCAId() {
     return userdata.getCAId();
   }
 
+  /**
+   * @param caid ID
+   */
   public void setCAId(final int caid) {
     userdata.setCAId(caid);
   }
 
+  /**
+   * @return name
+   */
   public String getCAName() {
     return caname;
   }
 
+  /**
+   * @param extinfo info
+   */
   public void setExtendedInformation(final ExtendedInformation extinfo) {
     userdata.setExtendedInformation(extinfo);
   }
 
+  /**
+   * @return info
+   */
   public ExtendedInformation getExtendedInformation() {
     return userdata.getExtendedInformation();
   }
-
+  /**
+   * @param parameter param
+   * @param number num
+   * @return field
+   */
   public String getSubjectDNField(final int parameter, final int number) {
     // We don't need to htmlescape the output, because we use JSTL output stuff
     // in JSP pages that does it for us
     // in the output shown in browser
     return subjectdnfields.getField(parameter, number);
   }
-
+  /**
+   * @param parameter param
+   * @param number num
+   * @return field
+   */
   public String getSubjectAltNameField(final int parameter, final int number) {
     return subjectaltnames.getField(parameter, number);
   }
 
+  /**
+   * @param parameter param
+   * @param number num
+   * @return field
+   */
   public String getSubjectDirAttributeField(
       final int parameter, final int number) {
     return subjectdirattrs.getField(parameter, number);
@@ -274,7 +430,7 @@ public class UserView implements Serializable, Comparable<UserView> {
 
   /**
    * getCommonName is a special function used in list end entity gui to display
-   * names in cases not a CN field exists in dn only, surname and givenname
+   * names in cases not a CN field exists in dn only, surname and givenname.
    *
    * @return Name
    */
@@ -296,8 +452,8 @@ public class UserView implements Serializable, Comparable<UserView> {
   @Override
   public int compareTo(final UserView obj) {
     int returnvalue = -1;
-    int sortby = this.sortby.getSortBy();
-    switch (sortby) {
+    int asortby = this.sortby.getSortBy();
+    switch (asortby) {
       case SortBy.USERNAME:
         returnvalue = getUsername().compareTo(obj.getUsername());
         break;
@@ -370,7 +526,10 @@ public class UserView implements Serializable, Comparable<UserView> {
     return returnvalue;
   }
 
-  public void setSortBy(final SortBy sortby) {
-    this.sortby = sortby;
+  /**
+   * @param asortby key
+   */
+  public void setSortBy(final SortBy asortby) {
+    this.sortby = asortby;
   }
 }

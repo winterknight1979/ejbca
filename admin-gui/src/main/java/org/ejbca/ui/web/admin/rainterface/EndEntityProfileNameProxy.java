@@ -11,12 +11,6 @@
  *                                                                       *
  *************************************************************************/
 
-/*
- * cProfileNameProxy.java
- *
- * Created on den 23 juli 2002, 17:49
- */
-
 package org.ejbca.ui.web.admin.rainterface;
 
 import java.util.HashMap;
@@ -33,18 +27,20 @@ import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSession;
 public class EndEntityProfileNameProxy implements java.io.Serializable {
 
   private static final long serialVersionUID = 7866894775948690845L;
+  /** Param. */
   private final HashMap<Integer, String> profilenamestore;
+  /** Param. */
   private final EndEntityProfileSession endEntityProfileSession;
 
   /**
-   * Creates a new instance of ProfileNameProxy
+   * Creates a new instance of ProfileNameProxy.
    *
-   * @param endEntityProfileSession Session
+   * @param anendEntityProfileSession Session
    */
   public EndEntityProfileNameProxy(
-      final EndEntityProfileSession endEntityProfileSession) {
+      final EndEntityProfileSession anendEntityProfileSession) {
     // Get the RaAdminSession instance.
-    this.endEntityProfileSession = endEntityProfileSession;
+    this.endEntityProfileSession = anendEntityProfileSession;
 
     profilenamestore = new HashMap<>();
   }

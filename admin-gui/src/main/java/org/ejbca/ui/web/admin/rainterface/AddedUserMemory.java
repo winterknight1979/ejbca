@@ -11,11 +11,6 @@
  *                                                                       *
  *************************************************************************/
 
-/*
- * AddedUserMemory.java
- *
- * Created on den 27 juli 2002, 22:01
- */
 package org.ejbca.ui.web.admin.rainterface;
 
 import java.io.Serializable;
@@ -32,18 +27,20 @@ public class AddedUserMemory implements Serializable {
 
   private static final long serialVersionUID = 1864439727928588230L;
 
+  /** Param. */
   public static final int MEMORY_SIZE = 100; // Remember the 100 last users.
 
   // Private fields
+  /** Param. */
   private LinkedList<UserView> memory = null;
 
-  /** Creates a new instance of AddedUserMemory */
+  /** Creates a new instance of AddedUserMemory .*/
   public AddedUserMemory() {
     memory = new LinkedList<>();
   }
 
   /**
-   * Used to add a user tho the memory
+   * Used to add a user tho the memory.
    *
    * @param user the UserView representation of the user to add.
    */
@@ -101,6 +98,9 @@ public class AddedUserMemory implements Serializable {
     }
   }
 
+  /**
+   * @param userName name
+   */
   public void removeUser(final String userName) {
     // Find user in memory.
     for (int i = 0; i < memory.size(); i++) {

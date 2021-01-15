@@ -30,16 +30,17 @@ import org.cesecore.certificates.endentity.ExtendedInformation;
  * @version $Id: EditEndEntityBean.java 29528 2018-07-30 09:52:06Z anatom $
  */
 public class EditEndEntityBean {
+    /** Param. */
   private ExtendedInformation extendedInformation;
 
   /**
    * Set the current end entity's ExtendedInformation.
    *
-   * @param extendedInformation Info
+   * @param anextendedInformation Info
    */
   public void setExtendedInformation(
-      final ExtendedInformation extendedInformation) {
-    this.extendedInformation = extendedInformation;
+      final ExtendedInformation anextendedInformation) {
+    this.extendedInformation = anextendedInformation;
   }
 
   /**

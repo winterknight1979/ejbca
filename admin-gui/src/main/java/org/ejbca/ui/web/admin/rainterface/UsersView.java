@@ -24,19 +24,23 @@ import java.util.Map;
 import org.cesecore.certificates.endentity.EndEntityInformation;
 
 /**
- * A class representing a set of users
+ * A class representing a set of users.
  *
  * @version $Id: UsersView.java 28844 2018-05-04 08:31:02Z samuellb $
  */
 public class UsersView implements Serializable {
 
   private static final long serialVersionUID = -7382135359016557800L;
-  /** Creates a new instance of UsersView */
+  /** Creates a new instance of UsersView. */
   public UsersView() {
     users = new ArrayList<>();
     sortby = new SortBy();
   }
 
+  /**
+   * @param importuser User
+   * @param caidtonamemap Map
+   */
   public UsersView(
       final EndEntityInformation importuser,
       final HashMap<Integer, String> caidtonamemap) {
@@ -47,6 +51,10 @@ public class UsersView implements Serializable {
     Collections.sort(users);
   }
 
+  /**
+   * @param importusers Users
+   * @param caidtonamemap Map
+   */
   public UsersView(
       final Collection<EndEntityInformation> importusers,
       final HashMap<Integer, String> caidtonamemap) {
@@ -57,17 +65,26 @@ public class UsersView implements Serializable {
   }
   // Public methods.
 
-  public void sortBy(final int sortby, final int sortorder) {
-    this.sortby.setSortBy(sortby);
+  /**
+   * @param asortby Sort
+   * @param sortorder Order
+   */
+  public void sortBy(final int asortby, final int sortorder) {
+    this.sortby.setSortBy(asortby);
     this.sortby.setSortOrder(sortorder);
 
     Collections.sort(users);
   }
 
-  public UserView[] getUsers(int index, final int size) {
+  /**
+   * @param oindex Index
+   * @param size Size
+   * @return Users
+   */
+  public UserView[] getUsers(final int oindex, final int size) {
     int endindex;
     UserView[] returnval;
-
+    int index = oindex;
     if (index > users.size()) {
       index = users.size() - 1;
     }
@@ -101,25 +118,32 @@ public class UsersView implements Serializable {
     return returnval;
   }
 
-  public void setUsers(final UserView[] users) {
+  /**
+   * @param thwusers Users
+   */
+  public void setUsers(final UserView[] thwusers) {
     this.users.clear();
-    if (users != null && users.length > 0) {
-      for (int i = 0; i < users.length; i++) {
-        users[i].setSortBy(this.sortby);
-        this.users.add(users[i]);
+    if (thwusers != null && thwusers.length > 0) {
+      for (int i = 0; i < thwusers.length; i++) {
+        thwusers[i].setSortBy(this.sortby);
+        this.users.add(thwusers[i]);
       }
     }
     Collections.sort(this.users);
   }
 
+  /**
+   * @param theusers Users
+   * @param caidtonamemap Map
+   */
   public void setUsers(
-      final EndEntityInformation[] users,
+      final EndEntityInformation[] theusers,
       final Map<Integer, String> caidtonamemap) {
     UserView user;
     this.users.clear();
-    if (users != null && users.length > 0) {
-      for (int i = 0; i < users.length; i++) {
-        user = new UserView(users[i], caidtonamemap);
+    if (theusers != null && theusers.length > 0) {
+      for (int i = 0; i < theusers.length; i++) {
+        user = new UserView(theusers[i], caidtonamemap);
         user.setSortBy(this.sortby);
         this.users.add(user);
       }
@@ -127,6 +151,10 @@ public class UsersView implements Serializable {
     }
   }
 
+  /**
+   * @param importusers Users
+   * @param caidtonamemap Map
+   */
   public void setUsers(
       final Collection<EndEntityInformation> importusers,
       final Map<Integer, String> caidtonamemap) {
@@ -146,19 +174,29 @@ public class UsersView implements Serializable {
     }
   }
 
+  /**
+   * @param user User
+   */
   public void addUser(final UserView user) {
     user.setSortBy(this.sortby);
     users.add(user);
   }
 
+  /**
+   * @return Size
+   */
   public int size() {
     return users.size();
   }
 
+  /** Clear. */
   public void clear() {
     this.users.clear();
   }
   // Private fields
+  /** Param. */
   private final List<UserView> users;
+
+  /** Param. */
   private final SortBy sortby;
 }

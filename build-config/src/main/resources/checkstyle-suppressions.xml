@@ -596,6 +596,12 @@
 		files="EditHardTokenProfileJSPHelper.java" lines="237" />
 	<suppress checks="ParameterNumberCheck"
 		files="InternalKeyBindingMBean.java" lines="154" />
+		<suppress checks="MethodLengthCheck"
+		files="EditUserDataSourceJSPHelper.java" lines="193,451" />
+		<suppress checks="MethodLengthCheck"
+		files="RAInterfaceBean.java" lines="1762" />
+		<suppress checks="MagicNumberCheck"
+		files="RAInterfaceBean.java" lines="1791" />
 	
 	
 </suppressions>

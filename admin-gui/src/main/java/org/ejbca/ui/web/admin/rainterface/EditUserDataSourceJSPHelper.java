@@ -54,101 +54,142 @@ public class EditUserDataSourceJSPHelper implements java.io.Serializable {
    */
   private static final long serialVersionUID = 436830207093078432L;
 
+  /** Param. */
   public static final String ACTION = "action";
+  /** Param. */
   public static final String ACTION_EDIT_USERDATASOURCES =
       "edituserdatasources";
+  /** Param. */
   public static final String ACTION_EDIT_USERDATASOURCE = "edituserdatasource";
 
+  /** Param. */
   public static final String ACTION_CHANGE_USERDATASOURCETYPE =
       "changeuserdatasourcetype";
 
+  /** Param. */
   public static final String CHECKBOX_VALUE = BaseUserDataSource.TRUE;
 
   //  Used in userdatasources.jsp
+  /** Param. */
   public static final String BUTTON_EDIT_USERDATASOURCE =
       "buttonedituserdatasource";
+  /** Param. */
   public static final String BUTTON_DELETE_USERDATASOURCE =
       "buttondeleteuserdatasource";
+  /** Param. */
   public static final String BUTTON_ADD_USERDATASOURCE =
       "buttonadduserdatasource";
+  /** Param. */
   public static final String BUTTON_RENAME_USERDATASOURCE =
       "buttonrenameuserdatasource";
+  /** Param. */
   public static final String BUTTON_CLONE_USERDATASOURCE =
       "buttoncloneuserdatasource";
 
+  /** Param. */
   public static final String SELECT_USERDATASOURCE = "selectuserdatasource";
+  /** Param. */
   public static final String TEXTFIELD_USERDATASOURCENAME =
       "textfielduserdatasourcename";
+  /** Param. */
   public static final String HIDDEN_USERDATASOURCENAME =
       "hiddenuserdatasourcename";
 
   //  Buttons used in userdatasource.jsp
+  /** Param. */
   public static final String BUTTON_TESTCONNECTION = "buttontestconnection";
+  /** Param. */
   public static final String BUTTON_SAVE = "buttonsave";
+  /** Param. */
   public static final String BUTTON_CANCEL = "buttoncancel";
 
+  /** Param. */
   public static final String TYPE_CUSTOM = "typecustom";
 
+  /** Param. */
   public static final String HIDDEN_USERDATASOURCETYPE =
       "hiddenuserdatasourcetype";
+  /** Param. */
   public static final String SELECT_USERDATASOURCETYPE =
       "selectuserdatasourcetype";
 
+  /** Param. */
   public static final String SELECT_APPLICABLECAS = "selectapplicablecas";
+  /** Param. */
   public static final String SELECT_MODIFYABLEFIELDS = "selectmodifyablefields";
+  /** Param. */
   public static final String TEXTAREA_DESCRIPTION = "textareadescription";
 
+  /** Param. */
   public static final String TEXTFIELD_CUSTOMCLASSPATH =
       "textfieldcustomclasspath";
+  /** Param. */
   public static final String TEXTAREA_CUSTOMPROPERTIES =
       "textareacustomproperties";
 
+  /** Param. */
   public static final String PAGE_USERDATASOURCE = "userdatasourcepage.jspf";
+  /** Param. */
   public static final String PAGE_USERDATASOURCES = "userdatasourcespage.jspf";
 
-  public boolean userdatasourceexists = false;
-  public boolean userdatasourcedeletefailed = false;
-  public boolean connectionmessage = false;
-  public boolean connectionsuccessful = false;
-  public String connectionerrormessage = "";
-  public boolean issuperadministrator = false;
-  public BaseUserDataSource userdatasourcedata = null;
-  public String userdatasourcename = null;
+  /** Param. */
+  private boolean userdatasourceexists = false;
+  /** Param. */
+  private boolean userdatasourcedeletefailed = false;
+  /** Param. */
+  private boolean connectionsuccessful = false;
+  /** Param. */
+  private String connectionerrormessage = "";
+  /** Param. */
+  private boolean issuperadministrator = false;
+  /** Param. */
+  private BaseUserDataSource userdatasourcedata = null;
+  /** Param. */
+  private String userdatasourcename = null;
 
+  /** Param. */
   private boolean initialized = false;
+  /** Param. */
   private TreeMap<String, Integer> modifyableFieldTexts = null;
+  /** Param. */
   private UserDataSourceSession userdatasourcesession = null;
+  /** Param. */
   private AuthenticationToken admin = null;
+  /** Param. */
   private EjbcaWebBean ejbcawebbean = null;
 
-  /** Creates new LogInterfaceBean */
-  public EditUserDataSourceJSPHelper() {}
+  /** Creates new LogInterfaceBean. */
+  public EditUserDataSourceJSPHelper() { }
   // Public methods.
   /**
    * Method that initialized the bean.
    *
    * @param request is a reference to the http request.
-   * @param ejbcawebbean Bean
+   * @param anejbcawebbean Bean
    * @param rabean RA Bean
    * @throws Exception Fail
    */
   public void initialize(
       final HttpServletRequest request,
-      final EjbcaWebBean ejbcawebbean,
+      final EjbcaWebBean anejbcawebbean,
       final RAInterfaceBean rabean)
       throws Exception {
 
     if (!initialized) {
       initialized = true;
       userdatasourcesession = rabean.getUserDataSourceSession();
-      admin = ejbcawebbean.getAdminObject();
-      this.ejbcawebbean = ejbcawebbean;
-      issuperadministrator =
-          ejbcawebbean.isAuthorizedNoLogSilent(
-              StandardRules.ROLE_ROOT.resource());
+      admin = anejbcawebbean.getAdminObject();
+      this.ejbcawebbean = anejbcawebbean;
+      setIssuperadministrator(anejbcawebbean.isAuthorizedNoLogSilent(
+          StandardRules.ROLE_ROOT.resource()));
     }
   }
 
+  /**
+   * @param request req
+   * @return req
+   * @throws AuthorizationDeniedException Fail
+   */
   public String parseRequest(final HttpServletRequest request)
       throws AuthorizationDeniedException {
     String includefile = PAGE_USERDATASOURCES;
@@ -184,9 +225,9 @@ public class EditUserDataSourceJSPHelper implements java.io.Serializable {
           userdatasource = request.getParameter(SELECT_USERDATASOURCE);
           if (userdatasource != null) {
             if (!userdatasource.trim().equals("")) {
-              userdatasourcedeletefailed =
-                  !userdatasourcesession.removeUserDataSource(
-                      admin, userdatasource);
+              setUserdatasourcedeletefailed(
+                      !userdatasourcesession.removeUserDataSource(
+                  admin, userdatasource));
             }
           }
           includefile = PAGE_USERDATASOURCES;
@@ -206,7 +247,7 @@ public class EditUserDataSourceJSPHelper implements java.io.Serializable {
                     olduserdatasourcename.trim(),
                     newuserdatasourcename.trim());
               } catch (UserDataSourceExistsException e) {
-                userdatasourceexists = true;
+                setUserdatasourceexists(true);
               }
             }
           }
@@ -222,7 +263,7 @@ public class EditUserDataSourceJSPHelper implements java.io.Serializable {
                     userdatasource.trim(),
                     new CustomUserDataSourceContainer());
               } catch (UserDataSourceExistsException e) {
-                userdatasourceexists = true;
+                setUserdatasourceexists(true);
               }
             }
           }
@@ -242,7 +283,7 @@ public class EditUserDataSourceJSPHelper implements java.io.Serializable {
                     olduserdatasourcename.trim(),
                     newuserdatasourcename.trim());
               } catch (UserDataSourceExistsException e) {
-                userdatasourceexists = true;
+                setUserdatasourceexists(true);
               }
             }
           }
@@ -329,7 +370,6 @@ public class EditUserDataSourceJSPHelper implements java.io.Serializable {
                 includefile = PAGE_USERDATASOURCES;
               }
               if (request.getParameter(BUTTON_TESTCONNECTION) != null) {
-                connectionmessage = true;
                 userdatasourcesession.changeUserDataSource(
                     admin, userdatasource, userdatasourcedata);
                 try {
@@ -337,9 +377,9 @@ public class EditUserDataSourceJSPHelper implements java.io.Serializable {
                       userdatasourcesession.getUserDataSourceId(
                           admin, userdatasource);
                   userdatasourcesession.testConnection(admin, userdatasourceid);
-                  connectionsuccessful = true;
+                  setConnectionsuccessful(true);
                 } catch (UserDataSourceConnectionException pce) {
-                  connectionerrormessage = pce.getMessage();
+                  setConnectionerrormessage(pce.getMessage());
                 }
                 includefile = PAGE_USERDATASOURCE;
               }
@@ -363,6 +403,7 @@ public class EditUserDataSourceJSPHelper implements java.io.Serializable {
                 .TYPE_CUSTOMUSERDATASOURCECONTAINER:
               userdatasourcedata = new CustomUserDataSourceContainer();
               break;
+              default: break;
           }
         }
 
@@ -373,6 +414,9 @@ public class EditUserDataSourceJSPHelper implements java.io.Serializable {
     return includefile;
   }
 
+  /**
+   * @return type
+   */
   public int getUserDataSourceType() {
     int retval =
         CustomUserDataSourceContainer.TYPE_CUSTOMUSERDATASOURCECONTAINER;
@@ -384,6 +428,9 @@ public class EditUserDataSourceJSPHelper implements java.io.Serializable {
     return retval;
   }
 
+  /**
+   * @return names
+   */
   public TreeMap<String, Integer> getAuthorizedUserDataSourceNames() {
     TreeMap<String, Integer> retval = new TreeMap<>();
 
@@ -398,6 +445,9 @@ public class EditUserDataSourceJSPHelper implements java.io.Serializable {
     return retval;
   }
 
+  /**
+   * @return Texts
+   */
   public TreeMap<String, Integer> getModifyableFieldTexts() {
     if (modifyableFieldTexts == null) {
       modifyableFieldTexts = new TreeMap<>();
@@ -552,4 +602,90 @@ public class EditUserDataSourceJSPHelper implements java.io.Serializable {
     }
     return modifyableFieldTexts;
   }
+/**
+ * @return the userdatasourcename
+ */
+public String getUserdatasourcename() {
+    return userdatasourcename;
+}
+/**
+ * @param auserdatasourcename the userdatasourcename to set
+ */
+public void setUserdatasourcename(final String auserdatasourcename) {
+    this.userdatasourcename = auserdatasourcename;
+}
+/**
+ * @return the userdatasourcedata
+ */
+public BaseUserDataSource getUserdatasourcedata() {
+    return userdatasourcedata;
+}
+/**
+ * @param auserdatasourcedata the userdatasourcedata to set
+ */
+public void setUserdatasourcedata(
+        final BaseUserDataSource auserdatasourcedata) {
+    this.userdatasourcedata = auserdatasourcedata;
+}
+/**
+ * @return the issuperadministrator
+ */
+public boolean isIssuperadministrator() {
+    return issuperadministrator;
+}
+/**
+ * @param aissuperadministrator the issuperadministrator to set
+ */
+public void setIssuperadministrator(final boolean aissuperadministrator) {
+    this.issuperadministrator = aissuperadministrator;
+}
+/**
+ * @return the connectionerrormessage
+ */
+public String getConnectionerrormessage() {
+    return connectionerrormessage;
+}
+/**
+ * @param aconnectionerrormessage the connectionerrormessage to set
+ */
+public void setConnectionerrormessage(final String aconnectionerrormessage) {
+    this.connectionerrormessage = aconnectionerrormessage;
+}
+/**
+ * @return the connectionsuccessful
+ */
+public boolean isConnectionsuccessful() {
+    return connectionsuccessful;
+}
+/**
+ * @param aconnectionsuccessful the connectionsuccessful to set
+ */
+public void setConnectionsuccessful(final boolean aconnectionsuccessful) {
+    this.connectionsuccessful = aconnectionsuccessful;
+}
+/**
+ * @return the userdatasourcedeletefailed
+ */
+public boolean isUserdatasourcedeletefailed() {
+    return userdatasourcedeletefailed;
+}
+/**
+ * @param auserdatasourcedeletefailed the userdatasourcedeletefailed to set
+ */
+public void setUserdatasourcedeletefailed(
+        final boolean auserdatasourcedeletefailed) {
+    this.userdatasourcedeletefailed = auserdatasourcedeletefailed;
+}
+/**
+ * @return the userdatasourceexists
+ */
+public boolean isUserdatasourceexists() {
+    return userdatasourceexists;
+}
+/**
+ * @param auserdatasourceexists the userdatasourceexists to set
+ */
+public void setUserdatasourceexists(final boolean auserdatasourceexists) {
+    this.userdatasourceexists = auserdatasourceexists;
+}
 }
