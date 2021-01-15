@@ -42,12 +42,16 @@ import org.ejbca.ui.web.admin.BaseManagedBean;
 @ManagedBean
 public class UpgradeBean extends BaseManagedBean implements Serializable {
 
-  /** Wrapper of Log4J LoggingEvents for use in the GUI */
+  /** Wrapper of Log4J LoggingEvents for use in the GUI. */
   public static class LogEvent {
-    final LoggingEvent loggingEvent;
+      /** Param. */
+    private final LoggingEvent loggingEvent;
 
-    public LogEvent(final LoggingEvent loggingEvent) {
-      this.loggingEvent = loggingEvent;
+    /**
+     * @param aloggingEvent Event
+     */
+    public LogEvent(final LoggingEvent aloggingEvent) {
+      this.loggingEvent = aloggingEvent;
     }
 
     /** @return true for FATAL and ERROR level messages */
@@ -55,23 +59,38 @@ public class UpgradeBean extends BaseManagedBean implements Serializable {
       return loggingEvent.getLevel().isGreaterOrEqual(Level.ERROR);
     }
 
+    /**
+     * @return bool
+     */
     public boolean isLevelWarning() {
       return loggingEvent.getLevel().equals(Level.WARN);
     }
 
+    /**
+     * @return bool
+     */
     public boolean isLevelInfo() {
       return !loggingEvent.getLevel().isGreaterOrEqual(Level.WARN);
     }
 
+    /**
+     * @return level
+     */
     public String getLevel() {
       return loggingEvent.getLevel().toString();
     }
 
+    /**
+     * @return Time
+     */
     public String getTime() {
       return ValidityDate.formatAsISO8601ServerTZ(
           loggingEvent.getTimeStamp(), TimeZone.getDefault());
     }
 
+    /**
+     * @return Message
+     */
     public String getMessage() {
       final StringBuilder sb =
           new StringBuilder(loggingEvent.getRenderedMessage());
@@ -91,12 +110,15 @@ public class UpgradeBean extends BaseManagedBean implements Serializable {
   private static final long serialVersionUID = 1L;
   // private static final Logger log = Logger.getLogger(UpgradeBean.class);
 
+  /** Param. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** Param. */
   @EJB private UpgradeSessionLocal upgradeSession;
+  /** Param. */
   @EJB private UpgradeStatusSingletonLocal upgradeStatusSingleton;
 
   @PostConstruct
-  private void postConstruct() {}
+  private void postConstruct() { }
 
   /**
    * @return bool
@@ -156,10 +178,11 @@ public class UpgradeBean extends BaseManagedBean implements Serializable {
    */
   public boolean isActionForceRestartUpgradeAllowed() {
     final long postUpgradeStarted = upgradeSession.getPostUpgradeStarted();
+    final long max = 60000L;
     return isPostUpgradeRequired()
         && !isPostUpgradeInProgress()
         && postUpgradeStarted != 0L
-        && postUpgradeStarted + 60000L <= System.currentTimeMillis();
+        && postUpgradeStarted + max <= System.currentTimeMillis();
   }
 
   /**
@@ -180,8 +203,8 @@ public class UpgradeBean extends BaseManagedBean implements Serializable {
   /** @return info logged by the upgrade code */
   public List<LogEvent> getLogged() {
     final List<LogEvent> ret = new ArrayList<>();
-    for (final LoggingEvent loggingEvent :
-        new ArrayList<>(upgradeStatusSingleton.getLogged())) {
+    for (final LoggingEvent loggingEvent
+        : new ArrayList<>(upgradeStatusSingleton.getLogged())) {
       if (loggingEvent.getLevel().isGreaterOrEqual(Level.INFO)) {
         ret.add(new LogEvent(loggingEvent));
       }
@@ -189,33 +212,33 @@ public class UpgradeBean extends BaseManagedBean implements Serializable {
     return ret;
   }
 
-  /** @return the newest version of EJBCA connected to the common database */
+  /** @return the newest version of EJBCA connected to the common database. */
   public String getLastUpgradedToVersion() {
     return upgradeSession.getLastUpgradedToVersion();
   }
 
-  /** @return the currently effective version of data stored in the database */
+  /** @return the currently effective version of data stored in the database. */
   public String getLastPostUpgradedToVersion() {
     return upgradeSession.getLastPostUpgradedToVersion();
   }
 
-  /** Invoked by the user to start the upgrade as a background process */
+  /** Invoked by the user to start the upgrade as a background process. */
   public void actionStartUpgrade() {
     upgradeSession.startPostUpgrade();
   }
 
-  /** Invoked by the user to to clear the cluster wide upgrade lock */
+  /** Invoked by the user to to clear the cluster wide upgrade lock. */
   public void actionClearUpgradeLock() {
     upgradeSession.setPostUpgradeStarted(0L);
   }
 
   /** Noop. Invoked by the user to refresh the page */
-  public void actionNoAction() {}
+  public void actionNoAction()  { }
 
   /**
    * Noop. Invoked by the user to refresh the page
    *
    * @param event event
    */
-  public void actionNoActionAjaxListener(final AjaxBehaviorEvent event) {}
+  public void actionNoActionAjaxListener(final AjaxBehaviorEvent event) { }
 }

@@ -36,7 +36,8 @@ import javax.faces.convert.FacesConverter;
  */
 @FacesConverter(value = "org.ejbca.OidsObjectLinkedHashSetConverter")
 public class OidsObjectLinkedHashSetConverter implements Converter {
-  final String oid_pattern = "^[0-9]+(\\.?[0-9]+)*$";
+    /** Param. */
+  private final String oidPattern = "^[0-9]+(\\.?[0-9]+)*$";
 
   @Override
   public Object getAsObject(
@@ -50,7 +51,7 @@ public class OidsObjectLinkedHashSetConverter implements Converter {
       if (!trimmedValue.isEmpty()) {
         // Validate the OID object here, as this is called when we save the
         // value from the GUI
-        if (!trimmedValue.matches(oid_pattern)) {
+        if (!trimmedValue.matches(oidPattern)) {
           throw new ConverterException(
               new FacesMessage(
                   FacesMessage.SEVERITY_ERROR,

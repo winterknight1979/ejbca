@@ -26,14 +26,22 @@ public class ParameterMap extends HashMap<String, String[]> {
 
   private static final long serialVersionUID = 1L;
 
+  /** Construct. **/
   public ParameterMap() {
     super();
   }
 
+  /**
+   * @param map Map
+   */
   public ParameterMap(final Map<String, String[]> map) {
     super(map);
   }
 
+  /**
+   * @param name Name
+   * @return Param.
+   */
   public String getParameter(final String name) {
     String[] values = get(name);
     if (values == null || values.length == 0) {
@@ -43,10 +51,18 @@ public class ParameterMap extends HashMap<String, String[]> {
     return StringUtils.join(values, ";");
   }
 
+  /**
+   * @param name Name
+   * @return Vals
+   */
   public String[] getParameterValues(final String name) {
     return get(name);
   }
 
+  /**
+   * @param name name
+   * @return bool
+   */
   public boolean contains(final String name) {
     return containsKey(name);
   }

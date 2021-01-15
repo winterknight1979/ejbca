@@ -40,7 +40,8 @@ import org.ejbca.ui.web.RequestHelper;
  */
 public class EncodingFilter implements Filter {
 
-  private static final Logger log =
+    /** Param. */
+  private static final Logger LOG =
       Logger.getLogger(EncodingFilter.class.getName());
 
   @Override
@@ -58,7 +59,7 @@ public class EncodingFilter implements Filter {
     // therefore we will not allow any actions to jsp pages, that tries to
     // perform anything (i.e. edituser etc) using anything else than POST
     // GET is still required in order to link to the pages to display them
-    log.trace(
+    LOG.trace(
         "Using EncodingFilter to ensure that JSP actions can only be performed"
             + " using HTTP POST");
     if (!httpreq.getMethod().equalsIgnoreCase("post")) {
@@ -71,7 +72,7 @@ public class EncodingFilter implements Filter {
           // It is an action to a JSP page clicking a button, i.e. trying to
           // perform some action not just viewing the page
           // for performing actions we require POST, so disallow this
-          log.warn(
+          LOG.warn(
               "Refusing HTTP GET request containing parameter named '"
                   + param
                   + "'. Requests with parameters matching *button* must be"
@@ -82,11 +83,11 @@ public class EncodingFilter implements Filter {
         }
       }
     }
-    log.trace("Using EncodingFilter to set HTTP request character encoding");
+    LOG.trace("Using EncodingFilter to set HTTP request character encoding");
     try {
       RequestHelper.setDefaultCharacterEncoding(httpreq);
     } catch (UnsupportedEncodingException e) {
-      log.error("UnsupportedEncodingException: ", e);
+      LOG.error("UnsupportedEncodingException: ", e);
     }
     // WARNING: do NOT swallow any Exception!!! If container can not see any
     // exception, it will not redirect client to related error page.
@@ -95,8 +96,8 @@ public class EncodingFilter implements Filter {
   }
 
   @Override
-  public void destroy() {}
+  public void destroy() { }
 
   @Override
-  public void init(final FilterConfig arg0) throws ServletException {}
+  public void init(final FilterConfig arg0) throws ServletException { }
 }

@@ -30,11 +30,11 @@ import org.cesecore.internal.InternalResources;
 public class NoNegativeNumbersValidator implements Validator {
 
   /** Localization of log and error messages. */
-  private static final InternalResources intres =
+  private static final InternalResources INTRES =
       InternalResources.getInstance();
 
   /** Class logger. */
-  private static final Logger log =
+  private static final Logger LOG =
       Logger.getLogger(NoNegativeNumbersValidator.class);
 
   @Override
@@ -54,12 +54,12 @@ public class NoNegativeNumbersValidator implements Validator {
         final String field =
             (String) component.getAttributes().get("fieldName");
         final String message =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "validator.error.set_key_validator_values_gui",
                 integerValue,
                 field);
-        if (log.isDebugEnabled()) {
-          log.debug(message);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(message);
         }
         throw new ValidatorException(
             new FacesMessage(FacesMessage.SEVERITY_ERROR, message, message));

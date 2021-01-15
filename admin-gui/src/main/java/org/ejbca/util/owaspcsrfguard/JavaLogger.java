@@ -28,12 +28,13 @@ public class JavaLogger implements ILogger {
 
   private static final long serialVersionUID = -4857601483759096197L;
 
-  private static final Logger log = Logger.getLogger(JavaLogger.class);
+  /** Loig. */
+  private static final Logger LOG = Logger.getLogger(JavaLogger.class);
 
   @Override
   public void log(final String msg) {
-    if (log.isTraceEnabled()) {
-      log.trace(msg.replaceAll("(\\r|\\n)", ""));
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(msg.replaceAll("(\\r|\\n)", ""));
     }
   }
 
@@ -46,28 +47,28 @@ public class JavaLogger implements ILogger {
     // everything that are not warning or error at Trace level
     switch (level) {
       case Trace:
-        if (log.isTraceEnabled()) {
-          log.trace(sanitizedMsg);
+        if (LOG.isTraceEnabled()) {
+          LOG.trace(sanitizedMsg);
         }
         break;
       case Debug:
-        if (log.isTraceEnabled()) {
-          log.trace(sanitizedMsg);
+        if (LOG.isTraceEnabled()) {
+          LOG.trace(sanitizedMsg);
         }
         break;
       case Info:
-        if (log.isTraceEnabled()) {
-          log.trace(sanitizedMsg);
+        if (LOG.isTraceEnabled()) {
+          LOG.trace(sanitizedMsg);
         }
         break;
       case Warning:
-        log.warn(sanitizedMsg);
+        LOG.warn(sanitizedMsg);
         break;
       case Error:
-        log.warn(sanitizedMsg);
+        LOG.warn(sanitizedMsg);
         break;
       case Fatal:
-        log.error(sanitizedMsg);
+        LOG.error(sanitizedMsg);
         break;
       default:
         throw new RuntimeException("unsupported log level " + level);
@@ -76,7 +77,7 @@ public class JavaLogger implements ILogger {
 
   @Override
   public void log(final Exception exception) {
-    log.warn(exception.getLocalizedMessage(), exception);
+    LOG.warn(exception.getLocalizedMessage(), exception);
   }
 
   @Override
@@ -85,28 +86,28 @@ public class JavaLogger implements ILogger {
     // everything that are not warning or error at Trace level
     switch (level) {
       case Trace:
-        if (log.isTraceEnabled()) {
-          log.trace(exception.getLocalizedMessage(), exception);
+        if (LOG.isTraceEnabled()) {
+          LOG.trace(exception.getLocalizedMessage(), exception);
         }
         break;
       case Debug:
-        if (log.isTraceEnabled()) {
-          log.trace(exception.getLocalizedMessage(), exception);
+        if (LOG.isTraceEnabled()) {
+          LOG.trace(exception.getLocalizedMessage(), exception);
         }
         break;
       case Info:
-        if (log.isTraceEnabled()) {
-          log.trace(exception.getLocalizedMessage(), exception);
+        if (LOG.isTraceEnabled()) {
+          LOG.trace(exception.getLocalizedMessage(), exception);
         }
         break;
       case Warning:
-        log.warn(exception.getLocalizedMessage(), exception);
+        LOG.warn(exception.getLocalizedMessage(), exception);
         break;
       case Error:
-        log.warn(exception.getLocalizedMessage(), exception);
+        LOG.warn(exception.getLocalizedMessage(), exception);
         break;
       case Fatal:
-        log.error(exception.getLocalizedMessage(), exception);
+        LOG.error(exception.getLocalizedMessage(), exception);
         break;
       default:
         throw new IllegalArgumentException("unsupported log level " + level);

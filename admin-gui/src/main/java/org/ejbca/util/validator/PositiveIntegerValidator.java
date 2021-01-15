@@ -21,7 +21,7 @@ import org.cesecore.util.ui.PropertyValidationException;
 
 /**
  * Validator which will validate an integer to greater or equal to 0, mirrors
- * {@link org.cesecore.util.ui.PositiveIntegerValidator}
+ * {@link org.cesecore.util.ui.PositiveIntegerValidator}.
  *
  * @version $Id: PositiveIntegerValidator.java 24967 2017-01-03 09:18:28Z
  *     mikekushner $

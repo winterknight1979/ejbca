@@ -30,11 +30,14 @@ public class SelectItemComparator
     implements Comparator<SelectItem>, Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log =
+  /** Loffer. */
+  private static final Logger LOG =
       Logger.getLogger(SelectItemComparator.class);
 
+  /** Param. */
   private final Set<Object> specialObjects;
 
+  /** Construct. */
   public SelectItemComparator() {
     this(new Object[0]);
   }
@@ -42,18 +45,18 @@ public class SelectItemComparator
   /**
    * specialObjects will be placed first. Typically these will be IDs
    *
-   * @param specialObjects Objects
+   * @param thespecialObjects Objects
    */
-  public SelectItemComparator(final Object... specialObjects) {
-    this.specialObjects = new HashSet<>(Arrays.asList(specialObjects));
+  public SelectItemComparator(final Object... thespecialObjects) {
+    this.specialObjects = new HashSet<>(Arrays.asList(thespecialObjects));
   }
 
   @Override
   public int compare(final SelectItem o1, final SelectItem o2) {
     final boolean special1 = specialObjects.contains(o1.getValue());
     final boolean special2 = specialObjects.contains(o2.getValue());
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "compare("
               + o1.getLabel()
               + ","

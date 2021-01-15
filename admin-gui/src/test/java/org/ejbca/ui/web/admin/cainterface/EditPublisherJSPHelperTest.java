@@ -24,7 +24,7 @@ import org.ejbca.core.model.ca.publisher.PublisherExistsException;
 import org.junit.Test;
 
 /**
- * Test for EditPublisherJSPHelper
+ * Test for EditPublisherJSPHelper.
  *
  * @see EditPublisherJSPHelper
  * @version $Id: EditPublisherJSPHelperTest.java 29652 2018-08-15 12:05:16Z
@@ -32,8 +32,11 @@ import org.junit.Test;
  */
 public class EditPublisherJSPHelperTest {
 
-  EditPublisherJSPHelper helper = new EditPublisherJSPHelper();
-
+    /** Param. */
+  private EditPublisherJSPHelper helper = new EditPublisherJSPHelper();
+  /**
+   * @throws Exception Fail
+   */
   @Test
   public void convertMultiPublishersStringToData() throws Exception {
     String input = "Apple\nOrange\n\nKiwi\nBanan\nAvocado";
@@ -51,7 +54,9 @@ public class EditPublisherJSPHelperTest {
         Integer.valueOf(2),
         result.get(1).first());
   }
-
+  /**
+   * @throws Exception Fail
+   */
   @Test(expected = PublisherDoesntExistsException.class)
   public void convertMultiPublishersStringToDataNotExistinPublisher()
       throws Exception {
@@ -60,7 +65,9 @@ public class EditPublisherJSPHelperTest {
     List<TreeSet<Integer>> result =
         helper.convertMultiPublishersStringToData(getNameToIdMap(), input);
   }
-
+  /**
+   * @throws Exception Fail
+   */
   @Test(expected = PublisherExistsException.class)
   public void convertMultiPublishersStringToDataDoublicatePublisher()
       throws Exception {
@@ -69,7 +76,9 @@ public class EditPublisherJSPHelperTest {
     List<TreeSet<Integer>> result =
         helper.convertMultiPublishersStringToData(getNameToIdMap(), input);
   }
-
+  /**
+   * @throws Exception Fail
+   */
   @Test
   public void convertMultiPublishersStringToDataNewLinesAndSpaces()
       throws Exception {
@@ -88,7 +97,9 @@ public class EditPublisherJSPHelperTest {
         Integer.valueOf(2),
         result.get(1).first());
   }
-
+  /**
+   * @throws Exception Fail
+   */
   @Test
   public void convertMultiPublishersDataToString() throws Exception {
     ArrayList<TreeSet<Integer>> data = new ArrayList<>();
@@ -108,6 +119,9 @@ public class EditPublisherJSPHelperTest {
     assertEquals("Should return multi publishers string", expected, result);
   }
 
+  /**
+   * @throws Exception Fail
+   */
   @Test
   public void convertMultiPublishersDataToStringNameMissing() throws Exception {
     ArrayList<TreeSet<Integer>> data = new ArrayList<>();

@@ -31,12 +31,12 @@ import org.cesecore.internal.InternalResources;
  */
 public class MinSmallerThanMaxValidator implements Validator {
 
-  /** Internal localization of logs and errors */
-  private static final InternalResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalResources INTRES =
       InternalResources.getInstance();
 
   /** Class logger. */
-  private static final Logger log =
+  private static final Logger LOG =
       Logger.getLogger(MinSmallerThanMaxValidator.class);
 
   @Override
@@ -54,10 +54,10 @@ public class MinSmallerThanMaxValidator implements Validator {
         && minValue.compareTo(new BigInteger(maxInput)) == 1) {
       final String field = (String) component.getAttributes().get("fieldName");
       final String message =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "validator.error.minimum_bigger", field, minValue, maxInput);
-      if (log.isDebugEnabled()) {
-        log.debug(message);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(message);
       }
       throw new ValidatorException(
           new FacesMessage(FacesMessage.SEVERITY_ERROR, message, message));

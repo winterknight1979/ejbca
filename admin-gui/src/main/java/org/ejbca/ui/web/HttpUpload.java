@@ -38,7 +38,11 @@ import org.apache.commons.lang.ArrayUtils;
  */
 public class HttpUpload {
 
+    /**
+     * Param.
+     */
   private final ParameterMap parameterMap;
+  /** Param. */
   private final Map<String, byte[]> fileMap;
 
   /**
@@ -119,10 +123,16 @@ public class HttpUpload {
     }
   }
 
+  /**
+   * @return Map
+   */
   public ParameterMap getParameterMap() {
     return parameterMap;
   }
 
+  /**
+   * @return Map
+   */
   public Map<String, byte[]> getFileMap() {
     return fileMap;
   }

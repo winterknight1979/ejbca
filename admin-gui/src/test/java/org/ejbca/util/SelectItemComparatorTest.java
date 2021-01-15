@@ -23,7 +23,7 @@ import org.apache.log4j.Logger;
 import org.junit.Test;
 
 /**
- * Test for SelectItemComparator
+ * Test for SelectItemComparator.
  *
  * @see SelectItemComparator
  * @version $Id: SelectItemComparatorTest.java 29652 2018-08-15 12:05:16Z anatom
@@ -31,12 +31,14 @@ import org.junit.Test;
  */
 public class SelectItemComparatorTest {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(SelectItemComparatorTest.class);
 
+  /** Test. */
   @Test
   public void testBasic() {
-    log.debug(">testBasic");
+    LOG.debug(">testBasic");
     List<SelectItem> items = new ArrayList<>();
     items.add(new SelectItem(10, "A"));
     items.add(new SelectItem(5));
@@ -45,15 +47,16 @@ public class SelectItemComparatorTest {
     items.add(new SelectItem(null, "B"));
     Collections.sort(items, new SelectItemComparator());
     final Object[] values = valuesToArray(items);
-    log.debug("After sorting: " + Arrays.toString(values));
+    LOG.debug("After sorting: " + Arrays.toString(values));
     assertArrayEquals(
         "Wrong order of items.", new Object[] {8, 7, 5, 10, null}, values);
-    log.debug("<testBasic");
+    LOG.debug("<testBasic");
   }
 
+  /** Test. */
   @Test
   public void testWithSpecialItems() {
-    log.debug(">testWithSpecialItems");
+    LOG.debug(">testWithSpecialItems");
     List<SelectItem> items = new ArrayList<>();
     items.add(new SelectItem(10, "A"));
     items.add(new SelectItem(5));
@@ -62,10 +65,10 @@ public class SelectItemComparatorTest {
     items.add(new SelectItem(null, "B"));
     Collections.sort(items, new SelectItemComparator(7, null));
     final Object[] values = valuesToArray(items);
-    log.debug("After sorting: " + Arrays.toString(values));
+    LOG.debug("After sorting: " + Arrays.toString(values));
     assertArrayEquals(
         "Wrong order of items.", new Object[] {7, null, 8, 5, 10}, values);
-    log.debug("<testWithSpecialItems");
+    LOG.debug("<testWithSpecialItems");
   }
 
   private Object[] valuesToArray(final List<SelectItem> items) {

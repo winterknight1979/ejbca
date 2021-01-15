@@ -37,7 +37,9 @@ import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
  */
 public class ValidityDateValidator implements Validator {
 
-  private static final Logger log =
+    /** Param.
+     */
+  private static final Logger LOG =
       Logger.getLogger(ValidityDateValidator.class);
 
   @Override
@@ -94,8 +96,8 @@ public class ValidityDateValidator implements Validator {
       }
     }
     if (failed) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Validating component "
                 + component.getClientId(facesContext)
                 + " with value \""
@@ -109,8 +111,8 @@ public class ValidityDateValidator implements Validator {
       throw new ValidatorException(
           new FacesMessage(FacesMessage.SEVERITY_ERROR, message, null));
     } else {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Validating component "
                 + component.getClientId(facesContext)
                 + " with value \""
