@@ -17,56 +17,63 @@ import java.util.Enumeration;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
-
 import javax.faces.context.FacesContext;
 
 /**
- * Special handling for our resource bundles, so we can store messages keys as UTF-8.
- * 
- * @version $Id: Utf8ResourceBundleMessages.java 23044 2016-03-22 09:28:11Z samuellb $
+ * Special handling for our resource bundles, so we can store messages keys as
+ * UTF-8.
+ *
+ * @version $Id: Utf8ResourceBundleMessages.java 23044 2016-03-22 09:28:11Z
+ *     samuellb $
  */
 public class Utf8ResourceBundleMessages extends ResourceBundle {
 
-    private final static String RESOURCE_BUNDLE_BASENAME = "Messages";
-    private final ResourceBundle fallBackResourceBundle;
-    
-	public Utf8ResourceBundleMessages() {
-	    final Locale currentLocale = FacesContext.getCurrentInstance().getViewRoot().getLocale();
-        final Locale defaultLocale = FacesContext.getCurrentInstance().getApplication().getDefaultLocale();
-        super.setParent(ResourceBundle.getBundle(RESOURCE_BUNDLE_BASENAME, currentLocale));
-	    if (currentLocale.equals(defaultLocale)) {
-	        fallBackResourceBundle = null;
-	    } else {
-	        fallBackResourceBundle = ResourceBundle.getBundle(RESOURCE_BUNDLE_BASENAME, defaultLocale);
-	    }
-    }
+  private static final String RESOURCE_BUNDLE_BASENAME = "Messages";
+  private final ResourceBundle fallBackResourceBundle;
 
-    @Override
-    protected Object handleGetObject(String key) {
-        Object value;
-        try {
-            value = parent.getObject(key);
-        } catch (MissingResourceException e) {
-            if (fallBackResourceBundle==null) {
-                throw e;
-            }
-            value = fallBackResourceBundle.getObject(key);
-        }
-        if (value instanceof String) {
-        	/*
-        	 *  The resource String is actually stored as UTF-8, but the PropertyResourceBundle has read it using
-        	 *  ISO_8859_1, so we need to reinterpret it with the correct encoding.
-        	 */
-            return new String(((String)value).getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8);
-        }
-        return value;
+  public Utf8ResourceBundleMessages() {
+    final Locale currentLocale =
+        FacesContext.getCurrentInstance().getViewRoot().getLocale();
+    final Locale defaultLocale =
+        FacesContext.getCurrentInstance().getApplication().getDefaultLocale();
+    super.setParent(
+        ResourceBundle.getBundle(RESOURCE_BUNDLE_BASENAME, currentLocale));
+    if (currentLocale.equals(defaultLocale)) {
+      fallBackResourceBundle = null;
+    } else {
+      fallBackResourceBundle =
+          ResourceBundle.getBundle(RESOURCE_BUNDLE_BASENAME, defaultLocale);
     }
+  }
 
-    @Override
-    public Enumeration<String> getKeys() {
-        if (fallBackResourceBundle==null) {
-            return parent.getKeys();
-        }
-        return fallBackResourceBundle.getKeys();
+  @Override
+  protected Object handleGetObject(final String key) {
+    Object value;
+    try {
+      value = parent.getObject(key);
+    } catch (MissingResourceException e) {
+      if (fallBackResourceBundle == null) {
+        throw e;
+      }
+      value = fallBackResourceBundle.getObject(key);
     }
+    if (value instanceof String) {
+      /*
+       *  The resource String is actually stored as UTF-8, but the PropertyResourceBundle has read it using
+       *  ISO_8859_1, so we need to reinterpret it with the correct encoding.
+       */
+      return new String(
+          ((String) value).getBytes(StandardCharsets.ISO_8859_1),
+          StandardCharsets.UTF_8);
+    }
+    return value;
+  }
+
+  @Override
+  public Enumeration<String> getKeys() {
+    if (fallBackResourceBundle == null) {
+      return parent.getKeys();
+    }
+    return fallBackResourceBundle.getKeys();
+  }
 }

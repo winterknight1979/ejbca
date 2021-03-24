@@ -20,31 +20,37 @@ import javax.faces.convert.FacesConverter;
 import org.cesecore.util.ui.MultiLineString;
 
 /**
- * When using dynamic properties, JSF can't handle String conversions for some strange reason. This converter takes care of that. 
- * 
- * @version $Id: StringConverter.java 26057 2017-06-22 08:08:34Z anatom $
+ * When using dynamic properties, JSF can't handle String conversions for some
+ * strange reason. This converter takes care of that.
  *
+ * @version $Id: StringConverter.java 26057 2017-06-22 08:08:34Z anatom $
  */
 @FacesConverter("stringConverter")
-public class StringConverter implements Converter{
+public class StringConverter implements Converter {
 
-    @Override
-    public Object getAsObject(FacesContext context, UIComponent component, String value) {
-        if (value == null || value.isEmpty()) {
-            return null;
-        }
-        return value;
+  @Override
+  public Object getAsObject(
+      final FacesContext context,
+      final UIComponent component,
+      final String value) {
+    if (value == null || value.isEmpty()) {
+      return null;
     }
+    return value;
+  }
 
-    @Override
-    public String getAsString(FacesContext context, UIComponent component, Object value) throws ConverterException {
-        if (value == null) {
-            return "";
-        }
-        if(value instanceof MultiLineString) {
-            return ((MultiLineString) value).getValue();
-        }
-        return (String) value;
+  @Override
+  public String getAsString(
+      final FacesContext context,
+      final UIComponent component,
+      final Object value)
+      throws ConverterException {
+    if (value == null) {
+      return "";
     }
-
+    if (value instanceof MultiLineString) {
+      return ((MultiLineString) value).getValue();
+    }
+    return (String) value;
+  }
 }

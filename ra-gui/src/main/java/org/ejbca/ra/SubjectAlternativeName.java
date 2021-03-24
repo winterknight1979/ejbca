@@ -13,38 +13,39 @@
 package org.ejbca.ra;
 
 import java.util.ArrayList;
-
 import org.cesecore.certificates.util.DNFieldExtractor;
 import org.cesecore.certificates.util.DnComponents;
 import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
 
 /**
  * Contains Subject Alternative Name attributes
- * @version $Id: SubjectAlternativeName.java 24395 2016-09-21 12:58:22Z marko $
  *
+ * @version $Id: SubjectAlternativeName.java 24395 2016-09-21 12:58:22Z marko $
  */
 public class SubjectAlternativeName extends RaAbstractDn {
 
-    public SubjectAlternativeName(final EndEntityProfile endEntityProfile) {
-        super(endEntityProfile);
-    }
-    
-    public SubjectAlternativeName(final EndEntityProfile endEntityProfile, final String subjectAlternativeName) {
-        super(endEntityProfile, subjectAlternativeName);
-    }
+  public SubjectAlternativeName(final EndEntityProfile endEntityProfile) {
+    super(endEntityProfile);
+  }
 
-    @Override
-    protected int getAbstractDnFieldExtractorType() {
-        return DNFieldExtractor.TYPE_SUBJECTALTNAME;
-    }
+  public SubjectAlternativeName(
+      final EndEntityProfile endEntityProfile,
+      final String subjectAlternativeName) {
+    super(endEntityProfile, subjectAlternativeName);
+  }
 
-    @Override
-    protected ArrayList<String> getAbstractDnFields() {
-        return DnComponents.getAltNameFields();
-    }
+  @Override
+  protected int getAbstractDnFieldExtractorType() {
+    return DNFieldExtractor.TYPE_SUBJECTALTNAME;
+  }
 
-    @Override
-    protected String reorder(String dnBeforeReordering) {
-        return dnBeforeReordering; //No reordering for Subject Alternative Name
-    }
+  @Override
+  protected ArrayList<String> getAbstractDnFields() {
+    return DnComponents.getAltNameFields();
+  }
+
+  @Override
+  protected String reorder(final String dnBeforeReordering) {
+    return dnBeforeReordering; // No reordering for Subject Alternative Name
+  }
 }

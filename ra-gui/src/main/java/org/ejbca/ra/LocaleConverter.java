@@ -20,28 +20,33 @@ import javax.faces.convert.Converter;
 import javax.faces.convert.FacesConverter;
 
 /**
- * Used in preferences section of RA GUI to convert selected locale and make it digestible by Preferences.xhtml and vice versa.
+ * Used in preferences section of RA GUI to convert selected locale and make it
+ * digestible by Preferences.xhtml and vice versa.
  *
  * @version $Id: LocaleConverter.java 26958 2017-10-31 14:36:52Z aminkh $
- *
  */
 @FacesConverter("localeConverter")
 public class LocaleConverter implements Converter {
 
-    @Override
-    public Object getAsObject(FacesContext context, UIComponent component, String value) {
+  @Override
+  public Object getAsObject(
+      final FacesContext context,
+      final UIComponent component,
+      final String value) {
 
-        if (value == null || value.isEmpty()) {
-            return null;
-        }
-        return Locale.forLanguageTag(value.replace("_", "-"));
+    if (value == null || value.isEmpty()) {
+      return null;
     }
+    return Locale.forLanguageTag(value.replace("_", "-"));
+  }
 
-    @Override
-    public String getAsString(FacesContext context, UIComponent component, Object value) {
+  @Override
+  public String getAsString(
+      final FacesContext context,
+      final UIComponent component,
+      final Object value) {
 
-        Locale locale = (Locale) value;
-        return locale.toString();
-    }
-
+    Locale locale = (Locale) value;
+    return locale.toString();
+  }
 }

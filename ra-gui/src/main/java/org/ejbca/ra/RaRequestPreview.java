@@ -14,205 +14,201 @@ package org.ejbca.ra;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.commons.lang.StringUtils;
 import org.cesecore.certificates.ca.CAInfo;
 import org.cesecore.certificates.certificateprofile.CertificateProfile;
 
-/** 
+/**
  * UI representation of a certificate preview to be confirmed before enrollment.
- * 
- * @version $Id: RaRequestPreview.java 28560 2018-03-27 12:39:10Z jekaterina_b_helmes $
+ *
+ * @version $Id: RaRequestPreview.java 28560 2018-03-27 12:39:10Z
+ *     jekaterina_b_helmes $
  */
 public class RaRequestPreview {
-    
-    //private static final Logger log = Logger.getLogger(RaRequestPreview.class);
-    private String issuerDn = "";
-    private String subjectDn = "";
-    private String publicKeyAlgorithm = "";
-    private String subjectAlternativeName = "";
-    private String subjectDirectoryAttributes = "";
-    private String validity = "";
-    private List<String> keyUsages = new ArrayList<>();
-    private List<String> extendedKeyUsages = new ArrayList<>();
 
-    private boolean more = false;
-    private int styleRowCallCounter = 0;
-    
+  // private static final Logger log = Logger.getLogger(RaRequestPreview.class);
+  private String issuerDn = "";
+  private String subjectDn = "";
+  private String publicKeyAlgorithm = "";
+  private String subjectAlternativeName = "";
+  private String subjectDirectoryAttributes = "";
+  private String validity = "";
+  private List<String> keyUsages = new ArrayList<>();
+  private List<String> extendedKeyUsages = new ArrayList<>();
 
-    public RaRequestPreview(){
-    }
-    
-    public final void updateCertificateProfile(CertificateProfile certificateProfile){
-        if(certificateProfile == null){
-            return;
-        }
-        validity = certificateProfile.getEncodedValidity();
-        keyUsages.clear();
-        final boolean[] keyUsageArray = certificateProfile.getKeyUsage();
-        for (int i=0; i<keyUsageArray.length; i++) {
-            if (keyUsageArray[i]) {
-                keyUsages.add(String.valueOf(i));
-            }
-        }
-        extendedKeyUsages.clear();
-        final List<String> extendedKeyUsages = certificateProfile.getExtendedKeyUsageOids();
-        if (extendedKeyUsages != null) {
-            this.extendedKeyUsages.addAll(extendedKeyUsages);
-        }
-    }
-    
-    public final void updateCA(CAInfo caInfo){
-        if(caInfo == null){
-            return;
-        }
-        issuerDn = caInfo.getSubjectDN();
-    }
-    
-    public final void updateSubjectDn(SubjectDn subjectDn){
-        if(subjectDn == null){
-            return;
-        }
-        this.subjectDn = subjectDn.getUpdatedValue();
-    }
-    
-    public final void updateSubjectAlternativeName(SubjectAlternativeName subjectAlternativeName){
-        if(subjectAlternativeName == null){
-            return;
-        }
-        this.subjectAlternativeName = subjectAlternativeName.getUpdatedValue();
-    }
-    
-    public final void updateSubjectDirectoryAttributes(SubjectDirectoryAttributes subjectDirectoryAttributes){
-        if(subjectDirectoryAttributes == null){
-            return;
-        }
-        this.subjectDirectoryAttributes = subjectDirectoryAttributes.getUpdatedValue();
-    }
+  private boolean more = false;
+  private int styleRowCallCounter = 0;
 
-    /** @return true if more details should be shown */
-    public final boolean isMore() {
-        return more;
-    }
+  public RaRequestPreview() {}
 
-    public final void setMore(boolean more) {
-        this.more = more;
-        styleRowCallCounter = 0; // Reset
+  public final void updateCertificateProfile(
+      final CertificateProfile certificateProfile) {
+    if (certificateProfile == null) {
+      return;
     }
+    validity = certificateProfile.getEncodedValidity();
+    keyUsages.clear();
+    final boolean[] keyUsageArray = certificateProfile.getKeyUsage();
+    for (int i = 0; i < keyUsageArray.length; i++) {
+      if (keyUsageArray[i]) {
+        keyUsages.add(String.valueOf(i));
+      }
+    }
+    extendedKeyUsages.clear();
+    final List<String> extendedKeyUsages =
+        certificateProfile.getExtendedKeyUsageOids();
+    if (extendedKeyUsages != null) {
+      this.extendedKeyUsages.addAll(extendedKeyUsages);
+    }
+  }
 
-    /** @return true every twice starting with every forth call */
-    public final boolean isEven() {
-        styleRowCallCounter++;
-        return (styleRowCallCounter+1) / 2 % 2 == 0;
+  public final void updateCA(final CAInfo caInfo) {
+    if (caInfo == null) {
+      return;
     }
+    issuerDn = caInfo.getSubjectDN();
+  }
 
-    public final String getSubjectDn() {
-        return subjectDn;
+  public final void updateSubjectDn(final SubjectDn subjectDn) {
+    if (subjectDn == null) {
+      return;
     }
+    this.subjectDn = subjectDn.getUpdatedValue();
+  }
 
-    /**
-     * @param value String to enescape
-     * @return value in unescaped RDN format
-     */
-    public final String getUnescapedRdnValue(final String value){
-        if (StringUtils.isNotEmpty(value)) {
-            return org.ietf.ldap.LDAPDN.unescapeRDN(value);
-        } else {
-            return value;
-        }
+  public final void updateSubjectAlternativeName(
+      final SubjectAlternativeName subjectAlternativeName) {
+    if (subjectAlternativeName == null) {
+      return;
     }
+    this.subjectAlternativeName = subjectAlternativeName.getUpdatedValue();
+  }
 
-    public void setSubjectDn(String subjectDn) {
-        this.subjectDn = subjectDn;
+  public final void updateSubjectDirectoryAttributes(
+      final SubjectDirectoryAttributes subjectDirectoryAttributes) {
+    if (subjectDirectoryAttributes == null) {
+      return;
     }
+    this.subjectDirectoryAttributes =
+        subjectDirectoryAttributes.getUpdatedValue();
+  }
 
-    public String getPublicKeyAlgorithm() {
-        return publicKeyAlgorithm;
-    }
+  /** @return true if more details should be shown */
+  public final boolean isMore() {
+    return more;
+  }
 
-    public void setPublicKeyAlgorithm(String publicKeyAlgorithm) {
-        this.publicKeyAlgorithm = publicKeyAlgorithm;
-    }
+  public final void setMore(final boolean more) {
+    this.more = more;
+    styleRowCallCounter = 0; // Reset
+  }
 
-    public String getSubjectAlternativeName() {
-        return subjectAlternativeName;
-    }
+  /** @return true every twice starting with every forth call */
+  public final boolean isEven() {
+    styleRowCallCounter++;
+    return (styleRowCallCounter + 1) / 2 % 2 == 0;
+  }
 
-    public void setSubjectAlternativeName(String subjectAlternativeName) {
-        this.subjectAlternativeName = subjectAlternativeName;
-    }
+  public final String getSubjectDn() {
+    return subjectDn;
+  }
 
-    public String getSubjectDirectoryAttributes() {
-        return subjectDirectoryAttributes;
+  /**
+   * @param value String to enescape
+   * @return value in unescaped RDN format
+   */
+  public final String getUnescapedRdnValue(final String value) {
+    if (StringUtils.isNotEmpty(value)) {
+      return org.ietf.ldap.LDAPDN.unescapeRDN(value);
+    } else {
+      return value;
     }
+  }
 
-    public void setSubjectDirectoryAttributes(String subjectDirectoryAttributes) {
-        this.subjectDirectoryAttributes = subjectDirectoryAttributes;
-    }
+  public void setSubjectDn(final String subjectDn) {
+    this.subjectDn = subjectDn;
+  }
 
-    public int getStyleRowCallCounter() {
-        return styleRowCallCounter;
-    }
+  public String getPublicKeyAlgorithm() {
+    return publicKeyAlgorithm;
+  }
 
-    public void setStyleRowCallCounter(int styleRowCallCounter) {
-        this.styleRowCallCounter = styleRowCallCounter;
-    }
+  public void setPublicKeyAlgorithm(final String publicKeyAlgorithm) {
+    this.publicKeyAlgorithm = publicKeyAlgorithm;
+  }
 
-    public boolean isSubjectDirectoryAttributesUsed() {
-        return !subjectDirectoryAttributes.isEmpty() && isMore();
-    }
+  public String getSubjectAlternativeName() {
+    return subjectAlternativeName;
+  }
 
-    public boolean isSubjectAlternativeNameUsed() {
-        return !subjectAlternativeName.isEmpty();
-    }
+  public void setSubjectAlternativeName(final String subjectAlternativeName) {
+    this.subjectAlternativeName = subjectAlternativeName;
+  }
 
-    public boolean isAnyRequestDataPresent() {
-        return !subjectDn.isEmpty() || !subjectAlternativeName.isEmpty() || !subjectDirectoryAttributes.isEmpty();
-    }
+  public String getSubjectDirectoryAttributes() {
+    return subjectDirectoryAttributes;
+  }
 
-    /**
-     * @return the issuerDn
-     */
-    public String getIssuerDn() {
-        return issuerDn;
-    }
+  public void setSubjectDirectoryAttributes(
+      final String subjectDirectoryAttributes) {
+    this.subjectDirectoryAttributes = subjectDirectoryAttributes;
+  }
 
-    /**
-     * @param issuerDn the issuerDn to set
-     */
-    public void setIssuerDn(String issuerDn) {
-        this.issuerDn = issuerDn;
-    }
+  public int getStyleRowCallCounter() {
+    return styleRowCallCounter;
+  }
 
-    /**
-     * @return the validity
-     */
-    public String getValidity() {
-        return validity;
-    }
+  public void setStyleRowCallCounter(final int styleRowCallCounter) {
+    this.styleRowCallCounter = styleRowCallCounter;
+  }
 
-    /**
-     * @param validity the validity to set
-     */
-    public void setValidity(String validity) {
-        this.validity = validity;
-    }
+  public boolean isSubjectDirectoryAttributesUsed() {
+    return !subjectDirectoryAttributes.isEmpty() && isMore();
+  }
 
-    public List<String> getKeyUsages() {
-        return keyUsages;
-    }
+  public boolean isSubjectAlternativeNameUsed() {
+    return !subjectAlternativeName.isEmpty();
+  }
 
-    public void setKeyUsages(List<String> keyUsages) {
-        this.keyUsages = keyUsages;
-    }
+  public boolean isAnyRequestDataPresent() {
+    return !subjectDn.isEmpty()
+        || !subjectAlternativeName.isEmpty()
+        || !subjectDirectoryAttributes.isEmpty();
+  }
 
-    public List<String> getExtendedKeyUsages() {
-        return extendedKeyUsages;
-    }
+  /** @return the issuerDn */
+  public String getIssuerDn() {
+    return issuerDn;
+  }
 
-    public void setExtendedKeyUsages(List<String> extendedKeyUsages) {
-        this.extendedKeyUsages = extendedKeyUsages;
-    }
-    
-    
+  /** @param issuerDn the issuerDn to set */
+  public void setIssuerDn(final String issuerDn) {
+    this.issuerDn = issuerDn;
+  }
+
+  /** @return the validity */
+  public String getValidity() {
+    return validity;
+  }
+
+  /** @param validity the validity to set */
+  public void setValidity(final String validity) {
+    this.validity = validity;
+  }
+
+  public List<String> getKeyUsages() {
+    return keyUsages;
+  }
+
+  public void setKeyUsages(final List<String> keyUsages) {
+    this.keyUsages = keyUsages;
+  }
+
+  public List<String> getExtendedKeyUsages() {
+    return extendedKeyUsages;
+  }
+
+  public void setExtendedKeyUsages(final List<String> extendedKeyUsages) {
+    this.extendedKeyUsages = extendedKeyUsages;
+  }
 }
