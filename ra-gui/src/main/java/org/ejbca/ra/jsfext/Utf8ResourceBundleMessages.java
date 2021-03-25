@@ -28,9 +28,12 @@ import javax.faces.context.FacesContext;
  */
 public class Utf8ResourceBundleMessages extends ResourceBundle {
 
+      /** Param. */
   private static final String RESOURCE_BUNDLE_BASENAME = "Messages";
+  /** Param. */
   private final ResourceBundle fallBackResourceBundle;
 
+  /** Constructor. */
   public Utf8ResourceBundleMessages() {
     final Locale currentLocale =
         FacesContext.getCurrentInstance().getViewRoot().getLocale();
@@ -59,7 +62,8 @@ public class Utf8ResourceBundleMessages extends ResourceBundle {
     }
     if (value instanceof String) {
       /*
-       *  The resource String is actually stored as UTF-8, but the PropertyResourceBundle has read it using
+       *  The resource String is actually stored as UTF-8, but the
+       *  PropertyResourceBundle has read it using
        *  ISO_8859_1, so we need to reinterpret it with the correct encoding.
        */
       return new String(

@@ -47,7 +47,8 @@ import org.apache.log4j.Logger;
 @FacesValidator("extendedRegexValidator")
 public class ExtendedRegexValidator extends RegexValidator {
 
-  private static final Logger log =
+    /** Log. */
+  private static final Logger LOG =
       Logger.getLogger(ExtendedRegexValidator.class);
 
   @Override
@@ -63,8 +64,8 @@ public class ExtendedRegexValidator extends RegexValidator {
             .getRequestParameterMap();
     String validationRequiredFromRequest =
         params.get("validationRequiredFromRequest");
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "validationRequiredFromRequest="
               + validationRequiredFromRequest
               + ", pattern="
@@ -77,8 +78,8 @@ public class ExtendedRegexValidator extends RegexValidator {
 
     if (validationRequiredFromRequest == null
         || validationRequiredFromRequest.equalsIgnoreCase("false")) {
-      if (log.isTraceEnabled()) {
-        log.trace(
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(
             "Ignoring extendedRegexValidator for component "
                 + component.getClientId());
       }

@@ -36,15 +36,18 @@ public final class AddRemoveListState<T extends Serializable>
 
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   private List<T> selectedInEnabledList = new ArrayList<>();
+  /** Param. */
   private List<T> selectedInAvailableList = new ArrayList<>();
 
+  /** Param. */
   private final List<SelectItem> enabledSelectItems = new ArrayList<>();
-  /** List of available items, excluding the enabled items */
+  /** List of available items, excluding the enabled items. */
   private final List<SelectItem> availableSelectItems = new ArrayList<>();
 
   /**
-   * Adds an item to be listed in the component
+   * Adds an item to be listed in the component.
    *
    * @param value Item value. Not displayed to the user, but will be visible in
    *     the HTML source code.
@@ -71,8 +74,11 @@ public final class AddRemoveListState<T extends Serializable>
     return selectedInEnabledList;
   }
 
-  public void setSelectedInEnabledList(final List<T> selectedInEnabledList) {
-    this.selectedInEnabledList = selectedInEnabledList;
+  /**
+   * @param isselectedInEnabledList List
+   */
+  public void setSelectedInEnabledList(final List<T> isselectedInEnabledList) {
+    this.selectedInEnabledList = isselectedInEnabledList;
   }
   /**
    * Internal method that returns the currently selected items in the available
@@ -84,13 +90,16 @@ public final class AddRemoveListState<T extends Serializable>
     return selectedInAvailableList;
   }
 
+  /**
+   * @param isselectedInAvailableList list
+   */
   public void setSelectedInAvailableList(
-      final List<T> selectedInAvailableList) {
-    this.selectedInAvailableList = selectedInAvailableList;
+      final List<T> isselectedInAvailableList) {
+    this.selectedInAvailableList = isselectedInAvailableList;
   }
   /**
    * Internal method that returns the items that are currently enabled, that the
-   * user can remove
+   * user can remove.
    *
    * @return List
    */
@@ -99,7 +108,7 @@ public final class AddRemoveListState<T extends Serializable>
   }
   /**
    * Internal method that returns the items that are currently available but not
-   * enabled, that the user can add
+   * enabled, that the user can add.
    *
    * @return List
    */
@@ -108,7 +117,7 @@ public final class AddRemoveListState<T extends Serializable>
   }
 
   /**
-   * Returns the enabled items
+   * Returns the enabled items.
    *
    * @return List
    */
@@ -122,7 +131,7 @@ public final class AddRemoveListState<T extends Serializable>
   }
 
   /**
-   * Returns the enabled items
+   * Returns the enabled items.
    *
    * @return Map
    */
@@ -138,11 +147,11 @@ public final class AddRemoveListState<T extends Serializable>
     return state;
   }
 
-  /** Internal method that's called when the user clicks the "Add" button */
+  /** Internal method that's called when the user clicks the "Add" button. */
   public void add() {
     for (final T selected : selectedInAvailableList) {
       for (final Iterator<SelectItem> iter = availableSelectItems.iterator();
-          iter.hasNext(); ) {
+          iter.hasNext();) {
         final SelectItem availableItem = iter.next();
         if (availableItem.getValue().equals(selected)) {
           iter.remove();
@@ -153,11 +162,11 @@ public final class AddRemoveListState<T extends Serializable>
     selectedInAvailableList.clear();
   }
 
-  /** Internal method that's called when the user clicks the "Remove" button */
+  /** Internal method that's called when the user clicks the "Remove" button. */
   public void remove() {
     for (final T selected : selectedInEnabledList) {
       for (final Iterator<SelectItem> iter = enabledSelectItems.iterator();
-          iter.hasNext(); ) {
+          iter.hasNext();) {
         final SelectItem enabledItem = iter.next();
         if (enabledItem.getValue().equals(selected)) {
           iter.remove();
@@ -168,7 +177,8 @@ public final class AddRemoveListState<T extends Serializable>
     selectedInEnabledList.clear();
   }
 
-  /** Internal method that's called when the user clicks the "Add all" button */
+  /** Internal method that's called when the user clicks the "Add all"
+   *  button. */
   public void addAll() {
     enabledSelectItems.addAll(availableSelectItems);
     selectedInAvailableList.clear();
@@ -176,7 +186,8 @@ public final class AddRemoveListState<T extends Serializable>
   }
 
   /**
-   * Internal method that's called when the user clicks the "Remove all" button
+   * Internal method that's called when the user clicks the
+   * "Remove all" button.
    */
   public void removeAll() {
     availableSelectItems.addAll(enabledSelectItems);

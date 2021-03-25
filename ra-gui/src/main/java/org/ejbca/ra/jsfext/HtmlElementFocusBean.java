@@ -21,14 +21,23 @@ import javax.faces.bean.RequestScoped;
 @RequestScoped
 public class HtmlElementFocusBean {
 
+    /**
+     * Param.
+     */
   private boolean requestPreviewMoreDetails = false;
 
+  /**
+   * @return Bool
+   */
   public boolean isRequestPreviewMoreDetails() {
     return requestPreviewMoreDetails;
   }
 
+  /**
+   * @param arequestPreviewMoreDetails bool
+   */
   public void setRequestPreviewMoreDetails(
-      final boolean requestPreviewMoreDetails) {
-    this.requestPreviewMoreDetails = requestPreviewMoreDetails;
+      final boolean arequestPreviewMoreDetails) {
+    this.requestPreviewMoreDetails = arequestPreviewMoreDetails;
   }
 }

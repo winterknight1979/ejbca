@@ -72,17 +72,18 @@ import org.apache.log4j.Logger;
     })
 public class RequestControlFilter implements Filter {
 
-  private static final Logger log =
+    /** Param. */
+  private static final Logger LOG =
       Logger.getLogger(RequestControlFilter.class);
 
   /**
-   * Initialize this filter by reading its configuration parameters
+   * Initialize this filter by reading its configuration parameters.
    *
    * @param config Configuration from web.xml file
    */
   @Override
   public void init(final FilterConfig config) throws ServletException {
-    log.debug("RequestControlFilter: init");
+    LOG.debug("RequestControlFilter: init");
     // parse all of the initialization parameters, collecting the exclude
     // patterns and the max wait parameters
     excludePatterns = new LinkedList<Pattern>();
@@ -94,8 +95,8 @@ public class RequestControlFilter implements Filter {
       if (paramName.startsWith("excludePattern")) {
         // compile the pattern only this once
         Pattern excludePattern = Pattern.compile(paramValue);
-        if (log.isDebugEnabled()) {
-          log.debug("Adding excludePattern: " + paramValue);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Adding excludePattern: " + paramValue);
         }
         excludePatterns.add(excludePattern);
       } else if (paramName.startsWith("maxWaitMilliseconds.")) {
@@ -112,8 +113,8 @@ public class RequestControlFilter implements Filter {
         // the map
         Pattern waitPattern = Pattern.compile(paramValue);
         maxWaitDurations.put(waitPattern, duration);
-        if (log.isDebugEnabled()) {
-          log.debug("Adding maxWaitDurations: " + paramValue);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Adding maxWaitDurations: " + paramValue);
         }
       }
     }
@@ -141,16 +142,16 @@ public class RequestControlFilter implements Filter {
 
     // if this request is excluded from the filter, then just process it
     if (!isFilteredRequest(httpRequest)) {
-      if (log.isTraceEnabled()) {
-        log.trace(
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(
             "URL matches excludePattern, not filtering: "
                 + httpRequest.getRequestURI());
       }
       chain.doFilter(request, response);
       return;
     }
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "URL not excluded, will filter: " + httpRequest.getRequestURI());
     }
 
@@ -158,13 +159,13 @@ public class RequestControlFilter implements Filter {
       // if another request is being processed, then wait
       if (isRequestInProcess(session)) {
         // Put this request in the queue and wait
-        if (log.isTraceEnabled()) {
-          log.trace("Put this request in the queue and wait: " + httpRequest);
+        if (LOG.isTraceEnabled()) {
+          LOG.trace("Put this request in the queue and wait: " + httpRequest);
         }
         enqueueRequest(httpRequest);
         if (!waitForRelease(httpRequest)) {
-          if (log.isTraceEnabled()) {
-            log.trace(
+          if (LOG.isTraceEnabled()) {
+            LOG.trace(
                 "this request was replaced in the queue by another request, so"
                     + " it need not be processed");
           }
@@ -189,7 +190,7 @@ public class RequestControlFilter implements Filter {
   }
 
   /**
-   * Get a synchronization object for this session
+   * Get a synchronization object for this session.
    *
    * @param session sessiom
    * @return Object
@@ -288,7 +289,7 @@ public class RequestControlFilter implements Filter {
   }
 
   /**
-   * What is the maximum wait time (in milliseconds) for this request
+   * What is the maximum wait time (in milliseconds) for this request.
    *
    * @param request req
    * @return Maximum number of milliseconds to hold this request in the queue
@@ -330,26 +331,26 @@ public class RequestControlFilter implements Filter {
     return true;
   }
 
-  /** A list of Pattern objects that match paths to exclude */
+  /** A list of Pattern objects that match paths to exclude. */
   private LinkedList<Pattern> excludePatterns;
 
-  /** A map from Pattern to max wait duration (Long objects) */
+  /** A map from Pattern to max wait duration (Long objects). */
   private HashMap<Pattern, Long> maxWaitDurations;
 
-  /** The session attribute key for the request currently being processed */
+  /** The session attribute key for the request currently being processed. */
   private static final String REQUEST_IN_PROCESS =
       "RequestControlFilter.requestInProcess";
 
   /**
-   * The session attribute key for the request currently waiting in the queue
+   * The session attribute key for the request currently waiting in the queue.
    */
   private static final String REQUEST_QUEUE =
       "RequestControlFilter.requestQueue";
 
-  /** The session attribute key for the synchronization object */
+  /** The session attribute key for the synchronization object. */
   private static final String SYNC_OBJECT_KEY =
       "RequestControlFilter.sessionSync";
 
-  /** The default maximum number of milliseconds to wait for a request */
+  /** The default maximum number of milliseconds to wait for a request. */
   private static final long DEFAULT_DURATION = 30000;
 }

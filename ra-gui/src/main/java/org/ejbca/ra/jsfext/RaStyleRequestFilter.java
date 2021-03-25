@@ -54,15 +54,21 @@ import org.ejbca.ra.RaAuthenticationHelper;
  * @version $Id: RaStyleRequestFilter.java 26914 2017-10-27 10:10:32Z henriks $
  */
 public class RaStyleRequestFilter implements Filter {
-  private final String RA_LOGO_PATH = "/ejbca/ra/img/pk_logo.png";
-  private static Logger log = Logger.getLogger(RaStyleRequestFilter.class);
+      /** Param. */
+  private static final String RA_LOGO_PATH = "/ejbca/ra/img/pk_logo.png";
+  /** Param. */
+  private static final Logger LOG = 
+		  Logger.getLogger(RaStyleRequestFilter.class);
 
+  /** Param. */
   @EJB private AdminPreferenceSessionLocal adminPreferenceSessionLocal;
 
+  /** Param. */
   @EJB
   private WebAuthenticationProviderSessionLocal
       webAuthenticationProviderSession;
 
+  /** Param. */
   private RaAuthenticationHelper raAuthenticationHelper = null;
 
   @Override
@@ -72,8 +78,8 @@ public class RaStyleRequestFilter implements Filter {
 
   @Override
   public void init(final FilterConfig arg0) throws ServletException {
-    if (log.isDebugEnabled()) {
-      log.debug(this.getClass().getName() + " initialized");
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(this.getClass().getName() + " initialized");
     }
   }
 
@@ -179,6 +185,7 @@ public class RaStyleRequestFilter implements Filter {
   }
 
   private class ResponseOutputStream extends ServletOutputStream {
+      /** Param. */
     private final ByteArrayOutputStream outStream = new ByteArrayOutputStream();
 
     @Override
@@ -199,10 +206,13 @@ public class RaStyleRequestFilter implements Filter {
   }
 
   private class ResponseWrapper extends HttpServletResponseWrapper {
+      /** Param. */
     private final CharArrayWriter writer;
+
+    /** Param. */
     private final ResponseOutputStream imageOutputStream;
 
-    public ResponseWrapper(final HttpServletResponse response) {
+    ResponseWrapper(final HttpServletResponse response) {
       super(response);
       writer = new CharArrayWriter();
       imageOutputStream = new ResponseOutputStream();

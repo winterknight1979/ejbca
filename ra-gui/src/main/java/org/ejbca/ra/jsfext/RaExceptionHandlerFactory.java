@@ -41,15 +41,23 @@ import org.apache.log4j.Logger;
  */
 public class RaExceptionHandlerFactory extends ExceptionHandlerFactory {
 
-  private static final Logger log = Logger.getLogger(RaExceptionHandler.class);
+      /** Param. */
+  private static final Logger LOG = Logger.getLogger(RaExceptionHandler.class);
+  /** Param. */
   public static final String REQUESTMAP_KEY = "org.ejbca.ra.jsfext.throwables";
+  /** Param. */
   private static final String ERROR_PAGE = "/error.xhtml";
 
+  /** Param. */
   private final ExceptionHandlerFactory parentExceptionHandlerFactory;
 
-  public RaExceptionHandlerFactory(ExceptionHandlerFactory parent) {
+  /**
+   * @param aparent parent
+   */
+  public RaExceptionHandlerFactory(final ExceptionHandlerFactory aparent) {
+      ExceptionHandlerFactory parent = aparent;
     while (parent instanceof RaExceptionHandlerFactory) {
-      log.warn(
+      LOG.warn(
           "Attempted to wrap a RaExceptionHandlerFactory in a"
               + " RaExceptionHandlerFactory");
       if (parent == this) {
@@ -69,10 +77,14 @@ public class RaExceptionHandlerFactory extends ExceptionHandlerFactory {
 
   /** Our custom ExceptionHandler implementation. */
   private class RaExceptionHandler extends ExceptionHandlerWrapper {
+      /** Handler. */
     private final ExceptionHandler wrappedExceptionHandler;
 
-    RaExceptionHandler(final ExceptionHandler wrappedExceptionHandler) {
-      this.wrappedExceptionHandler = wrappedExceptionHandler;
+    /**
+     * @param awrappedExceptionHandler handler
+     */
+    RaExceptionHandler(final ExceptionHandler awrappedExceptionHandler) {
+      this.wrappedExceptionHandler = awrappedExceptionHandler;
     }
 
     @Override
@@ -86,7 +98,7 @@ public class RaExceptionHandlerFactory extends ExceptionHandlerFactory {
       final List<Throwable> throwables = new ArrayList<>();
       for (final Iterator<ExceptionQueuedEvent> iterator =
               super.getUnhandledExceptionQueuedEvents().iterator();
-          iterator.hasNext(); ) {
+          iterator.hasNext();) {
         Throwable throwable = iterator.next().getContext().getException();
         // Filter away JEE Exception wrappers
         while ((throwable instanceof FacesException
@@ -95,8 +107,8 @@ public class RaExceptionHandlerFactory extends ExceptionHandlerFactory {
             && throwable.getCause() != null) {
           throwable = throwable.getCause();
         }
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Adding throwable "
                   + throwable.getClass().getSimpleName()
                   + ": "
@@ -114,7 +126,7 @@ public class RaExceptionHandlerFactory extends ExceptionHandlerFactory {
           try {
             externalContext.dispatch(ERROR_PAGE);
           } catch (final IOException e) {
-            log.error(
+            LOG.error(
                 "Unable to dispatch client to unknown error page '"
                     + ERROR_PAGE
                     + "'.",
@@ -122,8 +134,8 @@ public class RaExceptionHandlerFactory extends ExceptionHandlerFactory {
           }
           facesContext.responseComplete();
         } else {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Additional ExceptionHandler invocation during same round"
                     + " trip...");
           }
@@ -134,13 +146,13 @@ public class RaExceptionHandlerFactory extends ExceptionHandlerFactory {
               break;
             }
           }
-          for (final Throwable throwable :
-              (List<Throwable>)
+          for (final Throwable throwable
+              : (List<Throwable>)
                   externalContext.getRequestMap().get(REQUESTMAP_KEY)) {
             if (hasViewExpiredException
                 && throwable instanceof ViewExpiredException) {
-              if (log.isDebugEnabled()) {
-                log.debug("Skipping add of another ViewExpiredException.");
+              if (LOG.isDebugEnabled()) {
+                LOG.debug("Skipping add of another ViewExpiredException.");
               }
             } else {
               throwables.add(throwable);

@@ -53,31 +53,42 @@ public class EnrollWithUsernameBean extends EnrollWithRequestIdBean
     implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(EnrollWithUsernameBean.class);
 
-  public static String PARAM_USERNAME = "username";
-  public static String PARAM_ENROLLMENT_CODE = "enrollmentcode";
 
+  /** Param. */
+  public static final String PARAM_USERNAME = "username";
+  /** Param. */
+  public static final String PARAM_ENROLLMENT_CODE = "enrollmentcode";
+
+  /** Param. */
   @EJB private RaMasterApiProxyBeanLocal raMasterApiProxyBean;
 
+
+  /** Param. */
   @ManagedProperty(value = "#{raAuthenticationBean}")
   private RaAuthenticationBean raAuthenticationBean;
 
   @Override
   public void setRaAuthenticationBean(
-      final RaAuthenticationBean raAuthenticationBean) {
-    this.raAuthenticationBean = raAuthenticationBean;
+      final RaAuthenticationBean araAuthenticationBean) {
+    this.raAuthenticationBean = araAuthenticationBean;
   }
 
+  /** Param. */
   private String username;
+  /** Param. */
   private String enrollmentCode;
   // Since enrollmentCode of the EnrollWithRequestIdBean is managed through JSF,
   // and it won't let me set a password field
   // through GET param, we need this temporary var in order to be able to pass
   // enrollment code in the URL
+  /** Param. */
   private String paramEnrollmentCode;
   // Cache for certificate profile
+  /** Param. */
   private CertificateProfile certificateProfile;
 
   @Override
@@ -118,32 +129,34 @@ public class EnrollWithUsernameBean extends EnrollWithRequestIdBean
     super.reset();
   }
 
-  /** Check the status end entity and the enrollment code validity */
+  /** Check the status end entity and the enrollment code validity. */
   public void checkUsernameEnrollmentCode() {
     if (StringUtils.isNotEmpty(username)) {
       final EndEntityInformation endEntityInformation =
           raMasterApiProxyBean.searchUser(
               raAuthenticationBean.getAuthenticationToken(), username);
       if (endEntityInformation == null) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Could not find  End Entity for the username='" + username + "'");
         }
         raLocaleBean.addMessageError(
-            "enrollwithusername_user_not_found_or_wrongstatus_or_invalid_enrollmentcode",
+            "enrollwithusername_user_not_found_or_wrongstatus_"
+            + "or_invalid_enrollmentcode",
             username);
         return;
       } else if (endEntityInformation.getStatus()
           == EndEntityConstants.STATUS_GENERATED) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "End Entity status not NEW for the username='"
                   + username
                   + "', "
                   + endEntityInformation.getStatus());
         }
         raLocaleBean.addMessageError(
-            "enrollwithusername_user_not_found_or_wrongstatus_or_invalid_enrollmentcode",
+            "enrollwithusername_user_not_found_or_wrongstatus_"
+            + "or_invalid_enrollmentcode",
             username);
         return;
       }
@@ -152,8 +165,8 @@ public class EnrollWithUsernameBean extends EnrollWithRequestIdBean
       // parameter, as well as when we enter it manually in the form
       if (StringUtils.isEmpty(getEnrollmentCode())
           && StringUtils.isNotEmpty(paramEnrollmentCode)) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Password for user '"
                   + username
                   + "' was provided as parameter, using this.");
@@ -168,15 +181,16 @@ public class EnrollWithUsernameBean extends EnrollWithRequestIdBean
       } catch (NoSuchEndEntityException
           | AuthStatusException
           | AuthLoginException e) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "End Entity status failed status check for username='"
                   + username
                   + "', "
                   + e.getMessage());
         }
         raLocaleBean.addMessageError(
-            "enrollwithusername_user_not_found_or_wrongstatus_or_invalid_enrollmentcode",
+            "enrollwithusername_user_not_found_or_wrongstatus_"
+            + "or_invalid_enrollmentcode",
             username);
         return;
       }
@@ -199,10 +213,14 @@ public class EnrollWithUsernameBean extends EnrollWithRequestIdBean
                 == EndEntityConstants.STATUS_KEYRECOVERY));
   }
 
+  /**
+   * @return bool
+   */
   public boolean isParamEnrollmentCodeEmpty() {
     return StringUtils.isEmpty(paramEnrollmentCode);
   }
 
+  /** Param. */
   private String certificateRequest;
 
   /** @return true if the the CSR has been uploaded */
@@ -223,18 +241,18 @@ public class EnrollWithUsernameBean extends EnrollWithRequestIdBean
     return certificateRequest;
   }
 
-  /** @param certificateRequest the certificateRequest to set */
+  /** @param acertificateRequest the certificateRequest to set */
   @Override
-  public void setCertificateRequest(final String certificateRequest) {
-    this.certificateRequest = certificateRequest;
+  public void setCertificateRequest(final String acertificateRequest) {
+    this.certificateRequest = acertificateRequest;
   }
 
   /**
    * Backing method for upload CSR button (used for uploading pasted CSR)
-   * populating fields is handled by AJAX
+   * populating fields is handled by AJAX.
    */
   @Override
-  public void uploadCsr() {}
+  public void uploadCsr() { }
 
   /**
    * Validate an uploaded CSR and store the extracted key algorithm and CSR for
@@ -250,7 +268,7 @@ public class EnrollWithUsernameBean extends EnrollWithRequestIdBean
     final String valueStr = value.toString();
     if (valueStr != null
         && valueStr.length() > EnrollMakeNewRequestBean.MAX_CSR_LENGTH) {
-      log.info("CSR uploaded was too large: " + valueStr.length());
+      LOG.info("CSR uploaded was too large: " + valueStr.length());
       throw new ValidatorException(
           new FacesMessage(
               raLocaleBean.getMessage("enroll_invalid_certificate_request")));
@@ -276,9 +294,9 @@ public class EnrollWithUsernameBean extends EnrollWithRequestIdBean
               jcaPKCS10CertificationRequest.getPublicKey());
       // If we have an End Entity, use this to verify that the algorithm and
       // keyspec are allowed
-      final CertificateProfile certificateProfile = getCertificateProfile();
-      if (certificateProfile != null) {
-        if (!certificateProfile.isKeyTypeAllowed(
+      final CertificateProfile acertificateProfile = getCertificateProfile();
+      if (acertificateProfile != null) {
+        if (!acertificateProfile.isKeyTypeAllowed(
             keyAlgorithm, keySpecification)) {
           throw new ValidatorException(
               new FacesMessage(
@@ -287,8 +305,8 @@ public class EnrollWithUsernameBean extends EnrollWithRequestIdBean
                       keyAlgorithm + "_" + keySpecification)));
         }
       } else {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Ignoring algorithm validation on CSR because we can not find a"
                   + " Certificate Profile for user: "
                   + username);
@@ -325,9 +343,9 @@ public class EnrollWithUsernameBean extends EnrollWithRequestIdBean
     return username;
   }
 
-  /** @param username the username to set */
-  public void setUsername(final String username) {
-    this.username = username;
+  /** @param ausername the username to set */
+  public void setUsername(final String ausername) {
+    this.username = ausername;
   }
 
   /** @return the enrollment code */
@@ -335,8 +353,8 @@ public class EnrollWithUsernameBean extends EnrollWithRequestIdBean
     return enrollmentCode;
   }
 
-  /** @param enrollmentCode the enrollment code to set */
-  public void setEnrollmentCode(final String enrollmentCode) {
-    this.enrollmentCode = enrollmentCode;
+  /** @param anenrollmentCode the enrollment code to set */
+  public void setEnrollmentCode(final String anenrollmentCode) {
+    this.enrollmentCode = anenrollmentCode;
   }
 }

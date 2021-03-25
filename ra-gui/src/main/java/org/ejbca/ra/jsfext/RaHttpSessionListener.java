@@ -27,13 +27,14 @@ import org.ejbca.ra.RaAuthenticationBean;
 @WebListener
 public class RaHttpSessionListener implements HttpSessionListener {
 
-  private static final Logger log =
+      /** Param. */
+  private static final Logger LOG =
       Logger.getLogger(RaHttpSessionListener.class);
 
   @Override
   public void sessionCreated(final HttpSessionEvent httpSessionEvent) {
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "HTTP session from client started. jsessionid="
               + httpSessionEvent.getSession().getId());
     }
@@ -45,7 +46,7 @@ public class RaHttpSessionListener implements HttpSessionListener {
         (RaAuthenticationBean)
             httpSessionEvent.getSession().getAttribute("raAuthenticationBean");
     if (raAuthenticationBean == null) {
-      log.debug(
+      LOG.debug(
           "Failed to clean up after client session with jsessionid="
               + httpSessionEvent.getSession().getId());
     } else {

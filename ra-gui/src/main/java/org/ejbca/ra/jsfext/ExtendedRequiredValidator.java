@@ -51,7 +51,8 @@ import org.apache.log4j.Logger;
 @FacesValidator("extendedRequiredValidator")
 public class ExtendedRequiredValidator extends RequiredValidator {
 
-  private static final Logger log =
+    /** Log. */
+  private static final Logger LOG =
       Logger.getLogger(ExtendedRequiredValidator.class);
 
   @Override
@@ -60,12 +61,12 @@ public class ExtendedRequiredValidator extends RequiredValidator {
       final UIComponent component,
       final Object value)
       throws ValidatorException {
-    Object _required = component.getAttributes().get("_required");
+    Object lrequired = component.getAttributes().get("_required");
     boolean required = false;
-    if (_required != null) {
+    if (lrequired != null) {
       required =
           Boolean.parseBoolean(
-              _required
+              lrequired
                   .toString()); // _required can be of String or Boolean type
     }
     Map<String, String> params =
@@ -74,8 +75,8 @@ public class ExtendedRequiredValidator extends RequiredValidator {
             .getRequestParameterMap();
     String validationRequiredFromRequest =
         params.get("validationRequiredFromRequest");
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "validationRequiredFromRequest="
               + validationRequiredFromRequest
               + ", _required="
@@ -89,8 +90,8 @@ public class ExtendedRequiredValidator extends RequiredValidator {
     if (!required
         || validationRequiredFromRequest == null
         || validationRequiredFromRequest.equalsIgnoreCase("false")) {
-      if (log.isTraceEnabled()) {
-        log.trace(
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(
             "Ignoring extendedRequiredValidator for component "
                 + component.getClientId());
       }

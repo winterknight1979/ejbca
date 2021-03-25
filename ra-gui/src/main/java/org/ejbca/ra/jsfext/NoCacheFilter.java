@@ -36,13 +36,14 @@ import org.apache.log4j.Logger;
     urlPatterns = {"/*"})
 public class NoCacheFilter implements Filter {
 
-  private static final Logger log = Logger.getLogger(NoCacheFilter.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(NoCacheFilter.class);
 
   @Override
-  public void destroy() {}
+  public void destroy() { }
 
   /**
-   * Returns true for the request URIs that should be cached, false otherwise
+   * Returns true for the request URIs that should be cached, false otherwise.
    *
    * @param request Req
    * @return Response
@@ -77,6 +78,6 @@ public class NoCacheFilter implements Filter {
 
   @Override
   public void init(final FilterConfig arg0) throws ServletException {
-    log.debug("NoCacheFilter: init");
+    LOG.debug("NoCacheFilter: init");
   }
 }
