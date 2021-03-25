@@ -45,22 +45,33 @@ import org.ejbca.core.model.era.RaMasterApiProxyBeanLocal;
 public class RaAccessBean implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(RaAccessBean.class);
+  /** Param. */
+  private static final Logger LOG = Logger.getLogger(RaAccessBean.class);
 
+  /** Param. */
   private static final long CACHE_READ_TIMEOUT = 2000L; // milliseconds
 
+  /** Param. */
   @EJB private RaMasterApiProxyBeanLocal raMasterApiProxyBean;
+  /** Param. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** Param. */
   @EJB private AccessTreeUpdateSessionLocal accessTreeUpdateSession;
 
+  /** Param. */
   @ManagedProperty(value = "#{raAuthenticationBean}")
   private RaAuthenticationBean raAuthenticationBean;
 
+
+  /**
+   * @param araAuthenticationBean bean
+   */
   public void setRaAuthenticationBean(
-      final RaAuthenticationBean raAuthenticationBean) {
-    this.raAuthenticationBean = raAuthenticationBean;
+      final RaAuthenticationBean araAuthenticationBean) {
+    this.raAuthenticationBean = araAuthenticationBean;
   }
 
+  /** Param. */
   private static AtomicBoolean reloadEventRegistered = new AtomicBoolean(false);
 
   private boolean isAuthorized(final String... resources) {
@@ -105,7 +116,7 @@ public class RaAccessBean implements Serializable {
         try {
           myAccess = raMasterApiProxyBean.getUserAccessSet(authenticationToken);
         } catch (AuthenticationFailedException e) {
-          log.info(
+          LOG.info(
               "Failed to match authentication token '"
                   + authenticationToken
                   + "' to a role.");
@@ -146,7 +157,7 @@ public class RaAccessBean implements Serializable {
   // below
 
   /**
-   * Example method
+   * Example method.
    *
    * @return bool
    */
@@ -157,7 +168,7 @@ public class RaAccessBean implements Serializable {
 
   /**
    * correspond to menu items in menu.xhtml This method shows and hides the
-   * whole enrollment menu
+   * whole enrollment menu.
    *
    * @return bool
    */
@@ -168,15 +179,17 @@ public class RaAccessBean implements Serializable {
 
   /**
    * correspond to menu items in menu.xhtml This method shows and hides the make
-   * request sub menu item
+   * request sub menu item.
    *
    * @return bool
    */
   public boolean isAuthorizedToEnrollMakeRequest() {
     /*
-     * Only check if this admin has been configured to create end entities to display the meny.
+     * Only check if this admin has been configured to create end entities
+     * to display the meny.
      * In order to actually make a request, the admin has to have access to
-     *  AccessRulesConstants.ENDENTITYPROFILEPREFIX + eepId + AccessRulesConstants.CREATE_END_ENTITY
+     *  AccessRulesConstants.ENDENTITYPROFILEPREFIX + eepId
+     *  + AccessRulesConstants.CREATE_END_ENTITY
      * and the CAs available via this profile.
      */
     return isAuthorized(AccessRulesConstants.REGULAR_CREATEENDENTITY);
@@ -184,7 +197,7 @@ public class RaAccessBean implements Serializable {
 
   /**
    * correspond to menu items in menu.xhtml This method shows and hides the use
-   * request id sub menu item
+   * request id sub menu item.
    *
    * @return bool
    */
@@ -199,24 +212,30 @@ public class RaAccessBean implements Serializable {
     return isAuthorizedToEnrollMakeRequest();
   }
 
+  /**
+   * @return bool
+   */
   public boolean isAuthorizedToCas() {
     final boolean auth = isAuthorized(StandardRules.CAVIEW.resource());
-    if (!auth && log.isDebugEnabled()) {
-      log.debug(
+    if (!auth && LOG.isDebugEnabled()) {
+      LOG.debug(
           ">isAuthorizedToCas: Not authorized to "
               + StandardRules.CAVIEW.resource());
     }
     return auth;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isAuthorizedToManageRequests() {
     final boolean auth =
         isAuthorized(AccessRulesConstants.REGULAR_APPROVEENDENTITY)
             || isAuthorized(AccessRulesConstants.REGULAR_APPROVECAACTION)
             || isAuthorized(AccessRulesConstants.REGULAR_VIEWAPPROVALS)
             || isAuthorized(AuditLogRules.VIEW.resource());
-    if (!auth && log.isDebugEnabled()) {
-      log.debug(
+    if (!auth && LOG.isDebugEnabled()) {
+      LOG.debug(
           ">isAuthorizedToManageRequests: Not authorized to "
               + AccessRulesConstants.REGULAR_APPROVEENDENTITY
               + ", "
@@ -229,64 +248,100 @@ public class RaAccessBean implements Serializable {
     return auth;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isAuthorizedToApproveEndEntityRequests() {
     final boolean auth =
         isAuthorized(AccessRulesConstants.REGULAR_APPROVEENDENTITY);
-    if (!auth && log.isDebugEnabled()) {
-      log.debug(
+    if (!auth && LOG.isDebugEnabled()) {
+      LOG.debug(
           ">isAuthorizedToApproveEndEntityRequests: Not authorized to "
               + AccessRulesConstants.REGULAR_APPROVEENDENTITY);
     }
     return auth;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isAuthorizedToApproveCARequests() {
     final boolean auth =
         isAuthorized(AccessRulesConstants.REGULAR_APPROVECAACTION);
-    if (!auth && log.isDebugEnabled()) {
-      log.debug(
+    if (!auth && LOG.isDebugEnabled()) {
+      LOG.debug(
           ">isAuthorizedToApproveCARequests: Not authorized to "
               + AccessRulesConstants.REGULAR_APPROVECAACTION);
     }
     return auth;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isAuthorizedToEditEndEntities() {
     return isAuthorized(AccessRulesConstants.REGULAR_EDITENDENTITY);
   }
 
+  /**
+   * @return bool
+   */
   public boolean isAuthorizedToSearch() {
     return isAuthorizedToSearchCerts() || isAuthorizedToSearchEndEntities();
   }
 
+  /**
+   * @return bool
+   */
   public boolean isAuthorizedToSearchCerts() {
     return isAuthorized(AccessRulesConstants.REGULAR_VIEWCERTIFICATE);
   }
 
+  /**
+   * @return bool
+   */
   public boolean isAuthorizedToSearchEndEntities() {
     return isAuthorized(AccessRulesConstants.REGULAR_VIEWENDENTITY);
   }
 
+  /**
+   * @return bool
+   */
   public boolean isAuthorizedToRoles() {
     return isAuthorizedToRoleRules() || isAuthorizedToRoleMembers();
   }
 
+  /**
+   * @return bool
+   */
   public boolean isAuthorizedToEditRoleRules() {
     return isAuthorized(StandardRules.EDITROLES.resource());
   }
 
+  /**
+   * @return bool
+   */
   public boolean isAuthorizedToRoleRules() {
     return isAuthorized(StandardRules.VIEWROLES.resource());
   }
 
+  /**
+   * @return bool
+   */
   public boolean isAuthorizedToRoleMembers() {
     return isAuthorized(StandardRules.VIEWROLES.resource());
   }
 
+  /**
+   * @return bool
+   */
   public boolean isAuthorizedToEditRoleMembers() {
     return isAuthorized(StandardRules.EDITROLES.resource());
   }
 
+  /**
+   * @return bool
+   */
   public boolean isAuthorizedToRevokeCertificates() {
     return isAuthorized(AccessRulesConstants.REGULAR_REVOKEENDENTITY);
   }
@@ -301,7 +356,7 @@ public class RaAccessBean implements Serializable {
     final boolean isBackendAvailable =
         raMasterApiProxyBean.isBackendAvailable();
     if (!isBackendAvailable) {
-      log.warn(
+      LOG.warn(
           "Unable to serve RA requests since there is no connection to the"
               + " upstream CA or lack of authorization of this RA node.");
     }

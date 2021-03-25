@@ -71,99 +71,190 @@ import org.ejbca.cvc.CardVerifiableCertificate;
 public class RaCertificateDetails {
 
   public interface Callbacks {
+      /**
+       * @return bean
+       */
     RaLocaleBean getRaLocaleBean();
 
+    /**
+     * @param raCertificateDetails details
+     * @param newStatus status
+     * @param newRevocationReason reason
+     * @return bool
+     * @throws ApprovalException fail
+     * @throws WaitingForApprovalException fail
+     */
     boolean changeStatus(
         RaCertificateDetails raCertificateDetails,
         int newStatus,
         int newRevocationReason)
         throws ApprovalException, WaitingForApprovalException;
 
+    /**
+     * @param raCertificateDetails details
+     * @return bool
+     * @throws ApprovalException fail
+     * @throws CADoesntExistsException fail
+     * @throws AuthorizationDeniedException fail
+     * @throws WaitingForApprovalException fail
+     * @throws NoSuchEndEntityException fail
+     * @throws EndEntityProfileValidationException fail
+     */
     boolean recoverKey(RaCertificateDetails raCertificateDetails)
         throws ApprovalException, CADoesntExistsException,
             AuthorizationDeniedException, WaitingForApprovalException,
             NoSuchEndEntityException, EndEntityProfileValidationException;
 
+    /**
+     * @param raCertificateDetails details
+     * @return bool
+     */
     boolean keyRecoveryPossible(RaCertificateDetails raCertificateDetails);
 
+    /**
+     * @return comp
+     */
     UIComponent getConfirmPasswordComponent();
   }
 
-  private static final Logger log =
+  /** Param.   */
+  private static final Logger LOG =
       Logger.getLogger(RaCertificateDetails.class);
-  public static String PARAM_REQUESTID = "requestId";
+  /** Param.   */
+  public static final String PARAM_REQUESTID = "requestId";
 
+  /** Param.   */
   private final Callbacks callbacks;
 
+  /** Param.   */
   private CertificateDataWrapper cdw;
+  /** Param.   */
   private String fingerprint;
+  /** Param.   */
   private String fingerprintSha256 = "";
+  /** Param.   */
   private String username;
+  /** Param.   */
   private String type = "";
+  /** Param.   */
   private String typeVersion = "";
+  /** Param.   */
   private String serialnumber;
+  /** Param.   */
   private String serialnumberRaw;
+  /** Param.   */
   private String subjectDn;
+  /** Param.   */
   private String subjectAn = "";
+  /** Param.   */
   private String subjectDa = "";
+  /** Param.   */
   private Integer eepId;
+  /** Param.   */
   private String eepName;
+  /** Param.   */
   private Integer cpId;
+  /** Param.   */
   private String cpName;
+  /** Param.   */
   private String issuerDn;
+  /** Param.   */
   private String caName;
+  /** Param.   */
   private String created = "-";
+  /** Param.   */
   private long expireDate;
+  /** Param.   */
   private String expires;
+  /** Param.   */
   private int status;
+  /** Param.   */
   private int revocationReason;
+  /** Param.   */
   private String updated;
+  /** Param.   */
   private String revocationDate = "";
+  /** Param.   */
   private String publicKeyAlgorithm = "";
+  /** Param.   */
   private String publicKeySpecification = "";
+  /** Param.   */
   private String publicKeyParameter = "";
+  /** Param.   */
   private String subjectKeyId = "";
+  /** Param.   */
   private String basicConstraints = "";
+  /** Param.   */
   private String cvcAuthorizationRole = "";
+  /** Param.   */
   private String cvcAuthorizationAccessRights = "";
+  /** Param.   */
   private final List<String> keyUsages = new ArrayList<>();
+  /** Param.   */
   private final List<String> extendedKeyUsages = new ArrayList<>();
+  /** Param.   */
   private boolean hasNameConstraints = false;
+  /** Param.   */
   private boolean hasQcStatements = false;
+  /** Param.   */
   private boolean hasCertificateTransparencyScts = false;
+  /** Param.   */
   private String signatureAlgorithm;
+  /** Param.   */
   private String password;
+  /** Param.   */
   private String confirmPassword;
+  /** Param.   */
   private int requestId;
 
+  /** Param.   */
   private boolean more = false;
+  /** Param.   */
   private boolean renderConfirmRecovery = false;
+  /** Param.   */
   private Boolean keyRecoveryPossible;
+  /** Param.   */
   private int styleRowCallCounter = 0;
 
+  /** Param.   */
   private RaCertificateDetails next = null;
+  /** Param.   */
   private RaCertificateDetails previous = null;
 
+  /** Param.   */
   private int newRevocationReason =
       RevokedCertInfo.REVOCATION_REASON_UNSPECIFIED;
 
+  /**
+   * @param acdw CDW
+   * @param thecallbacks CBs
+   * @param cpIdToNameMap Map
+   * @param eepIdToNameMap Map
+   * @param caSubjectToNameMap Map
+   */
   public RaCertificateDetails(
-      final CertificateDataWrapper cdw,
-      final Callbacks callbacks,
+      final CertificateDataWrapper acdw,
+      final Callbacks thecallbacks,
       final Map<Integer, String> cpIdToNameMap,
       final Map<Integer, String> eepIdToNameMap,
       final Map<String, String> caSubjectToNameMap) {
-    this.callbacks = callbacks;
-    reInitialize(cdw, cpIdToNameMap, eepIdToNameMap, caSubjectToNameMap);
+    this.callbacks = thecallbacks;
+    reInitialize(acdw, cpIdToNameMap, eepIdToNameMap, caSubjectToNameMap);
   }
 
+  /**
+   * @param acdw CDW
+   * @param cpIdToNameMap MAp
+   * @param eepIdToNameMap Map
+   * @param caSubjectToNameMap Map
+   */
   public void reInitialize(
-      final CertificateDataWrapper cdw,
+      final CertificateDataWrapper acdw,
       final Map<Integer, String> cpIdToNameMap,
       final Map<Integer, String> eepIdToNameMap,
       final Map<String, String> caSubjectToNameMap) {
-    this.cdw = cdw;
-    final CertificateData certificateData = cdw.getCertificateData();
+    this.cdw = acdw;
+    final CertificateData certificateData = acdw.getCertificateData();
     this.cpId = certificateData.getCertificateProfileId();
     if (cpId != null && cpIdToNameMap != null) {
       this.cpName = cpIdToNameMap.get(cpId);
@@ -189,8 +280,8 @@ public class RaCertificateDetails {
     try {
       this.serialnumber = new BigInteger(this.serialnumberRaw).toString(16);
     } catch (NumberFormatException e) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Failed to format serial number as hex. Probably a CVC"
                 + " certificate. Message: "
                 + e.getMessage());
@@ -201,14 +292,14 @@ public class RaCertificateDetails {
             ? ""
             : certificateData.getUsername();
     this.subjectDn = certificateData.getSubjectDnNeverNull();
-    final Certificate certificate = cdw.getCertificate();
+    final Certificate certificate = acdw.getCertificate();
     byte[] certificateEncoded = null;
     if (certificate != null) {
       try {
         certificateEncoded = certificate.getEncoded();
       } catch (CertificateEncodingException e) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Failed to encode the certificate as a byte array: "
                   + e.getMessage());
         }
@@ -251,16 +342,16 @@ public class RaCertificateDetails {
               SubjectDirAttrExtension.getSubjectDirectoryAttributes(
                   certificate);
         } catch (ParseException e) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Failed to parse Subject Directory Attributes extension: "
                     + e.getMessage());
           }
         }
-        final int basicConstraints = x509Certificate.getBasicConstraints();
-        if (basicConstraints == Integer.MAX_VALUE) {
+        final int abasicConstraints = x509Certificate.getBasicConstraints();
+        if (abasicConstraints == Integer.MAX_VALUE) {
           this.basicConstraints = "";
-        } else if (basicConstraints == -1) {
+        } else if (abasicConstraints == -1) {
           this.basicConstraints =
               callbacks
                   .getRaLocaleBean()
@@ -271,7 +362,7 @@ public class RaCertificateDetails {
                   .getRaLocaleBean()
                   .getMessage(
                       "component_certdetails_info_basicconstraints_ca",
-                      basicConstraints);
+                      abasicConstraints);
         }
         keyUsages.clear();
         final boolean[] keyUsageArray = x509Certificate.getKeyUsage();
@@ -284,14 +375,14 @@ public class RaCertificateDetails {
         }
         extendedKeyUsages.clear();
         try {
-          final List<String> extendedKeyUsages =
+          final List<String> anextendedKeyUsages =
               x509Certificate.getExtendedKeyUsage();
-          if (extendedKeyUsages != null) {
-            this.extendedKeyUsages.addAll(extendedKeyUsages);
+          if (anextendedKeyUsages != null) {
+            this.extendedKeyUsages.addAll(anextendedKeyUsages);
           }
         } catch (CertificateParsingException e) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Failed to parse Extended Key Usage extension: "
                     + e.getMessage());
           }
@@ -323,8 +414,8 @@ public class RaCertificateDetails {
                 String.valueOf(authorizationField.getAccessRights());
           }
         } catch (NoSuchFieldException e) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Failed to parse CVC AuthorizationTemplate's"
                     + " AuthorizationField: "
                     + e.getMessage());
@@ -356,46 +447,80 @@ public class RaCertificateDetails {
     styleRowCallCounter = 0; // Reset
   }
 
+  /**
+   * @return FP
+   */
   public String getFingerprint() {
     return fingerprint;
   }
 
+  /**
+   * @return FP
+   */
   public String getFingerprintSha256() {
     return fingerprintSha256;
   }
+
+  /**
+   * @return User
+   */
 
   public String getUsername() {
     return username;
   }
 
+  /**
+   * @return Type
+   */
   public String getType() {
     return type;
   }
 
+  /**
+   * @return Bool
+   */
   public boolean isTypeX509() {
     return "X.509".equals(type);
   }
 
+  /**
+   * @return CVC
+   */
   public boolean isTypeCvc() {
     return "CVC".equals(type);
   }
 
+  /**
+   * @return Version
+   */
   public String getTypeVersion() {
     return typeVersion;
   }
 
+  /**
+   * @return SN
+   */
   public String getSerialnumber() {
     return serialnumber;
   }
 
+  /**
+   * @return SN
+   */
   public String getSerialnumberRaw() {
     return serialnumberRaw;
   }
 
+  /**
+   * @return DN
+   */
   public String getIssuerDn() {
     return issuerDn;
   }
 
+  /**
+   * @return DN
+   */
   public String getSubjectDn() {
     return subjectDn;
   }
@@ -412,14 +537,23 @@ public class RaCertificateDetails {
     }
   }
 
+  /**
+   * @return AN
+   */
   public String getSubjectAn() {
     return subjectAn;
   }
 
+  /**
+   * @return DA
+   */
   public String getSubjectDa() {
     return subjectDa;
   }
 
+  /**
+   * @return Nam
+   */
   public String getCaName() {
     return caName;
   }
@@ -442,6 +576,9 @@ public class RaCertificateDetails {
         .getMessage("component_certdetails_info_missingcp", cpId);
   }
 
+  /**
+   * @return bool
+   */
   public boolean isCpNameSameAsEepName() {
     return getEepName().equals(getCpName());
   }
@@ -463,23 +600,38 @@ public class RaCertificateDetails {
         .getMessage("component_certdetails_info_missingeep", eepId);
   }
 
+  /**
+   * @return created
+   */
   public String getCreated() {
     return created;
   }
 
+  /**
+   * @return expiry
+   */
   public String getExpires() {
     return expires;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isExpired() {
     return expireDate < System.currentTimeMillis();
   }
 
+  /**
+   * @return bool
+   */
   public boolean isActive() {
     return status == CertificateConstants.CERT_ACTIVE
         || status == CertificateConstants.CERT_NOTIFIEDABOUTEXPIRATION;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isSuspended() {
     return status == CertificateConstants.CERT_REVOKED
         && revocationReason
@@ -507,50 +659,86 @@ public class RaCertificateDetails {
     }
   }
 
+  /**
+   * @return updated
+   */
   public String getUpdated() {
     return updated;
   }
 
+  /**
+   * @return dat
+   */
   public String getRevocationDate() {
     return revocationDate;
   }
 
+  /**
+   * @return alg
+   */
   public String getPublicKeyAlgorithm() {
     return publicKeyAlgorithm;
   }
 
+  /**
+   * @return spec
+   */
   public String getPublicKeySpecification() {
     return publicKeySpecification;
   }
 
+  /**
+   * @return param
+   */
   public String getPublicKeyParameter() {
     return publicKeyParameter;
   }
 
+  /**
+   * @return id
+   */
   public String getSubjectKeyId() {
     return subjectKeyId;
   }
 
+  /**
+   * @return constraints
+   */
   public String getBasicConstraints() {
     return basicConstraints;
   }
 
+  /**
+   * @return role
+   */
   public String getCvcAuthorizationRole() {
     return cvcAuthorizationRole;
   }
 
+  /**
+   * @return rights
+   */
   public String getCvcAuthorizationAccessRights() {
     return cvcAuthorizationAccessRights;
   }
 
+  /**
+   * @return usage
+   */
   public List<String> getKeyUsages() {
     return keyUsages;
   }
 
+  /**
+   * @return usagge
+   */
   public List<String> getExtendedKeyUsages() {
     return extendedKeyUsages;
   }
 
+  /**
+   * @return constraints
+   */
   public String getNameConstraints() {
     return hasNameConstraints
         ? callbacks
@@ -559,6 +747,9 @@ public class RaCertificateDetails {
         : "";
   }
 
+  /**
+   * @return qc
+   */
   public String getQcStatements() {
     return hasQcStatements
         ? callbacks
@@ -567,6 +758,9 @@ public class RaCertificateDetails {
         : "";
   }
 
+  /**
+   * @return scts
+   */
   public String getCertificateTransparencyScts() {
     return hasCertificateTransparencyScts
         ? callbacks
@@ -575,10 +769,16 @@ public class RaCertificateDetails {
         : "";
   }
 
+  /**
+   * @return Alg
+   */
   public String getSignatureAlgorithm() {
     return signatureAlgorithm;
   }
 
+  /**
+   * @return dump
+   */
   public String getDump() {
     final Certificate certificate = cdw.getCertificate();
     if (certificate != null) {
@@ -589,8 +789,8 @@ public class RaCertificateDetails {
           return ASN1Dump.dumpAsString(
               ASN1Primitive.fromByteArray(certificate.getEncoded()));
         } catch (CertificateEncodingException | IOException e2) {
-          if (log.isDebugEnabled()) {
-            log.debug("Failed to parse certificate ASN.1: " + e2.getMessage());
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Failed to parse certificate ASN.1: " + e2.getMessage());
           }
         }
       }
@@ -608,6 +808,7 @@ public class RaCertificateDetails {
     return more;
   }
 
+  /** Toggle. */
   public void actionToggleMore() {
     more = !more;
     styleRowCallCounter = 0; // Reset
@@ -621,38 +822,57 @@ public class RaCertificateDetails {
 
   /**
    * @param caSubjectToNameMap Map
-   * @param issuerDn DN
+   * @param anissuerDn DN
    * @return CA Name from the provided issuer DN or the IssuerDN itself if no
    *     name is known
    */
   private String getCaNameFromIssuerDn(
-      final Map<String, String> caSubjectToNameMap, final String issuerDn) {
-    if (issuerDn != null && caSubjectToNameMap.containsKey(issuerDn)) {
-      return String.valueOf(caSubjectToNameMap.get(issuerDn));
+      final Map<String, String> caSubjectToNameMap, final String anissuerDn) {
+    if (anissuerDn != null && caSubjectToNameMap.containsKey(anissuerDn)) {
+      return String.valueOf(caSubjectToNameMap.get(anissuerDn));
     }
-    return String.valueOf(issuerDn);
+    return String.valueOf(anissuerDn);
   }
 
+  /**
+   * @return details
+   */
   public RaCertificateDetails getNext() {
     return next;
   }
 
-  public void setNext(final RaCertificateDetails next) {
-    this.next = next;
+  /**
+   * @param anext details
+   */
+  public void setNext(final RaCertificateDetails anext) {
+    this.next = anext;
   }
 
+  /**
+   * @return details
+   */
   public RaCertificateDetails getPrevious() {
     return previous;
   }
 
-  public void setPrevious(final RaCertificateDetails previous) {
-    this.previous = previous;
+  /**
+   * @param aprevious details
+   */
+  public void setPrevious(final RaCertificateDetails aprevious) {
+    this.previous = aprevious;
   }
 
+  /**
+   * @return list
+   */
   public List<SelectItem> getNewRevocationReasons() {
     return getNewRevocationReasons(!isSuspended());
   }
 
+  /**
+   * @param includeOnHold bool
+   * @return list
+   */
   private List<SelectItem> getNewRevocationReasons(
       final boolean includeOnHold) {
     final List<SelectItem> ret = new ArrayList<>();
@@ -726,14 +946,24 @@ public class RaCertificateDetails {
     return ret;
   }
 
+  /**
+   * @return reason
+   */
   public Integer getNewRevocationReason() {
     return Integer.valueOf(newRevocationReason);
   }
 
-  public void setNewRevocationReason(final Integer newRevocationReason) {
-    this.newRevocationReason = newRevocationReason.intValue();
+
+  /**
+   * @param anewRevocationReason reason
+   */
+  public void setNewRevocationReason(final Integer anewRevocationReason) {
+    this.newRevocationReason = anewRevocationReason.intValue();
   }
 
+  /**
+   * Revoke.
+   */
   public void actionRevoke() {
     try {
       if (callbacks.changeStatus(
@@ -761,6 +991,7 @@ public class RaCertificateDetails {
     styleRowCallCounter = 0; // Reset
   }
 
+  /** Reac. */
   public void actionReactivate() {
     try {
       if (callbacks.changeStatus(
@@ -791,6 +1022,7 @@ public class RaCertificateDetails {
     styleRowCallCounter = 0; // Reset
   }
 
+  /** Recover. */
   public void actionRecovery() {
     try {
       if (callbacks.recoverKey(this)) {
@@ -801,19 +1033,19 @@ public class RaCertificateDetails {
         callbacks
             .getRaLocaleBean()
             .addMessageInfo("component_certdetails_keyrecovery_unknown_error");
-        log.info("Failed to perform key recovery for user: " + subjectDn);
+        LOG.info("Failed to perform key recovery for user: " + subjectDn);
       }
     } catch (ApprovalException e) {
       callbacks
           .getRaLocaleBean()
           .addMessageInfo("component_certdetails_keyrecovery_pending");
-      if (log.isDebugEnabled()) {
-        log.debug("Request is still waiting for approval", e);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Request is still waiting for approval", e);
       }
     } catch (WaitingForApprovalException e) {
       // Setting requestId will render link to 'enroll with request id' page
       requestId = e.getRequestId();
-      log.info(
+      LOG.info(
           "Request with Id: "
               + e.getRequestId()
               + " has been sent for approval");
@@ -821,27 +1053,27 @@ public class RaCertificateDetails {
       callbacks
           .getRaLocaleBean()
           .addMessageInfo("component_certdetails_keyrecovery_unknown_error");
-      log.debug("CA does not exist", e);
+      LOG.debug("CA does not exist", e);
     } catch (AuthorizationDeniedException e) {
       callbacks
           .getRaLocaleBean()
           .addMessageInfo("component_certdetails_keyrecovery_unauthorized");
-      log.debug("Not authorized to perform key recovery", e);
+      LOG.debug("Not authorized to perform key recovery", e);
     } catch (NoSuchEndEntityException e) {
       callbacks
           .getRaLocaleBean()
           .addMessageInfo(
               "component_certdetails_keyrecovery_no_such_end_entity", username);
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "End entity with username: " + username + " does not exist", e);
       }
     } catch (EndEntityProfileValidationException e) {
       callbacks
           .getRaLocaleBean()
           .addMessageInfo("component_certdetails_keyrecovery_unknown_error");
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "End entity with username: "
                 + username
                 + " does not match end entity profile");
@@ -863,17 +1095,17 @@ public class RaCertificateDetails {
       UIComponent components = event.getComponent();
       UIInput uiInputPassword =
           (UIInput) components.findComponent("passwordField");
-      String password =
+      String apassword =
           uiInputPassword.getLocalValue() == null
               ? ""
               : uiInputPassword.getLocalValue().toString();
       UIInput uiInputConfirmPassword =
           (UIInput) components.findComponent("passwordConfirmField");
-      String confirmPassword =
+      String aconfirmPassword =
           uiInputConfirmPassword.getLocalValue() == null
               ? ""
               : uiInputConfirmPassword.getLocalValue().toString();
-      if (password.isEmpty()) {
+      if (apassword.isEmpty()) {
         fc.addMessage(
             callbacks.getConfirmPasswordComponent().getClientId(fc),
             callbacks
@@ -881,7 +1113,7 @@ public class RaCertificateDetails {
                 .getFacesMessage("enroll_password_can_not_be_empty"));
         fc.renderResponse();
       }
-      if (!password.equals(confirmPassword)) {
+      if (!apassword.equals(aconfirmPassword)) {
         fc.addMessage(
             callbacks.getConfirmPasswordComponent().getClientId(fc),
             callbacks
@@ -892,34 +1124,58 @@ public class RaCertificateDetails {
     }
   }
 
+  /**
+   * @return ID
+   */
   public final String getParamRequestId() {
     return PARAM_REQUESTID;
   }
 
+  /**
+   * @return pwd
+   */
   public String getConfirmPassword() {
     return confirmPassword;
   }
 
-  public void setConfirmPassword(final String confirmPassword) {
-    this.confirmPassword = confirmPassword;
+  /**
+   * @param aconfirmPassword pwd
+   */
+  public void setConfirmPassword(final String aconfirmPassword) {
+    this.confirmPassword = aconfirmPassword;
   }
 
+  /**
+   * @return pwd
+   */
   public String getPassword() {
     return password;
   }
 
-  public void setPassword(final String password) {
-    this.password = password;
+  /**
+   * @param apassword pwd
+   */
+  public void setPassword(final String apassword) {
+    this.password = apassword;
   }
 
+  /**
+   * @return ID
+   */
   public int getRequestId() {
     return requestId;
   }
 
-  public void setRequestId(final int requestId) {
-    this.requestId = requestId;
+  /**
+   * @param arequestId ID
+   */
+  public void setRequestId(final int arequestId) {
+    this.requestId = arequestId;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isKeyRecoveryPossible() {
     // This check performs multiple database queries. Only check it on new page
     // load
@@ -929,14 +1185,21 @@ public class RaCertificateDetails {
     return keyRecoveryPossible;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isRenderConfirmRecovery() {
     return renderConfirmRecovery;
   }
 
+  /** Toggle. */
   public void renderConfirmRecoveryToggle() {
     renderConfirmRecovery = !renderConfirmRecovery;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isRequestIdInfoRendered() {
     return requestId != 0;
   }

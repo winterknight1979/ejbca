@@ -57,30 +57,45 @@ import org.yaml.snakeyaml.Yaml;
 public class RaCertDistServlet extends HttpServlet {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(RaCertDistServlet.class);
+  /** Param.    */
+  private static final Logger LOG = Logger.getLogger(RaCertDistServlet.class);
+  /** Param.    */
   private static final String PARAMETER_FINGERPRINTSHEET = "fpsheet";
+  /** Param.    */
   private static final String PARAMETER_CERT_BUNDLE = "certbundle";
+  /** Param.    */
   private static final String PARAMETER_CAID = "caid";
+  /** Param.    */
   private static final String PARAMETER_FINGERPRINT = "fp";
+  /** Param.    */
   private static final String PARAMETER_FORMAT = "format";
+  /** Param.    */
   private static final String PARAMETER_FORMAT_OPTION_FIREFOX = "ns";
+  /** Param.    */
   private static final String PARAMETER_FORMAT_OPTION_PEM =
       "pem"; // Applies to both certificate chain and individual certificates
              // download
+  /** Param.    */
   private static final String PARAMETER_FORMAT_OPTION_DER = "der";
+  /** Param.    */
   private static final String PARAMETER_FORMAT_OPTION_JKS =
       "jks"; // Applies only to certificate chain download
+  /** Param.    */
   private static final String PARAMETER_FORMAT_OPTION_P7C =
       "pkcs7"; // Applies to both certificate chain and individual certificates
                // download
+  /** Param.    */
   private static final String PARAMETER_CHAIN = "chain";
 
+  /** Param.    */
   @EJB private RaMasterApiProxyBeanLocal raMasterApi;
 
+  /** Param.    */
   @EJB
   private WebAuthenticationProviderSessionLocal
       webAuthenticationProviderSession;
 
+  /** Param.    */
   private RaAuthenticationHelper raAuthenticationHelper = null;
 
   @Override
@@ -113,8 +128,8 @@ public class RaCertDistServlet extends HttpServlet {
                 httpServletRequest, httpServletResponse);
         final List<CAInfo> caInfos =
             raMasterApi.getAuthorizedCas(authenticationToken);
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               authenticationToken.toString()
                   + " was authorized to "
                   + caInfos.size()
@@ -127,7 +142,7 @@ public class RaCertDistServlet extends HttpServlet {
           }
         }
       } catch (NumberFormatException e) {
-        log.debug(
+        LOG.debug(
             "Unable to parse "
                 + PARAMETER_CAID
                 + " request parameter: "
@@ -148,7 +163,7 @@ public class RaCertDistServlet extends HttpServlet {
           if (fullChain) {
             switch (httpServletRequest.getParameter(PARAMETER_FORMAT)) {
               case PARAMETER_FORMAT_OPTION_JKS:
-                {
+
                   // Create a JKS truststore with the CA certificates in
                   final KeyStore keyStore = KeyStore.getInstance("JKS");
                   keyStore.load(null, null);
@@ -162,9 +177,10 @@ public class RaCertDistServlet extends HttpServlet {
                     if (alias == null) {
                       alias = "cacert" + i;
                     }
+                    final int min = 15;
                     alias
                         .replaceAll(" ", "_")
-                        .substring(0, Math.min(15, alias.length()));
+                        .substring(0, Math.min(min, alias.length()));
                     keyStore.setCertificateEntry(alias, chain.get(i));
                   }
                   try (ByteArrayOutputStream out =
@@ -174,42 +190,42 @@ public class RaCertDistServlet extends HttpServlet {
                   }
                   filename += "-chain.jks";
                   break;
-                }
+
               case PARAMETER_FORMAT_OPTION_P7C:
-                {
+
                   response =
                       CertTools.createCertsOnlyCMS(
                           CertTools.convertCertificateChainToX509Chain(chain));
                   filename += "-chain.p7c";
                   break;
-                }
+
               case PARAMETER_FORMAT_OPTION_PEM:
               default:
-                {
+
                   response = CertTools.getPemFromCertificateChain(chain);
                   filename += "-chain.pem";
                   break;
-                }
+
             }
           } else {
             response = caCertificate.getEncoded();
             switch (httpServletRequest.getParameter(PARAMETER_FORMAT)) {
               case PARAMETER_FORMAT_OPTION_FIREFOX:
-                {
+
                   filename = null;
                   contentType = "application/x-x509-ca-cert";
                   break;
-                }
+
               case PARAMETER_FORMAT_OPTION_DER:
-                {
+
                   filename +=
                       (caCertificate instanceof CardVerifiableCertificate)
                           ? ".cvcert"
                           : ".crt";
                   break;
-                }
+
               case PARAMETER_FORMAT_OPTION_P7C:
-                {
+
                   response =
                       CertTools.createCertsOnlyCMS(
                           CertTools.convertCertificateChainToX509Chain(
@@ -217,16 +233,16 @@ public class RaCertDistServlet extends HttpServlet {
                                   new Certificate[] {caCertificate})));
                   filename += ".p7c";
                   break;
-                }
+
               case PARAMETER_FORMAT_OPTION_PEM:
               default:
-                {
+
                   filename += ".pem";
                   response =
                       CertTools.getPemFromCertificateChain(
                           Arrays.asList(new Certificate[] {caCertificate}));
                   break;
-                }
+
             }
           }
           writeResponseBytes(
@@ -240,8 +256,8 @@ public class RaCertDistServlet extends HttpServlet {
           httpServletResponse.sendError(
               HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
               "Unable to serve request due to internal error.");
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Failed to provide certificate download to client. "
                     + e.getMessage());
           }
@@ -277,16 +293,16 @@ public class RaCertDistServlet extends HttpServlet {
                 String filename = "cert" + fingerprint;
                 switch (httpServletRequest.getParameter(PARAMETER_FORMAT)) {
                   case PARAMETER_FORMAT_OPTION_DER:
-                    {
+
                       response = chain.get(0).getEncoded();
                       filename +=
                           (chain.get(0) instanceof CardVerifiableCertificate)
                               ? ".cvcert"
                               : ".crt";
                       break;
-                    }
+
                   case PARAMETER_FORMAT_OPTION_P7C:
-                    {
+
                       response =
                           CertTools.createCertsOnlyCMS(
                               CertTools.convertCertificateChainToX509Chain(
@@ -296,17 +312,17 @@ public class RaCertDistServlet extends HttpServlet {
                       }
                       filename += ".p7c";
                       break;
-                    }
+
                   case PARAMETER_FORMAT_OPTION_PEM:
                   default:
-                    {
+
                       response = CertTools.getPemFromCertificateChain(chain);
                       if (fullChain) {
                         filename += "-chain";
                       }
                       filename += ".pem";
                       break;
-                    }
+
                 }
                 writeResponseBytes(
                     httpServletResponse,
@@ -317,7 +333,7 @@ public class RaCertDistServlet extends HttpServlet {
               } catch (CertificateEncodingException
                   | ClassCastException
                   | CMSException e) {
-                log.warn(
+                LOG.warn(
                     "Failed to provide download of certificate with"
                         + " fingerprint "
                         + fingerprint);
@@ -380,12 +396,12 @@ public class RaCertDistServlet extends HttpServlet {
     final AuthenticationToken authenticationToken =
         raAuthenticationHelper.getAuthenticationToken(
             httpServletRequest, httpServletResponse);
-    for (final CAInfo caInfo :
-        raMasterApi.getAuthorizedCas(authenticationToken)) {
+    for (final CAInfo caInfo
+        : raMasterApi.getAuthorizedCas(authenticationToken)) {
       if (caInfo.getCertificateChain() == null
           || caInfo.getCertificateChain().size() == 0) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Not computing CA certificate fingerprint for CA "
                   + caInfo.getName()
                   + " because no CA certificate is available. Status of this"
@@ -404,14 +420,14 @@ public class RaCertDistServlet extends HttpServlet {
         caEntry.put("Subject DN", caInfo.getSubjectDN());
         caEntry.put("CA Certificate Fingerprint", caFingerprint);
         entries.put(caInfo.getName(), caEntry);
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Computed CA certificate fingerprint for CA "
                   + caInfo.getName()
                   + ".");
         }
       } catch (final CertificateEncodingException e) {
-        log.warn(
+        LOG.warn(
             "Cannot compute CA certificate fingerprint for CA "
                 + caInfo.getName()
                 + " because the CA certificate could not be encoded. The error"
@@ -424,7 +440,7 @@ public class RaCertDistServlet extends HttpServlet {
     dumperOptions.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
     dumperOptions.setPrettyFlow(true);
     final Yaml yaml = new Yaml(dumperOptions);
-    log.info(
+    LOG.info(
         "User "
             + authenticationToken.toString()
             + " requested a CA certificate fingerprint file.");
@@ -455,18 +471,18 @@ public class RaCertDistServlet extends HttpServlet {
       final HttpServletRequest httpServletRequest,
       final HttpServletResponse httpServletResponse)
       throws IOException {
-    try (final ByteArrayOutputStream zipContent = new ByteArrayOutputStream()) {
-      try (final ZipOutputStream certificateBundle =
+    try (ByteArrayOutputStream zipContent = new ByteArrayOutputStream()) {
+      try (ZipOutputStream certificateBundle =
           new ZipOutputStream(zipContent)) {
         final AuthenticationToken authenticationToken =
             raAuthenticationHelper.getAuthenticationToken(
                 httpServletRequest, httpServletResponse);
-        for (final CAInfo caInfo :
-            raMasterApi.getAuthorizedCas(authenticationToken)) {
+        for (final CAInfo caInfo
+            : raMasterApi.getAuthorizedCas(authenticationToken)) {
           if (caInfo.getCertificateChain() == null
               || caInfo.getCertificateChain().size() == 0) {
-            if (log.isDebugEnabled()) {
-              log.debug(
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(
                   "Not adding CA certificate for CA "
                       + caInfo.getName()
                       + " to certificate bundle because no CA certificate is"
@@ -482,14 +498,14 @@ public class RaCertDistServlet extends HttpServlet {
             certificateBundle.putNextEntry(new ZipEntry(filename));
             certificateBundle.write(encodedCertificate);
             certificateBundle.closeEntry();
-            if (log.isDebugEnabled()) {
-              log.debug(
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(
                   "Added CA certificate for CA "
                       + caInfo.getName()
                       + " to certificate bundle.");
             }
           } catch (final CertificateEncodingException e) {
-            log.warn(
+            LOG.warn(
                 "Cannot add CA certificate for CA "
                     + caInfo.getName()
                     + " to certificate bundle because the CA certificate could"
@@ -498,7 +514,7 @@ public class RaCertDistServlet extends HttpServlet {
             continue;
           }
         }
-        log.info(
+        LOG.info(
             "User "
                 + authenticationToken.toString()
                 + " requested a CA certificate bundle.");

@@ -35,12 +35,17 @@ public abstract class RaAbstractDn {
 
   // private static final Logger log = Logger.getLogger(RaAbstractDn.class);
 
+      /** Param. */
   private final Collection<EndEntityProfile.FieldInstance> fieldInstances =
       new ArrayList<>();
+  /** Param. */
   private final Map<String, Map<Integer, EndEntityProfile.FieldInstance>>
       fieldInstancesMap = new HashMap<>();
+  /** Param. */
   protected String value;
+  /** Param. */
   protected X500NameStyle nameStyle = CeSecoreNameStyle.INSTANCE;
+  /** Param. */
   protected boolean ldapOrder = true;
 
   /** @return one of the DNFieldExtractor.TYPE_* */
@@ -53,17 +58,24 @@ public abstract class RaAbstractDn {
   protected abstract ArrayList<String> getAbstractDnFields();
 
   /**
-   * Intended to be used for Subject DN: ;
+   * Intended to be used for Subject DN.
    *
    * @param dnBeforeReordering DN
    * @return reordered dn value
    */
   protected abstract String reorder(String dnBeforeReordering);
 
+  /**
+   * @param endEntityProfile DN
+   */
   public RaAbstractDn(final EndEntityProfile endEntityProfile) {
     this(endEntityProfile, null);
   }
 
+  /**
+   * @param endEntityProfile profile
+   * @param dn DN
+   */
   public RaAbstractDn(
       final EndEntityProfile endEntityProfile, final String dn) {
     DNFieldExtractor dnFieldExtractor = null;
@@ -75,8 +87,8 @@ public abstract class RaAbstractDn {
       final Field field = endEntityProfile.new Field(key);
       fieldInstancesMap.put(
           key, new HashMap<Integer, EndEntityProfile.FieldInstance>());
-      for (final EndEntityProfile.FieldInstance fieldInstance :
-          field.getInstances()) {
+      for (final EndEntityProfile.FieldInstance fieldInstance
+          : field.getInstances()) {
         if (dnFieldExtractor != null) {
           fieldInstance.setValue(
               dnFieldExtractor.getField(
@@ -107,14 +119,14 @@ public abstract class RaAbstractDn {
     StringBuilder dn = new StringBuilder();
     for (EndEntityProfile.FieldInstance fieldInstance : fieldInstances) {
       if (fieldInstance != null) {
-        String value = fieldInstance.getValue();
-        if (!StringUtils.isBlank(value)) {
-          value = value.trim();
+        String avalue = fieldInstance.getValue();
+        if (!StringUtils.isBlank(avalue)) {
+          avalue = avalue.trim();
           int dnId = DnComponents.profileIdToDnId(fieldInstance.getProfileId());
           String nameValueDnPart =
               DNFieldExtractor.getFieldComponent(
                       dnId, getAbstractDnFieldExtractorType())
-                  + value;
+                  + avalue;
           nameValueDnPart = org.ietf.ldap.LDAPDN.escapeRDN(nameValueDnPart);
           if (dn.length() != 0) {
             dn.append(", ");
@@ -155,8 +167,8 @@ public abstract class RaAbstractDn {
   }
 
   @SuppressWarnings("unused")
-  private void setValue(final String value) {
-    this.value = value;
+  private void setValue(final String avalue) {
+    this.value = avalue;
   }
 
   /** @return the ldapOrder */
@@ -164,9 +176,9 @@ public abstract class RaAbstractDn {
     return ldapOrder;
   }
 
-  /** @param ldapOrder the ldapOrder to set */
-  public void setLdapOrder(final boolean ldapOrder) {
-    this.ldapOrder = ldapOrder;
+  /** @param aldapOrder the ldapOrder to set */
+  public void setLdapOrder(final boolean aldapOrder) {
+    this.ldapOrder = aldapOrder;
   }
 
   /** @return the nameStyle */
@@ -174,8 +186,8 @@ public abstract class RaAbstractDn {
     return nameStyle;
   }
 
-  /** @param nameStyle the nameStyle to set */
-  public void setNameStyle(final X500NameStyle nameStyle) {
-    this.nameStyle = nameStyle;
+  /** @param anameStyle the nameStyle to set */
+  public void setNameStyle(final X500NameStyle anameStyle) {
+    this.nameStyle = anameStyle;
   }
 }

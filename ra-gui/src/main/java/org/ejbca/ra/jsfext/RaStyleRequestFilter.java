@@ -57,8 +57,8 @@ public class RaStyleRequestFilter implements Filter {
       /** Param. */
   private static final String RA_LOGO_PATH = "/ejbca/ra/img/pk_logo.png";
   /** Param. */
-  private static final Logger LOG = 
-		  Logger.getLogger(RaStyleRequestFilter.class);
+  private static final Logger LOG =
+          Logger.getLogger(RaStyleRequestFilter.class);
 
   /** Param. */
   @EJB private AdminPreferenceSessionLocal adminPreferenceSessionLocal;

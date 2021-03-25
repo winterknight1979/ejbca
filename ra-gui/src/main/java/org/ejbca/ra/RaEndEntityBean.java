@@ -58,59 +58,90 @@ public class RaEndEntityBean implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  private static final Logger log = Logger.getLogger(RaEndEntityBean.class);
+  /** Log.
+   */
+  private static final Logger LOG = Logger.getLogger(RaEndEntityBean.class);
 
+  /** Param. */
   @EJB private RaMasterApiProxyBeanLocal raMasterApiProxyBean;
 
+
+  /** Param. */
   @ManagedProperty(value = "#{raAccessBean}")
   private RaAccessBean raAccessBean;
 
-  public void setRaAccessBean(final RaAccessBean raAccessBean) {
-    this.raAccessBean = raAccessBean;
+  /**
+   * @param araAccessBean bean
+   */
+  public void setRaAccessBean(final RaAccessBean araAccessBean) {
+    this.raAccessBean = araAccessBean;
   }
 
+  /** Param. */
   @ManagedProperty(value = "#{raAuthenticationBean}")
   private RaAuthenticationBean raAuthenticationBean;
 
+  /**
+   * @param araAuthenticationBean bean
+   */
   public void setRaAuthenticationBean(
-      final RaAuthenticationBean raAuthenticationBean) {
-    this.raAuthenticationBean = raAuthenticationBean;
+      final RaAuthenticationBean araAuthenticationBean) {
+    this.raAuthenticationBean = araAuthenticationBean;
   }
 
+
+  /** Param. */
   @ManagedProperty(value = "#{raLocaleBean}")
   private RaLocaleBean raLocaleBean;
 
-  public void setRaLocaleBean(final RaLocaleBean raLocaleBean) {
-    this.raLocaleBean = raLocaleBean;
+  /**
+   * @param araLocaleBean bean
+   */
+  public void setRaLocaleBean(final RaLocaleBean araLocaleBean) {
+    this.raLocaleBean = araLocaleBean;
   }
 
+  /** Param. */
   private String username = null;
+  /** Param. */
   private RaEndEntityDetails raEndEntityDetails = null;
+  /** Param. */
   private Map<Integer, String> eepIdToNameMap = null;
+  /** Param. */
   private Map<Integer, String> cpIdToNameMap = null;
+  /** Param. */
   private final Map<Integer, String> caIdToNameMap = new HashMap<>();
+  /** Param. */
   private boolean editEditEndEntityMode = false;
+  /** Param. */
   private List<RaCertificateDetails> issuedCerts = null;
+  /** Param. */
   private SelectStatus[] selectableStatuses = null;
+  /** Param. */
   private int selectedStatus = -1;
+  /** Param. */
   private String enrollmentCode = "";
+  /** Param. */
   private String enrollmentCodeConfirm = "";
+  /** Param. */
   private boolean authorized = false;
 
-  /** The SelectStatus class holds a status string/constant pair */
+  /** The SelectStatus class holds a status string/constant pair. */
   public static final class SelectStatus {
+        /** Param. */
     private final String statusString;
+    /** Param. */
     private final int statusConstant;
 
     /**
-     * Constructor for the SelectStatus class
+     * Constructor for the SelectStatus class.
      *
-     * @param statusString the status string
-     * @param statusConstant the status constant
+     * @param astatusString the status string
+     * @param astatusConstant the status constant
      */
-    public SelectStatus(final String statusString, final int statusConstant) {
-      this.statusString = statusString;
-      this.statusConstant = statusConstant;
+    public SelectStatus(final String astatusString, final int astatusConstant) {
+      this.statusString = astatusString;
+      this.statusConstant = astatusConstant;
     }
 
     /** @return the status string */
@@ -129,6 +160,8 @@ public class RaEndEntityBean implements Serializable {
     }
   }
 
+  /** Callbacks.
+   */
   private final Callbacks raEndEntityDetailsCallbacks =
       new RaEndEntityDetails.Callbacks() {
         @Override
@@ -147,10 +180,11 @@ public class RaEndEntityBean implements Serializable {
         }
       };
 
+      /** Construct. */
   @PostConstruct
   public void postConstruct() {
     if (!raAccessBean.isAuthorizedToSearchEndEntities()) {
-      log.debug("Not authorized to view end entities");
+      LOG.debug("Not authorized to view end entities");
       return;
     }
     authorized = true;
@@ -207,14 +241,23 @@ public class RaEndEntityBean implements Serializable {
     selectedStatus = -1;
   }
 
+  /**
+   * @return auth
+   */
   public boolean isAuthorized() {
     return authorized;
   }
 
+  /**
+   * @return user
+   */
   public String getUsername() {
     return username;
   }
 
+  /**
+   * @return details
+   */
   public RaEndEntityDetails getEndEntity() {
     return raEndEntityDetails;
   }
@@ -224,30 +267,30 @@ public class RaEndEntityBean implements Serializable {
     return editEditEndEntityMode;
   }
 
-  /** Enables edit mode (given that the API version allows it) and reloads */
+  /** Enables edit mode (given that the API version allows it) and reloads. */
   public void editEditEndEntity() {
     editEditEndEntityMode = isApiEditCompatible();
     reload();
   }
 
-  /** Cancels edit mode and reloads */
+  /** Cancels edit mode and reloads.*/
   public void editEditEndEntityCancel() {
     editEditEndEntityMode = false;
     reload();
   }
 
-  /** Edits the current End Entity, cancels edit mode and reloads */
+  /** Edits the current End Entity, cancels edit mode and reloads. */
   public void editEditEndEntitySave() {
     boolean changed = false;
-    int selectedStatus = getSelectedStatus();
+    int aselectedStatus = getSelectedStatus();
     EndEntityInformation endEntityInformation =
         new EndEntityInformation(raEndEntityDetails.getEndEntityInformation());
-    if (selectedStatus > 0
-        && selectedStatus != endEntityInformation.getStatus()) {
+    if (aselectedStatus > 0
+        && aselectedStatus != endEntityInformation.getStatus()) {
       // A new status was selected, verify the enrollment codes
       if (verifyEnrollmentCodes()) {
         // Change the End Entity's status and set the new password
-        endEntityInformation.setStatus(selectedStatus);
+        endEntityInformation.setStatus(aselectedStatus);
         endEntityInformation.setPassword(enrollmentCode);
         changed = true;
       }
@@ -319,21 +362,21 @@ public class RaEndEntityBean implements Serializable {
   }
 
   /**
-   * Sets the selected status to a new status
+   * Sets the selected status to a new status.
    *
-   * @param selectedStatus the new status
+   * @param aselectedStatus the new status
    */
-  public void setSelectedStatus(final int selectedStatus) {
-    this.selectedStatus = selectedStatus;
+  public void setSelectedStatus(final int aselectedStatus) {
+    this.selectedStatus = aselectedStatus;
   }
 
   /**
-   * Sets the enrollment code field
+   * Sets the enrollment code field.
    *
-   * @param enrollmentCode the new enrollment code
+   * @param anenrollmentCode the new enrollment code
    */
-  public void setEnrollmentCode(final String enrollmentCode) {
-    this.enrollmentCode = enrollmentCode;
+  public void setEnrollmentCode(final String anenrollmentCode) {
+    this.enrollmentCode = anenrollmentCode;
   }
 
   /** @return the enrollment code */
@@ -342,12 +385,12 @@ public class RaEndEntityBean implements Serializable {
   }
 
   /**
-   * Sets the enrollment code (confirm) field
+   * Sets the enrollment code (confirm) field.
    *
-   * @param enrollmentCodeConfirm the new enrollment code (confirm)
+   * @param anenrollmentCodeConfirm the new enrollment code (confirm)
    */
-  public void setEnrollmentCodeConfirm(final String enrollmentCodeConfirm) {
-    this.enrollmentCodeConfirm = enrollmentCodeConfirm;
+  public void setEnrollmentCodeConfirm(final String anenrollmentCodeConfirm) {
+    this.enrollmentCodeConfirm = anenrollmentCodeConfirm;
   }
 
   /** @return the enrollment code (confirm) */
@@ -357,7 +400,7 @@ public class RaEndEntityBean implements Serializable {
 
   /**
    * Generates an array of selectable statuses if not already cached and sets
-   * the current selected status to "Unchanged"
+   * the current selected status to "Unchanged".
    *
    * @return an array of selectable statuses
    */

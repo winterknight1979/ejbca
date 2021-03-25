@@ -40,14 +40,18 @@ import org.ejbca.core.ejb.authentication.web.WebAuthenticationProviderSessionLoc
 public class RaAuthenticationBean implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log =
+  /** Log. */
+  private static final Logger LOG =
       Logger.getLogger(RaAuthenticationBean.class);
 
+  /** Param. */
   @EJB
   private WebAuthenticationProviderSessionLocal
       webAuthenticationProviderSession;
 
+  /** Param. */
   private RaAuthenticationHelper raAuthenticationHelper = null;
+  /** Param. */
   private AuthenticationToken authenticationToken = null;
 
   /**
@@ -75,11 +79,17 @@ public class RaAuthenticationBean implements Serializable {
         FacesContext.getCurrentInstance().getExternalContext().getResponse();
   }
 
+  /**
+   * @return bool
+   */
   public boolean isPublicUser() {
     final AuthenticationToken authToken = getAuthenticationToken();
     return authToken instanceof PublicAccessAuthenticationToken;
   }
 
+  /**
+   * @return name
+   */
   public String getUserDisplayName() {
     final AuthenticationToken authToken = getAuthenticationToken();
     if (authToken instanceof X509CertificateAuthenticationToken) {
@@ -101,17 +111,17 @@ public class RaAuthenticationBean implements Serializable {
   }
 
   /**
-   * Invoked from RaHttpSessionListener when a session expires/is destroyed
+   * Invoked from RaHttpSessionListener when a session expires/is destroyed.
    *
    * @param httpSessionEvent Event
    */
   public void onSessionDestroyed(final HttpSessionEvent httpSessionEvent) {
-    log.info(
+    LOG.info(
         "HTTP session from client with authentication "
             + authenticationToken
             + " ended.");
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "HTTP session from client with authentication "
               + authenticationToken
               + " ended. jsessionid="

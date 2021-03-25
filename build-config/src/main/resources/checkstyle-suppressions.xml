@@ -613,5 +613,9 @@
 		files="ApprovalRequestGUIInfo.java" lines="432 " />  
 		<suppress checks="MethodLengthCheck"
 		files="EnrollMakeNewRequestBean.java" lines="978 " />  
+		<suppress checks="MethodLengthCheck"
+		files="RaCertDistServlet.java" lines="101 " />  
+		<suppress checks="MethodLengthCheck"
+		files="RaCertificateDetails.java" lines="251 " />  
 		
 </suppressions>

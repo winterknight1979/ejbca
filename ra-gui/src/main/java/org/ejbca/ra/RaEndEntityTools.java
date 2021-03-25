@@ -33,7 +33,9 @@ import org.ejbca.core.model.ra.raadmin.EndEntityProfileValidationException;
  *
  * @version $Id: RaEndEntityTools.java 27151 2017-11-14 12:05:02Z bastianf $
  */
-public class RaEndEntityTools {
+public final class RaEndEntityTools {
+
+    private RaEndEntityTools() { }
 
   /**
    * Finds the certificates of an End Entity and sorts them by date issued

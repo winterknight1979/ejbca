@@ -35,21 +35,31 @@ public class RaAuthenticationHelper implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(RaAuthenticationHelper.class);
+  /** Param. */
   private static final String HTTP_HEADER_SET_COOKIE = "Set-Cookie";
+  /** Param. */
   private static final String HTTP_HEADER_X_POWERED_BY = "X-Powered-By";
 
+  /** Param. */
   private final WebAuthenticationProviderSessionLocal
       webAuthenticationProviderSession;
+  /** Param. */
   private AuthenticationToken authenticationToken = null;
+  /** Param. */
   private String authenticationTokenTlsSessionId = null;
+  /** Param. */
   private String x509AuthenticationTokenFingerprint = null;
 
+  /**
+   * @param awebAuthenticationProviderSession session
+   */
   public RaAuthenticationHelper(
       final WebAuthenticationProviderSessionLocal
-          webAuthenticationProviderSession) {
-    this.webAuthenticationProviderSession = webAuthenticationProviderSession;
+          awebAuthenticationProviderSession) {
+    this.webAuthenticationProviderSession = awebAuthenticationProviderSession;
   }
 
   /**
@@ -65,8 +75,8 @@ public class RaAuthenticationHelper implements Serializable {
     if (authenticationToken == null
         || !StringUtils.equals(
             authenticationTokenTlsSessionId, currentTlsSessionId)) {
-      if (log.isTraceEnabled()) {
-        log.trace(
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(
             "New TLS session IDs or authenticationToken:"
                 + " currentClientTlsSessionID: "
                 + currentTlsSessionId
@@ -79,7 +89,7 @@ public class RaAuthenticationHelper implements Serializable {
           getClientX509Certificate(httpServletRequest);
       if (x509Certificate == null
           && x509AuthenticationTokenFingerprint != null) {
-        log.warn(
+        LOG.warn(
             "Suspected session hijacking attempt from "
                 + httpServletRequest.getRemoteAddr()
                 + ". RA client presented no TLS certificate in HTTP session"
@@ -90,8 +100,8 @@ public class RaAuthenticationHelper implements Serializable {
       if (x509Certificate != null) {
         final String fingerprint =
             CertTools.getFingerprintAsString(x509Certificate);
-        if (log.isTraceEnabled()) {
-          log.trace(
+        if (LOG.isTraceEnabled()) {
+          LOG.trace(
               "currentRequestFingerprint: "
                   + fingerprint
                   + ", x509AuthenticationTokenFingerprint: "
@@ -100,7 +110,7 @@ public class RaAuthenticationHelper implements Serializable {
         if (x509AuthenticationTokenFingerprint != null) {
           if (!StringUtils.equals(
               fingerprint, x509AuthenticationTokenFingerprint)) {
-            log.warn(
+            LOG.warn(
                 "Suspected session hijacking attempt from "
                     + httpServletRequest.getRemoteAddr()
                     + ". RA client presented a different TLS certificate in"
@@ -111,8 +121,8 @@ public class RaAuthenticationHelper implements Serializable {
             x509AuthenticationTokenFingerprint = null;
           }
         }
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "RA client presented client TLS certificate with subject DN '"
                   + CertTools.getSubjectDN(x509Certificate)
                   + "'.");
@@ -160,8 +170,8 @@ public class RaAuthenticationHelper implements Serializable {
     if (!httpServletRequest.isSecure()
         && !StringUtils.isEmpty(
             httpServletResponse.getHeader(HTTP_HEADER_SET_COOKIE))) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Preventing '"
                 + HTTP_HEADER_SET_COOKIE
                 + "' HTTP header on insecure connection with value: "
@@ -172,8 +182,8 @@ public class RaAuthenticationHelper implements Serializable {
     // Prevent sending the the X-Powered-By header e.g. "JSF/2.0"
     if (!StringUtils.isEmpty(
         httpServletResponse.getHeader(HTTP_HEADER_X_POWERED_BY))) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Preventing '"
                 + HTTP_HEADER_X_POWERED_BY
                 + "' HTTP header with value: "

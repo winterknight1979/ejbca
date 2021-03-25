@@ -49,52 +49,81 @@ public class RaCasPageBean implements Serializable {
 
   /** Representation of a CA in a chain with links to CRL download locations. */
   public class CaAndCrl {
+        /** Param. */
     private final String name;
+    /** Param. */
     private final String subjectDn;
+    /** Param. */
     private final int caId;
+    /** Param. */
     private String crlLink;
+    /** Param. */
     private String deltaCrlLink;
+    /** Param. */
     private final int position;
+    /** Param. */
     private final List<String> chainNames;
+    /** Param. */
     private boolean x509 = false;
 
     CaAndCrl(
-        final String name,
-        final String subjectDn,
-        final int caId,
-        final int position,
-        final List<String> chainNames) {
-      this.name = name;
-      this.subjectDn = subjectDn;
-      this.caId = caId;
-      this.position = position;
-      this.chainNames = chainNames;
+        final String aname,
+        final String asubjectDn,
+        final int acaId,
+        final int aposition,
+        final List<String> thechainNames) {
+      this.name = aname;
+      this.subjectDn = asubjectDn;
+      this.caId = acaId;
+      this.position = aposition;
+      this.chainNames = thechainNames;
     }
 
+    /**
+     * @return Name
+     */
     public String getName() {
       return name;
     }
 
+    /**
+     * @return DN
+     */
     public String getSubjectDn() {
       return subjectDn;
     }
 
+    /**
+     * @return ID
+     */
     public int getCaId() {
       return caId;
     }
 
+    /**
+     * @return link
+     */
     public String getCrlLink() {
       return crlLink;
     }
 
+    /**
+     * @return link
+     */
     public String getDeltaCrlLink() {
       return deltaCrlLink;
     }
 
+    /**
+     * @return pos
+     */
     public int getPosition() {
       return position;
     }
 
+    /**
+     * @return bool
+     */
     public boolean isX509() {
       return x509;
     }
@@ -125,29 +154,44 @@ public class RaCasPageBean implements Serializable {
 
   private static final long serialVersionUID = 1L;
   // private static final Logger log = Logger.getLogger(RaCasPageBean.class);
+  /** Param. */
   private static final String RFC4387_DEFAULT_EJBCA_URL =
       WebConfiguration.getCrlStoreContextRoot() + "/search.cgi";
+  /** Param. */
   private static final int NO_CAID_AVAILABLE = 0;
 
+  /** Param. */
   @EJB private CrlStoreSessionLocal crlSession;
+  /** Param. */
   @EJB private RaMasterApiProxyBeanLocal raMasterApiProxyBean;
 
+  /** Param. */
   @ManagedProperty(value = "#{raAuthenticationBean}")
   private RaAuthenticationBean raAuthenticationBean;
 
+  /**
+   * @param araAuthenticationBean bean
+   */
   public void setRaAuthenticationBean(
-      final RaAuthenticationBean raAuthenticationBean) {
-    this.raAuthenticationBean = raAuthenticationBean;
+      final RaAuthenticationBean araAuthenticationBean) {
+    this.raAuthenticationBean = araAuthenticationBean;
   }
 
+
+  /** Param. */
   @ManagedProperty(value = "#{raLocaleBean}")
   private RaLocaleBean raLocaleBean;
 
-  public void setRaLocaleBean(final RaLocaleBean raLocaleBean) {
-    this.raLocaleBean = raLocaleBean;
+  /**
+   * @param araLocaleBean bean
+   */
+  public void setRaLocaleBean(final RaLocaleBean araLocaleBean) {
+    this.raLocaleBean = araLocaleBean;
   }
 
+  /** Param. */
   private List<CaAndCrl> casAndCrlItems = null;
+  /** Param. */
   private boolean atLeastOneCrlLinkPresent = false;
 
   /**
@@ -261,11 +305,12 @@ public class RaCasPageBean implements Serializable {
    */
   private String getSubjectPrincipalHashAsUnpaddedBase64(
       final X509Certificate x509Certificate) {
+    final int len = 27;
     final byte[] hashSubjectX500Principal =
         CertTools.generateSHA1Fingerprint(
             x509Certificate.getSubjectX500Principal().getEncoded());
     return new String(Base64.encode(hashSubjectX500Principal))
-        .substring(0, 27)
+        .substring(0, len)
         .replaceAll("\\+", "%2B");
   }
 }
