@@ -8,7 +8,6 @@
  *
  */
 
-
 /* -------------------------------------------------------------------------- */
 
 /* GLOBAL */
@@ -161,6 +160,35 @@ body#menu {
   margin-top: 0.25em;
 }
 
+a {
+  background-color: transparent;
+  text-decoration: none;
+}
+
+a:link,
+a:visited {
+  color: #00a;
+}
+
+a:hover,
+a:focus,
+a:active {
+  color: #a00;
+}
+
+table.results tbody tr td a {		/* For the link "History" */
+  white-space: nowrap;
+}
+
+div.status h4 a:link,
+div.status h4 a:visited,
+div.status h4 a:hover,
+div.status h4 a:focus,
+div.status h4 a:active {
+  color: #000 !important;
+  text-decoration: underline;
+}
+
 #navigation a {
   display: block;
   padding: 0.04em 0.25em 0.08em 0.4em;
@@ -169,7 +197,19 @@ body#menu {
   border: 1px solid transparent;
 }
 
-#navigation ul ul a,
+#navigation ul ul a {
+  margin-left: 0;
+  padding-left: 0.5em;
+  border-left-width: 1em;
+}
+
+form#groupList table td a {
+  margin: 0.5em;
+  padding: 0.15em 0.3em;
+  border: 1px solid transparent;
+  font-size: inherit !important;
+}
+
 #navigation .section-content a {
   margin-left: 0;
   padding-left: 0.5em;
@@ -205,7 +245,6 @@ body#menu {
   -webkit-box-shadow: 0.15em 0.15em 0.45em rgba(0, 0, 0, 0.1);
 }
 
-
 /* -------------------------------------------------------------------------- */
 
 /* HEADER & FOOTER */
@@ -235,9 +274,20 @@ body#header {
   -webkit-text-shadow: 0.04em 0.04em 0 rgba(0, 0, 0, 0.1);
 }
 
+div.status table td img {
+  width: 16px;
+  height: 16px;
+  margin-top: 0.1em;
+}
+
 #header div#banner img {
   max-height: 84px;
   margin-top: 0;
+}
+
+table#logconfiguration td span {
+  display: block;
+  margin-bottom: 0.5em;
 }
 
 #header div#banner span {
@@ -263,7 +313,6 @@ div#footer {
   color: #a00;
   text-decoration: underline;
 }
-
 
 /* -------------------------------------------------------------------------- */
 
@@ -309,22 +358,6 @@ h4 {
   color: #000;
 }
 
-a {
-  background-color: transparent;
-  text-decoration: none;
-}
-
-a:link,
-a:visited {
-  color: #00a;
-}
-
-a:hover,
-a:focus,
-a:active {
-  color: #a00;
-}
-
 input,
 textarea,
 select {
@@ -360,13 +393,10 @@ input.selectButton {
   border-radius: 6px;
   padding: 1px 5px;
   background: #fff;
-  color: #000;
+  color: #000 WindowText -moz-fieldtext;
 
   /* Parsed if supported by the browser */
-  background-color: Window;
-  background-color: -moz-field;
-  color: WindowText;
-  color: -moz-fieldtext;
+  background-color: Window -moz-field;
 }
 
 input.selectButton.largeSelectButton {
@@ -382,11 +412,10 @@ input.selectButton.selected {
   border: 2px solid #666;
   padding: 0 4px;
   background: #66c;
-  color: #fff;
+  color: #fff HighlightText;
 
   /* Parsed if supported by the browser */
   background-color: Highlight;
-  color: HighlightText;
 }
 
 input.selectButton.largeSelectButton.selected {
@@ -395,10 +424,9 @@ input.selectButton.largeSelectButton.selected {
 
 input.selectButton.enabled:hover {
   background: #99f;
-  color: #fff;
+  color: #fff HighlightText;
   border-color: #fff;
   background-color: Highlight;
-  color: HighlightText;
 }
 
 div.message {
@@ -444,6 +472,18 @@ table.grid td {
   border: 1px solid #6f9ad3;
 }
 
+.actCas tbody th,
+.actCas tbody td {
+  margin: 0;
+  border: 1px solid #2e5a94;
+  background-color: transparent;
+  padding: 4px 3px;
+  vertical-align: middle;
+  text-align: left;
+  white-space: nowrap;
+  padding-right: 9px;
+}
+
 /* nested table */
 table.grid table td {
   border: none;
@@ -453,7 +493,6 @@ table.grid table td {
   display: block;
   text-align: right;
 }
-
 
 /* -------------------------------------------------------------------------- */
 
@@ -495,16 +534,22 @@ table p.help {
   margin: 0.2em 0.1em;
 }
 
-table span.help {
-}
-
 /* Add End-Entity */
 table#addendentity .help {
   font-size: 0.8em;
 }
 
-
 /* --- Forms: Grid */
+
+.actCas tbody tr:nth-child(2n) {
+  background-color: #f7f9fd;
+}
+
+.actCas tbody tr:hover,
+.actCas tbody tr:focus,
+.actCas tbody tr:active {
+  background-color: #ffb;
+}
 
 /* Rows */
 table.grid tbody tr:hover,
@@ -557,11 +602,21 @@ table.actions tr td {
   line-height: 2em;
 }
 
+.popup h2,
+.popup h3,
+.popup h4 {
+  text-align: center;
+}
+
+.popup h3 {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
 table.list tr td h3,
 table.actions tr td h3 {
   margin-bottom: -0.25em;
 }
-
 
 /* --- Forms: Edit/Action/View */
 table.view,
@@ -645,7 +700,6 @@ table.edit tr td {
   text-align: right;
 }
 
-
 /* Titles (and Sections) */
 table tr.section td,
 table tr.title td {
@@ -666,6 +720,67 @@ table tr td code.fingerprint {
 }
 
 /* --- Form: Edit */
+
+/* --- Form: Action */
+
+table.action tr td {
+  vertical-align: middle;
+}
+
+table.view tr td {
+  padding: 0.15em 0.5em !important;
+  line-height: 1.4em;
+}
+
+/* --- Forms: Search/Results */
+table.search tr td {
+  padding: 0.25em 0.5em 0.1em 0;
+  line-height: 1.75em;
+}
+
+.popup h4 {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+div.status h4,
+div.status table th,
+div.status table td {
+  white-space: nowrap;
+}
+
+.popup table tr td {
+  padding: 0.1em 0.3em;
+}
+
+table.view table tr td,
+table.action table tr td,
+table.edit-top table tr td,
+table.edit-bottom table tr td,
+table.edit table tr td {
+  padding: 0 0.5em 0.1em 0 !important;
+  background-color: transparent !important;
+  border: 0 none transparent !important;
+  color: #000 !important;
+}
+
+table.results > thead > tr > th,
+table.results > thead > tr > td {
+  padding: 0.45em 0.35em;
+  background-color: #dde;
+  background-image: -webkit-linear-gradient(top, #eef, #ccd);		/* Chrome 10+, Safari 5.1+ */
+  background-image: -moz-linear-gradient(top, #eef, #ccd);		/* Firefox 3.6+ */
+  background-image: -ms-linear-gradient(top, #eef, #ccd);			/* IE/Edge 10+ */
+  background-image: -o-linear-gradient(top, #eef, #ccd);			/* Opera 11.10+ */
+  background-image: linear-gradient(to top, #eef, #ccd);				/* W3C CSS 3 */
+  text-align: left;
+  white-space: nowrap;
+}
+
+table.results tbody tr td {
+  padding: 0 0.35em;
+  vertical-align: middle;
+}
 
 /* Headers, Sections, and Footers */
 table.edit-top tr:first-child td,
@@ -700,13 +815,8 @@ table.edit tr.title td {
   background-image: -webkit-linear-gradient(top, rgba(254, 238, 205, 1) 0%, rgba(254, 238, 205, 0) 100%);	/* Chrome10+,Safari5.1+ */
   background-image: -o-linear-gradient(top, rgba(254, 238, 205, 1) 0%, rgba(254, 238, 205, 0) 100%);			/* Opera 11.10+ */
   background-image: -ms-linear-gradient(top, rgba(254, 238, 205, 1) 0%, rgba(254, 238, 205, 0) 100%);		/* IE10+ */
-  background-image: linear-gradient(top, rgba(254, 238, 205, 1) 0%, rgba(254, 238, 205, 0) 100%);			/* W3C */
+  background-image: linear-gradient(to top, rgba(254, 238, 205, 1) 0%, rgba(254, 238, 205, 0) 100%);			/* W3C */
   color: #600;
-}
-
-/* --- Form: Action */
-table.action tr td {
-  vertical-align: middle;
 }
 
 /* Headers, Sections, and Footers */
@@ -726,11 +836,6 @@ table.action tr:last-child td {
 /* --- Form: View */
 table.view {
   margin-top: 0.25em;
-}
-
-table.view tr td {
-  padding: 0.15em 0.5em !important;
-  line-height: 1.4em;
 }
 
 /* Headers, Sections, and Footers */
@@ -756,11 +861,16 @@ table.view tr.title td {
   background-image: -webkit-linear-gradient(top, rgba(229, 229, 229, 1) 0%, rgba(229, 229, 229, 0) 100%);	/* Chrome10+,Safari5.1+ */
   background-image: -o-linear-gradient(top, rgba(229, 229, 229, 1) 0%, rgba(229, 229, 229, 0) 100%);			/* Opera 11.10+ */
   background-image: -ms-linear-gradient(top, rgba(229, 229, 229, 1) 0%, rgba(229, 229, 229, 0) 100%);		/* IE10+ */
-  background-image: linear-gradient(top, rgba(229, 229, 229, 1) 0%, rgba(229, 229, 229, 0) 100%);			/* W3C */
+  background-image: linear-gradient(to top, rgba(229, 229, 229, 1) 0%, rgba(229, 229, 229, 0) 100%);			/* W3C */
   color: #000;
 }
 
 /* --- Forms: Edit/Action/View */
+
+.popup table {
+  width: 100%;
+  border: 0 none;
+}
 
 /* KEEP IT HERE */
 table.view table,
@@ -770,24 +880,6 @@ table.edit-bottom table,
 table.edit table {
   background-color: transparent;
   border-spacing: 0;
-}
-
-table.view table tr td,
-table.action table tr td,
-table.edit-top table tr td,
-table.edit-bottom table tr td,
-table.edit table tr td {
-  padding: 0 0.5em 0.1em 0 !important;
-  background-color: transparent !important;
-  border: 0 none transparent !important;
-  color: #000 !important;
-}
-
-
-/* --- Forms: Search/Results */
-table.search tr td {
-  padding: 0.25em 0.5em 0.1em 0;
-  line-height: 1.75em;
 }
 
 table.search tr td select option.separator {
@@ -817,19 +909,6 @@ table.results {
   margin-top: 0.5em;
 }
 
-table.results > thead > tr > th,
-table.results > thead > tr > td {
-  padding: 0.45em 0.35em;
-  background-color: #dde;
-  background-image: -webkit-linear-gradient(top, #eef, #ccd);		/* Chrome 10+, Safari 5.1+ */
-  background-image: -moz-linear-gradient(top, #eef, #ccd);		/* Firefox 3.6+ */
-  background-image: -ms-linear-gradient(top, #eef, #ccd);			/* IE/Edge 10+ */
-  background-image: -o-linear-gradient(top, #eef, #ccd);			/* Opera 11.10+ */
-  background-image: linear-gradient(top, #eef, #ccd);				/* W3C CSS 3 */
-  text-align: left;
-  white-space: nowrap;
-}
-
 table.results thead tr th.selection,
 table.results thead tr td.selection {
   text-align: center;
@@ -841,17 +920,18 @@ table.results tbody tr:active {
   background-color: #ffb !important;
 }
 
-table.results tbody tr td {
-  padding: 0 0.35em;
-  vertical-align: middle;
+/* Titles (and Sections) */
+.popup table tr.section td,
+.popup table tr.title td {
+  font-size: 1.2em;
+}
+
+.popup table tr td:first-child {
+  white-space: nowrap;
 }
 
 table.results > tbody > tr > td:last-child {		/* Only for the last child of "results", and not for "actions" */
   padding: 0;
-}
-
-table.results tbody tr td a {		/* For the link "History" */
-  white-space: nowrap;
 }
 
 table.results table.actions tbody tr td {
@@ -870,7 +950,6 @@ table.results table.actions tbody tr:active {
   margin-bottom: 1em;
   margin-top: 1em;
 }
-
 
 /* -------------------------------------------------------------------------- */
 
@@ -892,6 +971,44 @@ div#information {
 
 div#home {
   margin-top: 1.5em;
+}
+
+#search2 td {
+  white-space: nowrap;
+}
+
+table#logconfiguration td {
+  padding: 0.2em;
+  font-size: 0.9em;
+}
+
+table#logconfigbuttons td {
+  padding: 0.5em 0.25em;
+}
+
+/* --- Page: RA > Add End-Entity */
+table#addendentity tr td {
+  padding: 0.15em 0.3em;
+  vertical-align: middle;
+  white-space: nowrap;
+  font-size: 1.2em;
+}
+
+form#groupList table th,
+form#groupList table td {
+  white-space: nowrap;
+}
+
+form#groupList table td {
+  padding: 0.35em;
+  border: 1px solid #e0e0e0;
+  font-size: 1.1em;
+  font-weight: bold;
+}
+
+table#config tr td {
+  padding: 0.4em 0.4em;
+  line-height: 1.4em;
 }
 
 #home > table > tbody > tr > td {
@@ -918,23 +1035,8 @@ div.status h4 {
   font-size: small;
 }
 
-div.status h4 a:link,
-div.status h4 a:visited,
-div.status h4 a:hover,
-div.status h4 a:focus,
-div.status h4 a:active {
-  color: #000 !important;
-  text-decoration: underline;
-}
-
 div.status table {
   width: 100%;
-}
-
-div.status h4,
-div.status table th,
-div.status table td {
-  white-space: nowrap;
 }
 
 div.status table td.ca-status,
@@ -943,11 +1045,7 @@ div.status table td.publisher-queue {
   text-align: center;
 }
 
-div.status table td img {
-  width: 16px;
-  height: 16px;
-  margin-top: 0.1em;
-}
+.fullwidth-dynui-table .editColumn2 table { width: 100%; }
 
 /* --- Page: CA > CryptoTokens */
 form#cryptotokens table {
@@ -986,29 +1084,6 @@ form#cryptotokens img.statusIcon {
   left: auto;
 }
 
-.actCas tbody tr:nth-child(2n) {
-  background-color: #f7f9fd;
-}
-
-.actCas tbody tr:hover,
-.actCas tbody tr:focus,
-.actCas tbody tr:active {
-  background-color: #ffb;
-}
-
-.actCas tbody th,
-.actCas tbody td {
-  margin: 0;
-  padding: 2px 3px;
-  border: 1px solid #2e5a94;
-  background-color: transparent;
-  padding: 4px 3px;
-  vertical-align: middle;
-  text-align: left;
-  white-space: nowrap;
-  padding-right: 9px;
-}
-
 div#code {
   margin-top: 1.5em;
 }
@@ -1030,24 +1105,6 @@ select option.cvcoption_header {
   color: #000;
 }
 
-/* --- Page: RA > End-Entity profile */
-table#endentityprofile.edit tr td:first-child {
-  vertical-align: middle;
-  text-align: center;
-}
-
-table#endentityprofile.edit tr td input[name="textfieldpassword"] {
-  margin-bottom: 0.1em;
-}
-
-/* --- Page: RA > Add End-Entity */
-table#addendentity tr td {
-  padding: 0.15em 0.3em;
-  vertical-align: middle;
-  white-space: nowrap;
-  font-size: 1.2em;
-}
-
 /* Titles (and Sections) */
 table#addendentity tr.section td,
 table#addendentity tr.title td {
@@ -1058,19 +1115,23 @@ table#addendentity tr td:last-child {
   text-align: center;
 }
 
+table#config tr td:first-child {
+  vertical-align: top;
+}
+
+/* --- Page: RA > End-Entity profile */
+table#endentityprofile.edit tr td:first-child {
+  vertical-align: middle;
+  text-align: center;
+}
+
+table#endentityprofile.edit tr td input[name="textfieldpassword"] {
+  margin-bottom: 0.1em;
+}
+
 /* --- Page: SUP > Log configuration */
 table#logconfiguration {
   margin-bottom: 0.25em;
-}
-
-table#logconfiguration td {
-  padding: 0.2em;
-  font-size: 0.9em;
-}
-
-table#logconfiguration td span {
-  display: block;
-  margin-bottom: 0.5em;
 }
 
 table#logconfiguration td h3 {
@@ -1085,10 +1146,6 @@ table#logconfiguration td.field {
 
 table#logconfiguration td.checkbox {
   text-align: center;
-}
-
-table#logconfigbuttons td {
-  padding: 0.5em 0.25em;
 }
 
 table#logconfigbuttons td input[type="button"] {
@@ -1113,10 +1170,6 @@ table#logconfigbuttons td input[type="submit"] {
 #search2 input.numberInputSmall {
   width: 4em;
   text-align: right;
-}
-
-#search2 td {
-  white-space: nowrap;
 }
 
 /* --- Page: SYS > Administrators Groups */
@@ -1144,27 +1197,8 @@ form#groupList table tbody tr:active {
   background-color: #ffb;
 }
 
-form#groupList table th,
-form#groupList table td {
-  white-space: nowrap;
-}
-
 form#groupList table th {
   padding-bottom: 0.35em;
-}
-
-form#groupList table td {
-  padding: 0.35em;
-  border: 1px solid #e0e0e0;
-  font-size: 1.1em;
-  font-weight: bold;
-}
-
-form#groupList table td a {
-  margin: 0.5em;
-  padding: 0.15em 0.3em;
-  border: 1px solid transparent;
-  font-size: inherit !important;
 }
 
 form#groupList table td a:hover,
@@ -1188,14 +1222,14 @@ form#accessRulesForm table table {
   margin: 0;
 }
 
+form#accessRulesForm table table thead tr th {
+  text-align: center;
+}
+
 form#accessRulesForm table table thead tr:first-child th {
   background-color: #feeecd !important;
   border-top: 3px solid #fedd9a;
   color: #a00;
-}
-
-form#accessRulesForm table table thead tr th {
-  text-align: center;
 }
 
 form#accessRulesForm table table thead tr th:first-child {
@@ -1207,34 +1241,61 @@ table#config {
   margin-top: 0.25em;
 }
 
-table#config tr td {
-  padding: 0.4em 0.4em;
-  line-height: 1.4em;
-}
-
-table#config tr td:first-child {
-  vertical-align: top;
-}
-
-
 /* -------------------------------------------------------------------------- */
 
 /* TABLES */
 
 .Row0,
-#Row0 { color: black; font-size: 9pt; background-color: #f7f9ff; }
+#Row0 {
+  color: black;
+  font-size: 9pt;
+  background-color: #f7f9ff;
+}
+
 .Row1,
-#Row1 { color: black; font-size: 9pt; background-color: #e5ecff; }
+#Row1 {
+  color: black;
+  font-size: 9pt;
+  background-color: #e5ecff;
+}
 
-.label { vertical-align: top; text-align: right; }
-.field { vertical-align: top; text-align: left; }
+.label {
+  vertical-align: top;
+  text-align: right;
+}
 
-.listCaption { font-weight: bold; font-size: 1.2em; text-align: left; background-color: #5b8ccd; color: #fff; padding-left: 0.25em; }
-.listHeader { color: #777; font-size: 1.1em; font-weight: bold; text-align: left; }
+.field {
+  vertical-align: top;
+  text-align: left;
+}
 
-.subheader { color: #777; font-size: 0.7em; font-weight: bold; text-align: left; }
+.listCaption {
+  font-weight: bold;
+  font-size: 1.2em;
+  text-align: left;
+  background-color: #5b8ccd;
+  color: #fff;
+  padding-left: 0.25em;
+}
 
-.subTable { background-color: #fff; border: 1px solid #252525; }
+.listHeader {
+  color: #777;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-align: left;
+}
+
+.subheader {
+  color: #777;
+  font-size: 0.7em;
+  font-weight: bold;
+  text-align: left;
+}
+
+.subTable {
+  background-color: #fff;
+  border: 1px solid #252525;
+}
 
 .tableFooter {
   font-size: 0.7em;
@@ -1260,32 +1321,92 @@ table#config tr td:first-child {
 
 /* --- Table: List/Actions */
 
-.listColumn1 { text-align: left; width: 40%; }
-.listColumn2 { text-align: left; width: 60%; }
+.listColumn1 {
+  text-align: left;
+  width: 40%;
+}
+
+.listColumn2 {
+  text-align: left;
+  width: 60%;
+}
 
 /* --- Table: SUP > Logs */
 
-td#InfoRow0 { color: black; font-size: 9pt; background-color: white; }
-td#InfoRow1 { color: black; font-size: 9pt; background-color: #cfc; }
-td#ErrorRow0 { color: black; font-size: 9pt; background-color: white; }
-td#ErrorRow1 { color: black; font-size: 9pt; background-color: #fcc; }
+td#InfoRow0 {
+  color: black;
+  font-size: 9pt;
+  background-color: white;
+}
 
-tr#LogTextRow0 { color: black; font-size: 7pt; background-color: white; }
-tr#LogTextRow1 { color: black; font-size: 7pt; background-color: #e5ecff; }
+td#InfoRow1 {
+  color: black;
+  font-size: 9pt;
+  background-color: #cfc;
+}
+
+td#ErrorRow0 {
+  color: black;
+  font-size: 9pt;
+  background-color: white;
+}
+
+td#ErrorRow1 {
+  color: black;
+  font-size: 9pt;
+  background-color: #fcc;
+}
+
+tr#LogTextRow0 {
+  color: black;
+  font-size: 7pt;
+  background-color: white;
+}
+
+tr#LogTextRow1 {
+  color: black;
+  font-size: 7pt;
+  background-color: #e5ecff;
+}
 
 /* --- Table: SYS > Administrators Groups */
 
-.caColumn { text-align: left; width: 20%; }
-.withColumn { text-align: left; width: 35%; }
-.typeColumn { text-align: left; width: 20%; }
-.valueColumn { text-align: left; width: 20%; }
-.commandColumn { text-align: left; width: 5%; }
+.caColumn {
+  text-align: left;
+  width: 20%;
+}
 
-.rulesColumn1 { text-align: left; width: 50%; }
-.rulesColumn2 { text-align: center; width: 50%; }
+.withColumn {
+  text-align: left;
+  width: 35%;
+}
+
+.typeColumn {
+  text-align: left;
+  width: 20%;
+}
+
+.valueColumn {
+  text-align: left;
+  width: 20%;
+}
+
+.commandColumn {
+  text-align: left;
+  width: 5%;
+}
+
+.rulesColumn1 {
+  text-align: left;
+  width: 50%;
+}
+
+.rulesColumn2 {
+  text-align: center;
+  width: 50%;
+}
 
 table.selectStateRadio td * { vertical-align: middle; }
-
 
 /* -------------------------------------------------------------------------- */
 
@@ -1299,44 +1420,9 @@ body.popup {
   font-size: 11pt;
 }
 
-.popup h2,
-.popup h3,
-.popup h4 {
-  text-align: center;
-}
-
 .popup h2 {
   margin-top: 0.5em;
   margin-bottom: 0.5em;
-}
-
-.popup h3 {
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
-}
-
-.popup h4 {
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
-}
-
-.popup table {
-  width: 100%;
-  border: 0 none;
-}
-
-.popup table tr td {
-  padding: 0.1em 0.3em;
-}
-
-/* Titles (and Sections) */
-.popup table tr.section td,
-.popup table tr.title td {
-  font-size: 1.2em;
-}
-
-.popup table tr td:first-child {
-  white-space: nowrap;
 }
 
 /* --- Popup: View End-Entity */
@@ -1348,24 +1434,18 @@ body.popup {
   margin: 0 -0.5em;
 }
 
-.popup#viewendentity table.view table tr td {
-  padding-left: 0.6em !important;
-}
-
-.popup#viewendentity table.view table tr:nth-child(2n) td {
-  background-color: #eee !important;
-  background-color: rgba(0, 0, 0, 0.03) !important;
-}
-
-/* --- Popup: Edit End-Entity */
-.popup#editendentity table.edit {
-  margin-top: 0.5em;
-}
-
 .popup#editendentity table.edit tr td {
   padding: 0.15em 0.3em;
   vertical-align: middle;
   white-space: nowrap;
+}
+
+.popup#viewendentity table.view table tr td {
+  padding-left: 0.6em !important;
+}
+
+.popup#viewhistory table tbody tr td:first-child {
+  white-space: normal;
 }
 
 .popup#editendentity table.edit tr td:last-child {
@@ -1381,6 +1461,16 @@ body.popup {
   font-size: 1.2em;
 }
 
+.popup#viewendentity table.view table tr:nth-child(2n) td {
+  background-color: #eee !important;
+  background-color: rgba(0, 0, 0, 0.03) !important;
+}
+
+/* --- Popup: Edit End-Entity */
+.popup#editendentity table.edit {
+  margin-top: 0.5em;
+}
+
 /* --- Popup: View History */
 .popup#viewhistory h2,
 .popup#viewhistory h3,
@@ -1388,18 +1478,37 @@ body.popup {
   text-align: left;
 }
 
-.popup#viewhistory table tbody tr td:first-child {
-  white-space: normal;
-}
-
-
 /* -------------------------------------------------------------------------- */
 
-.alert { color: red; font-size: 11pt; font-weight: bold; background-color: white; }
-.info { color: black; font-size: 11pt; font-weight: bold; background-color: white; }
+.alert {
+  color: red;
+  font-size: 11pt;
+  font-weight: bold;
+  background-color: white;
+}
 
-.commandLink { font-size: 9pt; font-weight: bold; text-decoration: none; text-align: right; margin-left: 0.5em; margin-right: 0.5em; }
-.commandButton { font-size: 9pt; vertical-align: bottom; margin-left: 0.5em; margin-right: 0.5em; }
+.info {
+  color: black;
+  font-size: 11pt;
+  font-weight: bold;
+  background-color: white;
+}
+
+.commandLink {
+  font-size: 9pt;
+  font-weight: bold;
+  text-decoration: none;
+  text-align: right;
+  margin-left: 0.5em;
+  margin-right: 0.5em;
+}
+
+.commandButton {
+  font-size: 9pt;
+  vertical-align: bottom;
+  margin-left: 0.5em;
+  margin-right: 0.5em;
+}
 
 .commandLink.reload { color: #4b842e; }
 .commandLink.remove { color: #a21c15; }
@@ -1494,8 +1603,6 @@ a.tabLinktrue:hover {
   color: black;
 }
 
-.fullwidth-dynui-table .editColumn2 table { width: 100%; }
-
 .fullwidth-dynui-table textarea,
 .fullwidth-dynui-table input[type=text] {
   display: block;
@@ -1504,9 +1611,24 @@ a.tabLinktrue:hover {
 }
 
 /* CSS2 compatible expandable text */
-.expandOnClick { width: 25em; height: 1em; display: block; overflow: hidden; white-space: nowrap; }
+.expandOnClick {
+  width: 25em;
+  height: 1em;
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
 .expandOnClick::after { content: "..."; }
-.expandOnClick:focus { width: 100%; display: inline; overflow: auto; color: #000; white-space: pre-wrap; cursor: pointer; }
+
+.expandOnClick:focus {
+  display: inline;
+  overflow: auto;
+  color: #000;
+  white-space: pre-wrap;
+  cursor: pointer;
+}
+
 .expandOnClick:focus::after { content: ""; }
 
 /* -------------------------------------------------------------------------- */
