@@ -43,23 +43,33 @@ import org.ejbca.core.ejb.ra.raadmin.AdminPreferenceSessionLocal;
 @SessionScoped
 public class RaLocaleBean implements Serializable {
 
+      /** Param.   */
   private static final String LEFT_TO_RIGHT = "ltr";
+  /** Param.   */
   private static final String RIGHT_TO_LEFT = "rtl";
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(RaLocaleBean.class);
+  /** Param.   */
+  private static final Logger LOG = Logger.getLogger(RaLocaleBean.class);
 
+  /** Param.   */
   private Locale locale = null;
+  /** Param.   */
   private boolean directionLeftToRight = true;
 
+  /** Param.   */
   @EJB private AdminPreferenceSessionLocal adminPreferenceSession;
 
+  /** Param.   */
   @ManagedProperty(value = "#{raAuthenticationBean}")
   private RaAuthenticationBean raAuthenticationBean;
 
+  /**
+   * @param araAuthenticationBean Bean
+   */
   public void setRaAuthenticationBean(
-      final RaAuthenticationBean raAuthenticationBean) {
-    this.raAuthenticationBean = raAuthenticationBean;
+      final RaAuthenticationBean araAuthenticationBean) {
+    this.raAuthenticationBean = araAuthenticationBean;
   }
 
   /** @return this sessions Locale */
@@ -88,14 +98,14 @@ public class RaLocaleBean implements Serializable {
     return locale;
   }
   /**
-   * Set this sessions Locale
+   * Set this sessions Locale.
    *
-   * @param locale Locale
+   * @param alocale Locale
    */
-  public void setLocale(final Locale locale) {
+  public void setLocale(final Locale alocale) {
 
-    this.locale = locale;
-    directionLeftToRight = isDirectionLeftToRight(locale);
+    this.locale = alocale;
+    directionLeftToRight = isDirectionLeftToRight(alocale);
   }
 
   /** @return a list of all locales as defined in faces-config.xml */
@@ -123,19 +133,19 @@ public class RaLocaleBean implements Serializable {
   }
 
   /**
-   * @param locale Locale
+   * @param alocale Locale
    * @return true if the language direction is left to right
    */
-  private boolean isDirectionLeftToRight(final Locale locale) {
+  private boolean isDirectionLeftToRight(final Locale alocale) {
     final int directionality =
-        Character.getDirectionality(locale.getDisplayName(locale).charAt(0));
-    log.debug(
+        Character.getDirectionality(alocale.getDisplayName(alocale).charAt(0));
+    LOG.debug(
         "directionality is "
             + directionality
             + " for "
-            + locale.getLanguage()
+            + alocale.getLanguage()
             + " ("
-            + locale.getDisplayName(locale)
+            + alocale.getDisplayName(alocale)
             + ").");
     return directionality != Character.DIRECTIONALITY_RIGHT_TO_LEFT
         && directionality != Character.DIRECTIONALITY_RIGHT_TO_LEFT_ARABIC
@@ -273,8 +283,8 @@ public class RaLocaleBean implements Serializable {
         final String placeHolder = "{" + i + "}";
         final int currentIndex = sb.indexOf(placeHolder);
         if (currentIndex == -1) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "messageKey '"
                     + messageKey
                     + "' was referenced using parameter '"
@@ -308,7 +318,7 @@ public class RaLocaleBean implements Serializable {
   }
 
   /**
-   * Wraps the RaLocaleBean.getMessage()
+   * Wraps the RaLocaleBean.getMessage().
    *
    * @param messageKey the message key
    * @param params to replace place holders with. Evaluated with

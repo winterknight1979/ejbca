@@ -33,27 +33,41 @@ public class RaExampleBean implements Serializable {
   private static final long serialVersionUID = 1L;
   // private static final Logger log = Logger.getLogger(RaExampleBean.class);
 
+
+  /** Param. */
   @ManagedProperty(value = "#{raAuthenticationBean}")
   private RaAuthenticationBean raAuthenticationBean;
 
+  /**
+   * @param araAuthenticationBean bean
+   */
   public void setRaAuthenticationBean(
-      final RaAuthenticationBean raAuthenticationBean) {
-    this.raAuthenticationBean = raAuthenticationBean;
+      final RaAuthenticationBean araAuthenticationBean) {
+    this.raAuthenticationBean = araAuthenticationBean;
   }
 
+ /** Param. */
   @ManagedProperty(value = "#{raLocaleBean}")
   private RaLocaleBean raLocaleBean;
 
-  public void setRaLocaleBean(final RaLocaleBean raLocaleBean) {
-    this.raLocaleBean = raLocaleBean;
+  /**
+   * @param araLocaleBean bean
+   */
+  public void setRaLocaleBean(final RaLocaleBean araLocaleBean) {
+    this.raLocaleBean = araLocaleBean;
   }
 
+  /** Construct. */
   @PostConstruct
-  private void postContruct() {}
+  private void postContruct() { }
 
+  /**
+   * @throws Exception fail
+   */
   @Deprecated
   public void throwException() throws Exception {
+    final int seed = 100;
     throw new Exception(
-        "RaErrorBean.throwException " + new Random().nextInt(100));
+        "RaErrorBean.throwException " + new Random().nextInt(seed));
   }
 }

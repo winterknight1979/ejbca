@@ -36,7 +36,7 @@ import org.ejbca.core.model.era.RaMasterApiProxyBeanLocal;
 import org.ejbca.core.model.era.RaRoleMemberTokenTypeInfo;
 
 /**
- * Backing bean for the (Add) Role Member page
+ * Backing bean for the (Add) Role Member page.
  *
  * @version $Id: RaRoleMemberBean.java 34207 2020-01-08 13:22:50Z samuellb $
  *     TODO: Use CDI beans
@@ -47,55 +47,87 @@ import org.ejbca.core.model.era.RaRoleMemberTokenTypeInfo;
 public class RaRoleMemberBean implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(RaRoleMemberBean.class);
+  /** Param. */
+  private static final Logger LOG = Logger.getLogger(RaRoleMemberBean.class);
 
+  /** Param. */
   @EJB private RaMasterApiProxyBeanLocal raMasterApiProxyBean;
 
+  /** Param. */
   @ManagedProperty(value = "#{raAccessBean}")
   private RaAccessBean raAccessBean;
 
-  public void setRaAccessBean(final RaAccessBean raAccessBean) {
-    this.raAccessBean = raAccessBean;
+  /**
+   * @param araAccessBean bean
+   */
+  public void setRaAccessBean(final RaAccessBean araAccessBean) {
+    this.raAccessBean = araAccessBean;
   }
 
+  /** Param. */
   @ManagedProperty(value = "#{raAuthenticationBean}")
   private RaAuthenticationBean raAuthenticationBean;
 
+  /**
+   * @param araAuthenticationBean bean
+   */
   public void setRaAuthenticationBean(
-      final RaAuthenticationBean raAuthenticationBean) {
-    this.raAuthenticationBean = raAuthenticationBean;
+      final RaAuthenticationBean araAuthenticationBean) {
+    this.raAuthenticationBean = araAuthenticationBean;
   }
 
+  /** Param. */
   @ManagedProperty(value = "#{raLocaleBean}")
   private RaLocaleBean raLocaleBean;
 
-  public void setRaLocaleBean(final RaLocaleBean raLocaleBean) {
-    this.raLocaleBean = raLocaleBean;
+  /**
+   * @param araLocaleBean bean
+   */
+  public void setRaLocaleBean(final RaLocaleBean araLocaleBean) {
+    this.raLocaleBean = araLocaleBean;
   }
 
+  /** Param. */
   @ManagedProperty(value = "#{raRoleMembersBean}")
   private RaRoleMembersBean raRoleMembersBean;
 
-  public void setRaRoleMembersBean(final RaRoleMembersBean raRoleMembersBean) {
-    this.raRoleMembersBean = raRoleMembersBean;
+  /**
+   * @param araRoleMembersBean bean
+   */
+  public void setRaRoleMembersBean(final RaRoleMembersBean araRoleMembersBean) {
+    this.raRoleMembersBean = araRoleMembersBean;
   }
 
+  /** Param. */
   private List<SelectItem> availableRoles = null;
+  /** Param. */
   private List<SelectItem> availableTokenTypes = null;
+  /** Param. */
   private List<SelectItem> availableCAs = null;
+  /** Param. */
   private Map<String, RaRoleMemberTokenTypeInfo> tokenTypeInfos;
 
+  /** Param. */
   private Integer roleMemberId;
+  /** Param. */
   private RoleMember roleMember;
+  /** Param. */
   private Role role;
 
+  /** Param. */
   private int roleId;
+  /** Param. */
   private String tokenType;
+  /** Param. */
   private int caId;
+  /** Param. */
   private Integer matchKey;
+  /** Param. */
   private String matchValue;
+  /** Param. */
   private String description;
 
+  /** Init. */
   public void initialize() {
     if (tokenType != null && tokenTypeInfos != null) {
       // Don't re-initialize, that would overwrite the fields (tokenType, etc.)
@@ -112,7 +144,7 @@ public class RaRoleMemberBean implements Serializable {
             raMasterApiProxyBean.getRoleMember(
                 raAuthenticationBean.getAuthenticationToken(), roleMemberId);
         if (roleMember == null) {
-          log.debug("Role member with ID " + roleMemberId + " was not found.");
+          LOG.debug("Role member with ID " + roleMemberId + " was not found.");
           return;
         }
         roleId = roleMember.getRoleId();
@@ -126,7 +158,7 @@ public class RaRoleMemberBean implements Serializable {
               raMasterApiProxyBean.getRole(
                   raAuthenticationBean.getAuthenticationToken(), roleId);
           if (role == null) {
-            log.debug(
+            LOG.debug(
                 "Reference to missing role with ID "
                     + roleId
                     + " in role member with ID "
@@ -134,8 +166,8 @@ public class RaRoleMemberBean implements Serializable {
           }
         }
       } catch (AuthorizationDeniedException e) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Authorization denied to role member "
                   + roleMemberId
                   + ". "
@@ -160,73 +192,121 @@ public class RaRoleMemberBean implements Serializable {
                   .getMatchKeysMap()
                   .get(tokenTypeInfo.getDefaultMatchKey());
         } else {
-          log.debug("Missing information about token type " + tokenType);
+          LOG.debug("Missing information about token type " + tokenType);
           matchKey = 0;
         }
       }
     }
   }
 
+  /**
+   * @return ID
+   */
   public Integer getRoleMemberId() {
     return roleMemberId;
   }
 
-  public void setRoleMemberId(final Integer roleMemberId) {
-    this.roleMemberId = roleMemberId;
+  /**
+   * @param aroleMemberId member
+   */
+  public void setRoleMemberId(final Integer aroleMemberId) {
+    this.roleMemberId = aroleMemberId;
   }
 
+  /**
+   * @return Member
+   */
   public RoleMember getRoleMember() {
     return roleMember;
   }
 
+  /**
+   * @return ID
+   */
   public Integer getRoleId() {
     return roleId;
   }
 
-  public void setRoleId(final Integer roleId) {
-    this.roleId = roleId;
+  /**
+   * @param aroleId ID
+   */
+  public void setRoleId(final Integer aroleId) {
+    this.roleId = aroleId;
   }
 
+  /**
+   * @return type
+   */
   public String getTokenType() {
     return tokenType;
   }
 
-  public void setTokenType(final String tokenType) {
-    this.tokenType = tokenType;
+  /**
+   * @param atokenType Type
+   */
+  public void setTokenType(final String atokenType) {
+    this.tokenType = atokenType;
   }
 
+  /**
+   * @return CA
+   */
   public int getCaId() {
     return caId;
   }
 
-  public void setCaId(final int caId) {
-    this.caId = caId;
+  /**
+   * @param acaId CA
+   */
+  public void setCaId(final int acaId) {
+    this.caId = acaId;
   }
 
+  /**
+   * @return key
+   */
   public int getMatchKey() {
     return matchKey;
   }
 
-  public void setMatchKey(final int matchKey) {
-    this.matchKey = matchKey;
+  /**
+   * @param amatchKey key
+   */
+  public void setMatchKey(final int amatchKey) {
+    this.matchKey = amatchKey;
   }
 
+  /**
+   * @return val
+   */
   public String getMatchValue() {
     return matchValue;
   }
 
-  public void setMatchValue(final String matchValue) {
-    this.matchValue = matchValue;
+  /**
+   * @param amatchValue val
+   */
+  public void setMatchValue(final String amatchValue) {
+    this.matchValue = amatchValue;
   }
 
+  /**
+   * @return desc
+   */
   public String getDescription() {
     return this.description;
   }
 
-  public void setDescription(final String description) {
-    this.description = description.trim();
+  /**
+   * @param adescription desc
+   */
+  public void setDescription(final String adescription) {
+    this.description = adescription.trim();
   }
 
+  /**
+   * @return List
+   */
   public List<SelectItem> getAvailableRoles() {
     if (availableRoles == null) {
       availableRoles = new ArrayList<>();
@@ -236,36 +316,42 @@ public class RaRoleMemberBean implements Serializable {
                   raAuthenticationBean.getAuthenticationToken()));
       Collections.sort(roles);
       boolean hasNamespaces = false;
-      for (final Role role : roles) {
-        if (!StringUtils.isEmpty(role.getNameSpace())) {
+      for (final Role arole : roles) {
+        if (!StringUtils.isEmpty(arole.getNameSpace())) {
           hasNamespaces = true;
         }
       }
-      for (final Role role : roles) {
+      for (final Role arole : roles) {
         final String name =
-            hasNamespaces ? role.getRoleNameFull() : role.getRoleName();
-        availableRoles.add(new SelectItem(role.getRoleId(), name));
+            hasNamespaces ? arole.getRoleNameFull() : arole.getRoleName();
+        availableRoles.add(new SelectItem(arole.getRoleId(), name));
       }
     }
     return availableRoles;
   }
 
+  /**
+   * @return List
+   */
   public List<SelectItem> getAvailableTokenTypes() {
     if (availableTokenTypes == null) {
       final List<String> tokenTypes = new ArrayList<>(tokenTypeInfos.keySet());
       Collections.sort(tokenTypes);
       availableTokenTypes = new ArrayList<>();
-      for (final String tokenType : tokenTypes) {
+      for (final String atokenType : tokenTypes) {
         availableTokenTypes.add(
             new SelectItem(
-                tokenType,
+                atokenType,
                 raLocaleBean.getMessage(
-                    "role_member_token_type_" + tokenType)));
+                    "role_member_token_type_" + atokenType)));
       }
     }
     return availableTokenTypes;
   }
 
+  /**
+   * @return List
+   */
   public List<SelectItem> getAvailableCAs() {
     if (availableCAs == null) {
       availableCAs = new ArrayList<>();
@@ -288,6 +374,9 @@ public class RaRoleMemberBean implements Serializable {
     return availableCAs;
   }
 
+  /**
+   * @return List
+   */
   public List<SelectItem> getAvailableMatchKeys() {
     final RaRoleMemberTokenTypeInfo tokenTypeInfo =
         tokenTypeInfos.get(tokenType);
@@ -315,18 +404,27 @@ public class RaRoleMemberBean implements Serializable {
     return result;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isTokenTypeIssuedByCA() {
     final RaRoleMemberTokenTypeInfo tokenTypeInfo =
         tokenTypeInfos.get(tokenType);
     return tokenTypeInfo == null || tokenTypeInfo.isIssuedByCA();
   }
 
+  /**
+   * @return bool
+   */
   public boolean getTokenTypeHasMatchValue() {
     final RaRoleMemberTokenTypeInfo tokenTypeInfo =
         tokenTypeInfos.get(tokenType);
     return tokenTypeInfo.getHasMatchValue();
   }
 
+  /**
+   * @return URL
+   */
   public String getEditPageTitle() {
     return raLocaleBean.getMessage(
         roleMemberId != null
@@ -334,6 +432,9 @@ public class RaRoleMemberBean implements Serializable {
             : "role_member_page_add_title");
   }
 
+  /**
+   * @return URL
+   */
   public String getSaveButtonText() {
     return raLocaleBean.getMessage(
         roleMemberId != null
@@ -342,8 +443,12 @@ public class RaRoleMemberBean implements Serializable {
   }
 
   /** Called when the token type is changed. Does nothing */
-  public void update() {}
+  public void update() { }
 
+  /**
+   * @return URL
+   * @throws AuthorizationDeniedException fail
+   */
   public String save() throws AuthorizationDeniedException {
     final RaRoleMemberTokenTypeInfo tokenTypeInfo =
         tokenTypeInfos.get(tokenType);
@@ -374,8 +479,8 @@ public class RaRoleMemberBean implements Serializable {
             raAuthenticationBean.getAuthenticationToken(),
             roleMemberWithChanges);
     if (savedRoleMember == null) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "The role member could not be saved. Role member ID: "
                 + roleMemberId
                 + ". Role ID: "
@@ -415,11 +520,17 @@ public class RaRoleMemberBean implements Serializable {
     return "role_members?faces-redirect=true&includeViewParams=true";
   }
 
+  /**
+   * @return URL
+   */
   public String getRemovePageTitle() {
     return raLocaleBean.getMessage(
         "remove_role_member_page_title", StringUtils.defaultString(matchValue));
   }
 
+  /**
+   * @return URL
+   */
   public String getRemoveConfirmationText() {
     if (role != null) {
       return raLocaleBean.getMessage(
@@ -429,13 +540,17 @@ public class RaRoleMemberBean implements Serializable {
     }
   }
 
+  /**
+   * @return URL
+   * @throws AuthorizationDeniedException fail
+   */
   public String delete() throws AuthorizationDeniedException {
     if (!raMasterApiProxyBean.deleteRoleMember(
         raAuthenticationBean.getAuthenticationToken(),
         roleMember.getRoleId(),
         roleMember.getId())) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "The role member could not be deleted. Role member ID: "
                 + roleMemberId
                 + ". Role ID: "
@@ -450,6 +565,9 @@ public class RaRoleMemberBean implements Serializable {
     return "role_members?faces-redirect=true&includeViewParams=true";
   }
 
+  /**
+   * @return URL
+   */
   public String cancel() {
     return "role_members?faces-redirect=true&includeViewParams=true";
   }

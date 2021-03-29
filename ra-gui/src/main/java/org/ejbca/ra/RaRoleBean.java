@@ -42,7 +42,7 @@ import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
 import org.ejbca.ra.jsfext.AddRemoveListState;
 
 /**
- * Backing bean for the Edit Role page
+ * Backing bean for the Edit Role page.
  *
  * @version $Id: RaRoleBean.java 34207 2020-01-08 13:22:50Z samuellb $ TODO: Use
  *     CDI beans
@@ -53,101 +53,156 @@ import org.ejbca.ra.jsfext.AddRemoveListState;
 public class RaRoleBean implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(RaRoleBean.class);
+  /** Param. */
+  private static final Logger LOG = Logger.getLogger(RaRoleBean.class);
 
+  /** Param. */
   @EJB private RaMasterApiProxyBeanLocal raMasterApiProxyBean;
 
+  /** Param. */
   @ManagedProperty(value = "#{raAccessBean}")
   private RaAccessBean raAccessBean;
 
-  public void setRaAccessBean(final RaAccessBean raAccessBean) {
-    this.raAccessBean = raAccessBean;
+  /**
+   * @param araAccessBean bean
+   */
+  public void setRaAccessBean(final RaAccessBean araAccessBean) {
+    this.raAccessBean = araAccessBean;
   }
 
+  /** Param. */
   @ManagedProperty(value = "#{raAuthenticationBean}")
   private RaAuthenticationBean raAuthenticationBean;
 
+  /**
+   * @param araAuthenticationBean bean
+   */
   public void setRaAuthenticationBean(
-      final RaAuthenticationBean raAuthenticationBean) {
-    this.raAuthenticationBean = raAuthenticationBean;
+      final RaAuthenticationBean araAuthenticationBean) {
+    this.raAuthenticationBean = araAuthenticationBean;
   }
 
+  /** Param. */
   @ManagedProperty(value = "#{raLocaleBean}")
   private RaLocaleBean raLocaleBean;
 
-  public void setRaLocaleBean(final RaLocaleBean raLocaleBean) {
-    this.raLocaleBean = raLocaleBean;
+  /**
+   * @param araLocaleBean bean
+   */
+  public void setRaLocaleBean(final RaLocaleBean araLocaleBean) {
+    this.raLocaleBean = araLocaleBean;
   }
 
+  /** Param. */
   @ManagedProperty(value = "#{raRolesBean}")
   private RaRolesBean raRolesBean;
 
-  public void setRaRolesBean(final RaRolesBean raRolesBean) {
-    this.raRolesBean = raRolesBean;
+  /**
+   * @param araRolesBean bean
+   */
+  public void setRaRolesBean(final RaRolesBean araRolesBean) {
+    this.raRolesBean = araRolesBean;
   }
 
+  /** Param. */
   private static final Object NEW_NAMESPACE_ITEM = "#NEW#";
   /**
    * Matches e.g. /endentityprofilesrules/12345/create_end_entity, but not
-   * /endentityprofilesrules/12345
+   * /endentityprofilesrules/12345.
    */
-  private static final Pattern detailedProfileRulePattern =
+  private final Pattern detailedProfileRulePattern =
       Pattern.compile(".*/([-0-9]+)/.+$");
 
+  /** Param. */
   private boolean initialized = false;
 
+  /** Param. */
   private Integer roleId;
+  /** Param. */
   private Integer cloneFromRoleId;
+  /** Param. */
   private Role role;
 
+  /** Param. */
   private String name;
+  /** Param. */
   private String namespace;
+  /** Param. */
   private String newNamespace;
+  /** Param. */
   private boolean hasAccessToEmptyNamespace;
+  /** Param. */
   private List<String> namespaces;
+  /** Param. */
   private List<SelectItem> namespaceOptions = new ArrayList<>();
 
-  /** Represents a checkbox for a rule in the GUI */
+  /** Represents a checkbox for a rule in the GUI. */
   public final class RuleCheckboxInfo implements Serializable {
     private static final long serialVersionUID = 1L;
+    /** Param. */
     private final String accessRule;
+    /** Param. */
     private final String label;
+    /** Param. */
     private boolean allowed;
 
+    /**
+     * @param anaccessRule rule
+     * @param labelMessageKey key
+     */
     public RuleCheckboxInfo(
-        final String accessRule, final String labelMessageKey) {
-      this.accessRule = accessRule;
+        final String anaccessRule, final String labelMessageKey) {
+      this.accessRule = anaccessRule;
       this.label = raLocaleBean.getMessage(labelMessageKey);
       this.allowed =
           AccessRulesHelper.hasAccessToResource(
-              role.getAccessRules(), accessRule);
+              role.getAccessRules(), anaccessRule);
     }
 
+    /**
+     * @return rule
+     */
     public String getAccessRule() {
       return accessRule;
     }
 
+    /**
+     * @return label
+     */
     public String getLabel() {
       return label;
     }
 
+    /**
+     * @return bool
+     */
     public boolean isAllowed() {
       return allowed;
     }
 
-    public void setAllowed(final boolean allowed) {
-      this.allowed = allowed;
+    /**
+     * @param isallowed bool
+     */
+    public void setAllowed(final boolean isallowed) {
+      this.allowed = isallowed;
     }
   }
 
+  /** Param. */
   private final List<RuleCheckboxInfo> endEntityRules = new ArrayList<>();
+  /** Param. */
   private final AddRemoveListState<String> caListState =
       new AddRemoveListState<>();
+  /** Param. */
   private final AddRemoveListState<String> endEntityProfileListState =
       new AddRemoveListState<>();
+  /** Param. */
   private final Map<Integer, String> eeProfilesWithCustomPermissions =
       new HashMap<>();
 
+  /**
+   * @throws AuthorizationDeniedException fail
+   */
   public void initialize() throws AuthorizationDeniedException {
     if (initialized) {
       return;
@@ -171,9 +226,9 @@ public class RaRoleBean implements Serializable {
               NEW_NAMESPACE_ITEM,
               raLocaleBean.getMessage("role_page_namespace_createnew")));
     }
-    for (final String namespace : namespaces) {
-      if (!namespace.equals("")) {
-        namespaceOptions.add(new SelectItem(namespace, namespace));
+    for (final String anamespace : namespaces) {
+      if (!anamespace.equals("")) {
+        namespaceOptions.add(new SelectItem(anamespace, anamespace));
       }
     }
 
@@ -224,8 +279,8 @@ public class RaRoleBean implements Serializable {
         }
       }
     }
-    for (final KeyToValueHolder<EndEntityProfile> kv :
-        authorizedEndEntityProfiles.values()) {
+    for (final KeyToValueHolder<EndEntityProfile> kv
+        : authorizedEndEntityProfiles.values()) {
       if (!eeProfilesWithCustomPermissions.containsKey(kv.getId())) {
         final String accessRule =
             AccessRulesConstants.ENDENTITYPROFILEPREFIX + kv.getId();
@@ -263,6 +318,9 @@ public class RaRoleBean implements Serializable {
             "role_page_access_viewendentityhistory"));
   }
 
+  /**
+   * @return NS
+   */
   public String getDefaultNamespace() {
     if (isLimitedToOneNamespace()
         || namespaces
@@ -273,70 +331,121 @@ public class RaRoleBean implements Serializable {
     }
   }
 
+  /**
+   * @return ID
+   */
   public Integer getRoleId() {
     return roleId;
   }
 
-  public void setRoleId(final Integer roleId) {
-    this.roleId = roleId;
+  /**
+   * @param aroleId ID
+   */
+  public void setRoleId(final Integer aroleId) {
+    this.roleId = aroleId;
   }
 
+  /**
+   * @return clone
+   */
   public Integer getCloneFromRoleId() {
     return cloneFromRoleId;
   }
 
-  public void setCloneFromRoleId(final Integer cloneFromRoleId) {
-    this.cloneFromRoleId = cloneFromRoleId;
+  /**
+   * @param acloneFromRoleId clone
+   */
+  public void setCloneFromRoleId(final Integer acloneFromRoleId) {
+    this.cloneFromRoleId = acloneFromRoleId;
   }
 
+  /**
+   * @return role
+   */
   public Role getRole() {
     return role;
   }
 
+  /**
+   * @return name
+   */
   public String getName() {
     return name;
   }
 
-  public void setName(final String name) {
-    this.name = name;
+  /**
+   * @param aname name
+   */
+  public void setName(final String aname) {
+    this.name = aname;
   }
 
+  /**
+   * @return NS
+   */
   public String getNamespace() {
     return namespace;
   }
 
-  public void setNamespace(final String namespace) {
-    this.namespace = namespace;
+  /**
+   * @param anamespace NS
+   */
+  public void setNamespace(final String anamespace) {
+    this.namespace = anamespace;
   }
 
+  /**
+   * @return NS
+   */
   public String getNewNamespace() {
     return newNamespace;
   }
 
-  public void setNewNamespace(final String newNamespace) {
-    this.newNamespace = newNamespace;
+  /**
+   * @param anewNamespace NS
+   */
+  public void setNewNamespace(final String anewNamespace) {
+    this.newNamespace = anewNamespace;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isLimitedToOneNamespace() {
     return !hasAccessToEmptyNamespace && namespaces.size() == 1;
   }
 
+  /**
+   * @return bool
+   */
   public boolean getCanCreateNamespaces() {
     return hasAccessToEmptyNamespace;
   }
 
+  /**
+   * @return options
+   */
   public List<SelectItem> getNamespaceOptions() {
     return namespaceOptions;
   }
 
+  /**
+   * @return bool
+   */
   public boolean getCanEdit() {
     return raAccessBean.isAuthorizedToEditRoleRules();
   }
 
+  /**
+   * @return perms
+   */
   public boolean getHasCustomEndEntityProfilePermissions() {
     return !eeProfilesWithCustomPermissions.isEmpty();
   }
 
+  /**
+   * @return notice
+   */
   public String getCustomEndEntityProfilePermissionsNotice() {
     final String profileList =
         StringUtils.join(eeProfilesWithCustomPermissions.values(), ", ");
@@ -344,18 +453,30 @@ public class RaRoleBean implements Serializable {
         "role_page_custom_permissions_endentityprofiles", profileList);
   }
 
+  /**
+   * @return rules
+   */
   public List<RuleCheckboxInfo> getEndEntityRules() {
     return endEntityRules;
   }
 
+  /**
+   * @return state
+   */
   public AddRemoveListState<String> getCaListState() {
     return caListState;
   }
 
+  /**
+   * @return state
+   */
   public AddRemoveListState<String> getEndEntityProfileListState() {
     return endEntityProfileListState;
   }
 
+  /**
+   * @return title
+   */
   public String getPageTitle() {
     if (!getCanEdit()) {
       return raLocaleBean.getMessage("role_page_title_view", name);
@@ -368,6 +489,9 @@ public class RaRoleBean implements Serializable {
     }
   }
 
+  /**
+   * @return text
+   */
   public String getSaveButtonText() {
     final String messageKey;
     if (roleId != null) {
@@ -380,6 +504,10 @@ public class RaRoleBean implements Serializable {
     return raLocaleBean.getMessage(messageKey);
   }
 
+  /**
+   * @return URL
+   * @throws AuthorizationDeniedException fail
+   */
   public String save() throws AuthorizationDeniedException {
     // The getRole method returns a reference to an object which should not be
     // edited directly,
@@ -393,7 +521,7 @@ public class RaRoleBean implements Serializable {
       final String namespaceToUse;
       if (NEW_NAMESPACE_ITEM.equals(namespace)) {
         if (StringUtils.isBlank(newNamespace)) {
-          log.debug(
+          LOG.debug(
               "Empty namespace entered when 'New namespace' was selected."
                   + " Cannot save role");
           raLocaleBean.addMessageError("role_page_error_empty_namespace");
@@ -402,7 +530,7 @@ public class RaRoleBean implements Serializable {
         namespaceToUse = newNamespace;
       } else {
         if (!StringUtils.isBlank(newNamespace)) {
-          log.debug(
+          LOG.debug(
               "New namespace name entered when an existing namespace was"
                   + " selected. Cannot save role");
           raLocaleBean.addMessageError(
@@ -439,8 +567,8 @@ public class RaRoleBean implements Serializable {
           raMasterApiProxyBean.saveRole(
               raAuthenticationBean.getAuthenticationToken(), roleWithChanges);
     } catch (RoleExistsException e) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Role named '"
                 + roleWithChanges.getRoleName()
                 + "' in namespace '"
@@ -462,20 +590,30 @@ public class RaRoleBean implements Serializable {
     return "roles?faces-redirect=true&includeViewParams=true";
   }
 
+  /**
+   * @return URL
+   */
   public String getDeletePageTitle() {
     return raLocaleBean.getMessage("delete_role_page_title", name);
   }
 
+  /**
+   * @return confirm
+   */
   public String getDeleteConfirmationText() {
     return raLocaleBean.getMessage(
         "delete_role_page_confirm", role.getAccessRules().size());
   }
 
+  /**
+   * @return URL
+   * @throws AuthorizationDeniedException Fail
+   */
   public String delete() throws AuthorizationDeniedException {
     if (!raMasterApiProxyBean.deleteRole(
         raAuthenticationBean.getAuthenticationToken(), role.getRoleId())) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "The role '"
                 + role.getRoleNameFull()
                 + "' could not be deleted. Role ID: "
@@ -487,6 +625,9 @@ public class RaRoleBean implements Serializable {
     return "roles?faces-redirect=true&includeViewParams=true";
   }
 
+  /**
+   * @return URL
+   */
   public String cancel() {
     return "roles?faces-redirect=true&includeViewParams=true";
   }

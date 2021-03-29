@@ -48,28 +48,44 @@ import org.ejbca.core.model.ra.raadmin.AdminPreference;
 public class RaPreferencesBean implements Converter, Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(RaPreferencesBean.class);
+  /** Param. */
+  private static final Logger LOG = Logger.getLogger(RaPreferencesBean.class);
+  /** Param. */
   private static final int DUMMY_STYLE_ARCHIVE_ID = 0;
 
+  /** Param. */
   @EJB private AdminPreferenceSessionLocal adminPreferenceSession;
 
+  /** Param. */
   @ManagedProperty(value = "#{raLocaleBean}")
   private RaLocaleBean raLocaleBean;
 
-  public void setRaLocaleBean(final RaLocaleBean raLocaleBean) {
-    this.raLocaleBean = raLocaleBean;
+  /**
+   *
+   * @param araLocaleBean vean
+   */
+  public void setRaLocaleBean(final RaLocaleBean araLocaleBean) {
+    this.raLocaleBean = araLocaleBean;
   }
 
+
+  /** Param. */
   @ManagedProperty(value = "#{raAuthenticationBean}")
   private RaAuthenticationBean raAuthenticationBean;
 
+  /**
+   *
+   * @param araAuthenticationBean bean
+   */
   public void setRaAuthenticationBean(
-      final RaAuthenticationBean raAuthenticationBean) {
-    this.raAuthenticationBean = raAuthenticationBean;
+      final RaAuthenticationBean araAuthenticationBean) {
+    this.raAuthenticationBean = araAuthenticationBean;
   }
 
+  /** Param. */
   private Locale currentLocale;
 
+  /** Param. */
   private RaStyleInfo currentStyle;
 
   /**
@@ -79,42 +95,62 @@ public class RaPreferencesBean implements Converter, Serializable {
    */
   private RaStyleInfo previousStyle;
 
+  /** Param. */
   private boolean showLocaleInfo = false;
 
+  /** Param. */
   private boolean showStyleInfo = false;
 
+  /** Param. */
   private boolean applyDisabled = true;
 
+  /** Init. */
   @PostConstruct
   public void init() {
     initLocale();
     initRaStyle();
   }
-
+  /**
+   * @return bool
+   */
   public boolean isApplyDisabled() {
     return applyDisabled;
   }
-
+  /**
+   * @return bool
+   */
   public boolean isShowLocaleInfo() {
     return showLocaleInfo;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isShowStyleInfo() {
     return showStyleInfo;
   }
-
+  /** Toggle.
+   */
   public void toggleShowLocaleInfo() {
     this.showLocaleInfo = !showLocaleInfo;
   }
 
+  /** Toggle.
+   */
   public void toggleShowStyleInfo() {
     this.showStyleInfo = !showStyleInfo;
   }
 
+  /**
+   * @return Style
+   */
   public RaStyleInfo getCurrentStyle() {
     return currentStyle;
   }
 
+  /**
+   * @param newStyle Style
+   */
   public void setCurrentStyle(final RaStyleInfo newStyle) {
     currentStyle = newStyle;
     if (previousStyle.getArchiveId() == newStyle.getArchiveId()) {
@@ -124,18 +160,30 @@ public class RaPreferencesBean implements Converter, Serializable {
     this.applyDisabled = false;
   }
 
+  /**
+   * @return Locale
+   */
   public Locale getCurrentLocale() {
     return currentLocale;
   }
 
+  /**
+   * @param locale Locale
+   */
   public void setCurrentLocale(final Locale locale) {
     this.currentLocale = locale;
   }
 
+  /**
+   * @return Locales
+   */
   public List<Locale> getLocales() {
     return raLocaleBean.getSupportedLocales();
   }
 
+  /**
+   * @return Styles
+   */
   public List<RaStyleInfo> getStyles() {
 
     List<RaStyleInfo> raStyleInfos =
@@ -155,6 +203,9 @@ public class RaPreferencesBean implements Converter, Serializable {
     return raStyleInfosArchiveName;
   }
 
+  /**
+   * @param locale Locale
+   */
   public void localeChanged(final Locale locale) {
     if (raLocaleBean.getLocale().equals(locale)) {
       this.applyDisabled = true;
@@ -216,7 +267,7 @@ public class RaPreferencesBean implements Converter, Serializable {
     try {
       redirect();
     } catch (IOException e) {
-      log.warn("Unexpected error happened while redirecting to index page!");
+      LOG.warn("Unexpected error happened while redirecting to index page!");
       reset();
     }
   }
@@ -260,7 +311,7 @@ public class RaPreferencesBean implements Converter, Serializable {
     return raStyleInfo.getArchiveName();
   }
 
-  /** Private helpers */
+  /** Private helpers. */
   private void initLocale() {
     Locale localeFromDB =
         adminPreferenceSession.getCurrentRaLocale(
@@ -305,7 +356,7 @@ public class RaPreferencesBean implements Converter, Serializable {
   }
 
   /**
-   * Used to reset the preferences page
+   * Used to reset the preferences page.
    *
    * @return String
    */

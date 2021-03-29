@@ -67,57 +67,96 @@ import org.ejbca.util.KeyValuePair;
 public class RaManageRequestBean implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(RaManageRequestBean.class);
 
+  /** Param. */
+  private static final Logger LOG = Logger.getLogger(RaManageRequestBean.class);
+
+  /** Param. */
   @EJB private RaMasterApiProxyBeanLocal raMasterApiProxyBean;
 
+  /** Param. */
   @ManagedProperty(value = "#{raAccessBean}")
   private RaAccessBean raAccessBean;
 
-  public void setRaAccessBean(final RaAccessBean raAccessBean) {
-    this.raAccessBean = raAccessBean;
+  /**
+   *
+   * @param araAccessBean bean
+   */
+  public void setRaAccessBean(final RaAccessBean araAccessBean) {
+    this.raAccessBean = araAccessBean;
   }
 
+  /** Param. */
   @ManagedProperty(value = "#{raAuthenticationBean}")
   private RaAuthenticationBean raAuthenticationBean;
 
+  /**
+   *
+   * @param araAuthenticationBean bean
+   */
   public void setRaAuthenticationBean(
-      final RaAuthenticationBean raAuthenticationBean) {
-    this.raAuthenticationBean = raAuthenticationBean;
+      final RaAuthenticationBean araAuthenticationBean) {
+    this.raAuthenticationBean = araAuthenticationBean;
   }
 
+  /** Param. */
   @ManagedProperty(value = "#{raLocaleBean}")
   private RaLocaleBean raLocaleBean;
 
-  public void setRaLocaleBean(final RaLocaleBean raLocaleBean) {
-    this.raLocaleBean = raLocaleBean;
+  /**
+   *
+   * @param araLocaleBean bean
+   */
+  public void setRaLocaleBean(final RaLocaleBean araLocaleBean) {
+    this.raLocaleBean = araLocaleBean;
   }
 
+  /** Param. */
   private ApprovalRequestGUIInfo requestInfo;
+  /** Param. */
   private RaApprovalRequestInfo requestData;
+  /** Param. */
   private boolean editing = false;
+  /** Param. */
   private String extendDays;
+  /** Param. */
   private Map<Integer, List<DynamicUiProperty<? extends Serializable>>>
       currentPartitionsProperties = null;
-  List<ApprovalRequestGUIInfo.ApprovalPartitionProfileGuiObject>
+  /** Param. */
+  private List<ApprovalRequestGUIInfo.ApprovalPartitionProfileGuiObject>
       partitionsAuthorizedToView = null;
-  Set<Integer> partitionsAuthorizedToApprove = null;
+  /** Param.*/
+  private Set<Integer> partitionsAuthorizedToApprove = null;
 
-  public String idParam;
-  public String aidParam;
+  /** Param. */
+  private String idParam;
+  /** Param. */
+  private String aidParam;
 
+  /**
+   * @return param
+   */
   public String getIdParam() {
     return idParam;
   }
 
+  /**
+   * @param value Partam
+   */
   public void setIdParam(final String value) {
     idParam = value;
   }
 
+  /**
+   * @return param
+   */
   public String getAidParam() {
     return aidParam;
   }
 
+  /**
+   * @param value param
+   */
   public void setAidParam(final String value) {
     aidParam = value;
   }
@@ -148,10 +187,11 @@ public class RaManageRequestBean implements Serializable {
         new ApprovalRequestGUIInfo(requestData, raLocaleBean, raAccessBean);
   }
 
+  /** Init. */
   public void initializeRequestInfo() {
     if (requestInfo == null) {
       if (!raAccessBean.isAuthorizedToManageRequests()) {
-        log.debug("Not authorized to manage requests");
+        LOG.debug("Not authorized to manage requests");
         return;
       }
       if (!StringUtils.isBlank(idParam)) {
@@ -163,7 +203,7 @@ public class RaManageRequestBean implements Serializable {
       } else {
         // JBoss EAP 6 can call this method from preRenderView event, even from
         // the listing page. In that case there's no ID parameter.
-        log.debug(
+        LOG.debug(
             "No request ID passed in parameter. Will not initialize request"
                 + " info.");
         return;
@@ -175,14 +215,15 @@ public class RaManageRequestBean implements Serializable {
                 requestData.getMaxExtensionTime());
         extendDays =
             String.valueOf(
-                (defaultExtensionMillis + 24 * 60 * 60 * 1000 - 1)
-                    / (24 * 60 * 60 * 1000));
+                (defaultExtensionMillis + ONE_DAY_IN_MS - 1)
+                    / ONE_DAY_IN_MS);
       } else {
         extendDays = "1";
       }
     }
   }
 
+  /** Reload. */
   private void reloadRequest() {
     loadRequest(requestData.getId());
     // Make sure we don't use the approvalId (the hash) after we have edited a
@@ -191,52 +232,83 @@ public class RaManageRequestBean implements Serializable {
     aidParam = null;
   }
 
+  /**
+   * @return req
+   */
   public ApprovalRequestGUIInfo getRequest() {
     return requestInfo;
   }
 
+  /**
+   * @return title
+   */
   public String getPageTitle() {
     return raLocaleBean.getMessage(
         "view_request_page_title",
         requestInfo != null ? requestInfo.getDisplayName() : "");
   }
 
+  /**
+   * @return bool
+   */
   public boolean isViewDataVisible() {
     return !editing;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isEditDataVisible() {
     return editing;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isStatusVisible() {
     return !editing;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isPreviousStepsVisible() {
     return !editing && !requestInfo.getPreviousSteps().isEmpty();
   }
 
+  /**
+   * @return bool
+   */
   public boolean isApprovalVisible() {
     return !editing;
   } // even if approval is not possible, we still show a message explaining why
     // it's not.
 
+  /**
+   * @return bool
+   */
   public String getExtendDays() {
     return extendDays;
   }
 
-  public void setExtendDays(final String extendDays) {
-    this.extendDays = extendDays;
+  /**
+   * @param anextendDays days
+   */
+  public void setExtendDays(final String anextendDays) {
+    this.extendDays = anextendDays;
   }
 
+  /**
+   * @param guiPartition Partition
+   * @return Name
+   */
   public String getPartitionName(
       final ApprovalRequestGUIInfo.ApprovalPartitionProfileGuiObject
           guiPartition) {
     if (guiPartition == null) {
       // JBoss EAP 6.4 seems to make calls EL method calls one time extra, with
       // a null parameter, once per page rendering
-      log.debug("Ignored call to getPartitionProperties with null parameter");
+      LOG.debug("Ignored call to getPartitionProperties with null parameter");
       return "";
     }
     final ApprovalProfile approvalProfile =
@@ -267,6 +339,7 @@ public class RaManageRequestBean implements Serializable {
       return false;
     }
     // Retrieve the total number of dynamic UI controls
+    final int max = 3;
     final int propertyCount =
         requestInfo
             .request
@@ -276,16 +349,20 @@ public class RaManageRequestBean implements Serializable {
             .getPropertyList()
             .size();
     return propertyCount
-        > 3; // There is more than can_view + can_approve + title
+        > max; // There is more than can_view + can_approve + title
   }
 
+  /**
+   * @param guiPartition partition
+   * @return List
+   */
   public List<DynamicUiProperty<? extends Serializable>> getPartitionProperties(
       final ApprovalRequestGUIInfo.ApprovalPartitionProfileGuiObject
           guiPartition) {
     if (guiPartition == null) {
       // JBoss EAP 6.4 seems to make calls EL method calls one time extra, with
       // a null parameter, once per page rendering
-      log.debug("Ignored call to getPartitionProperties with null parameter");
+      LOG.debug("Ignored call to getPartitionProperties with null parameter");
       return new ArrayList<>();
     }
     final ApprovalProfile approvalProfile =
@@ -297,7 +374,7 @@ public class RaManageRequestBean implements Serializable {
   }
 
   /**
-   * Returns partitions in the current step
+   * Returns partitions in the current step.
    *
    * @return List
    */
@@ -311,8 +388,8 @@ public class RaManageRequestBean implements Serializable {
       final ApprovalProfile approvalProfile =
           requestInfo.request.getApprovalProfile();
       if (step != null) {
-        for (ApprovalPartition approvalPartition :
-            step.getPartitions().values()) {
+        for (ApprovalPartition approvalPartition
+            : step.getPartitions().values()) {
           try {
             if (approvalProfile.canViewPartition(
                 raAuthenticationBean.getAuthenticationToken(),
@@ -378,6 +455,10 @@ public class RaManageRequestBean implements Serializable {
         > 0;
   }
 
+  /**
+   * @param partition partition
+   * @return bool
+   */
   public boolean canApproveParition(
       final ApprovalRequestGUIInfo.ApprovalPartitionProfileGuiObject
           partition) {
@@ -387,6 +468,10 @@ public class RaManageRequestBean implements Serializable {
     return partitionsAuthorizedToApprove.contains(partition.getPartitionId());
   }
 
+  /**
+   * @param propertyName Prop
+   * @return bool
+   */
   public boolean isPropertyReadOnly(final String propertyName) {
     return requestInfo
         .request
@@ -451,7 +536,7 @@ public class RaManageRequestBean implements Serializable {
 
   /**
    * Creates a list of partitions that can be used with the approvalmetadata
-   * component
+   * component.
    *
    * @param step Step
    * @param partitions Oartitions
@@ -464,7 +549,7 @@ public class RaManageRequestBean implements Serializable {
     if (partitions == null) {
       // JBoss EAP 6.4 seems to make calls EL method calls one time extra, with
       // a null parameter, once per page rendering
-      log.debug(
+      LOG.debug(
           "Ignored call to partitionsToGuiPartitions with null parameter");
       return new ArrayList<>();
     }
@@ -483,13 +568,17 @@ public class RaManageRequestBean implements Serializable {
     return ret;
   }
 
+  /**
+   * @param guiPartition partition
+   * @return list
+   */
   public List<KeyValuePair> getHandledPartitionData(
       final ApprovalRequestGUIInfo.ApprovalPartitionProfileGuiObject
           guiPartition) {
     if (guiPartition == null) {
       // JBoss EAP 6.4 seems to make calls EL method calls one time extra, with
       // a null parameter, once per page rendering
-      log.debug(
+      LOG.debug(
           "Ignored call to partitionsToGuiPartitions with null parameter");
       return new ArrayList<>();
     }
@@ -520,6 +609,9 @@ public class RaManageRequestBean implements Serializable {
     return kvp;
   }
 
+  /**
+   * @return info
+   */
   public String getStepInfoText() {
     final List<String> roles =
         new ArrayList<>(requestData.getNextStepAllowedRoles());
@@ -538,6 +630,7 @@ public class RaManageRequestBean implements Serializable {
     }
   }
 
+  /** @return reason */
   public String getCantApproveReason() {
     if (requestInfo.isExpired()) {
       return raLocaleBean.getMessage(
@@ -613,14 +706,18 @@ public class RaManageRequestBean implements Serializable {
     return approval;
   }
 
+  /**
+   * @throws AuthorizationDeniedException fail
+   * @throws AuthenticationFailedException fail
+   */
   public void approve()
       throws AuthorizationDeniedException, AuthenticationFailedException {
     final ApprovalDataVO advo = requestInfo.request.getApprovalData();
     final ApprovalProfile approvalProfile =
         advo.getApprovalRequest().getApprovalProfile();
 
-    for (ApprovalRequestGUIInfo.ApprovalPartitionProfileGuiObject guiPartition :
-        partitionsAuthorizedToView) {
+    for (ApprovalRequestGUIInfo.ApprovalPartitionProfileGuiObject guiPartition
+        : partitionsAuthorizedToView) {
       if (partitionsAuthorizedToApprove.contains(
           guiPartition.getPartitionId())) {
         final RaApprovalResponseRequest responseReq =
@@ -659,14 +756,19 @@ public class RaManageRequestBean implements Serializable {
     reloadRequest();
   }
 
+  /** Reject.
+   *
+   * @throws AuthorizationDeniedException fail
+   * @throws AuthenticationFailedException fail
+   */
   public void reject()
       throws AuthorizationDeniedException, AuthenticationFailedException {
     final ApprovalDataVO advo = requestInfo.request.getApprovalData();
     final ApprovalProfile approvalProfile =
         advo.getApprovalRequest().getApprovalProfile();
 
-    for (ApprovalRequestGUIInfo.ApprovalPartitionProfileGuiObject guiPartition :
-        partitionsAuthorizedToView) {
+    for (ApprovalRequestGUIInfo.ApprovalPartitionProfileGuiObject guiPartition
+        : partitionsAuthorizedToView) {
       if (partitionsAuthorizedToApprove.contains(
           guiPartition.getPartitionId())) {
         final RaApprovalResponseRequest responseReq =
@@ -705,10 +807,13 @@ public class RaManageRequestBean implements Serializable {
     reloadRequest();
   }
 
+  /** Edit. */
   public void editRequestData() {
     editing = true;
   }
 
+  /** Save.
+   * @throws AuthorizationDeniedException fail */
   public void saveRequestData() throws AuthorizationDeniedException {
     if (!editing) {
       throw new IllegalStateException();
@@ -750,6 +855,7 @@ public class RaManageRequestBean implements Serializable {
             // TODO validation (ECA-5235)
             editData.setEmail(email);
             break;
+          default: break;
         }
       }
 
@@ -773,6 +879,7 @@ public class RaManageRequestBean implements Serializable {
     editing = false;
   }
 
+  /** Cancel. */
   public void cancelEdit() {
     if (!editing) {
       throw new IllegalStateException();
@@ -786,6 +893,10 @@ public class RaManageRequestBean implements Serializable {
     editing = false;
   }
 
+  /**   *
+   * @return req
+   * @throws AuthorizationDeniedException fail
+   */
   public String extendRequest() throws AuthorizationDeniedException {
     if (StringUtils.isBlank(extendDays)) {
       raLocaleBean.addMessageError(
@@ -808,17 +919,30 @@ public class RaManageRequestBean implements Serializable {
     return "managerequest.xhtml?faces-redirect=true&includeViewParams=true";
   }
 
+  /**
+   * @return days
+   */
   public int getMaxExtensionDays() {
     long days =
-        requestInfo.request.getMaxExtensionTime() / (24 * 60 * 60 * 1000);
+        requestInfo.request.getMaxExtensionTime() / ONE_DAY_IN_MS;
     return (int) days;
   }
 
+  /** Onbe day. */
+  private static final int ONE_DAY_IN_MS = 24 * 3600 * 1000;
+
+  /**
+   * @return test
+   */
   public String getExtendDaysPart2Text() {
     return raLocaleBean.getMessage(
         "view_request_page_extend_days_2", getMaxExtensionDays());
   }
 
+  /**
+   * @param dataRow roe
+   * @return DN
+   */
   public String getDN(final RequestDataRow dataRow) {
     // TODO validation (ECA-5235)
     return (String) dataRow.getEditValue();
@@ -832,8 +956,8 @@ public class RaManageRequestBean implements Serializable {
    * @param t Exception
    */
   private void logException(final String action, final Throwable t) {
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Got exception while trying to "
               + action
               + " an approval request: "

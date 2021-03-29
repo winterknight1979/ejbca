@@ -27,20 +27,34 @@ import org.cesecore.certificates.certificateprofile.CertificateProfile;
 public class RaRequestPreview {
 
   // private static final Logger log = Logger.getLogger(RaRequestPreview.class);
+      /** Param. */
   private String issuerDn = "";
+  /** Param. */
   private String subjectDn = "";
+  /** Param. */
   private String publicKeyAlgorithm = "";
+  /** Param. */
   private String subjectAlternativeName = "";
+  /** Param. */
   private String subjectDirectoryAttributes = "";
+  /** Param. */
   private String validity = "";
+  /** Param. */
   private List<String> keyUsages = new ArrayList<>();
+  /** Param. */
   private List<String> extendedKeyUsages = new ArrayList<>();
 
+  /** Param. */
   private boolean more = false;
+  /** Param. */
   private int styleRowCallCounter = 0;
 
-  public RaRequestPreview() {}
+  /** Param. */
+  public RaRequestPreview() { }
 
+  /**
+   * @param certificateProfile Profile
+   */
   public final void updateCertificateProfile(
       final CertificateProfile certificateProfile) {
     if (certificateProfile == null) {
@@ -55,42 +69,54 @@ public class RaRequestPreview {
       }
     }
     extendedKeyUsages.clear();
-    final List<String> extendedKeyUsages =
+    final List<String> aextendedKeyUsages =
         certificateProfile.getExtendedKeyUsageOids();
-    if (extendedKeyUsages != null) {
-      this.extendedKeyUsages.addAll(extendedKeyUsages);
+    if (aextendedKeyUsages != null) {
+      this.extendedKeyUsages.addAll(aextendedKeyUsages);
     }
   }
 
-  public final void updateCA(final CAInfo caInfo) {
-    if (caInfo == null) {
+  /**
+   * @param acaInfo info
+   */
+  public final void updateCA(final CAInfo acaInfo) {
+    if (acaInfo == null) {
       return;
     }
-    issuerDn = caInfo.getSubjectDN();
+    issuerDn = acaInfo.getSubjectDN();
   }
 
-  public final void updateSubjectDn(final SubjectDn subjectDn) {
-    if (subjectDn == null) {
+  /**
+   * @param asubjectDn DN
+   */
+  public final void updateSubjectDn(final SubjectDn asubjectDn) {
+    if (asubjectDn == null) {
       return;
     }
-    this.subjectDn = subjectDn.getUpdatedValue();
+    this.subjectDn = asubjectDn.getUpdatedValue();
   }
 
+  /**
+   * @param asubjectAlternativeName name
+   */
   public final void updateSubjectAlternativeName(
-      final SubjectAlternativeName subjectAlternativeName) {
-    if (subjectAlternativeName == null) {
+      final SubjectAlternativeName asubjectAlternativeName) {
+    if (asubjectAlternativeName == null) {
       return;
     }
-    this.subjectAlternativeName = subjectAlternativeName.getUpdatedValue();
+    this.subjectAlternativeName = asubjectAlternativeName.getUpdatedValue();
   }
 
+  /**
+   * @param asubjectDirectoryAttributes attrs
+   */
   public final void updateSubjectDirectoryAttributes(
-      final SubjectDirectoryAttributes subjectDirectoryAttributes) {
-    if (subjectDirectoryAttributes == null) {
+      final SubjectDirectoryAttributes asubjectDirectoryAttributes) {
+    if (asubjectDirectoryAttributes == null) {
       return;
     }
     this.subjectDirectoryAttributes =
-        subjectDirectoryAttributes.getUpdatedValue();
+        asubjectDirectoryAttributes.getUpdatedValue();
   }
 
   /** @return true if more details should be shown */
@@ -98,8 +124,11 @@ public class RaRequestPreview {
     return more;
   }
 
-  public final void setMore(final boolean more) {
-    this.more = more;
+  /**
+   * @param amore bool
+   */
+  public final void setMore(final boolean amore) {
+    this.more = amore;
     styleRowCallCounter = 0; // Reset
   }
 
@@ -109,6 +138,9 @@ public class RaRequestPreview {
     return (styleRowCallCounter + 1) / 2 % 2 == 0;
   }
 
+  /**
+   * @return DN
+   */
   public final String getSubjectDn() {
     return subjectDn;
   }
@@ -125,51 +157,87 @@ public class RaRequestPreview {
     }
   }
 
-  public void setSubjectDn(final String subjectDn) {
-    this.subjectDn = subjectDn;
+  /**
+   * @param asubjectDn DN
+   */
+  public void setSubjectDn(final String asubjectDn) {
+    this.subjectDn = asubjectDn;
   }
 
+  /**
+   * @return algo
+   */
   public String getPublicKeyAlgorithm() {
     return publicKeyAlgorithm;
   }
 
-  public void setPublicKeyAlgorithm(final String publicKeyAlgorithm) {
-    this.publicKeyAlgorithm = publicKeyAlgorithm;
+  /**
+   * @param apublicKeyAlgorithm algo
+   */
+  public void setPublicKeyAlgorithm(final String apublicKeyAlgorithm) {
+    this.publicKeyAlgorithm = apublicKeyAlgorithm;
   }
 
+  /**
+   * @return aname
+   */
   public String getSubjectAlternativeName() {
     return subjectAlternativeName;
   }
 
-  public void setSubjectAlternativeName(final String subjectAlternativeName) {
-    this.subjectAlternativeName = subjectAlternativeName;
+  /**
+   * @param asubjectAlternativeName aname
+   */
+  public void setSubjectAlternativeName(final String asubjectAlternativeName) {
+    this.subjectAlternativeName = asubjectAlternativeName;
   }
 
+  /**
+   * @return attrs
+   */
   public String getSubjectDirectoryAttributes() {
     return subjectDirectoryAttributes;
   }
 
+  /**
+   * @param asubjectDirectoryAttributes attre
+   */
   public void setSubjectDirectoryAttributes(
-      final String subjectDirectoryAttributes) {
-    this.subjectDirectoryAttributes = subjectDirectoryAttributes;
+      final String asubjectDirectoryAttributes) {
+    this.subjectDirectoryAttributes = asubjectDirectoryAttributes;
   }
 
+  /**
+   * @return count
+   */
   public int getStyleRowCallCounter() {
     return styleRowCallCounter;
   }
 
-  public void setStyleRowCallCounter(final int styleRowCallCounter) {
-    this.styleRowCallCounter = styleRowCallCounter;
+  /**
+   * @param astyleRowCallCounter count
+   */
+  public void setStyleRowCallCounter(final int astyleRowCallCounter) {
+    this.styleRowCallCounter = astyleRowCallCounter;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isSubjectDirectoryAttributesUsed() {
     return !subjectDirectoryAttributes.isEmpty() && isMore();
   }
 
+  /**
+   * @return bool
+   */
   public boolean isSubjectAlternativeNameUsed() {
     return !subjectAlternativeName.isEmpty();
   }
 
+  /**
+   * @return bool
+   */
   public boolean isAnyRequestDataPresent() {
     return !subjectDn.isEmpty()
         || !subjectAlternativeName.isEmpty()
@@ -181,9 +249,9 @@ public class RaRequestPreview {
     return issuerDn;
   }
 
-  /** @param issuerDn the issuerDn to set */
-  public void setIssuerDn(final String issuerDn) {
-    this.issuerDn = issuerDn;
+  /** @param aissuerDn the issuerDn to set */
+  public void setIssuerDn(final String aissuerDn) {
+    this.issuerDn = aissuerDn;
   }
 
   /** @return the validity */
@@ -191,24 +259,36 @@ public class RaRequestPreview {
     return validity;
   }
 
-  /** @param validity the validity to set */
-  public void setValidity(final String validity) {
-    this.validity = validity;
+  /** @param avalidity the validity to set */
+  public void setValidity(final String avalidity) {
+    this.validity = avalidity;
   }
 
+  /**
+   * @return list
+   */
   public List<String> getKeyUsages() {
     return keyUsages;
   }
 
-  public void setKeyUsages(final List<String> keyUsages) {
-    this.keyUsages = keyUsages;
+  /**
+   * @param akeyUsages list
+   */
+  public void setKeyUsages(final List<String> akeyUsages) {
+    this.keyUsages = akeyUsages;
   }
 
+  /**
+   * @return list
+   */
   public List<String> getExtendedKeyUsages() {
     return extendedKeyUsages;
   }
 
-  public void setExtendedKeyUsages(final List<String> extendedKeyUsages) {
-    this.extendedKeyUsages = extendedKeyUsages;
+  /**
+   * @param anextendedKeyUsages list
+   */
+  public void setExtendedKeyUsages(final List<String> anextendedKeyUsages) {
+    this.extendedKeyUsages = anextendedKeyUsages;
   }
 }

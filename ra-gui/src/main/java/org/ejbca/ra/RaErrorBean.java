@@ -36,16 +36,25 @@ import org.ejbca.ra.jsfext.RaExceptionHandlerFactory;
 public class RaErrorBean implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(RaErrorBean.class);
 
+  /** Param. */
+  private static final Logger LOG = Logger.getLogger(RaErrorBean.class);
+
+
+  /** Param. */
   @ManagedProperty(value = "#{raLocaleBean}")
   private RaLocaleBean raLocaleBean;
 
-  public void setRaLocaleBean(final RaLocaleBean raLocaleBean) {
-    this.raLocaleBean = raLocaleBean;
+  /**
+   * @param araLocaleBean bean
+   */
+  public void setRaLocaleBean(final RaLocaleBean araLocaleBean) {
+    this.raLocaleBean = araLocaleBean;
   }
 
+  /** Param. */
   private List<Throwable> throwables = null;
+  /** Param. */
   private Integer httpErrorCode = null;
 
   /**
@@ -64,7 +73,7 @@ public class RaErrorBean implements Serializable {
       requestMap.remove(RaExceptionHandlerFactory.REQUESTMAP_KEY);
     }
     if (throwables == null) {
-      log.debug("No error messages to renderer.");
+      LOG.debug("No error messages to renderer.");
     } else {
       for (final Throwable throwable : throwables) {
         if (throwable instanceof ViewExpiredException) {
@@ -79,8 +88,8 @@ public class RaErrorBean implements Serializable {
             cause = cause.getCause();
           }
           // Log the entire exception stack trace
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Client got the following error message: " + cause.getMessage(),
                 throwable);
           }
@@ -96,12 +105,12 @@ public class RaErrorBean implements Serializable {
       if (httpErrorCodeObject != null
           && httpErrorCodeObject instanceof Integer) {
         httpErrorCode = (Integer) httpErrorCodeObject;
-        if (log.isDebugEnabled()) {
+        if (LOG.isDebugEnabled()) {
           final String httpErrorUri =
               String.valueOf(requestMap.get("javax.servlet.error.request_uri"));
           final String httpErrorMsg =
               String.valueOf(requestMap.get("javax.servlet.error.message"));
-          log.debug(
+          LOG.debug(
               "Client got HTTP error "
                   + httpErrorCode
                   + " when trying to access '"
@@ -111,12 +120,14 @@ public class RaErrorBean implements Serializable {
         }
       }
     }
+    final int forbidden = 403;
+    final int notFound = 404;
     if (httpErrorCode != null) {
       switch (httpErrorCode) {
-        case 403:
+        case forbidden:
           raLocaleBean.addMessageError("generic_unexpected_httperror_403");
           break;
-        case 404:
+        case notFound:
           raLocaleBean.addMessageError("generic_unexpected_httperror_404");
           break;
         default:
