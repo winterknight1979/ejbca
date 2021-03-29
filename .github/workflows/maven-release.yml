@@ -45,9 +45,9 @@ jobs:
    
     - name: Build Reports
       run: mvn -Pcoverage -Pjboss -B site site:stage --file pom.xml
-        #    - uses: jwgmeligmeyling/checkstyle-github-action@master
-        #  with:
-        #  path: '**/checkstyle-result.xml'
+    - uses: jwgmeligmeyling/checkstyle-github-action@master
+      with:
+        path: '**/checkstyle-result.xml'
     - uses: jwgmeligmeyling/spotbugs-github-action@master
       with:
         path: '**/spotbugsXml.xml'
