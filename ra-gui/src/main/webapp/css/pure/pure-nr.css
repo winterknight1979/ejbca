@@ -242,7 +242,7 @@ code,
 kbd,
 pre,
 samp {
-  font-family: monospace, monospace;
+  font-family: monospace;
   font-size: 1em;
 }
 
@@ -317,6 +317,14 @@ html input[disabled] {
 }
 
 /**
+ * Address Firefox 4+ setting `line-height` on `input` using `!important` in
+ * the UA stylesheet.
+ */
+input {
+  line-height: normal;
+}
+
+/**
  * Remove inner padding and border in Firefox 4+.
  */
 
@@ -324,15 +332,6 @@ button::-moz-focus-inner,
 input::-moz-focus-inner {
   border: 0;
   padding: 0;
-}
-
-/**
- * Address Firefox 4+ setting `line-height` on `input` using `!important` in
- * the UA stylesheet.
- */
-
-input {
-  line-height: normal;
 }
 
 /**
@@ -500,12 +499,12 @@ th {
     `-moz-` prefix version is omitted.
     */
 
-  display: -webkit-flex;
+  display: -webkit-flex -ms-flexbox;
   -webkit-flex-flow: row wrap;
 
   /* IE10 uses display: flexbox */
-  display: -ms-flexbox;
   -ms-flex-flow: row wrap;
+  flex-flow: row wrap;
 
   /* Prevents distributing space between rows */
   -ms-align-content: flex-start;
@@ -769,17 +768,6 @@ this the same font stack that Normalize.css sets for the `body`.
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
-}
-
-/* Firefox: Get rid of the inner focus border */
-.pure-button::-moz-focus-inner {
-  padding: 0;
-  border: 0;
-}
-
-/* csslint outline-none:false */
-
-.pure-button {
   font-family: inherit;
   font-size: 100%;
   padding: 0.5em 1em;
@@ -790,6 +778,12 @@ this the same font stack that Normalize.css sets for the `body`.
   background-color: #e6e6e6;
   text-decoration: none;
   border-radius: 2px;
+}
+
+/* Firefox: Get rid of the inner focus border */
+.pure-button::-moz-focus-inner {
+  padding: 0;
+  border: 0;
 }
 
 .pure-button-hover,
@@ -810,7 +804,7 @@ this the same font stack that Normalize.css sets for the `body`.
 .pure-button-active,
 .pure-button:active {
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15) inset, 0 0 6px rgba(0, 0, 0, 0.2) inset;
-  border-color: #000\9;
+  border-color: #000;
 }
 
 .pure-button[disabled],
@@ -831,12 +825,6 @@ this the same font stack that Normalize.css sets for the `body`.
 
 .pure-button-hidden {
   display: none;
-}
-
-/* Firefox: Get rid of the inner focus border */
-.pure-button::-moz-focus-inner {
-  padding: 0;
-  border: 0;
 }
 
 .pure-button-primary,
@@ -883,6 +871,18 @@ so we can ignore the csslint warning.
   box-sizing: border-box;
 }
 
+.pure-form-aligned input,
+.pure-form-aligned textarea,
+.pure-form-aligned select,
+/* NOTE: pure-help-inline is deprecated. Use .pure-form-message-inline instead. */
+.pure-form-aligned .pure-help-inline,
+.pure-form-message-inline {
+  display: inline-block;
+  *display: inline;
+  *zoom: 1;
+  vertical-align: middle;
+}
+
 /*
 Need to separate out the :not() selector from the rest of the CSS 2.1 selectors
 since IE8 won't execute CSS that contains a CSS3 selector.
@@ -898,12 +898,44 @@ since IE8 won't execute CSS that contains a CSS3 selector.
   box-sizing: border-box;
 }
 
-
 /* Chrome (as of v.32/34 on OS X) needs additional room for color to display. */
 
 /* May be able to remove this tweak as color inputs become more standardized across browsers. */
 .pure-form input[type="color"] {
   padding: 0.2em 0.5em;
+}
+
+.pure-form select {
+  /* Normalizes the height; padding is not sufficient. */
+  height: 2.25em;
+  border: 1px solid #ccc;
+  background-color: white;
+}
+
+.pure-form-stacked input[type="text"],
+.pure-form-stacked input[type="password"],
+.pure-form-stacked input[type="email"],
+.pure-form-stacked input[type="url"],
+.pure-form-stacked input[type="date"],
+.pure-form-stacked input[type="month"],
+.pure-form-stacked input[type="time"],
+.pure-form-stacked input[type="datetime"],
+.pure-form-stacked input[type="datetime-local"],
+.pure-form-stacked input[type="week"],
+.pure-form-stacked input[type="number"],
+.pure-form-stacked input[type="search"],
+.pure-form-stacked input[type="tel"],
+.pure-form-stacked input[type="color"],
+.pure-form-stacked input[type="file"],
+.pure-form-stacked select,
+.pure-form-stacked label,
+.pure-form-stacked textarea {
+  display: block;
+  margin: 0.25em 0;
+}
+
+.pure-form-aligned textarea {
+  vertical-align: top;
 }
 
 .pure-form input[type="text"]:focus,
@@ -924,6 +956,25 @@ since IE8 won't execute CSS that contains a CSS3 selector.
 .pure-form textarea:focus {
   outline: 0;
   border-color: #129fea;
+}
+
+/*
+Need to separate out the :not() selector from the rest of the CSS 2.1 selectors
+since IE8 won't execute CSS that contains a CSS3 selector.
+*/
+.pure-form-stacked input:not([type]) {
+  display: block;
+  margin: 0.25em 0;
+}
+
+.pure-form .pure-group input,
+.pure-form .pure-group textarea {
+  display: block;
+  padding: 10px;
+  margin: 0 0 -1px;
+  border-radius: 0;
+  position: relative;
+  top: -1px;
 }
 
 /*
@@ -1000,13 +1051,6 @@ since IE8 won't execute CSS that contains a CSS3 selector.
   outline-color: #e9322d;
 }
 
-.pure-form select {
-  /* Normalizes the height; padding is not sufficient. */
-  height: 2.25em;
-  border: 1px solid #ccc;
-  background-color: white;
-}
-
 .pure-form select[multiple] {
   height: auto;
 }
@@ -1028,53 +1072,6 @@ since IE8 won't execute CSS that contains a CSS3 selector.
   margin-bottom: 0.3em;
   color: #333;
   border-bottom: 1px solid #e5e5e5;
-}
-
-.pure-form-stacked input[type="text"],
-.pure-form-stacked input[type="password"],
-.pure-form-stacked input[type="email"],
-.pure-form-stacked input[type="url"],
-.pure-form-stacked input[type="date"],
-.pure-form-stacked input[type="month"],
-.pure-form-stacked input[type="time"],
-.pure-form-stacked input[type="datetime"],
-.pure-form-stacked input[type="datetime-local"],
-.pure-form-stacked input[type="week"],
-.pure-form-stacked input[type="number"],
-.pure-form-stacked input[type="search"],
-.pure-form-stacked input[type="tel"],
-.pure-form-stacked input[type="color"],
-.pure-form-stacked input[type="file"],
-.pure-form-stacked select,
-.pure-form-stacked label,
-.pure-form-stacked textarea {
-  display: block;
-  margin: 0.25em 0;
-}
-
-/*
-Need to separate out the :not() selector from the rest of the CSS 2.1 selectors
-since IE8 won't execute CSS that contains a CSS3 selector.
-*/
-.pure-form-stacked input:not([type]) {
-  display: block;
-  margin: 0.25em 0;
-}
-
-.pure-form-aligned input,
-.pure-form-aligned textarea,
-.pure-form-aligned select,
-/* NOTE: pure-help-inline is deprecated. Use .pure-form-message-inline instead. */
-.pure-form-aligned .pure-help-inline,
-.pure-form-message-inline {
-  display: inline-block;
-  *display: inline;
-  *zoom: 1;
-  vertical-align: middle;
-}
-
-.pure-form-aligned textarea {
-  vertical-align: top;
 }
 
 /* Aligned Forms */
@@ -1106,16 +1103,6 @@ since IE8 won't execute CSS that contains a CSS3 selector.
   margin-bottom: 10px;
 }
 
-.pure-form .pure-group input,
-.pure-form .pure-group textarea {
-  display: block;
-  padding: 10px;
-  margin: 0 0 -1px;
-  border-radius: 0;
-  position: relative;
-  top: -1px;
-}
-
 .pure-form .pure-group input:focus,
 .pure-form .pure-group textarea:focus {
   z-index: 3;
@@ -1128,17 +1115,17 @@ since IE8 won't execute CSS that contains a CSS3 selector.
   margin: 0;
 }
 
-.pure-form .pure-group input:first-child:last-child,
-.pure-form .pure-group textarea:first-child:last-child {
-  top: 1px;
-  border-radius: 4px;
-  margin: 0;
-}
-
 .pure-form .pure-group input:last-child,
 .pure-form .pure-group textarea:last-child {
   top: -2px;
   border-radius: 0 0 4px 4px;
+  margin: 0;
+}
+
+.pure-form .pure-group input:first-child:last-child,
+.pure-form .pure-group textarea:first-child:last-child {
+  top: 1px;
+  border-radius: 4px;
   margin: 0;
 }
 
@@ -1233,6 +1220,23 @@ since IE8 won't execute CSS that contains a CSS3 selector.
   display: inline-block;
 }
 
+.pure-menu-separator {
+  background-color: #ccc;
+  height: 1px;
+  margin: 0.3em 0;
+}
+
+.pure-menu-heading {
+  text-transform: uppercase;
+  color: #565d64;
+}
+
+.pure-menu-link,
+.pure-menu-disabled,
+.pure-menu-heading {
+  padding: 0.5em 1em;
+}
+
 /* Initial menus should be inline-block so that they are horizontal */
 .pure-menu-horizontal .pure-menu-item,
 .pure-menu-horizontal .pure-menu-heading,
@@ -1256,6 +1260,7 @@ since IE8 won't execute CSS that contains a CSS3 selector.
   margin: 0;
   padding: 0;
   z-index: 3;
+  background-color: #fff;
 }
 
 .pure-menu-horizontal .pure-menu-children {
@@ -1264,8 +1269,8 @@ since IE8 won't execute CSS that contains a CSS3 selector.
   width: inherit;
 }
 
-.pure-menu-allow-hover:hover > .pure-menu-children,
-.pure-menu-active > .pure-menu-children {
+.pure-menu-active > .pure-menu-children,
+.pure-menu-allow-hover:hover > .pure-menu-children {
   display: block;
   position: absolute;
 }
@@ -1313,43 +1318,18 @@ since IE8 won't execute CSS that contains a CSS3 selector.
 
 /* misc default styling */
 
-.pure-menu-separator {
-  background-color: #ccc;
-  height: 1px;
-  margin: 0.3em 0;
-}
-
 .pure-menu-horizontal .pure-menu-separator {
   width: 1px;
   height: 1.3em;
   margin: 0 0.3em;
 }
 
-.pure-menu-heading {
-  text-transform: uppercase;
-  color: #565d64;
-}
-
 .pure-menu-link {
   color: #777;
 }
 
-.pure-menu-children {
-  background-color: #fff;
-}
-
-.pure-menu-link,
-.pure-menu-disabled,
-.pure-menu-heading {
-  padding: 0.5em 1em;
-}
-
 .pure-menu-disabled {
   opacity: 0.5;
-}
-
-.pure-menu-disabled .pure-menu-link:hover {
-  background-color: transparent;
 }
 
 .pure-menu-active > .pure-menu-link,
@@ -1361,6 +1341,10 @@ since IE8 won't execute CSS that contains a CSS3 selector.
 .pure-menu-selected .pure-menu-link,
 .pure-menu-selected .pure-menu-link:visited {
   color: #000;
+}
+
+.pure-menu-disabled .pure-menu-link:hover {
+  background-color: transparent;
 }
 
 .pure-table {
@@ -1388,6 +1372,25 @@ since IE8 won't execute CSS that contains a CSS3 selector.
   padding: 0.5em 1em; /* cell padding */
 }
 
+.pure-table td {
+  background-color: transparent;
+}
+
+.pure-table-odd td {
+  background-color: #f2f2f2;
+}
+
+/* BORDERED TABLES */
+.pure-table-bordered td {
+  border-bottom: 1px solid #cbcbcb;
+}
+
+.pure-table-horizontal td,
+.pure-table-horizontal th {
+  border-width: 0 0 1px 0;
+  border-bottom: 1px solid #cbcbcb;
+}
+
 /* Consider removing this next declaration block, as it causes problems when
 there's a rowspan on the first cell. Case added to the tests. issue#432 */
 .pure-table td:first-child,
@@ -1407,36 +1410,17 @@ striping:
    even - #fff (white)
    odd  - #f2f2f2 (light gray)
 */
-.pure-table td {
-  background-color: transparent;
-}
-
-.pure-table-odd td {
-  background-color: #f2f2f2;
-}
 
 /* nth-child selector for modern browsers */
 .pure-table-striped tr:nth-child(2n-1) td {
   background-color: #f2f2f2;
 }
 
-/* BORDERED TABLES */
-.pure-table-bordered td {
-  border-bottom: 1px solid #cbcbcb;
-}
-
 .pure-table-bordered tbody > tr:last-child > td {
   border-bottom-width: 0;
 }
 
-
 /* HORIZONTAL BORDERED TABLES */
-
-.pure-table-horizontal td,
-.pure-table-horizontal th {
-  border-width: 0 0 1px 0;
-  border-bottom: 1px solid #cbcbcb;
-}
 
 .pure-table-horizontal tbody > tr:last-child > td {
   border-bottom-width: 0;
