@@ -15,7 +15,6 @@ package org.ejbca.ui.tcp;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
-
 import org.apache.log4j.Logger;
 import org.cesecore.authentication.tokens.AlwaysAllowLocalAuthenticationToken;
 import org.cesecore.authentication.tokens.AuthenticationToken;
@@ -30,74 +29,99 @@ import org.quickserver.net.server.DataMode;
 import org.quickserver.net.server.DataType;
 
 /**
- * Class receiving TCP messages from QuickServer (receives quickserver events) and routing them to the correct CMP handler class.
- * 
+ * Class receiving TCP messages from QuickServer (receives quickserver events)
+ * and routing them to the correct CMP handler class.
+ *
  * @version $Id: CmpTcpCommandHandler.java 28716 2018-04-13 15:22:48Z samuellb $
  */
-public class CmpTcpCommandHandler implements ClientEventHandler, ClientBinaryHandler  {
+public class CmpTcpCommandHandler
+    implements ClientEventHandler, ClientBinaryHandler {
 
-	private static final Logger LOG = Logger.getLogger(CmpTcpCommandHandler.class.getName());
-    private static final InternalEjbcaResources INTRES = InternalEjbcaResources.getInstance();
-    private static EjbLocalHelper ejb = null;
-	
-	private static synchronized EjbLocalHelper getEjb() {
-		if (ejb == null) {
-			ejb = new EjbLocalHelper();
-		}
-		return ejb;
-	}
-	
-    @Override
-	public void gotConnected(final ClientHandler handler) throws SocketTimeoutException, IOException {
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("CMP connection opened: "+handler.getHostAddress());
-		}
-		handler.setDataMode(DataMode.BINARY, DataType.IN);
-		handler.setDataMode(DataMode.BINARY, DataType.OUT);
-	}
+      /** Param. */
+  private static final Logger LOG =
+      Logger.getLogger(CmpTcpCommandHandler.class.getName());
+  /** Param. */
+  private static final InternalEjbcaResources INTRES =
+      InternalEjbcaResources.getInstance();
+  /** Param. */
+  private static EjbLocalHelper ejb = null;
 
-    @Override
-	public void lostConnection(final ClientHandler handler) throws IOException {
-		LOG.debug("Connection lost: "+handler.getHostAddress());
-	}
+  private static synchronized EjbLocalHelper getEjb() {
+    if (ejb == null) {
+      ejb = new EjbLocalHelper();
+    }
+    return ejb;
+  }
 
-    @Override
-	public void closingConnection(final ClientHandler handler) throws IOException {
-		LOG.debug("Connection closed: "+handler.getHostAddress());
-	}
+  @Override
+  public void gotConnected(final ClientHandler handler)
+      throws SocketTimeoutException, IOException {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("CMP connection opened: " + handler.getHostAddress());
+    }
+    handler.setDataMode(DataMode.BINARY, DataType.IN);
+    handler.setDataMode(DataMode.BINARY, DataType.OUT);
+  }
 
-    @Override
-	public void handleBinary(final ClientHandler handler, final byte command[])	throws SocketTimeoutException, IOException {
-		LOG.info(INTRES.getLocalizedMessage("cmp.receivedmsg", handler.getHostAddress()));
-		long startTime = System.currentTimeMillis();
-		final TcpReceivedMessage cmpTcpMessage = TcpReceivedMessage.getTcpMessage(command);
-		if (cmpTcpMessage.message == null) {
-			handler.closeConnection();
-		} else {
-		    final AuthenticationToken authenticationToken = new AlwaysAllowLocalAuthenticationToken(new WebPrincipal("CmpTcp", handler.getHostAddress()));
-		    byte[] result = null;
-			try {
-			    result = getEjb().getRaMasterApiProxyBean().cmpDispatch(authenticationToken, cmpTcpMessage.message, "tcp");
-			} catch (NoSuchAliasException e) {
-                LOG.info(e.getMessage());
-                handler.closeConnection();
-                return;
-            }
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("Sending back CMP response to client.");
-			}
-			// Send back reply
-			final TcpReturnMessage sendBack = TcpReturnMessage.createMessage(result, cmpTcpMessage.doClose);
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("Sending "+sendBack.message.length+" bytes to client");
-			}
-			handler.sendClientBinary(sendBack.message);
-			long endTime = System.currentTimeMillis();
-			final String iMsg = INTRES.getLocalizedMessage("cmp.sentresponsemsg", handler.getHostAddress(), Long.valueOf(endTime - startTime));
-			LOG.info(iMsg);
-			if ( cmpTcpMessage.doClose || sendBack.doClose ) {
-				handler.closeConnection(); // It's time to say good bye			
-			}
-		}
-	}
+  @Override
+  public void lostConnection(final ClientHandler handler) throws IOException {
+    LOG.debug("Connection lost: " + handler.getHostAddress());
+  }
+
+  @Override
+  public void closingConnection(final ClientHandler handler)
+      throws IOException {
+    LOG.debug("Connection closed: " + handler.getHostAddress());
+  }
+
+  @Override
+  public void handleBinary(final ClientHandler handler, final byte[] command)
+      throws SocketTimeoutException, IOException {
+    LOG.info(
+        INTRES.getLocalizedMessage(
+            "cmp.receivedmsg", handler.getHostAddress()));
+    long startTime = System.currentTimeMillis();
+    final TcpReceivedMessage cmpTcpMessage =
+        TcpReceivedMessage.getTcpMessage(command);
+    if (cmpTcpMessage.getMessage() == null) {
+      handler.closeConnection();
+    } else {
+      final AuthenticationToken authenticationToken =
+          new AlwaysAllowLocalAuthenticationToken(
+              new WebPrincipal("CmpTcp", handler.getHostAddress()));
+      byte[] result = null;
+      try {
+        result =
+            getEjb()
+                .getRaMasterApiProxyBean()
+                .cmpDispatch(authenticationToken,
+                        cmpTcpMessage.getMessage(), "tcp");
+      } catch (NoSuchAliasException e) {
+        LOG.info(e.getMessage());
+        handler.closeConnection();
+        return;
+      }
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Sending back CMP response to client.");
+      }
+      // Send back reply
+      final TcpReturnMessage sendBack =
+          TcpReturnMessage.createMessage(result, cmpTcpMessage.isDoClose());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Sending "
+                + sendBack.getMessage().length + " bytes to client");
+      }
+      handler.sendClientBinary(sendBack.getMessage());
+      long endTime = System.currentTimeMillis();
+      final String iMsg =
+          INTRES.getLocalizedMessage(
+              "cmp.sentresponsemsg",
+              handler.getHostAddress(),
+              Long.valueOf(endTime - startTime));
+      LOG.info(iMsg);
+      if (cmpTcpMessage.isDoClose() || sendBack.isDoClose()) {
+        handler.closeConnection(); // It's time to say good bye
+      }
+    }
+  }
 }

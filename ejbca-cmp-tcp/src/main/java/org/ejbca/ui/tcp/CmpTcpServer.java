@@ -18,96 +18,104 @@ import java.net.UnknownHostException;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import org.apache.commons.lang.StringUtils;
 import org.ejbca.config.CmpTcpConfiguration;
 import org.quickserver.net.AppException;
 import org.quickserver.net.server.QuickServer;
 
 /**
- * Starts and stops the CMP TCP listener service
- * 
+ * Starts and stops the CMP TCP listener service.
+ *
  * @version $Id: CmpTcpServer.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public class CmpTcpServer {
 
-	private static final org.apache.log4j.Logger LOG = org.apache.log4j.Logger.getLogger(CmpTcpServer.class);
-	private static final String VER = "1.0";
+      /** Param. */
+  private static final org.apache.log4j.Logger LOG =
+      org.apache.log4j.Logger.getLogger(CmpTcpServer.class);
+  /** Param. */
+  private static final String VER = "1.0";
 
-	private transient QuickServer myServer = null;
-	
-	public void start() throws UnknownHostException	{
-		final String cmdHandle = org.ejbca.ui.tcp.CmpTcpCommandHandler.class.getName();
+  /** Param. */
+  private transient QuickServer myServer = null;
 
-		myServer = new QuickServer();
-		myServer.setClientAuthenticationHandler(null);
-		myServer.setBindAddr(CmpTcpConfiguration.getTCPBindAdress());
-		myServer.setPort(CmpTcpConfiguration.getTCPPortNumber());
-		myServer.setName("CMP TCP Server v " + VER);
-		if(QuickServer.getVersionNo() >= 1.2) {
-			LOG.info("Using 1.2 feature");
-			myServer.setClientBinaryHandler(cmdHandle);
-			myServer.setClientEventHandler(cmdHandle);
+  /**
+   * @throws UnknownHostException fail
+   */
+  public void start() throws UnknownHostException {
+    final String cmdHandle =
+        org.ejbca.ui.tcp.CmpTcpCommandHandler.class.getName();
 
-			//reduce info to Console
-			myServer.setConsoleLoggingToMicro();
-		}
+    myServer = new QuickServer();
+    myServer.setClientAuthenticationHandler(null);
+    myServer.setBindAddr(CmpTcpConfiguration.getTCPBindAdress());
+    myServer.setPort(CmpTcpConfiguration.getTCPPortNumber());
+    myServer.setName("CMP TCP Server v " + VER);
+    final float minQSVersion = 1.2f;
+    if (QuickServer.getVersionNo() >= minQSVersion) {
+      LOG.info("Using 1.2 feature");
+      myServer.setClientBinaryHandler(cmdHandle);
+      myServer.setClientEventHandler(cmdHandle);
 
-		//setup logger to log to file
-		Logger logger = null;
-		FileHandler txtLog = null;
-		final String logDir = CmpTcpConfiguration.getTCPLogDir();
-		final File logFile = new File(logDir + "/");
-		if(!logFile.canRead()) {
-			logFile.mkdir();
-		}
-		try	{
-			logger = Logger.getLogger("");
-			logger.setLevel(Level.INFO);
+      // reduce info to Console
+      myServer.setConsoleLoggingToMicro();
+    }
 
-			logger = Logger.getLogger("cmptcpserver");
-			logger.setLevel(Level.FINEST); 
-			txtLog = new FileHandler(logDir+"/cmptcpserver.log");
-			//reduce info 
-			txtLog.setFormatter(new org.quickserver.util.logging.MicroFormatter());
-			logger.addHandler(txtLog);
+    // setup logger to log to file
+    Logger logger = null;
+    FileHandler txtLog = null;
+    final String logDir = CmpTcpConfiguration.getTCPLogDir();
+    final File logFile = new File(logDir + "/");
+    if (!logFile.canRead()) {
+      logFile.mkdir();
+    }
+    try {
+      logger = Logger.getLogger("");
+      logger.setLevel(Level.INFO);
 
-			myServer.setAppLogger(logger); //imp
+      logger = Logger.getLogger("cmptcpserver");
+      logger.setLevel(Level.FINEST);
+      txtLog = new FileHandler(logDir + "/cmptcpserver.log");
+      // reduce info
+      txtLog.setFormatter(new org.quickserver.util.logging.MicroFormatter());
+      logger.addHandler(txtLog);
 
-			//myServer.setConsoleLoggingToMicro();
-			myServer.setConsoleLoggingFormatter("org.quickserver.util.logging.SimpleTextFormatter");
-			myServer.setConsoleLoggingLevel(Level.INFO);
-		} catch(Exception e){
-			LOG.error("Could not create xmlLog FileHandler : ", e);
-		}
-		try	{
-			final String confFile = CmpTcpConfiguration.getTCPConfigFile();
-			if (!StringUtils.isEmpty(confFile)) {
-				final Object config[] = new Object[] {confFile};
-				if (!myServer.initService(config)) {
-					LOG.error("Configuration from config file "+confFile+" failed!");
-				}
-			}
-			myServer.startServer();	
-			//myServer.getQSAdminServer().setShellEnable(true);
-			//myServer.startQSAdminServer();			
-		} catch(AppException e){
-			LOG.error("Error in server : ", e);
-		}
-	}
+      myServer.setAppLogger(logger); // imp
 
-	public void stop() {
-		if (myServer != null) {
-			try {
-				myServer.stopService();
-				myServer.closeAllPools();
-			} catch (AppException e) {
-				LOG.error("Error in server : ", e);
-			} catch (Exception e) {
-				LOG.error("Error in server : ", e);
-			}
-		}
-	}
+      // myServer.setConsoleLoggingToMicro();
+      myServer.setConsoleLoggingFormatter(
+          "org.quickserver.util.logging.SimpleTextFormatter");
+      myServer.setConsoleLoggingLevel(Level.INFO);
+    } catch (Exception e) {
+      LOG.error("Could not create xmlLog FileHandler : ", e);
+    }
+    try {
+      final String confFile = CmpTcpConfiguration.getTCPConfigFile();
+      if (!StringUtils.isEmpty(confFile)) {
+        final Object[] config = new Object[] {confFile};
+        if (!myServer.initService(config)) {
+          LOG.error("Configuration from config file " + confFile + " failed!");
+        }
+      }
+      myServer.startServer();
+      // myServer.getQSAdminServer().setShellEnable(true);
+      // myServer.startQSAdminServer();
+    } catch (AppException e) {
+      LOG.error("Error in server : ", e);
+    }
+  }
+
+  /** Stop. */
+  public void stop() {
+    if (myServer != null) {
+      try {
+        myServer.stopService();
+        myServer.closeAllPools();
+      } catch (AppException e) {
+        LOG.error("Error in server : ", e);
+      } catch (Exception e) {
+        LOG.error("Error in server : ", e);
+      }
+    }
+  }
 }
-
-
