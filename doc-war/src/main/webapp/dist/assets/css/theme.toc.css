@@ -1,8 +1,77 @@
 @charset "UTF-8";
+
 /*
 *  html5 doctor css reset | http://html5doctor.com/html-5-reset-stylesheet
 */
-html, body, div, span, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, abbr, address, cite, code, del, dfn, em, img, ins, kbd, q, samp, small, strong, sub, sup, var, b, i, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, figcaption, figure, footer, header, hgroup, menu, nav, section, summary, time, mark, audio, video {
+html,
+body,
+div,
+span,
+object,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+abbr,
+address,
+cite,
+code,
+del,
+dfn,
+em,
+img,
+ins,
+kbd,
+q,
+samp,
+small,
+strong,
+sub,
+sup,
+var,
+b,
+i,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+article,
+aside,
+canvas,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section,
+summary,
+time,
+mark,
+audio,
+video {
   margin: 0;
   padding: 0;
   border: 0;
@@ -18,7 +87,17 @@ body {
   line-height: 1;
 }
 
-article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section {
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section {
   display: block;
 }
 
@@ -26,11 +105,15 @@ nav ul {
   list-style: none;
 }
 
-blockquote, q {
+blockquote,
+q {
   quotes: none;
 }
 
-blockquote:before, blockquote:after, q:before, q:after {
+blockquote::before,
+blockquote::after,
+q::before,
+q::after {
   content: none;
 }
 
@@ -59,7 +142,8 @@ del {
   text-decoration: line-through;
 }
 
-abbr[title], dfn[title] {
+abbr[title],
+dfn[title] {
   border-bottom: 1px dotted;
   cursor: help;
 }
@@ -78,7 +162,8 @@ hr {
   padding: 0;
 }
 
-input, select {
+input,
+select {
   vertical-align: middle;
 }
 
@@ -104,27 +189,30 @@ img {
   font-weight: normal;
   font-style: normal;
 }
+
 .sp-aui-icon-small {
   height: 16px;
   width: 16px;
 }
 
-.sp-aui-icon-small, .sp-aui-icon-large {
+.sp-aui-icon-small,
+.sp-aui-icon-large {
   line-height: 0;
   position: relative;
   vertical-align: text-top;
 }
 
-.sp-aui-iconfont-close-dialog:before {
+.sp-aui-iconfont-close-dialog::before {
   content: "";
 }
 
-.sp-aui-icon-small:before {
+.sp-aui-icon-small::before {
   font-size: 16px;
   margin-top: -8px;
 }
 
-.sp-aui-icon-small:before, .sp-aui-icon-large:before {
+.sp-aui-icon-small::before,
+.sp-aui-icon-large::before {
   color: inherit;
   font-family: "SP Atlassian Icons";
   font-weight: normal;
@@ -138,62 +226,64 @@ img {
   top: 50%;
 }
 
-.sp-aui-icon-small, .sp-aui-icon-large {
+.sp-aui-icon-small,
+.sp-aui-icon-large {
   line-height: 0;
   position: relative;
   vertical-align: text-top;
 }
 
-.sp-aui-iconfont-arrows-up:before {
+.sp-aui-iconfont-arrows-up::before {
   content: "";
 }
 
-.sp-aui-icon-small, .sp-aui-icon-large {
+.sp-aui-icon-small,
+.sp-aui-icon-large {
   line-height: 0;
   position: relative;
   vertical-align: text-top;
 }
 
-.sp-aui-iconfont-delete:before {
+.sp-aui-iconfont-delete::before {
   content: "";
 }
 
-.sp-aui-iconfont-confluence:before {
+.sp-aui-iconfont-confluence::before {
   content: "";
   font-size: 18px;
 }
 
-.sp-aui-iconfont-approve:before {
+.sp-aui-iconfont-approve::before {
   content: "";
 }
 
-.sp-aui-iconfont-remove:before {
+.sp-aui-iconfont-remove::before {
   content: "";
 }
 
-.sp-aui-iconfont-appswitcher:before {
+.sp-aui-iconfont-appswitcher::before {
   content: "";
 }
 
-.sp-aui-iconfont-group:before {
+.sp-aui-iconfont-group::before {
   content: "";
 }
 
-.sp-aui-iconfont-editor-mention:before {
+.sp-aui-iconfont-editor-mention::before {
   content: "";
 }
 
-.sp-aui-iconfont-user:before {
+.sp-aui-iconfont-user::before {
   content: "";
 }
 
-.sp-aui-iconfont-flag:before {
+.sp-aui-iconfont-flag::before {
   content: "";
 }
 
 /* secondary color; used for links, svg-icons … */
 body {
-  margin: 0px;
+  margin: 0;
   font-family: "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow: hidden;
@@ -204,33 +294,41 @@ body {
   margin-bottom: 20px;
   overflow: hidden;
 }
+
 .ht-pages-nav ul {
   padding-left: 14px;
 }
+
 .ht-pages-nav ul .ht-pages-nav-sub {
-  max-height: 0px;
+  max-height: 0;
   overflow: hidden;
   transition: max-height 0.25s ease-in-out;
 }
+
 .ht-pages-nav ul .ht-pages-nav-toggle svg {
   display: none;
 }
-.ht-pages-nav ul .ht-pages-nav-toggle:before {
+
+.ht-pages-nav ul .ht-pages-nav-toggle::before {
   line-height: 22px;
   content: "";
 }
+
 .ht-pages-nav ul .open > ul {
   max-height: 9000px;
 }
-.ht-pages-nav ul .open > .ht-pages-nav-toggle:before {
+
+.ht-pages-nav ul .open > .ht-pages-nav-toggle::before {
   line-height: 18px;
   content: "";
 }
+
 .ht-pages-nav ul li {
   line-height: 1.25rem;
   position: relative;
   width: 100%;
 }
+
 .ht-pages-nav ul li .sp-aui-icon-small {
   position: absolute;
   cursor: pointer;
@@ -239,15 +337,19 @@ body {
   height: 22px;
   line-height: 24px;
 }
+
 .ht-pages-nav ul li .sp-aui-icon-small:hover {
   text-decoration: none;
 }
+
 .ht-pages-nav ul li .sp-aui-icon-small .sp-aui-icon-small {
   color: #707070;
 }
+
 .ht-pages-nav ul li .sp-aui-icon-small .sp-aui-icon-small:hover {
   color: #205081;
 }
+
 .ht-pages-nav ul a {
   display: block;
   padding: 5px 32px 5px 4px;
@@ -257,10 +359,12 @@ body {
   text-overflow: ellipsis;
   color: #205081;
 }
+
 .ht-pages-nav ul a.current {
   font-weight: bold;
   color: #262626;
 }
+
 .ht-pages-nav ul a.current:hover {
   text-decoration: none;
 }

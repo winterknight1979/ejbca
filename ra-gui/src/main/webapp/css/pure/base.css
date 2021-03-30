@@ -4,10 +4,12 @@ Copyright 2014 Yahoo! Inc. All rights reserved.
 Licensed under the BSD License.
 https://github.com/yahoo/pure/blob/master/LICENSE.md
 */
+
 /*!
 normalize.css v^3.0 | MIT License | git.io/normalize
 Copyright (c) Nicolas Gallagher and Jonathan Neal
 */
+
 /*! normalize.css v3.0.2 | MIT License | git.io/normalize */
 
 /**
@@ -28,7 +30,6 @@ html {
 
 body {
   margin: 0;
-  
 }
 
 /* HTML5 display definitions
@@ -241,7 +242,7 @@ code,
 kbd,
 pre,
 samp {
-  font-family: monospace, monospace;
+  font-family: monospace;
   font-size: 1em;
 }
 
@@ -316,6 +317,15 @@ html input[disabled] {
 }
 
 /**
+ * Address Firefox 4+ setting `line-height` on `input` using `!important` in
+ * the UA stylesheet.
+ */
+
+input {
+  line-height: normal;
+}
+
+/**
  * Remove inner padding and border in Firefox 4+.
  */
 
@@ -323,15 +333,6 @@ button::-moz-focus-inner,
 input::-moz-focus-inner {
   border: 0;
   padding: 0;
-}
-
-/**
- * Address Firefox 4+ setting `line-height` on `input` using `!important` in
- * the UA stylesheet.
- */
-
-input {
-  line-height: normal;
 }
 
 /**
@@ -437,7 +438,7 @@ th {
   padding: 0;
 }
 
-/*csslint important:false*/
+/* csslint important:false */
 
 /* ==========================================================================
    Pure Base Extras
@@ -453,7 +454,7 @@ th {
 
 .hidden,
 [hidden] {
-    display: none !important;
+  display: none !important;
 }
 
 /**
@@ -461,7 +462,7 @@ th {
  * aspect ratio.
  */
 .pure-img {
-    max-width: 100%;
-    height: auto;
-    display: block;
+  max-width: 100%;
+  height: auto;
+  display: block;
 }
