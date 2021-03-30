@@ -73,7 +73,7 @@ public class OCSPServlet extends HttpServlet {
 
   /** Param. */
   private enum HttpMethod {
-	    /** Param. */
+        /** Param. */
     GET,
     /** Param. */
     POST,
