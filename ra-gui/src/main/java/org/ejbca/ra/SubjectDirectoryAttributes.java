@@ -18,17 +18,24 @@ import org.cesecore.certificates.util.DnComponents;
 import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
 
 /**
- * Contains Subject Directory attributes
+ * Contains Subject Directory attributes.
  *
  * @version $Id: SubjectDirectoryAttributes.java 24395 2016-09-21 12:58:22Z
  *     marko $
  */
 public class SubjectDirectoryAttributes extends RaAbstractDn {
 
+    /**
+     * @param endEntityProfile Profile
+     */
   public SubjectDirectoryAttributes(final EndEntityProfile endEntityProfile) {
     super(endEntityProfile);
   }
 
+  /**
+   * @param endEntityProfile Profile
+   * @param subjectAlternativeName Name
+   */
   public SubjectDirectoryAttributes(
       final EndEntityProfile endEntityProfile,
       final String subjectAlternativeName) {

@@ -31,9 +31,11 @@ import org.apache.log4j.Logger;
 public class RaSessionKeepAliveServlet extends HttpServlet {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log =
+  /** Log. */
+  private static final Logger LOG =
       Logger.getLogger(RaSessionKeepAliveServlet.class);
 
+  /** Param. */
   private static final int MAX_INACTIVE_INTERVAL_JSCLIENT_SECONDS = 60;
 
   @Override
@@ -44,7 +46,8 @@ public class RaSessionKeepAliveServlet extends HttpServlet {
     if (httpServletRequest.getRequestedSessionId() == null
         || !httpServletRequest.isRequestedSessionIdValid()) {
       // No session, so nothing to keep alive...
-      httpServletResponse.sendError(500);
+      final int serverError = 500;
+      httpServletResponse.sendError(serverError);
       return;
     }
     // Calling httpServletRequest.getSession() will re-validate the session
@@ -57,8 +60,8 @@ public class RaSessionKeepAliveServlet extends HttpServlet {
       // aggressively
       maxInactiveIntervalSeconds = MAX_INACTIVE_INTERVAL_JSCLIENT_SECONDS;
       httpSession.setMaxInactiveInterval(maxInactiveIntervalSeconds);
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Client with jsessionid="
                 + httpSession.getId()
                 + " called keep alive servlet. Adjusted MaxInactiveInterval to "
@@ -69,8 +72,8 @@ public class RaSessionKeepAliveServlet extends HttpServlet {
     // next check
     final int timeToNextCheckInMs =
         Math.max(10000, (maxInactiveIntervalSeconds - 10) * 1000);
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "maxInactiveIntervalSeconds: "
               + maxInactiveIntervalSeconds
               + " jsessionid="

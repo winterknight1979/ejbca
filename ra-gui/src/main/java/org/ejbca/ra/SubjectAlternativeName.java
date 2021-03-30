@@ -18,16 +18,23 @@ import org.cesecore.certificates.util.DnComponents;
 import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
 
 /**
- * Contains Subject Alternative Name attributes
+ * Contains Subject Alternative Name attributes.
  *
  * @version $Id: SubjectAlternativeName.java 24395 2016-09-21 12:58:22Z marko $
  */
 public class SubjectAlternativeName extends RaAbstractDn {
 
+    /**
+     * @param endEntityProfile Profile
+     */
   public SubjectAlternativeName(final EndEntityProfile endEntityProfile) {
     super(endEntityProfile);
   }
 
+  /**
+   * @param endEntityProfile Profile
+   * @param subjectAlternativeName Name
+   */
   public SubjectAlternativeName(
       final EndEntityProfile endEntityProfile,
       final String subjectAlternativeName) {

@@ -616,6 +616,10 @@
 		<suppress checks="MethodLengthCheck"
 		files="RaCertDistServlet.java" lines="101 " />  
 		<suppress checks="MethodLengthCheck"
-		files="RaCertificateDetails.java" lines="251 " />  
+		files="RaCertificateDetails.java" lines="251 " /> 
+		<suppress checks="MagicNumberCheck"
+		files="RaSearchEesBean.java" lines="546" /> 
+		<suppress checks="MagicNumberCheck"
+		files="RaSearchCertsBean.java" lines="670" /> 
 		
 </suppressions>

@@ -26,10 +26,17 @@ import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
  */
 public class SubjectDn extends RaAbstractDn {
 
+    /**
+     * @param endEntityProfile Profile
+     */
   public SubjectDn(final EndEntityProfile endEntityProfile) {
     super(endEntityProfile);
   }
 
+  /**
+   * @param endEntityProfile Profile
+   * @param subjectDn DN
+   */
   public SubjectDn(
       final EndEntityProfile endEntityProfile, final String subjectDn) {
     super(endEntityProfile, subjectDn);

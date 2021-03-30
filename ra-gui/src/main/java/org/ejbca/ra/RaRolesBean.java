@@ -31,7 +31,7 @@ import org.ejbca.core.model.era.RaRoleSearchRequest;
 import org.ejbca.core.model.era.RaRoleSearchResponse;
 
 /**
- * Backing bean for the Roles page
+ * Backing bean for the Roles page.
  *
  * @version $Id: RaRolesBean.java 25430 2017-03-09 16:37:36Z samuellb $ TODO:
  *     Use CDI beans
@@ -42,66 +42,95 @@ import org.ejbca.core.model.era.RaRoleSearchResponse;
 public class RaRolesBean implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(RaRolesBean.class);
+  /** Param. */
+  private static final Logger LOG = Logger.getLogger(RaRolesBean.class);
 
+  /** Param. */
   @EJB private RaMasterApiProxyBeanLocal raMasterApiProxyBean;
 
+  /** Param. */
   @ManagedProperty(value = "#{raAccessBean}")
   private RaAccessBean raAccessBean;
 
-  public void setRaAccessBean(final RaAccessBean raAccessBean) {
-    this.raAccessBean = raAccessBean;
+  /**
+   * @param araAccessBean bean
+   */
+  public void setRaAccessBean(final RaAccessBean araAccessBean) {
+    this.raAccessBean = araAccessBean;
   }
 
+  /** Param. */
   @ManagedProperty(value = "#{raAuthenticationBean}")
   private RaAuthenticationBean raAuthenticationBean;
 
+  /**
+   * @param araAuthenticationBean Bean
+   */
   public void setRaAuthenticationBean(
-      final RaAuthenticationBean raAuthenticationBean) {
-    this.raAuthenticationBean = raAuthenticationBean;
+      final RaAuthenticationBean araAuthenticationBean) {
+    this.raAuthenticationBean = araAuthenticationBean;
   }
 
+  /** Param. */
   @ManagedProperty(value = "#{raLocaleBean}")
   private RaLocaleBean raLocaleBean;
 
-  public void setRaLocaleBean(final RaLocaleBean raLocaleBean) {
-    this.raLocaleBean = raLocaleBean;
+  /**
+   * @param araLocaleBean bean
+   */
+  public void setRaLocaleBean(final RaLocaleBean araLocaleBean) {
+    this.raLocaleBean = araLocaleBean;
   }
 
+  /** Param. */
   private String roleSearchString;
 
+  /** Param. */
   private RaRoleSearchResponse lastExecutedResponse = null;
 
+  /** Param. */
   private List<Role> resultsFiltered = new ArrayList<>();
+  /** Param. */
   private boolean hasNamespaces;
 
   private enum SortBy {
+      /** Param. */
     NAMESPACE,
+    /** Param. */
     ROLE
   };
 
+  /** Param. */
   private SortBy sortBy = SortBy.ROLE;
+  /** Param. */
   private boolean sortAscending = true;
 
+  /** Init. */
   public void initialize() {
     searchAndFilterCommon();
   }
 
+  /**
+   * @return Search
+   */
   public String getRoleSearchString() {
     return roleSearchString;
   }
 
-  public void setRoleSearchString(final String roleSearchString) {
-    this.roleSearchString = roleSearchString;
+  /**
+   * @param aroleSearchString search
+   */
+  public void setRoleSearchString(final String aroleSearchString) {
+    this.roleSearchString = aroleSearchString;
   }
 
-  /** Invoked action on search form post */
+  /** Invoked action on search form post. */
   public void searchAndFilterAction() {
     searchAndFilterCommon();
   }
 
   /**
-   * Invoked on criteria changes
+   * Invoked on criteria changes.
    *
    * @param event Event
    */
@@ -133,19 +162,31 @@ public class RaRolesBean implements Serializable {
     sort();
   }
 
+  /**
+   * @return List
+   */
   public List<Role> getFilteredResults() {
     return resultsFiltered;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isMoreResultsAvailable() {
     return lastExecutedResponse != null
         && lastExecutedResponse.isMightHaveMoreResults();
   }
 
+  /**
+   * @return bool
+   */
   public boolean getHasNamespaces() {
     return hasNamespaces;
   }
 
+  /**
+   * @return search
+   */
   public String getSearchStringPlaceholder() {
     return raLocaleBean.getMessage(
         hasNamespaces
@@ -164,7 +205,7 @@ public class RaRolesBean implements Serializable {
             switch (sortBy) {
                 // TODO locale-aware sorting
               case NAMESPACE:
-                {
+
                   int difference =
                       o1.getNameSpace().compareTo(o2.getNameSpace());
                   if (difference == 0) {
@@ -173,16 +214,16 @@ public class RaRolesBean implements Serializable {
                                    // name
                   }
                   return difference * sortDir;
-                }
+
               case ROLE:
-                {
-                  int difference = o1.getRoleName().compareTo(o2.getRoleName());
+
+                  difference = o1.getRoleName().compareTo(o2.getRoleName());
                   if (difference == 0) {
                     return o1.getNameSpace().compareTo(o2.getNameSpace())
                         * sortDir; // Sort roles with the same name by namespace
                   }
                   return difference * sortDir;
-                }
+
               default:
                 throw new IllegalStateException("Invalid sortBy value");
             }
@@ -190,26 +231,40 @@ public class RaRolesBean implements Serializable {
         });
   }
 
+  /**
+   * @return Sorted
+   */
   public String getSortedByNamespace() {
     return getSortedBy(SortBy.NAMESPACE);
   }
 
+  /** Sort. */
   public void sortByNamespace() {
     sortBy(SortBy.NAMESPACE, true);
   }
 
+  /**
+   * @return Sorted
+   */
   public String getSortedByRole() {
     return getSortedBy(SortBy.ROLE);
   }
 
+  /** Sort. */
   public void sortByRole() {
     sortBy(SortBy.ROLE, true);
   }
 
+  /**
+   * @return col
+   */
   public String getSortColumn() {
     return sortBy.name();
   }
 
+  /**
+   * @param value val
+   */
   public void setSortColumn(final String value) {
     try {
       sortBy =
@@ -217,16 +272,20 @@ public class RaRolesBean implements Serializable {
               ? SortBy.valueOf(value.toUpperCase(Locale.ROOT))
               : SortBy.ROLE;
     } catch (IllegalArgumentException e) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Invalid value for the 'sortColumn' parameter: '" + value + "'");
       }
       sortBy = SortBy.ROLE;
     }
   }
 
-  private String getSortedBy(final SortBy sortBy) {
-    if (this.sortBy.equals(sortBy)) {
+  /**
+   * @param asortBy sort
+   * @return sorted
+   */
+  private String getSortedBy(final SortBy asortBy) {
+    if (this.sortBy.equals(asortBy)) {
       return isSortAscending() ? "\u25bc" : "\u25b2";
     }
     return "";
@@ -235,23 +294,29 @@ public class RaRolesBean implements Serializable {
   /**
    * Set current sort column. Flip the order if the column was already selected.
    *
-   * @param sortBy Column
+   * @param asortBy Column
    * @param defaultAscending Order
    */
-  private void sortBy(final SortBy sortBy, final boolean defaultAscending) {
-    if (this.sortBy.equals(sortBy)) {
+  private void sortBy(final SortBy asortBy, final boolean defaultAscending) {
+    if (this.sortBy.equals(asortBy)) {
       sortAscending = !isSortAscending();
     } else {
       sortAscending = defaultAscending;
     }
-    this.sortBy = sortBy;
+    this.sortBy = asortBy;
     sort();
   }
 
+  /**
+   * @return bool
+   */
   public boolean isSortAscending() {
     return sortAscending;
   }
 
+  /**
+   * @param value bool
+   */
   public void setSortAscending(final boolean value) {
     sortAscending = value;
   }

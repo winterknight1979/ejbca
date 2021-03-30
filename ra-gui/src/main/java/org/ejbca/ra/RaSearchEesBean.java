@@ -67,61 +67,97 @@ import org.ejbca.ra.RaEndEntityDetails.Callbacks;
 public class RaSearchEesBean implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(RaSearchEesBean.class);
+  /** Param. */
+  private static final Logger LOG = Logger.getLogger(RaSearchEesBean.class);
 
+  /** Param. */
   @EJB private RaMasterApiProxyBeanLocal raMasterApiProxyBean;
 
+  /** Param. */
   @ManagedProperty(value = "#{raAuthenticationBean}")
   private RaAuthenticationBean raAuthenticationBean;
 
+  /**
+   * @param araAuthenticationBean bean
+   */
   public void setRaAuthenticationBean(
-      final RaAuthenticationBean raAuthenticationBean) {
-    this.raAuthenticationBean = raAuthenticationBean;
+      final RaAuthenticationBean araAuthenticationBean) {
+    this.raAuthenticationBean = araAuthenticationBean;
   }
 
+  /** Param. */
   @ManagedProperty(value = "#{raLocaleBean}")
   private RaLocaleBean raLocaleBean;
 
-  public void setRaLocaleBean(final RaLocaleBean raLocaleBean) {
-    this.raLocaleBean = raLocaleBean;
+  /**
+   * @param araLocaleBean bean
+   */
+  public void setRaLocaleBean(final RaLocaleBean araLocaleBean) {
+    this.raLocaleBean = araLocaleBean;
   }
 
+  /** Param. */
   private final List<RaEndEntityDetails> resultsFiltered = new ArrayList<>();
+  /** Param. */
   private Map<Integer, String> eepIdToNameMap = null;
+  /** Param. */
   private Map<Integer, String> cpIdToNameMap = null;
+  /** Param. */
   private Map<Integer, String> caIdToNameMap = null;
+  /** Param. */
   private final List<SelectItem> availableEeps = new ArrayList<>();
+  /** Param. */
   private final List<SelectItem> availableCps = new ArrayList<>();
+  /** Param. */
   private final List<SelectItem> availableCas = new ArrayList<>();
 
+  /** Param. */
   private RaEndEntitySearchRequest stagedRequest =
       new RaEndEntitySearchRequest();
+  /** Param. */
   private RaEndEntitySearchRequest lastExecutedRequest = null;
+  /** Param. */
   private RaEndEntitySearchResponse lastExecutedResponse = null;
 
+  /** Param. */
   private String genericSearchString = "";
 
+  /** Param. */
   private String modifiedAfter = "";
+  /** Param. */
   private String modifiedBefore = "";
 
   private enum SortOrder {
+      /** Param. */
     PROFILE,
+    /** Param. */
     CA,
+    /** Param. */
     SUBJECT,
+    /** Param. */
     USERNAME,
+    /** Param. */
     MODIFIED,
+    /** Param. */
     STATUS
   };
 
+  /** Param. */
   private SortOrder sortBy = SortOrder.USERNAME;
+  /** Param. */
   private boolean sortAscending = true;
 
+  /** Param. */
   private boolean moreOptions = false;
 
+  /** Param. */
   private IdNameHashMap<EndEntityProfile> endEntityProfileMap = null;
+  /** Param. */
   private RaEndEntityDetails currentEndEntityDetails = null;
+  /** Param. */
   private List<RaCertificateDetails> currentIssuedCerts = null;
 
+  /** Callbacks. */
   private final Callbacks raEndEntityDetailsCallbacks =
       new RaEndEntityDetails.Callbacks() {
         @Override
@@ -148,13 +184,13 @@ public class RaSearchEesBean implements Serializable {
     return endEntityProfileMap;
   }
 
-  /** Invoked action on search form post */
+  /** Invoked action on search form post. */
   public void searchAndFilterAction() {
     searchAndFilterCommon();
   }
 
   /**
-   * Invoked on criteria changes
+   * Invoked on criteria changes.
    *
    * @param event Event
    */
@@ -175,16 +211,16 @@ public class RaSearchEesBean implements Serializable {
     if (compared <= 0 && lastExecutedResponse != null) {
       // More narrow search → filter and check if there are sufficient results
       // left
-      if (log.isDebugEnabled()) {
-        log.debug("More narrow criteria → Filter");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("More narrow criteria → Filter");
       }
       filterTransformSort();
       // Check if there are sufficient results to fill screen and search for
       // more
       if (resultsFiltered.size() < lastExecutedRequest.getMaxResults()
           && lastExecutedResponse.isMightHaveMoreResults()) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Trying to load more results since filter left too few results →"
                   + " Query");
         }
@@ -195,8 +231,8 @@ public class RaSearchEesBean implements Serializable {
     }
     if (search) {
       // Wider search → Query back-end
-      if (log.isDebugEnabled()) {
-        log.debug("Wider criteria → Query");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Wider criteria → Query");
       }
       searchForEndEntities();
     }
@@ -229,8 +265,8 @@ public class RaSearchEesBean implements Serializable {
         getAvailableEeps();
         getAvailableCps();
       }
-      for (final EndEntityInformation endEntityInformation :
-          lastExecutedResponse.getEndEntities()) {
+      for (final EndEntityInformation endEntityInformation
+          : lastExecutedResponse.getEndEntities()) {
         // ...we don't filter if the requested maxResults is lower than the
         // search request
         if (!genericSearchString.isEmpty()
@@ -266,8 +302,8 @@ public class RaSearchEesBean implements Serializable {
                 eepIdToNameMap,
                 caIdToNameMap));
       }
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Filtered "
                 + lastExecutedResponse.getEndEntities().size()
                 + " responses down to "
@@ -337,50 +373,71 @@ public class RaSearchEesBean implements Serializable {
     return getFilteredResults().isEmpty() && isMoreResultsAvailable();
   }
 
+  /**
+   * @return Sorted
+   */
   public String getSortedByProfile() {
     return getSortedBy(SortOrder.PROFILE);
   }
 
+  /** Sort. */
   public void sortByProfile() {
     sortBy(SortOrder.PROFILE, true);
   }
 
+  /**
+   * @return Sorted
+   */
   public String getSortedByCa() {
     return getSortedBy(SortOrder.CA);
   }
 
+  /** Sort. */
   public void sortByCa() {
     sortBy(SortOrder.CA, true);
   }
-
+ /** @return sorted */
   public String getSortedBySubject() {
     return getSortedBy(SortOrder.SUBJECT);
   }
 
+  /** Sort. */
   public void sortBySubject() {
     sortBy(SortOrder.SUBJECT, true);
   }
 
+  /**
+   * @return Sorted
+   */
   public String getSortedByModified() {
     return getSortedBy(SortOrder.MODIFIED);
   }
 
+  /** Sort. */
   public void sortByModified() {
     sortBy(SortOrder.MODIFIED, false);
   }
 
+  /**
+   * @return Sorted
+   */
   public String getSortedByStatus() {
     return getSortedBy(SortOrder.STATUS);
   }
 
+  /** Sort. */
   public void sortByStatus() {
     sortBy(SortOrder.STATUS, true);
   }
 
+  /**
+   * @return Sorted
+   */
   public String getSortedByUsername() {
     return getSortedBy(SortOrder.USERNAME);
   }
 
+  /** Sort. */
   public void sortByUsername() {
     sortBy(SortOrder.USERNAME, true);
   }
@@ -428,7 +485,6 @@ public class RaSearchEesBean implements Serializable {
   public boolean isMoreOptions() {
     return moreOptions;
   }
-  ;
 
   /** Invoked when more or less options action is invoked. */
   public void moreOptionsAction() {
@@ -442,33 +498,51 @@ public class RaSearchEesBean implements Serializable {
     searchAndFilterCommon();
   }
 
+  /**
+   * @return results
+   */
   public List<RaEndEntityDetails> getFilteredResults() {
     return resultsFiltered;
   }
 
+  /**
+   * @return String
+   */
   public String getGenericSearchString() {
     return this.genericSearchString;
   }
 
-  public void setGenericSearchString(final String genericSearchString) {
-    this.genericSearchString = genericSearchString;
-    stagedRequest.setSubjectDnSearchString(genericSearchString);
-    stagedRequest.setSubjectAnSearchString(genericSearchString);
-    stagedRequest.setUsernameSearchString(genericSearchString);
+  /**
+   * @param agenericSearchString String
+   */
+  public void setGenericSearchString(final String agenericSearchString) {
+    this.genericSearchString = agenericSearchString;
+    stagedRequest.setSubjectDnSearchString(agenericSearchString);
+    stagedRequest.setSubjectAnSearchString(agenericSearchString);
+    stagedRequest.setUsernameSearchString(agenericSearchString);
   }
 
+  /**
+   * @return Max
+   */
   public int getCriteriaMaxResults() {
     return stagedRequest.getMaxResults();
   }
 
+  /**
+   * @param criteriaMaxResults Max
+   */
   public void setCriteriaMaxResults(final int criteriaMaxResults) {
     stagedRequest.setMaxResults(criteriaMaxResults);
   }
 
+  /**
+   * @return max
+   */
   public List<SelectItem> getAvailableMaxResults() {
     List<SelectItem> ret = new ArrayList<>();
-    for (final int value :
-        new int[] {
+    for (final int value
+        : new int[] {
           RaEndEntitySearchRequest.DEFAULT_MAX_RESULTS, 50, 100, 200, 400
         }) {
       ret.add(
@@ -480,12 +554,18 @@ public class RaSearchEesBean implements Serializable {
     return ret;
   }
 
+  /**
+   * @return ID
+   */
   public int getCriteriaEepId() {
     return stagedRequest.getEepIds().isEmpty()
         ? 0
         : stagedRequest.getEepIds().get(0);
   }
 
+  /**
+   * @param criteriaEepId ID
+   */
   public void setCriteriaEepId(final int criteriaEepId) {
     if (criteriaEepId == 0) {
       stagedRequest.setEepIds(new ArrayList<Integer>());
@@ -495,10 +575,16 @@ public class RaSearchEesBean implements Serializable {
     }
   }
 
+  /**
+   * @return bool
+   */
   public boolean isOnlyOneEepAvailable() {
     return getAvailableEeps().size() == 1;
   }
 
+  /**
+   * @return List
+   */
   public List<SelectItem> getAvailableEeps() {
     if (availableEeps.isEmpty()) {
       eepIdToNameMap =
@@ -509,8 +595,8 @@ public class RaSearchEesBean implements Serializable {
               0,
               raLocaleBean.getMessage(
                   "search_ees_page_criteria_eep_optionany")));
-      for (final Entry<Integer, String> entry :
-          getAsSortedByValue(eepIdToNameMap.entrySet())) {
+      for (final Entry<Integer, String> entry
+          : getAsSortedByValue(eepIdToNameMap.entrySet())) {
         availableEeps.add(
             new SelectItem(entry.getKey(), "- " + entry.getValue()));
       }
@@ -518,12 +604,18 @@ public class RaSearchEesBean implements Serializable {
     return availableEeps;
   }
 
+  /**
+   * @return ID
+   */
   public int getCriteriaCpId() {
     return stagedRequest.getCpIds().isEmpty()
         ? 0
         : stagedRequest.getCpIds().get(0);
   }
 
+  /**
+   * @param criteriaCpId ID
+   */
   public void setCriteriaCpId(final int criteriaCpId) {
     if (criteriaCpId == 0) {
       stagedRequest.setCpIds(new ArrayList<Integer>());
@@ -533,10 +625,16 @@ public class RaSearchEesBean implements Serializable {
     }
   }
 
+  /**
+   * @return bool
+   */
   public boolean isOnlyOneCpAvailable() {
     return getAvailableCps().size() == 1;
   }
 
+  /**
+   * @return List
+   */
   public List<SelectItem> getAvailableCps() {
     if (availableCps.isEmpty()) {
       cpIdToNameMap =
@@ -547,8 +645,8 @@ public class RaSearchEesBean implements Serializable {
               0,
               raLocaleBean.getMessage(
                   "search_ees_page_criteria_cp_optionany")));
-      for (final Entry<Integer, String> entry :
-          getAsSortedByValue(cpIdToNameMap.entrySet())) {
+      for (final Entry<Integer, String> entry
+          : getAsSortedByValue(cpIdToNameMap.entrySet())) {
         availableCps.add(
             new SelectItem(entry.getKey(), "- " + entry.getValue()));
       }
@@ -556,12 +654,18 @@ public class RaSearchEesBean implements Serializable {
     return availableCps;
   }
 
+  /**
+   * @return ID
+   */
   public int getCriteriaCaId() {
     return stagedRequest.getCaIds().isEmpty()
         ? 0
         : stagedRequest.getCaIds().get(0);
   }
 
+  /**
+   * @param criteriaCaId ID
+   */
   public void setCriteriaCaId(final int criteriaCaId) {
     if (criteriaCaId == 0) {
       stagedRequest.setCaIds(new ArrayList<Integer>());
@@ -571,10 +675,16 @@ public class RaSearchEesBean implements Serializable {
     }
   }
 
+  /**
+   * @return Bool
+   */
   public boolean isOnlyOneCaAvailable() {
     return getAvailableCas().size() == 1;
   }
 
+  /**
+   * @return List
+   */
   public List<SelectItem> getAvailableCas() {
     if (availableCas.isEmpty()) {
       final List<CAInfo> caInfos =
@@ -606,25 +716,37 @@ public class RaSearchEesBean implements Serializable {
     return availableCas;
   }
 
+  /**
+   * @return date
+   */
   public String getModifiedAfter() {
     return getDateAsString(modifiedAfter, stagedRequest.getModifiedAfter(), 0L);
   }
 
-  public void setModifiedAfter(final String modifiedAfter) {
-    this.modifiedAfter = modifiedAfter;
+  /**
+   * @param amodifiedAfter date
+   */
+  public void setModifiedAfter(final String amodifiedAfter) {
+    this.modifiedAfter = amodifiedAfter;
     stagedRequest.setModifiedAfter(
-        parseDateAndUseDefaultOnFail(modifiedAfter, 0L));
+        parseDateAndUseDefaultOnFail(amodifiedAfter, 0L));
   }
 
+  /**
+   * @return date
+   */
   public String getModifiedBefore() {
     return getDateAsString(
         modifiedBefore, stagedRequest.getModifiedBefore(), Long.MAX_VALUE);
   }
 
-  public void setModifiedBefore(final String modifiedBefore) {
-    this.modifiedBefore = modifiedBefore;
+  /**
+   * @param amodifiedBefore mod
+   */
+  public void setModifiedBefore(final String amodifiedBefore) {
+    this.modifiedBefore = amodifiedBefore;
     stagedRequest.setModifiedBefore(
-        parseDateAndUseDefaultOnFail(modifiedBefore, Long.MAX_VALUE));
+        parseDateAndUseDefaultOnFail(amodifiedBefore, Long.MAX_VALUE));
   }
 
   /**
@@ -667,7 +789,7 @@ public class RaSearchEesBean implements Serializable {
    * @param valid Valid
    */
   private void markCurrentComponentAsValid(final boolean valid) {
-    final String STYLE_CLASS_INVALID = "invalidInput";
+    final String styleClassInvalid = "invalidInput";
     // UIComponent.getCurrentComponent only works when invoked via f:ajax
     final UIComponent uiComponent =
         UIComponent.getCurrentComponent(FacesContext.getCurrentInstance());
@@ -680,15 +802,15 @@ public class RaSearchEesBean implements Serializable {
           String styleClass = htmlOutputLabel.getStyleClass();
           if (valid) {
             if (styleClass != null
-                && styleClass.contains(STYLE_CLASS_INVALID)) {
-              styleClass = styleClass.replace(STYLE_CLASS_INVALID, "").trim();
+                && styleClass.contains(styleClassInvalid)) {
+              styleClass = styleClass.replace(styleClassInvalid, "").trim();
             }
           } else {
             if (styleClass == null) {
-              styleClass = STYLE_CLASS_INVALID;
+              styleClass = styleClassInvalid;
             } else {
-              if (!styleClass.contains(STYLE_CLASS_INVALID)) {
-                styleClass = styleClass.concat(" " + STYLE_CLASS_INVALID);
+              if (!styleClass.contains(styleClassInvalid)) {
+                styleClass = styleClass.concat(" " + styleClassInvalid);
               }
             }
           }
@@ -698,12 +820,18 @@ public class RaSearchEesBean implements Serializable {
     }
   }
 
+  /**
+   * @return Status
+   */
   public int getCriteriaStatus() {
     return stagedRequest.getStatuses().isEmpty()
         ? 0
         : stagedRequest.getStatuses().get(0);
   }
 
+  /**
+   * @param criteriaStatus status
+   */
   public void setCriteriaStatus(final int criteriaStatus) {
     if (criteriaStatus == 0) {
       stagedRequest.setStatuses(new ArrayList<Integer>());
@@ -713,6 +841,9 @@ public class RaSearchEesBean implements Serializable {
     }
   }
 
+  /**
+   * @return List
+   */
   public List<SelectItem> getAvailableStatuses() {
     final List<SelectItem> ret = new ArrayList<>();
     ret.add(
@@ -786,25 +917,36 @@ public class RaSearchEesBean implements Serializable {
     }
   }
 
+  /**
+   * @param selected Selected
+   */
   public void openEndEntityDetails(final RaEndEntityDetails selected) {
     currentEndEntityDetails = selected;
     currentIssuedCerts = null;
   }
 
+  /**
+   * @return Details
+   */
   public RaEndEntityDetails getCurrentEndEntityDetails() {
     return currentEndEntityDetails;
   }
 
+  /** Next. */
   public void nextEndEntityDetails() {
     currentEndEntityDetails = currentEndEntityDetails.getNext();
     currentIssuedCerts = null;
   }
 
+  /** Prev. */
   public void previousEndEntityDetails() {
     currentEndEntityDetails = currentEndEntityDetails.getPrevious();
     currentIssuedCerts = null;
   }
 
+  /**
+   * Close.
+   */
   public void closeEndEntityDetails() {
     currentEndEntityDetails = null;
     currentIssuedCerts = null;
@@ -830,11 +972,17 @@ public class RaSearchEesBean implements Serializable {
     searchForEndEntities();
   }
 
+  /**
+   * @return bool
+   */
   public boolean isShowNextPageButton() {
     return lastExecutedResponse != null
         && lastExecutedResponse.isMightHaveMoreResults();
   }
 
+  /**
+   * @return bool
+   */
   public boolean isShowPreviousPageButton() {
     return stagedRequest != null && stagedRequest.getPageNumber() > 0;
   }

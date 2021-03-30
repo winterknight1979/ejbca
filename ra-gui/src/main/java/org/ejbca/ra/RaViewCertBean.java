@@ -50,29 +50,46 @@ public class RaViewCertBean implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   @EJB private RaMasterApiProxyBeanLocal raMasterApiProxyBean;
 
+  /** Param. */
   @ManagedProperty(value = "#{raAuthenticationBean}")
   private RaAuthenticationBean raAuthenticationBean;
 
+  /**
+   * @param araAuthenticationBean bean
+   */
   public void setRaAuthenticationBean(
-      final RaAuthenticationBean raAuthenticationBean) {
-    this.raAuthenticationBean = raAuthenticationBean;
+      final RaAuthenticationBean araAuthenticationBean) {
+    this.raAuthenticationBean = araAuthenticationBean;
   }
 
+  /** Param. */
   @ManagedProperty(value = "#{raLocaleBean}")
   private RaLocaleBean raLocaleBean;
 
-  public void setRaLocaleBean(final RaLocaleBean raLocaleBean) {
-    this.raLocaleBean = raLocaleBean;
+  /**
+   * @param araLocaleBean Bean
+   */
+  public void setRaLocaleBean(final RaLocaleBean araLocaleBean) {
+    this.raLocaleBean = araLocaleBean;
   }
 
+  /** Param. */
   private String fingerprint = null;
+  /** Param. */
   private RaCertificateDetails raCertificateDetails = null;
+  /** Param. */
   private Map<Integer, String> eepIdToNameMap = null;
+  /** Param. */
   private Map<Integer, String> cpIdToNameMap = null;
+  /** Param. */
   private final Map<String, String> caSubjectToNameMap = new HashMap<>();
 
+  /**
+   * Callbacks.
+   */
   private final Callbacks raCertificateDetailsCallbacks =
       new RaCertificateDetails.Callbacks() {
         @Override
@@ -87,14 +104,14 @@ public class RaViewCertBean implements Serializable {
 
         @Override
         public boolean changeStatus(
-            final RaCertificateDetails raCertificateDetails,
+            final RaCertificateDetails araCertificateDetails,
             final int newStatus,
             final int newRevocationReason)
             throws ApprovalException, WaitingForApprovalException {
           final boolean ret =
               raMasterApiProxyBean.changeCertificateStatus(
                   raAuthenticationBean.getAuthenticationToken(),
-                  raCertificateDetails.getFingerprint(),
+                  araCertificateDetails.getFingerprint(),
                   newStatus,
                   newRevocationReason);
           if (ret) {
@@ -102,8 +119,8 @@ public class RaViewCertBean implements Serializable {
             final CertificateDataWrapper cdw =
                 raMasterApiProxyBean.searchForCertificate(
                     raAuthenticationBean.getAuthenticationToken(),
-                    raCertificateDetails.getFingerprint());
-            raCertificateDetails.reInitialize(
+                    araCertificateDetails.getFingerprint());
+            araCertificateDetails.reInitialize(
                 cdw, cpIdToNameMap, eepIdToNameMap, caSubjectToNameMap);
           }
           return ret;
@@ -111,32 +128,35 @@ public class RaViewCertBean implements Serializable {
 
         @Override
         public boolean recoverKey(
-            final RaCertificateDetails raCertificateDetails)
+            final RaCertificateDetails araCertificateDetails)
             throws ApprovalException, CADoesntExistsException,
                 AuthorizationDeniedException, WaitingForApprovalException,
                 NoSuchEndEntityException, EndEntityProfileValidationException {
           final boolean ret =
               raMasterApiProxyBean.markForRecovery(
                   raAuthenticationBean.getAuthenticationToken(),
-                  raCertificateDetails.getUsername(),
-                  raCertificateDetails.getPassword(),
-                  EJBTools.wrap(raCertificateDetails.getCertificate()),
+                  araCertificateDetails.getUsername(),
+                  araCertificateDetails.getPassword(),
+                  EJBTools.wrap(araCertificateDetails.getCertificate()),
                   false);
           return ret;
         }
 
         @Override
         public boolean keyRecoveryPossible(
-            final RaCertificateDetails raCertificateDetails) {
+            final RaCertificateDetails araCertificateDetails) {
           final boolean ret =
               raMasterApiProxyBean.keyRecoveryPossible(
                   raAuthenticationBean.getAuthenticationToken(),
-                  raCertificateDetails.getCertificate(),
-                  raCertificateDetails.getUsername());
+                  araCertificateDetails.getCertificate(),
+                  araCertificateDetails.getUsername());
           return ret;
         }
       };
 
+      /**
+       * Construct.
+       */
   @PostConstruct
   public void postConstruct() {
     fingerprint =
@@ -174,10 +194,16 @@ public class RaViewCertBean implements Serializable {
     }
   }
 
+  /**
+   * @return FP
+   */
   public String getFingerprint() {
     return fingerprint;
   }
 
+  /**
+   * @return Cert
+   */
   public RaCertificateDetails getCertificate() {
     return raCertificateDetails;
   }
