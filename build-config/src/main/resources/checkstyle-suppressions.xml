@@ -602,6 +602,24 @@
 		files="RAInterfaceBean.java" lines="1762" />
 		<suppress checks="MagicNumberCheck"
 		files="RAInterfaceBean.java" lines="1791" />
+		
+		
+	<!-- ra-gui -->
 	
 	
+	<suppress checks="VisibilityModifierCheck"
+		files="ApprovalRequestGUIInfo.java" lines=" 384" />
+		<suppress checks="MethodLengthCheck"
+		files="ApprovalRequestGUIInfo.java" lines="432 " />  
+		<suppress checks="MethodLengthCheck"
+		files="EnrollMakeNewRequestBean.java" lines="978 " />  
+		<suppress checks="MethodLengthCheck"
+		files="RaCertDistServlet.java" lines="101 " />  
+		<suppress checks="MethodLengthCheck"
+		files="RaCertificateDetails.java" lines="251 " /> 
+		<suppress checks="MagicNumberCheck"
+		files="RaSearchEesBean.java" lines="546" /> 
+		<suppress checks="MagicNumberCheck"
+		files="RaSearchCertsBean.java" lines="670" /> 
+		
 </suppressions>

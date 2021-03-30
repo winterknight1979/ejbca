@@ -20,46 +20,85 @@ import org.cesecore.roles.member.RoleMember;
  * @version $Id: RaRoleMemberGUIInfo.java 25581 2017-03-22 14:34:02Z samuellb $
  */
 public final class RaRoleMemberGUIInfo {
-    
-    public final RoleMember roleMember;
-    public final String caName;
-    public final String roleName;
-    public final String roleNamespace;
-    public final String tokenTypeText;
-    public final boolean tokenMatchValueIsLink;
-    
-    public RaRoleMemberGUIInfo(final RoleMember roleMember, final String caName, final String roleName, final String roleNamespace, final String tokenTypeText) {
-        this.roleMember = roleMember;
-        this.caName = caName;
-        this.roleName = roleName;
-        this.roleNamespace = roleNamespace;
-        this.tokenTypeText = tokenTypeText;
-        this.tokenMatchValueIsLink = X509CertificateAuthenticationTokenMetaData.TOKEN_TYPE.equals(roleMember.getTokenType()) &&
-                roleMember.getTokenMatchKey() == X500PrincipalAccessMatchValue.WITH_SERIALNUMBER.getNumericValue();
-    }
 
-    public RoleMember getRoleMember() {
-        return roleMember;
-    }
+      /** Param. */
+  private final RoleMember roleMember;
+  /** Param. */
+  private final String caName;
+  /** Param. */
+  private final String roleName;
+  /** Param. */
+  private final String roleNamespace;
+  /** Param. */
+  private final String tokenTypeText;
+  /** Param. */
+  private final boolean tokenMatchValueIsLink;
 
-    public String getCaName() {
-        return caName;
-    }
-    
-    public String getRoleName() {
-        return roleName;
-    }
-    
-    public String getRoleNamespace() {
-        return roleNamespace;
-    }
-    
-    public String getTokenTypeText() {
-        return tokenTypeText;
-    }
-    
-    public boolean getTokenMatchValueIsLink() {
-        return tokenMatchValueIsLink;
-    }
-    
+  /**
+   * @param aroleMember member
+   * @param acaName name
+   * @param aroleName Name
+   * @param aroleNamespace Name
+   * @param atokenTypeText type
+   */
+  public RaRoleMemberGUIInfo(
+      final RoleMember aroleMember,
+      final String acaName,
+      final String aroleName,
+      final String aroleNamespace,
+      final String atokenTypeText) {
+    this.roleMember = aroleMember;
+    this.caName = acaName;
+    this.roleName = aroleName;
+    this.roleNamespace = aroleNamespace;
+    this.tokenTypeText = atokenTypeText;
+    this.tokenMatchValueIsLink =
+        X509CertificateAuthenticationTokenMetaData.TOKEN_TYPE.equals(
+                aroleMember.getTokenType())
+            && aroleMember.getTokenMatchKey()
+                == X500PrincipalAccessMatchValue.WITH_SERIALNUMBER
+                    .getNumericValue();
+  }
+
+  /**
+   * @return role
+   */
+  public RoleMember getRoleMember() {
+    return roleMember;
+  }
+
+  /**
+   * @return name
+   */
+  public String getCaName() {
+    return caName;
+  }
+
+  /**
+   * @return name
+   */
+  public String getRoleName() {
+    return roleName;
+  }
+
+  /**
+   * @return name
+   */
+  public String getRoleNamespace() {
+    return roleNamespace;
+  }
+
+  /**
+   * @return name
+   */
+  public String getTokenTypeText() {
+    return tokenTypeText;
+  }
+
+  /**
+   * @return bool
+   */
+  public boolean getTokenMatchValueIsLink() {
+    return tokenMatchValueIsLink;
+  }
 }

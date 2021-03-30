@@ -19,29 +19,35 @@ import javax.faces.convert.ConverterException;
 import javax.faces.convert.FacesConverter;
 
 /**
- * Handles conversions of radio buttons from the UI. Radio buttons will generally be handled in the UI as encoded strings, so this converter simply 
- * treats them as such. 
- * 
- * @version $Id: RadioButtonConverter.java 26057 2017-06-22 08:08:34Z anatom $
+ * Handles conversions of radio buttons from the UI. Radio buttons will
+ * generally be handled in the UI as encoded strings, so this converter simply
+ * treats them as such.
  *
+ * @version $Id: RadioButtonConverter.java 26057 2017-06-22 08:08:34Z anatom $
  */
 @FacesConverter("radioButtonConverter")
-public class RadioButtonConverter implements Converter{
-    
-    @Override
-    public Object getAsObject(FacesContext context, UIComponent component, String value) {
-        if (value == null || value.isEmpty()) {
-            return null;
-        }
-        return value;
-    }
+public class RadioButtonConverter implements Converter {
 
-    @Override
-    public String getAsString(FacesContext context, UIComponent component, Object value) throws ConverterException {
-        if (value == null) {
-            return null;
-        }
-        return (String) value;
+  @Override
+  public Object getAsObject(
+      final FacesContext context,
+      final UIComponent component,
+      final String value) {
+    if (value == null || value.isEmpty()) {
+      return null;
     }
+    return value;
+  }
 
+  @Override
+  public String getAsString(
+      final FacesContext context,
+      final UIComponent component,
+      final Object value)
+      throws ConverterException {
+    if (value == null) {
+      return null;
+    }
+    return (String) value;
+  }
 }

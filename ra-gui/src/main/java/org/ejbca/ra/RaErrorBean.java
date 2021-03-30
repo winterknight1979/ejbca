@@ -15,87 +15,126 @@ package org.ejbca.ra;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-
 import javax.faces.application.ViewExpiredException;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
-
 import org.apache.log4j.Logger;
 import org.ejbca.core.model.era.RaMasterBackendUnavailableException;
 import org.ejbca.ra.jsfext.RaExceptionHandlerFactory;
 
 /**
  * Bean used to display a summary of unexpected errors and debug log the cause.
- * 
- * @version $Id: RaErrorBean.java 23096 2016-03-30 01:04:38Z jeklund $
- * TODO: Use CDI beans
+ *
+ * @version $Id: RaErrorBean.java 23096 2016-03-30 01:04:38Z jeklund $ TODO: Use
+ *     CDI beans
  */
 @SuppressWarnings("deprecation")
 @ManagedBean
 @ViewScoped
 public class RaErrorBean implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(RaErrorBean.class);
+  private static final long serialVersionUID = 1L;
 
-    @ManagedProperty(value="#{raLocaleBean}")
-    private RaLocaleBean raLocaleBean;
-    public void setRaLocaleBean(final RaLocaleBean raLocaleBean) { this.raLocaleBean = raLocaleBean; }
+  /** Param. */
+  private static final Logger LOG = Logger.getLogger(RaErrorBean.class);
 
-    private List<Throwable> throwables = null;
-    private Integer httpErrorCode = null;
 
-    /** Invoked when error.xhtml is rendered. Add all errors using the current localization. */
-    @SuppressWarnings("unchecked")
-    public void onErrorPageLoad() {
-        final Map<String, Object> requestMap = FacesContext.getCurrentInstance().getExternalContext().getRequestMap();
-        // Render error caught by RaExceptionHandlerFactory
-        if (throwables==null) {
-            throwables = (List<Throwable>) requestMap.get(RaExceptionHandlerFactory.REQUESTMAP_KEY);
-            requestMap.remove(RaExceptionHandlerFactory.REQUESTMAP_KEY);
-        }
-        if (throwables==null) {
-            log.debug("No error messages to renderer.");
-        } else {
-            for (final Throwable throwable : throwables) {
-                if (throwable instanceof ViewExpiredException) {
-                    raLocaleBean.addMessageError("generic_unexpected_problem_sessiontimeout");
-                } else if (throwable instanceof RaMasterBackendUnavailableException) {
-                    raLocaleBean.addMessageError("generic_unavailable");
-                } else {
-                    // Return the message of the root cause exception
-                    Throwable cause = throwable;
-                    while (cause.getCause()!=null) {
-                        cause = cause.getCause();
-                    }
-                    // Log the entire exception stack trace
-                    if (log.isDebugEnabled()) {
-                        log.debug("Client got the following error message: " + cause.getMessage(), throwable);
-                    }
-                    raLocaleBean.addMessageError("generic_unexpected_problem_cause", cause.getMessage());
-                }
-            }
-        }
-        // Render error caught by web.xml error-page definition
-        if (httpErrorCode==null) {
-            final Object httpErrorCodeObject = requestMap.get("javax.servlet.error.status_code");
-            if (httpErrorCodeObject!=null && httpErrorCodeObject instanceof Integer) {
-                httpErrorCode = (Integer) httpErrorCodeObject;
-                if (log.isDebugEnabled()) {
-                    final String httpErrorUri = String.valueOf(requestMap.get("javax.servlet.error.request_uri"));
-                    final String httpErrorMsg = String.valueOf(requestMap.get("javax.servlet.error.message"));
-                    log.debug("Client got HTTP error " + httpErrorCode + " when trying to access '" + httpErrorUri + "'. Message was: " + httpErrorMsg);
-                }
-            }
-        }
-        if (httpErrorCode!=null) {
-            switch (httpErrorCode) {
-            case 403: raLocaleBean.addMessageError("generic_unexpected_httperror_403"); break;
-            case 404: raLocaleBean.addMessageError("generic_unexpected_httperror_404"); break;
-            default: raLocaleBean.addMessageError("generic_unexpected_httperror_default", httpErrorCode); break;
-            }
-        }
+  /** Param. */
+  @ManagedProperty(value = "#{raLocaleBean}")
+  private RaLocaleBean raLocaleBean;
+
+  /**
+   * @param araLocaleBean bean
+   */
+  public void setRaLocaleBean(final RaLocaleBean araLocaleBean) {
+    this.raLocaleBean = araLocaleBean;
+  }
+
+  /** Param. */
+  private List<Throwable> throwables = null;
+  /** Param. */
+  private Integer httpErrorCode = null;
+
+  /**
+   * Invoked when error.xhtml is rendered. Add all errors using the current
+   * localization.
+   */
+  @SuppressWarnings("unchecked")
+  public void onErrorPageLoad() {
+    final Map<String, Object> requestMap =
+        FacesContext.getCurrentInstance().getExternalContext().getRequestMap();
+    // Render error caught by RaExceptionHandlerFactory
+    if (throwables == null) {
+      throwables =
+          (List<Throwable>)
+              requestMap.get(RaExceptionHandlerFactory.REQUESTMAP_KEY);
+      requestMap.remove(RaExceptionHandlerFactory.REQUESTMAP_KEY);
     }
+    if (throwables == null) {
+      LOG.debug("No error messages to renderer.");
+    } else {
+      for (final Throwable throwable : throwables) {
+        if (throwable instanceof ViewExpiredException) {
+          raLocaleBean.addMessageError(
+              "generic_unexpected_problem_sessiontimeout");
+        } else if (throwable instanceof RaMasterBackendUnavailableException) {
+          raLocaleBean.addMessageError("generic_unavailable");
+        } else {
+          // Return the message of the root cause exception
+          Throwable cause = throwable;
+          while (cause.getCause() != null) {
+            cause = cause.getCause();
+          }
+          // Log the entire exception stack trace
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
+                "Client got the following error message: " + cause.getMessage(),
+                throwable);
+          }
+          raLocaleBean.addMessageError(
+              "generic_unexpected_problem_cause", cause.getMessage());
+        }
+      }
+    }
+    // Render error caught by web.xml error-page definition
+    if (httpErrorCode == null) {
+      final Object httpErrorCodeObject =
+          requestMap.get("javax.servlet.error.status_code");
+      if (httpErrorCodeObject != null
+          && httpErrorCodeObject instanceof Integer) {
+        httpErrorCode = (Integer) httpErrorCodeObject;
+        if (LOG.isDebugEnabled()) {
+          final String httpErrorUri =
+              String.valueOf(requestMap.get("javax.servlet.error.request_uri"));
+          final String httpErrorMsg =
+              String.valueOf(requestMap.get("javax.servlet.error.message"));
+          LOG.debug(
+              "Client got HTTP error "
+                  + httpErrorCode
+                  + " when trying to access '"
+                  + httpErrorUri
+                  + "'. Message was: "
+                  + httpErrorMsg);
+        }
+      }
+    }
+    final int forbidden = 403;
+    final int notFound = 404;
+    if (httpErrorCode != null) {
+      switch (httpErrorCode) {
+        case forbidden:
+          raLocaleBean.addMessageError("generic_unexpected_httperror_403");
+          break;
+        case notFound:
+          raLocaleBean.addMessageError("generic_unexpected_httperror_404");
+          break;
+        default:
+          raLocaleBean.addMessageError(
+              "generic_unexpected_httperror_default", httpErrorCode);
+          break;
+      }
+    }
+  }
 }

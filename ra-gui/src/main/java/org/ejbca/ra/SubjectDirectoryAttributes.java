@@ -13,38 +13,47 @@
 package org.ejbca.ra;
 
 import java.util.ArrayList;
-
 import org.cesecore.certificates.util.DNFieldExtractor;
 import org.cesecore.certificates.util.DnComponents;
 import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
 
 /**
- * Contains Subject Directory attributes
- * @version $Id: SubjectDirectoryAttributes.java 24395 2016-09-21 12:58:22Z marko $
+ * Contains Subject Directory attributes.
  *
+ * @version $Id: SubjectDirectoryAttributes.java 24395 2016-09-21 12:58:22Z
+ *     marko $
  */
-public class SubjectDirectoryAttributes extends RaAbstractDn{
+public class SubjectDirectoryAttributes extends RaAbstractDn {
 
-    public SubjectDirectoryAttributes(final EndEntityProfile endEntityProfile) {
-        super(endEntityProfile);
-    }
-    
-    public SubjectDirectoryAttributes(final EndEntityProfile endEntityProfile, final String subjectAlternativeName) {
-        super(endEntityProfile, subjectAlternativeName);
-    }
+    /**
+     * @param endEntityProfile Profile
+     */
+  public SubjectDirectoryAttributes(final EndEntityProfile endEntityProfile) {
+    super(endEntityProfile);
+  }
 
-    @Override
-    protected int getAbstractDnFieldExtractorType() {
-        return DNFieldExtractor.TYPE_SUBJECTDIRATTR;
-    }
+  /**
+   * @param endEntityProfile Profile
+   * @param subjectAlternativeName Name
+   */
+  public SubjectDirectoryAttributes(
+      final EndEntityProfile endEntityProfile,
+      final String subjectAlternativeName) {
+    super(endEntityProfile, subjectAlternativeName);
+  }
 
-    @Override
-    protected ArrayList<String> getAbstractDnFields() {
-        return DnComponents.getDirAttrFields();
-    }
+  @Override
+  protected int getAbstractDnFieldExtractorType() {
+    return DNFieldExtractor.TYPE_SUBJECTDIRATTR;
+  }
 
-    @Override
-    protected String reorder(String dnBeforeReordering) {
-        return dnBeforeReordering; //No reordering for SubjectDirectoryAttributes
-    }
+  @Override
+  protected ArrayList<String> getAbstractDnFields() {
+    return DnComponents.getDirAttrFields();
+  }
+
+  @Override
+  protected String reorder(final String dnBeforeReordering) {
+    return dnBeforeReordering; // No reordering for SubjectDirectoryAttributes
+  }
 }

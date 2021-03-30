@@ -14,39 +14,60 @@ package org.ejbca.ra;
 
 import java.io.Serializable;
 import java.util.Random;
-
 import javax.annotation.PostConstruct;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.ViewScoped;
 
 /**
- * Example of JSF Managed Bean for backing a page. 
- * 
- * @version $Id: RaExampleBean.java 23491 2016-05-18 14:13:33Z jeklund $
- * TODO: Use CDI beans
+ * Example of JSF Managed Bean for backing a page.
+ *
+ * @version $Id: RaExampleBean.java 23491 2016-05-18 14:13:33Z jeklund $ TODO:
+ *     Use CDI beans
  */
 @SuppressWarnings("deprecation")
 @ManagedBean
 @ViewScoped
 public class RaExampleBean implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-    //private static final Logger log = Logger.getLogger(RaExampleBean.class);
+  private static final long serialVersionUID = 1L;
+  // private static final Logger log = Logger.getLogger(RaExampleBean.class);
 
-    @ManagedProperty(value="#{raAuthenticationBean}")
-    private RaAuthenticationBean raAuthenticationBean;
-    public void setRaAuthenticationBean(final RaAuthenticationBean raAuthenticationBean) { this.raAuthenticationBean = raAuthenticationBean; }
 
-    @ManagedProperty(value="#{raLocaleBean}")
-    private RaLocaleBean raLocaleBean;
-    public void setRaLocaleBean(final RaLocaleBean raLocaleBean) { this.raLocaleBean = raLocaleBean; }
+  /** Param. */
+  @ManagedProperty(value = "#{raAuthenticationBean}")
+  private RaAuthenticationBean raAuthenticationBean;
 
-    @PostConstruct
-    private void postContruct() { }
+  /**
+   * @param araAuthenticationBean bean
+   */
+  public void setRaAuthenticationBean(
+      final RaAuthenticationBean araAuthenticationBean) {
+    this.raAuthenticationBean = araAuthenticationBean;
+  }
 
-    @Deprecated
-    public void throwException() throws Exception {
-        throw new Exception("RaErrorBean.throwException " + new Random().nextInt(100));
-    }
+ /** Param. */
+  @ManagedProperty(value = "#{raLocaleBean}")
+  private RaLocaleBean raLocaleBean;
+
+  /**
+   * @param araLocaleBean bean
+   */
+  public void setRaLocaleBean(final RaLocaleBean araLocaleBean) {
+    this.raLocaleBean = araLocaleBean;
+  }
+
+  /** Construct. */
+  @PostConstruct
+  private void postContruct() { }
+
+  /**
+   * @throws Exception fail
+   */
+  @Deprecated
+  public void throwException() throws Exception {
+    final int seed = 100;
+    throw new Exception(
+        "RaErrorBean.throwException " + new Random().nextInt(seed));
+  }
 }

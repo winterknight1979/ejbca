@@ -15,34 +15,42 @@ package org.ejbca.ra.jsfext;
 import javax.servlet.annotation.WebListener;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
-
 import org.apache.log4j.Logger;
 import org.ejbca.ra.RaAuthenticationBean;
 
 /**
- * HttpSessionListener to be able to detect/log when a user has been logged out for example due to the session has expired. 
- * 
+ * HttpSessionListener to be able to detect/log when a user has been logged out
+ * for example due to the session has expired.
+ *
  * @version $Id: RaHttpSessionListener.java 26057 2017-06-22 08:08:34Z anatom $
  */
 @WebListener
 public class RaHttpSessionListener implements HttpSessionListener {
 
-    private static final Logger log = Logger.getLogger(RaHttpSessionListener.class);
+      /** Param. */
+  private static final Logger LOG =
+      Logger.getLogger(RaHttpSessionListener.class);
 
-    @Override
-    public void sessionCreated(final HttpSessionEvent httpSessionEvent) {
-        if (log.isDebugEnabled()) {
-            log.debug("HTTP session from client started. jsessionid=" + httpSessionEvent.getSession().getId());
-        }
+  @Override
+  public void sessionCreated(final HttpSessionEvent httpSessionEvent) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
+          "HTTP session from client started. jsessionid="
+              + httpSessionEvent.getSession().getId());
     }
+  }
 
-    @Override
-    public void sessionDestroyed(final HttpSessionEvent httpSessionEvent) {
-        final RaAuthenticationBean raAuthenticationBean = (RaAuthenticationBean) httpSessionEvent.getSession().getAttribute("raAuthenticationBean");
-        if (raAuthenticationBean==null) {
-            log.debug("Failed to clean up after client session with jsessionid=" + httpSessionEvent.getSession().getId());
-        } else {
-            raAuthenticationBean.onSessionDestroyed(httpSessionEvent);
-        }
+  @Override
+  public void sessionDestroyed(final HttpSessionEvent httpSessionEvent) {
+    final RaAuthenticationBean raAuthenticationBean =
+        (RaAuthenticationBean)
+            httpSessionEvent.getSession().getAttribute("raAuthenticationBean");
+    if (raAuthenticationBean == null) {
+      LOG.debug(
+          "Failed to clean up after client session with jsessionid="
+              + httpSessionEvent.getSession().getId());
+    } else {
+      raAuthenticationBean.onSessionDestroyed(httpSessionEvent);
     }
+  }
 }

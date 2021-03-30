@@ -16,9 +16,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-
 import javax.faces.component.UIComponent;
-
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.certificates.ca.CADoesntExistsException;
@@ -32,60 +30,87 @@ import org.ejbca.core.model.ra.raadmin.EndEntityProfileValidationException;
 
 /**
  * Tools to handle common RA End Entity operations.
- * 
+ *
  * @version $Id: RaEndEntityTools.java 27151 2017-11-14 12:05:02Z bastianf $
  */
-public class RaEndEntityTools {
+public final class RaEndEntityTools {
 
-    /**
-     * Finds the certificates of an End Entity and sorts them by date issued (descending).
-     * 
-     * @param raMasterApiProxyBean the RaMasterApiProxyBeanLocal to be used in the search
-     * @param authenticationToken the AuthenticationToken to be used in the search
-     * @param username the username of the End Entity
-     * @param raLocaleBean the RaLocaleBean to be used for the RaCertificateDetails objects
-     * @return a list of RaCertificateDetails objects
-     */
-    public static List<RaCertificateDetails> searchCertsByUsernameSorted(
-            final RaMasterApiProxyBeanLocal raMasterApiProxyBean, final AuthenticationToken authenticationToken,
-            final String username, final RaLocaleBean raLocaleBean) {
-        // Find certificates by username
-        RaCertificateSearchResponse response = raMasterApiProxyBean.searchForCertificatesByUsername(authenticationToken, username);
-        List<RaCertificateDetails> certificates = new ArrayList<>();
-        RaCertificateDetails.Callbacks callbacks = new RaCertificateDetails.Callbacks() {
-            @Override
-            public RaLocaleBean getRaLocaleBean() {
-                return raLocaleBean;
-            }
-            @Override
-            public UIComponent getConfirmPasswordComponent() {
-                return null;
-            }
-            @Override
-            public boolean changeStatus(RaCertificateDetails raCertificateDetails, int newStatus, int newRevocationReason)
-                    throws ApprovalException, WaitingForApprovalException {
-                return false;
-            }
-            @Override
-            public boolean recoverKey(RaCertificateDetails raCertificateDetails) throws ApprovalException, CADoesntExistsException,
-                    AuthorizationDeniedException, WaitingForApprovalException,NoSuchEndEntityException, EndEntityProfileValidationException {
-                return false;
-            }
-            @Override
-            public boolean keyRecoveryPossible(RaCertificateDetails raCertificateDetails) {
-                return false;
-            }
+    private RaEndEntityTools() { }
+
+  /**
+   * Finds the certificates of an End Entity and sorts them by date issued
+   * (descending).
+   *
+   * @param raMasterApiProxyBean the RaMasterApiProxyBeanLocal to be used in the
+   *     search
+   * @param authenticationToken the AuthenticationToken to be used in the search
+   * @param username the username of the End Entity
+   * @param raLocaleBean the RaLocaleBean to be used for the
+   *     RaCertificateDetails objects
+   * @return a list of RaCertificateDetails objects
+   */
+  public static List<RaCertificateDetails> searchCertsByUsernameSorted(
+      final RaMasterApiProxyBeanLocal raMasterApiProxyBean,
+      final AuthenticationToken authenticationToken,
+      final String username,
+      final RaLocaleBean raLocaleBean) {
+    // Find certificates by username
+    RaCertificateSearchResponse response =
+        raMasterApiProxyBean.searchForCertificatesByUsername(
+            authenticationToken, username);
+    List<RaCertificateDetails> certificates = new ArrayList<>();
+    RaCertificateDetails.Callbacks callbacks =
+        new RaCertificateDetails.Callbacks() {
+          @Override
+          public RaLocaleBean getRaLocaleBean() {
+            return raLocaleBean;
+          }
+
+          @Override
+          public UIComponent getConfirmPasswordComponent() {
+            return null;
+          }
+
+          @Override
+          public boolean changeStatus(
+              final RaCertificateDetails raCertificateDetails,
+              final int newStatus,
+              final int newRevocationReason)
+              throws ApprovalException, WaitingForApprovalException {
+            return false;
+          }
+
+          @Override
+          public boolean recoverKey(
+              final RaCertificateDetails raCertificateDetails)
+              throws ApprovalException, CADoesntExistsException,
+                  AuthorizationDeniedException, WaitingForApprovalException,
+                  NoSuchEndEntityException,
+                  EndEntityProfileValidationException {
+            return false;
+          }
+
+          @Override
+          public boolean keyRecoveryPossible(
+              final RaCertificateDetails raCertificateDetails) {
+            return false;
+          }
         };
-        for (CertificateDataWrapper cdw : response.getCdws()) {
-            certificates.add(new RaCertificateDetails(cdw, callbacks, null, null, null));
-        }
-        // Sort by date created (descending)
-        Collections.sort(certificates, new Comparator<RaCertificateDetails>() {
-            @Override
-            public int compare(RaCertificateDetails cert1, RaCertificateDetails cert2) {
-                return cert1.getCreated().compareTo(cert2.getCreated()) * -1;
-            }
-        });
-        return certificates;
+    for (CertificateDataWrapper cdw : response.getCdws()) {
+      certificates.add(
+          new RaCertificateDetails(cdw, callbacks, null, null, null));
     }
+    // Sort by date created (descending)
+    Collections.sort(
+        certificates,
+        new Comparator<RaCertificateDetails>() {
+          @Override
+          public int compare(
+              final RaCertificateDetails cert1,
+              final RaCertificateDetails cert2) {
+            return cert1.getCreated().compareTo(cert2.getCreated()) * -1;
+          }
+        });
+    return certificates;
+  }
 }
