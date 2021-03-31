@@ -31,18 +31,23 @@ import org.junit.Test;
  */
 public class AccessRulesHelperTest {
 
-  private static final Logger log =
+      /** Param. */
+  private static final Logger LOG =
       Logger.getLogger(AccessRulesHelperTest.class);
+  /** Param. */
   private static final String ERRMSG_ALLOWED_TO_DENIED =
       "Access granted that should have been denied.";
+  /** Param. */
   private static final String ERRMSG_DENIED_TO_ALLOWED =
       "Access denied that should have been granted.";
+  /** Param. */
   private static final String ERRMSG_UNEXPECTED_STATE =
       "Unexptected state of access rule.";
 
+  /** Test. */
   @Test
   public void testUnion() {
-    log.trace(">testUnion");
+    LOG.trace(">testUnion");
     final HashMap<String, Boolean> accessRules1 = new HashMap<>();
     accessRules1.put("/a/", Role.STATE_ALLOW);
     accessRules1.put("/a/b/", Role.STATE_DENY);
@@ -55,19 +60,19 @@ public class AccessRulesHelperTest {
     accessRules2.put("/c/d/", Role.STATE_DENY);
     testUnion(accessRules1, accessRules2);
     testUnion(accessRules2, accessRules1);
-    log.trace("<testUnion");
+    LOG.trace("<testUnion");
   }
 
   private void testUnion(
       final HashMap<String, Boolean> accessRules1,
       final HashMap<String, Boolean> accessRules2) {
-    log.trace(" accessRules1:");
+    LOG.trace(" accessRules1:");
     debugLogAccessRules(accessRules1);
-    log.trace(" accessRules2:");
+    LOG.trace(" accessRules2:");
     debugLogAccessRules(accessRules2);
     final HashMap<String, Boolean> accessRules =
         AccessRulesHelper.getAccessRulesUnion(accessRules1, accessRules2);
-    log.trace("  after union of rules:");
+    LOG.trace("  after union of rules:");
     debugLogAccessRules(accessRules);
     // Verify that the expected input rules are present in normalized form
     assertEquals(
@@ -88,7 +93,7 @@ public class AccessRulesHelperTest {
     accessRulesToClean.remove("/b/a/");
     accessRulesToClean.remove("/c/");
     accessRulesToClean.remove("/c/d/");
-    log.trace(" after removal of all expected rules:");
+    LOG.trace(" after removal of all expected rules:");
     debugLogAccessRules(accessRulesToClean);
     assertTrue(
         "Unexpected rules are present after union.",
@@ -120,9 +125,10 @@ public class AccessRulesHelperTest {
         AccessRulesHelper.hasAccessToResource(accessRules, "/c/d/"));
   }
 
+  /** Test. */
   @Test
   public void testIntersection() {
-    log.trace(">testIntersection");
+    LOG.trace(">testIntersection");
     final HashMap<String, Boolean> accessRules1 = new HashMap<>();
     accessRules1.put("/a/", Role.STATE_ALLOW);
     accessRules1.put("/a/b/", Role.STATE_DENY);
@@ -138,20 +144,20 @@ public class AccessRulesHelperTest {
     accessRules2.put("/c/d/", Role.STATE_DENY);
     testIntersection(accessRules1, accessRules2);
     testIntersection(accessRules2, accessRules1);
-    log.trace("<testIntersection");
+    LOG.trace("<testIntersection");
   }
 
   private void testIntersection(
       final HashMap<String, Boolean> accessRules1,
       final HashMap<String, Boolean> accessRules2) {
-    log.trace(" accessRules1:");
+    LOG.trace(" accessRules1:");
     debugLogAccessRules(accessRules1);
-    log.trace(" accessRules2:");
+    LOG.trace(" accessRules2:");
     debugLogAccessRules(accessRules2);
     final HashMap<String, Boolean> accessRules =
         AccessRulesHelper.getAccessRulesIntersection(
             accessRules1, accessRules2);
-    log.trace(" after intersection of rules:");
+    LOG.trace(" after intersection of rules:");
     debugLogAccessRules(accessRules);
     // Verify that the expected input rules are present in normalized form
     assertEquals(
@@ -173,7 +179,7 @@ public class AccessRulesHelperTest {
     accessRulesToClean.remove("/a/b/");
     accessRulesToClean.remove("/a/c/");
     accessRulesToClean.remove("/b/b/");
-    log.trace(" after removal of all expected rules:");
+    LOG.trace(" after removal of all expected rules:");
     debugLogAccessRules(accessRulesToClean);
     assertTrue(
         "Unexpected rules are present after intersection.",
@@ -208,6 +214,7 @@ public class AccessRulesHelperTest {
         AccessRulesHelper.hasAccessToResource(accessRules, "/c/d/"));
   }
 
+  /** Test. */
   @Test
   public void testSorting() {
     final LinkedHashMap<String, Boolean> accessRules = new LinkedHashMap<>();
@@ -230,7 +237,7 @@ public class AccessRulesHelperTest {
     final List<Entry<String, Boolean>> accessRulesList =
         AccessRulesHelper.getAsListSortedByKey(accessRules);
     for (final Entry<String, Boolean> entry : accessRulesList) {
-      log.debug(
+      LOG.debug(
           " "
               + entry.getKey()
               + ":"

@@ -29,21 +29,32 @@ import org.junit.Test;
  */
 public class QueryCriteriaTest {
 
+    /** Param. */
   private static Logger log = Logger.getLogger(QueryCriteriaTest.class);
 
+  /** Param. */
   private static final String BAD_QUERY_GENERATED = "Invalid query generated.";
+  /** Param. */
   private static final String BAD_QUERY_PARAMTERS =
       "Invalid paramter values stored in query.";
+  /** Param. */
   private static final String DUMMY_VALUE_STR1 = "dummyValue1";
+  /** Param. */
   private static final String DUMMY_VALUE_STR2 = "dummyValue2";
+  /** Param. */
   private static final int DUMMY_VALUE_INT1 = 01234;
+  /** Param. */
   private static final int DUMMY_VALUE_INT2 = 56789;
 
   public class FakeEntity {
+        /** Param. */
     static final String FIELDNAME1 = "field1";
+    /** Param. */
     static final String FIELDNAME2 = "field2";
-    String field1;
-    int field2;
+    /** Param. */
+    private String field1;
+    /** Param. */
+    private int field2;
   }
 
   /** Test the ability to detect if valid parameters are used. */
@@ -69,6 +80,7 @@ public class QueryCriteriaTest {
     }
   }
 
+  /** Test. */
   @Test
   public void testBasicQuery() {
     // This is the behavior.. perhaps it would be better to not return the
@@ -81,6 +93,7 @@ public class QueryCriteriaTest {
         BAD_QUERY_PARAMTERS, 0, generator.getParameterKeys().size());
   }
 
+  /** Test. */
   @Test
   public void testBasicQueryEqual() {
     final QueryCriteria qc1 =
@@ -117,6 +130,7 @@ public class QueryCriteriaTest {
             generator2.getParameterKeys().iterator().next()));
   }
 
+  /** Test. */
   @Test
   public void testBasicQueryGreaterOrEqual() {
     final QueryCriteria qc =
@@ -137,6 +151,7 @@ public class QueryCriteriaTest {
             generator.getParameterKeys().iterator().next()));
   }
 
+  /** Test. */
   @Test
   public void testBasicQueryLessOrEqual() {
     final QueryCriteria qc =
@@ -157,6 +172,7 @@ public class QueryCriteriaTest {
             generator.getParameterKeys().iterator().next()));
   }
 
+  /** Test. */
   @Test
   public void testBasicQueryBetween() {
     final QueryCriteria qc1 =
@@ -205,6 +221,7 @@ public class QueryCriteriaTest {
         generator2.getParameterValue(i2.next()));
   }
 
+  /** Test. */
   @Test
   public void testBasicQueryLike() {
     final QueryCriteria qc =
@@ -225,6 +242,7 @@ public class QueryCriteriaTest {
             generator.getParameterKeys().iterator().next()));
   }
 
+  /** Test. */
   @Test
   public void testBasicQueryLess() {
     final QueryCriteria qc =
@@ -245,6 +263,7 @@ public class QueryCriteriaTest {
             generator.getParameterKeys().iterator().next()));
   }
 
+  /** Test. */
   @Test
   public void testBasicQueryGreater() {
     final QueryCriteria qc =
@@ -265,6 +284,7 @@ public class QueryCriteriaTest {
             generator.getParameterKeys().iterator().next()));
   }
 
+  /** Test. */
   @Test
   public void testBasicQueryNotEqual() {
     final QueryCriteria qc1 =
@@ -301,6 +321,7 @@ public class QueryCriteriaTest {
             generator2.getParameterKeys().iterator().next()));
   }
 
+  /** Test. */
   @Test
   public void testBasicQueryNotNull() {
     final QueryCriteria qc1 =
@@ -325,6 +346,7 @@ public class QueryCriteriaTest {
         BAD_QUERY_PARAMTERS, 0, generator2.getParameterKeys().size());
   }
 
+  /** Test. */
   @Test
   public void testBasicQueryNull() {
     final QueryCriteria qc1 =
@@ -345,6 +367,7 @@ public class QueryCriteriaTest {
         BAD_QUERY_PARAMTERS, 0, generator2.getParameterKeys().size());
   }
 
+  /** Test. */
   @Test
   public void testCombinedQueryEqual() {
     // Or
@@ -397,6 +420,7 @@ public class QueryCriteriaTest {
         generator2.getParameterValue(i2.next()));
   }
 
+  /** Test. */
   @Test
   public void testBasicQueryOrder() {
     final QueryCriteria qc1 =
@@ -425,6 +449,7 @@ public class QueryCriteriaTest {
         BAD_QUERY_PARAMTERS, 0, generator2.getParameterKeys().size());
   }
 
+  /** Test. */
   @Test
   public void testAuditorQuery() {
     final Date timestamp = new Date();
@@ -475,6 +500,7 @@ public class QueryCriteriaTest {
         query3);
   }
 
+  /** Test. */
   @Test
   public void testAttributeValidation() {
     try {

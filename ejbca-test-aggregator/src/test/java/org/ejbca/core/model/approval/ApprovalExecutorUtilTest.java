@@ -35,13 +35,21 @@ import org.junit.Test;
  */
 public class ApprovalExecutorUtilTest {
 
-  private static final AuthenticationToken admin =
+    /** Partam.
+     */
+  private static final AuthenticationToken ADMIN =
       new AlwaysAllowLocalAuthenticationToken(
           new UsernamePrincipal("ApprovalExecutorUtilTest"));
 
+  /**
+   * @throws Exception fail
+   */
   @Before
-  public void setUp() throws Exception {}
+  public void setUp() throws Exception { }
 
+  /**
+   * @throws PropertyValidationException fail
+   */
   @Test
   public void testNoOfApprovals() throws PropertyValidationException {
     int numOfApprovalsRequired = 1;
@@ -55,7 +63,7 @@ public class ApprovalExecutorUtilTest {
             "foo",
             EndEntityConstants.STATUS_GENERATED,
             EndEntityConstants.STATUS_NEW,
-            admin,
+            ADMIN,
             null,
             1,
             1,
@@ -70,7 +78,7 @@ public class ApprovalExecutorUtilTest {
             "foo",
             EndEntityConstants.STATUS_GENERATED,
             EndEntityConstants.STATUS_NEW,
-            admin,
+            ADMIN,
             null,
             1,
             1,
@@ -79,6 +87,9 @@ public class ApprovalExecutorUtilTest {
     assertFalse(approvalRequired);
   }
 
+  /**
+   * @throws PropertyValidationException fail
+   */
   @Test
   public void testGloballyExcludedClasses() throws PropertyValidationException {
     int numOfApprovalsRequired = 1;
@@ -92,7 +103,7 @@ public class ApprovalExecutorUtilTest {
             "foo",
             EndEntityConstants.STATUS_GENERATED,
             EndEntityConstants.STATUS_NEW,
-            admin,
+            ADMIN,
             null,
             1,
             1,
@@ -116,9 +127,12 @@ public class ApprovalExecutorUtilTest {
     assertTrue(approvalRequired);
   }
 
+  /**
+   * @throws PropertyValidationException fail
+   */
   @Test
   public void testOverridableClassNames() throws PropertyValidationException {
-    ApprovalOveradableClassName[] NONAPPROVABLECLASSNAMES_SETUSERSTATUS = {
+    ApprovalOveradableClassName[] nonApprovableClassNamesSetUserStatus = {
       new ApprovalOveradableClassName(
           "org.ejbca.core.ejb.ra.EndEntityManagementSessionBean", "revokeUser"),
       new ApprovalOveradableClassName(
@@ -147,16 +161,16 @@ public class ApprovalExecutorUtilTest {
             "foo",
             EndEntityConstants.STATUS_GENERATED,
             EndEntityConstants.STATUS_NEW,
-            admin,
+            ADMIN,
             null,
             1,
             1,
             nrOfApprovalsApprovalProfile);
     boolean approvalRequired =
         ApprovalExecutorUtil.requireApproval(
-            ar, NONAPPROVABLECLASSNAMES_SETUSERSTATUS);
+            ar, nonApprovableClassNamesSetUserStatus);
     assertTrue(approvalRequired);
-    ApprovalOveradableClassName[] NONAPPROVABLECLASSNAMES_SETUSERSTATUS1 = {
+    ApprovalOveradableClassName[] nonApprovableClassNamesSetUserStatus1 = {
       new ApprovalOveradableClassName(
           "org.ejbca.core.ejb.ra.EndEntityManagementSessionBean", "revokeUser"),
       new ApprovalOveradableClassName(
@@ -178,16 +192,16 @@ public class ApprovalExecutorUtilTest {
             "foo",
             EndEntityConstants.STATUS_GENERATED,
             EndEntityConstants.STATUS_NEW,
-            admin,
+            ADMIN,
             null,
             1,
             1,
             nrOfApprovalsApprovalProfile);
     approvalRequired =
         ApprovalExecutorUtil.requireApproval(
-            ar, NONAPPROVABLECLASSNAMES_SETUSERSTATUS1);
+            ar, nonApprovableClassNamesSetUserStatus1);
     assertTrue(approvalRequired);
-    ApprovalOveradableClassName[] NONAPPROVABLECLASSNAMES_SETUSERSTATUS2 = {
+    ApprovalOveradableClassName[] nonApprovableClassNamesSetUserStatus2 = {
       new ApprovalOveradableClassName(
           "org.ejbca.core.ejb.ra.EndEntityManagementSessionBean", "revokeUser"),
       new ApprovalOveradableClassName(
@@ -209,16 +223,16 @@ public class ApprovalExecutorUtilTest {
             "foo",
             EndEntityConstants.STATUS_GENERATED,
             EndEntityConstants.STATUS_NEW,
-            admin,
+            ADMIN,
             null,
             1,
             1,
             nrOfApprovalsApprovalProfile);
     approvalRequired =
         ApprovalExecutorUtil.requireApproval(
-            ar, NONAPPROVABLECLASSNAMES_SETUSERSTATUS2);
+            ar, nonApprovableClassNamesSetUserStatus2);
     assertFalse(approvalRequired);
-    ApprovalOveradableClassName[] NONAPPROVABLECLASSNAMES_SETUSERSTATUS3 = {
+    ApprovalOveradableClassName[] nonApprovableClassNamesSetUserStatus3 = {
       new ApprovalOveradableClassName(
           "org.ejbca.core.ejb.ra.EndEntityManagementSessionBean", "revokeUser"),
       new ApprovalOveradableClassName(
@@ -241,17 +255,21 @@ public class ApprovalExecutorUtilTest {
             "foo",
             EndEntityConstants.STATUS_GENERATED,
             EndEntityConstants.STATUS_NEW,
-            admin,
+            ADMIN,
             null,
             1,
             1,
             nrOfApprovalsApprovalProfile);
     approvalRequired =
         ApprovalExecutorUtil.requireApproval(
-            ar, NONAPPROVABLECLASSNAMES_SETUSERSTATUS3);
+            ar, nonApprovableClassNamesSetUserStatus3);
     assertFalse(approvalRequired);
   }
 
+
+  /**
+   * @throws PropertyValidationException fail
+   */
   @Test
   public void testAllowedTransitions() throws PropertyValidationException {
     int numOfApprovalsRequired = 1;
@@ -265,7 +283,7 @@ public class ApprovalExecutorUtilTest {
             "foo",
             EndEntityConstants.STATUS_NEW,
             EndEntityConstants.STATUS_INPROCESS,
-            admin,
+            ADMIN,
             null,
             1,
             1,
@@ -277,7 +295,7 @@ public class ApprovalExecutorUtilTest {
             "foo",
             EndEntityConstants.STATUS_GENERATED,
             EndEntityConstants.STATUS_NEW,
-            admin,
+            ADMIN,
             null,
             1,
             1,
@@ -289,7 +307,7 @@ public class ApprovalExecutorUtilTest {
             "foo",
             EndEntityConstants.STATUS_INPROCESS,
             EndEntityConstants.STATUS_GENERATED,
-            admin,
+            ADMIN,
             null,
             1,
             1,
@@ -301,7 +319,7 @@ public class ApprovalExecutorUtilTest {
             "foo",
             EndEntityConstants.STATUS_INPROCESS,
             EndEntityConstants.STATUS_FAILED,
-            admin,
+            ADMIN,
             null,
             1,
             1,
@@ -313,7 +331,7 @@ public class ApprovalExecutorUtilTest {
             "foo",
             EndEntityConstants.STATUS_REVOKED,
             EndEntityConstants.STATUS_NEW,
-            admin,
+            ADMIN,
             null,
             1,
             1,
@@ -322,6 +340,9 @@ public class ApprovalExecutorUtilTest {
     assertTrue(approvalRequired);
   }
 
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testAccumulativeApprovalProfile() throws Exception {
     final String approvalProfileName = "testAccumulativeApprovalProfile";

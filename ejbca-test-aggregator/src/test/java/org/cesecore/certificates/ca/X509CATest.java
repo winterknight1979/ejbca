@@ -118,22 +118,28 @@ import org.cesecore.util.StringTools;
 import org.junit.Test;
 
 /**
- * JUnit test for X.509 CA
+ * JUnit test for X.509 CA.
  *
  * @version $Id: X509CATest.java 31725 2019-03-07 10:05:50Z tarmo_r_helmes $
  */
 public class X509CATest {
 
+      /** Param. */
   public static final String CADN = "CN=TEST";
 
   // This will be an empty list of custom certificate extensions
+  /** Param. */
   private final AvailableCustomCertificateExtensionsConfiguration cceConfig =
       new AvailableCustomCertificateExtensionsConfiguration();
 
+  /** Constructor. */
   public X509CATest() {
     CryptoProviderTools.installBCProvider();
   }
 
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testX509CABasicOperationsRSA() throws Exception {
     doTestX509CABasicOperations(AlgorithmConstants.SIGALG_SHA256_WITH_RSA);
@@ -146,6 +152,9 @@ public class X509CATest {
     doTestX509CABasicOperations("SHA256WithRSAandMGF1");
   }
 
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testX509CABasicOperationsGOST() throws Exception {
     assumeTrue(AlgorithmTools.isGost3410Enabled());
@@ -153,6 +162,9 @@ public class X509CATest {
         AlgorithmConstants.SIGALG_GOST3411_WITH_ECGOST3410);
   }
 
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testX509CABasicOperationsDSTU() throws Exception {
     assumeTrue(AlgorithmTools.isDstu4145Enabled());
@@ -160,6 +172,9 @@ public class X509CATest {
         AlgorithmConstants.SIGALG_GOST3411_WITH_DSTU4145);
   }
 
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testX509CABasicOperationsBrainpoolECC() throws Exception {
     doTestX509CABasicOperations(AlgorithmConstants.SIGALG_SHA224_WITH_ECDSA);
@@ -255,7 +270,8 @@ public class X509CATest {
             "username",
             "CN=User",
             666,
-            "rfc822Name=user@user.com,dnsName=foo.bar.com,directoryName=CN=Tomas\\,O=PrimeKey\\,C=SE",
+            "rfc822Name=user@user.com,dnsName=foo.bar.com,"
+            + "directoryName=CN=Tomas\\,O=PrimeKey\\,C=SE",
             "user@user.com",
             new EndEntityType(EndEntityTypes.ENDUSER),
             0,
@@ -407,7 +423,7 @@ public class X509CATest {
   }
 
   /**
-   * Tests the extension CRL Distribution Point on CRLs
+   * Tests the extension CRL Distribution Point on CRLs.
    *
    * @throws Exception fail
    */
@@ -516,17 +532,26 @@ public class X509CATest {
         xcrl.getExtensionValue(Extension.freshestCRL.getId()));
   }
 
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testStoreAndLoadRSA() throws Exception {
     doTestStoreAndLoad(AlgorithmConstants.SIGALG_SHA256_WITH_RSA);
   }
 
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testStoreAndLoadGOST() throws Exception {
     assumeTrue(AlgorithmTools.isGost3410Enabled());
     doTestStoreAndLoad(AlgorithmConstants.SIGALG_GOST3411_WITH_ECGOST3410);
   }
 
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testStoreAndLoadDSTU() throws Exception {
     assumeTrue(AlgorithmTools.isDstu4145Enabled());
@@ -668,6 +693,9 @@ public class X509CATest {
         caToken2.getKeySequenceFormat());
   }
 
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testExtendedCAServices() throws Exception {
     final CryptoToken cryptoToken = getNewCryptoToken();
@@ -690,11 +718,11 @@ public class X509CATest {
         ca.getExtendedCAServiceInfo(4711).getClass().getName());
 
     // Try to run it
-    assertEquals(0, MyExtendedCAService.didrun);
+    assertEquals(0, MyExtendedCAService.getDidrun());
     ca.extendedService(cryptoToken, new MyExtendedCAServiceRequest());
-    assertEquals(1, MyExtendedCAService.didrun);
+    assertEquals(1, MyExtendedCAService.getDidrun());
     ca.extendedService(cryptoToken, new MyExtendedCAServiceRequest());
-    assertEquals(2, MyExtendedCAService.didrun);
+    assertEquals(2, MyExtendedCAService.getDidrun());
 
     // Does is store and load ok?
     Object o = ca.saveData();
@@ -710,9 +738,12 @@ public class X509CATest {
             new Date(),
             new Date());
     ca1.extendedService(cryptoToken, new MyExtendedCAServiceRequest());
-    assertEquals(3, MyExtendedCAService.didrun);
+    assertEquals(3, MyExtendedCAService.getDidrun());
   }
 
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testCAInfo() throws Exception {
     final CryptoToken cryptoToken = getNewCryptoToken();
@@ -741,13 +772,19 @@ public class X509CATest {
     return new GeneralNames(arr);
   }
 
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testCTRedactedLabels() throws Exception {
     final CryptoToken cryptoToken = getNewCryptoToken();
     final X509CA ca = createTestCA(cryptoToken, CADN);
     GeneralNames gns =
         CertTools.getGeneralNamesFromAltName(
-            "rfc822Name=foo@bar.com,dnsName=foo.bar.com,dnsName=(hidden).secret.se,dnsName=(hidden1).(hidden2).ultrasecret.no,directoryName=cn=Tomas\\,O=PrimeKey\\,C=SE,iPAddress=192.0.2.123");
+            "rfc822Name=foo@bar.com,dnsName=foo.bar.com,dnsName=(hidden)"
+            + ".secret.se,dnsName=(hidden1).(hidden2).ultrasecret.no,"
+            + "directoryName=cn=Tomas\\,O=PrimeKey\\,"
+            + "C=SE,iPAddress=192.0.2.123");
     gns =
         swapGeneralNames(
             gns, 0,
@@ -811,13 +848,19 @@ public class X509CATest {
         altName);
   }
 
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testCTRedactedLabelsInPreCert() throws Exception {
     final CryptoToken cryptoToken = getNewCryptoToken();
     final X509CA ca = createTestCA(cryptoToken, CADN);
     GeneralNames gns =
         CertTools.getGeneralNamesFromAltName(
-            "rfc822Name=foo@bar.com,iPAddress=192.0.2.123,dnsName=foo.bar.com,dnsName=(hidden).secret.se,dnsName=(hidden1).(hidden2).ultrasecret.no,directoryName=cn=Tomas\\,O=PrimeKey\\,C=SE");
+            "rfc822Name=foo@bar.com,iPAddress=192.0.2.123,dnsName=foo.bar.com,"
+            + "dnsName=(hidden).secret.se,dnsName=(hidden1)."
+            + "(hidden2).ultrasecret.no,directoryName=cn=Tomas\\,"
+            + "O=PrimeKey\\,C=SE");
     gns =
         swapGeneralNames(
             gns, 0,
@@ -846,6 +889,9 @@ public class X509CATest {
         altName);
   }
 
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testInvalidSignatureAlg() throws Exception {
     final CryptoToken cryptoToken = getNewCryptoToken();
@@ -863,23 +909,36 @@ public class X509CATest {
     ca.setCAToken(token);
   }
 
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testWrongCAKeyRSA() throws Exception {
     doTestWrongCAKey(AlgorithmConstants.SIGALG_SHA1_WITH_RSA);
   }
 
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testWrongCAKeyGOST() throws Exception {
     assumeTrue(AlgorithmTools.isGost3410Enabled());
     doTestWrongCAKey(AlgorithmConstants.SIGALG_GOST3411_WITH_ECGOST3410);
   }
 
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testWrongCAKeyDSTU() throws Exception {
     assumeTrue(AlgorithmTools.isDstu4145Enabled());
     doTestWrongCAKey(AlgorithmConstants.SIGALG_GOST3411_WITH_DSTU4145);
   }
 
+  /**
+   * @param algName alg
+   * @throws Exception fail
+   */
   public void doTestWrongCAKey(final String algName) throws Exception {
     final CryptoToken cryptoToken = getNewCryptoToken();
     X509CA x509ca = createTestCA(cryptoToken, CADN, algName, null, null);
@@ -983,7 +1042,7 @@ public class X509CATest {
 
   /**
    * Test implementation of Authority Information Access CRL Extension according
-   * to RFC 4325
+   * to RFC 4325.
    *
    * @throws Exception fail
    */
@@ -1125,7 +1184,7 @@ public class X509CATest {
 
   /**
    * Test implementation of Authority Information Access CRL Extension according
-   * to RFC 4325
+   * to RFC 4325.
    *
    * @throws Exception Fail
    */
@@ -1268,7 +1327,7 @@ public class X509CATest {
     }
   }
 
-  private final void assertCertificateAuthorityInformationAccess(
+  private void assertCertificateAuthorityInformationAccess(
       final Certificate certificate,
       final List<String> caIssuerUris,
       final List<String> ocspUrls) {
@@ -1291,7 +1350,7 @@ public class X509CATest {
 
   /**
    * Test implementation of Authority Information Access CRL Extension according
-   * to RFC 4325
+   * to RFC 4325.
    *
    * @throws Exception Fail
    */
@@ -1323,7 +1382,7 @@ public class X509CATest {
 
   /**
    * Test implementation of Authority Information Access CRL Extension according
-   * to RFC 4325
+   * to RFC 4325.
    *
    * @throws Exception Fail
    */
@@ -1472,7 +1531,8 @@ public class X509CATest {
             "username",
             "CN=User",
             666,
-            "rfc822Name=user@user.com,dnsName=foo.bar.com,directoryName=CN=Tomas\\,O=PrimeKey\\,C=SE",
+            "rfc822Name=user@user.com,dnsName=foo.bar.com,"
+            + "directoryName=CN=Tomas\\,O=PrimeKey\\,C=SE",
             "user@user.com",
             new EndEntityType(EndEntityTypes.ENDUSER),
             0,
@@ -1494,7 +1554,8 @@ public class X509CATest {
         1,
         "2.16.840.1.113730.1.13",
         "NetscapeComment",
-        "org.cesecore.certificates.certificate.certextensions.BasicCertificateExtension",
+        "org.cesecore.certificates.certificate.certextensions."
+        + "BasicCertificateExtension",
         false,
         true,
         props1);
@@ -1510,7 +1571,8 @@ public class X509CATest {
         2,
         "1.2.3.4",
         "RawProper",
-        "org.cesecore.certificates.certificate.certextensions.BasicCertificateExtension",
+        "org.cesecore.certificates.certificate.certextensions."
+        + "BasicCertificateExtension",
         false,
         true,
         props2);
@@ -1525,7 +1587,8 @@ public class X509CATest {
         3,
         "1.2.3.5",
         "RawNoDer",
-        "org.cesecore.certificates.certificate.certextensions.BasicCertificateExtension",
+        "org.cesecore.certificates.certificate.certextensions."
+        + "BasicCertificateExtension",
         false,
         true,
         props3);
@@ -1596,7 +1659,7 @@ public class X509CATest {
   }
 
   /**
-   * Tests encoding of Certificate Policy extensions
+   * Tests encoding of Certificate Policy extensions.
    *
    * @throws Exception Fail
    */
@@ -1750,7 +1813,8 @@ public class X509CATest {
     final CryptoToken cryptoToken = getNewCryptoToken();
     final String caDN =
         "CN=foo"
-            + " CA,O=Bar,JurisdictionCountry=DE,JurisdictionState=Stockholm,JurisdictionLocality=Solna,C=SE";
+            + " CA,O=Bar,JurisdictionCountry=DE,JurisdictionState="
+            + "Stockholm,JurisdictionLocality=Solna,C=SE";
     final X509CA testCa = createTestCA(cryptoToken, caDN);
     assertFalse(
         "\"Use Printable String\" should be turned off by default",
@@ -1769,7 +1833,8 @@ public class X509CATest {
     // Test generation by calling generateCertificate directly
     final String subjectDN =
         "CN=foo"
-            + " subject,O=Bar,JurisdictionCountry=DE,JurisdictionState=Stockholm,JurisdictionLocality=Solna,C=SE";
+            + " subject,O=Bar,JurisdictionCountry=DE,JurisdictionState="
+            + "Stockholm,JurisdictionLocality=Solna,C=SE";
     final EndEntityInformation subject =
         new EndEntityInformation(
             "testPrintableString",
@@ -1871,7 +1936,8 @@ public class X509CATest {
     final CryptoToken cryptoToken = getNewCryptoToken();
     final String caDN =
         "CN=foo"
-            + " CA,O=Bar,JurisdictionCountry=DE,JurisdictionState=Stockholm,JurisdictionLocality=Solna,C=SE";
+            + " CA,O=Bar,JurisdictionCountry=DE,JurisdictionState=Stockholm,"
+            + "JurisdictionLocality=Solna,C=SE";
     final X509CA testCa = createTestCA(cryptoToken, caDN);
     Certificate cert = testCa.getCACertificate();
     X500Principal princ = ((X509Certificate) cert).getSubjectX500Principal();
@@ -1879,13 +1945,15 @@ public class X509CATest {
     // The EV DN components do not have names in standard java/BC
     assertEquals(
         "Wrong DN name of Test CA",
-        "1.3.6.1.4.1.311.60.2.1.3=DE,1.3.6.1.4.1.311.60.2.1.2=Stockholm,1.3.6.1.4.1.311.60.2.1.1=Solna,CN=foo"
+        "1.3.6.1.4.1.311.60.2.1.3=DE,1.3.6.1.4.1.311.60.2.1.2=Stockholm,"
+        + "1.3.6.1.4.1.311.60.2.1.1=Solna,CN=foo"
             + " CA,O=Bar,C=SE",
         name.toString());
 
     // Test generation by calling generateCertificate directly
     final String subjectDN =
-        "JurisdictionCountry=NL,JurisdictionState=State,JurisdictionLocality=Åmål,BusinessCategory=Private"
+        "JurisdictionCountry=NL,JurisdictionState=State,JurisdictionLocality"
+        + "=Åmål,BusinessCategory=Private"
             + " Organization,CN=evssltest6.test.lan,SN=1234567890,OU=XY,O=MyOrg"
             + " B.V.,L=Åmål,ST=Norrland,C=SE";
     final EndEntityInformation subject =
@@ -1921,9 +1989,10 @@ public class X509CATest {
     // standard order where EV fields are before CN and in other respects ldap
     // order
     String desiredDN =
-        "1.3.6.1.4.1.311.60.2.1.3=NL,1.3.6.1.4.1.311.60.2.1.2=State,1.3.6.1.4.1.311.60.2.1.1=Åmål,BusinessCategory=Private"
-            + " Organization,CN=evssltest6.test.lan,SERIALNUMBER=1234567890,OU=XY,O=MyOrg"
-            + " B.V.,L=Åmål,ST=Norrland,C=SE";
+        "1.3.6.1.4.1.311.60.2.1.3=NL,1.3.6.1.4.1.311.60.2.1.2=State,1.3.6.1.4"
+        + ".1.311.60.2.1.1=Åmål,BusinessCategory=Private"
++ " Organization,CN=evssltest6.test.lan,SERIALNUMBER=1234567890,OU=XY,O=MyOrg"
++ " B.V.,L=Åmål,ST=Norrland,C=SE";
     assertEquals(
         "Wrong DN order of issued certificate", desiredDN, name.toString());
     // Now set a DN order where the EV fields (and serialnumber and
@@ -1979,8 +2048,9 @@ public class X509CATest {
     name = X500Name.getInstance(princ.getEncoded());
     // The EV DN components do not have names in standard java/BC
     desiredDN =
-        "1.3.6.1.4.1.311.60.2.1.3=NL,1.3.6.1.4.1.311.60.2.1.2=State,1.3.6.1.4.1.311.60.2.1.1=Åmål,BusinessCategory=Private"
-            + " Organization,SERIALNUMBER=1234567890,C=SE,ST=Norrland,L=Åmål,O=MyOrg"
+    "1.3.6.1.4.1.311.60.2.1.3=NL,1.3.6.1.4.1.311.60.2.1.2=State,1.3.6.1.4."
+    + "1.311.60.2.1.1=Åmål,BusinessCategory=Private"
+    + " Organization,SERIALNUMBER=1234567890,C=SE,ST=Norrland,L=Åmål,O=MyOrg"
             + " B.V.,OU=XY,CN=evssltest6.test.lan";
     assertEquals(
         "Wrong DN order of issued certificate", desiredDN, name.toString());

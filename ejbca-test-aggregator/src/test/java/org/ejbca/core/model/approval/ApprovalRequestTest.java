@@ -40,49 +40,55 @@ import org.junit.Test;
  */
 public class ApprovalRequestTest {
 
+    /** Param. */
   private static byte[] testcertenc =
       Base64.decode(
           ("MIIDATCCAmqgAwIBAgIIczEoghAwc3EwDQYJKoZIhvcNAQEFBQAwLzEPMA0GA1UE"
-               + "AxMGVGVzdENBMQ8wDQYDVQQKEwZBbmFUb20xCzAJBgNVBAYTAlNFMB4XDTAzMDky"
-               + "NDA2NDgwNFoXDTA1MDkyMzA2NTgwNFowMzEQMA4GA1UEAxMHcDEydGVzdDESMBAG"
-               + "A1UEChMJUHJpbWVUZXN0MQswCQYDVQQGEwJTRTCBnTANBgkqhkiG9w0BAQEFAAOB"
-               + "iwAwgYcCgYEAnPAtfpU63/0h6InBmesN8FYS47hMvq/sliSBOMU0VqzlNNXuhD8a"
-               + "3FypGfnPXvjJP5YX9ORu1xAfTNao2sSHLtrkNJQBv6jCRIMYbjjo84UFab2qhhaJ"
-               + "wqJgkQNKu2LHy5gFUztxD8JIuFPoayp1n9JL/gqFDv6k81UnDGmHeFcCARGjggEi"
-               + "MIIBHjAPBgNVHRMBAf8EBTADAQEAMA8GA1UdDwEB/wQFAwMHoAAwOwYDVR0lBDQw"
-               + "MgYIKwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDBAYIKwYBBQUHAwUGCCsGAQUF"
-               + "BwMHMB0GA1UdDgQWBBTnT1aQ9I0Ud4OEfNJkSOgJSrsIoDAfBgNVHSMEGDAWgBRj"
-               + "e/R2qFQkjqV0pXdEpvReD1eSUTAiBgNVHREEGzAZoBcGCisGAQQBgjcUAgOgCQwH"
-               + "Zm9vQGZvbzASBgNVHSAECzAJMAcGBSkBAQEBMEUGA1UdHwQ+MDwwOqA4oDaGNGh0"
-               + "dHA6Ly8xMjcuMC4wLjE6ODA4MC9lamJjYS93ZWJkaXN0L2NlcnRkaXN0P2NtZD1j"
-               + "cmwwDQYJKoZIhvcNAQEFBQADgYEAU4CCcLoSUDGXJAOO9hGhvxQiwjGD2rVKCLR4"
-               + "emox1mlQ5rgO9sSel6jHkwceaq4A55+qXAjQVsuy76UJnc8ncYX8f98uSYKcjxo/"
-               + "ifn1eHMbL8dGLd5bc2GNBZkmhFIEoDvbfn9jo7phlS8iyvF2YhC4eso8Xb+T7+BZ"
-               + "QUOBOvc=")
-              .getBytes());
+       + "AxMGVGVzdENBMQ8wDQYDVQQKEwZBbmFUb20xCzAJBgNVBAYTAlNFMB4XDTAzMDky"
+       + "NDA2NDgwNFoXDTA1MDkyMzA2NTgwNFowMzEQMA4GA1UEAxMHcDEydGVzdDESMBAG"
+       + "A1UEChMJUHJpbWVUZXN0MQswCQYDVQQGEwJTRTCBnTANBgkqhkiG9w0BAQEFAAOB"
+       + "iwAwgYcCgYEAnPAtfpU63/0h6InBmesN8FYS47hMvq/sliSBOMU0VqzlNNXuhD8a"
+       + "3FypGfnPXvjJP5YX9ORu1xAfTNao2sSHLtrkNJQBv6jCRIMYbjjo84UFab2qhhaJ"
+       + "wqJgkQNKu2LHy5gFUztxD8JIuFPoayp1n9JL/gqFDv6k81UnDGmHeFcCARGjggEi"
+       + "MIIBHjAPBgNVHRMBAf8EBTADAQEAMA8GA1UdDwEB/wQFAwMHoAAwOwYDVR0lBDQw"
+       + "MgYIKwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDBAYIKwYBBQUHAwUGCCsGAQUF"
+       + "BwMHMB0GA1UdDgQWBBTnT1aQ9I0Ud4OEfNJkSOgJSrsIoDAfBgNVHSMEGDAWgBRj"
+       + "e/R2qFQkjqV0pXdEpvReD1eSUTAiBgNVHREEGzAZoBcGCisGAQQBgjcUAgOgCQwH"
+       + "Zm9vQGZvbzASBgNVHSAECzAJMAcGBSkBAQEBMEUGA1UdHwQ+MDwwOqA4oDaGNGh0"
+       + "dHA6Ly8xMjcuMC4wLjE6ODA4MC9lamJjYS93ZWJkaXN0L2NlcnRkaXN0P2NtZD1j"
+       + "cmwwDQYJKoZIhvcNAQEFBQADgYEAU4CCcLoSUDGXJAOO9hGhvxQiwjGD2rVKCLR4"
+       + "emox1mlQ5rgO9sSel6jHkwceaq4A55+qXAjQVsuy76UJnc8ncYX8f98uSYKcjxo/"
+       + "ifn1eHMbL8dGLd5bc2GNBZkmhFIEoDvbfn9jo7phlS8iyvF2YhC4eso8Xb+T7+BZ"
+       + "QUOBOvc=")
+      .getBytes());
 
+    /** Param. */
   private static byte[] testcertenc2 =
       Base64.decode(
-          ("MIIDTTCCAjWgAwIBAgIIboZwZjMm33EwDQYJKoZIhvcNAQELBQAwNzEVMBMGA1UE"
-               + "AwwMTWFuYWdlbWVudENBMREwDwYDVQQKDAhEZXYgQ0EgMTELMAkGA1UEBhMCU0Uw"
-               + "HhcNMTUwNDE5MTk0OTUzWhcNMTcwNDE4MTk0OTUzWjAVMRMwEQYDVQQDDApTdXBl"
-               + "ckFkbWluMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0TtZKgKBOwKW"
-               + "SOOTxx0+zqhfzWz0LaUTVTaC06iaQ1w3x+wGSGxA/oF7n6zRdCsG85k/1NbQpO25"
-               + "tQ3vtpqW2U1a0YB6yvTdEpApHofxjd9GV/JtKpKJqRPZEqv4pnG21GK6WeWxvAEc"
-               + "RFsFi6ZO/yxVrB9e3LSUUhDA0kfQEaRf+x6toFT4w0mG8pDxQSWINBMZ/LVwvEA+"
-               + "OCahG3a4KUREbgqIylFf6auv3HQ/k8kIvmbtzUu9v3ixfArvvZH6DnRleLINUB3t"
-               + "NYXrEsLcfAkjzV9W+Nzgdjm34Xhvg8+aIvmbO3OaR7z3O1VXoXDaHHnTv3R7888U"
-               + "edVD1jc0jwIDAQABo38wfTAdBgNVHQ4EFgQU7ZA2TWTXZfNUD8rnYmx6il2YDfUw"
-               + "DAYDVR0TAQH/BAIwADAfBgNVHSMEGDAWgBTM2eQQAXey4PApuOauspuJcEKByTAO"
-               + "BgNVHQ8BAf8EBAMCBeAwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMEMA0G"
-               + "CSqGSIb3DQEBCwUAA4IBAQBiA3r6bbuCKkI4cZtg/DlnX2pzj0jr8rhJYEvZLhGk"
-               + "t0JSYwwuPQi9YVKS/X6+V5b3VzwviR6MtLHrBOkNd64sS3M5nGxSkwxn7S5IewkT"
-               + "7DOml2uhCOuxOVK59mtHbb/HCcp99IUFq8otgie5gt0LWpmYUGeEbeRH0guNtBaJ"
-               + "N2zA/jXNlPxhGNZg9LoVtd2DSTWQIwD6xojiaCC3ZeQaLMyoOZCvFWMnm8hMSWzX"
-               + "eXB7cRIf/48RsyOYyoHNDo2Z5JsZMS0nqdkeLtFLyVGWHWmpSebA3qP3E8cZtDJS"
-               + "d4Msz2fuxKqNDnxIRPcbjHbn0cOa/tmC1aN/MJ1QymRD")
-              .getBytes());
+  ("MIIDTTCCAjWgAwIBAgIIboZwZjMm33EwDQYJKoZIhvcNAQELBQAwNzEVMBMGA1UE"
+       + "AwwMTWFuYWdlbWVudENBMREwDwYDVQQKDAhEZXYgQ0EgMTELMAkGA1UEBhMCU0Uw"
+       + "HhcNMTUwNDE5MTk0OTUzWhcNMTcwNDE4MTk0OTUzWjAVMRMwEQYDVQQDDApTdXBl"
+       + "ckFkbWluMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0TtZKgKBOwKW"
+       + "SOOTxx0+zqhfzWz0LaUTVTaC06iaQ1w3x+wGSGxA/oF7n6zRdCsG85k/1NbQpO25"
+       + "tQ3vtpqW2U1a0YB6yvTdEpApHofxjd9GV/JtKpKJqRPZEqv4pnG21GK6WeWxvAEc"
+       + "RFsFi6ZO/yxVrB9e3LSUUhDA0kfQEaRf+x6toFT4w0mG8pDxQSWINBMZ/LVwvEA+"
+       + "OCahG3a4KUREbgqIylFf6auv3HQ/k8kIvmbtzUu9v3ixfArvvZH6DnRleLINUB3t"
+       + "NYXrEsLcfAkjzV9W+Nzgdjm34Xhvg8+aIvmbO3OaR7z3O1VXoXDaHHnTv3R7888U"
+       + "edVD1jc0jwIDAQABo38wfTAdBgNVHQ4EFgQU7ZA2TWTXZfNUD8rnYmx6il2YDfUw"
+       + "DAYDVR0TAQH/BAIwADAfBgNVHSMEGDAWgBTM2eQQAXey4PApuOauspuJcEKByTAO"
+       + "BgNVHQ8BAf8EBAMCBeAwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMEMA0G"
+       + "CSqGSIb3DQEBCwUAA4IBAQBiA3r6bbuCKkI4cZtg/DlnX2pzj0jr8rhJYEvZLhGk"
+       + "t0JSYwwuPQi9YVKS/X6+V5b3VzwviR6MtLHrBOkNd64sS3M5nGxSkwxn7S5IewkT"
+       + "7DOml2uhCOuxOVK59mtHbb/HCcp99IUFq8otgie5gt0LWpmYUGeEbeRH0guNtBaJ"
+       + "N2zA/jXNlPxhGNZg9LoVtd2DSTWQIwD6xojiaCC3ZeQaLMyoOZCvFWMnm8hMSWzX"
+       + "eXB7cRIf/48RsyOYyoHNDo2Z5JsZMS0nqdkeLtFLyVGWHWmpSebA3qP3E8cZtDJS"
+       + "d4Msz2fuxKqNDnxIRPcbjHbn0cOa/tmC1aN/MJ1QymRD")
+      .getBytes());
 
+
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testWriteExternal() throws Exception {
     X509Certificate testcert =
@@ -141,6 +147,10 @@ public class ApprovalRequestTest {
     return retval;
   }
 
+
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testGenerateApprovalId() throws Exception {
     X509Certificate testcert =
@@ -159,14 +169,14 @@ public class ApprovalRequestTest {
     int id2 = ar.generateApprovalId();
     assertEquals(id1, id2);
 
-    final String TEST_NONADMIN_USERNAME = "wsnonadmintest";
-    final String TEST_NONADMIN_CN = "CN=wsnonadmintest";
+    final String testNonadminUser = "wsnonadmintest";
+    final String testNonadminCn = "CN=wsnonadmintest";
     final String serialNumber = "12344711";
     approvalProfile.setNumberOfApprovalsRequired(1);
     ApprovalRequest approvalRequest =
         new ViewHardTokenDataApprovalRequest(
-            TEST_NONADMIN_USERNAME,
-            TEST_NONADMIN_CN,
+            testNonadminUser,
+            testNonadminCn,
             serialNumber,
             true,
             token,
@@ -178,8 +188,8 @@ public class ApprovalRequestTest {
     int approvalId = approvalRequest.generateApprovalId();
     ViewHardTokenDataApprovalRequest ar1 =
         new ViewHardTokenDataApprovalRequest(
-            TEST_NONADMIN_USERNAME,
-            CertTools.stringToBCDNString(TEST_NONADMIN_CN),
+            testNonadminUser,
+            CertTools.stringToBCDNString(testNonadminCn),
             serialNumber,
             true,
             token,
@@ -194,7 +204,7 @@ public class ApprovalRequestTest {
 
   /**
    * Tests editing (but not actually saving to the database, since this is
-   * handled in the ApprovalSessionBean class)
+   * handled in the ApprovalSessionBean class).
    *
    * @throws Exception fail
    */
@@ -248,6 +258,9 @@ public class ApprovalRequestTest {
     assertFalse(ar.isEditedByMe(token3));
   }
 
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testRequestExpirationPeriod() throws Exception {
     X509Certificate testcert =
@@ -268,6 +281,10 @@ public class ApprovalRequestTest {
     assertEquals(expPeriod, ar.getRequestValidity());
   }
 
+
+  /**
+   * @throws Exception fail
+   */
   @BeforeClass
   public static void beforeClass() throws Exception {
     CryptoProviderTools.installBCProviderIfNotAvailable();

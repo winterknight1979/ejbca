@@ -622,4 +622,9 @@
 		<suppress checks="MagicNumberCheck"
 		files="RaSearchCertsBean.java" lines="670" /> 
 		
+		
+		
+		<suppress checks="MethodLengthCheck"
+		files="X509CATest.java" lines="183 " /> 
+		
 </suppressions>

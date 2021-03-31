@@ -58,14 +58,28 @@ import org.junit.Test;
 @SuppressWarnings("deprecation")
 public class X509CertificateAuthenticationTokenTest {
 
+      /** Param. */
   private KeyPair keys;
+  /** Param. */
   private X509Certificate certificate;
 
+  /** Before.*/
   @BeforeClass
   public static void setUpCryptoProvider() {
     CryptoProviderTools.installBCProvider();
   }
 
+  /** Before.
+ * @throws NoSuchAlgorithmException fail
+ * @throws NoSuchProviderException fail
+ * @throws InvalidAlgorithmParameterException fail
+ * @throws InvalidKeyException fail
+ * @throws SignatureException  fail
+ * @throws IllegalStateException fail
+ * @throws OperatorCreationException fail
+ * @throws CertificateException fail
+ * @throws IOException fail
+   * */
   @Before
   public void setUp()
       throws NoSuchAlgorithmException, NoSuchProviderException,
@@ -75,7 +89,8 @@ public class X509CertificateAuthenticationTokenTest {
     keys = KeyTools.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
     certificate =
         CertTools.genSelfCert(
-            "C=Test,O=Test,CN=Test,DC=Test,L=Test,SN=Test,ST=Test,OU=Test,T=Test,UID=Test,E=Test,RFC822NAME=Test,UPN=Test",
+            "C=Test,O=Test,CN=Test,DC=Test,L=Test,SN=Test,ST=Test,OU=Test,"
+            + "T=Test,UID=Test,E=Test,RFC822NAME=Test,UPN=Test",
             365,
             null,
             keys.getPrivate(),
@@ -84,6 +99,7 @@ public class X509CertificateAuthenticationTokenTest {
             true);
   }
 
+  /** After. */
   @After
   public void tearDown() {
     keys = null;
@@ -175,7 +191,7 @@ public class X509CertificateAuthenticationTokenTest {
             + " This should not happen.");
   }
 
-  /** Test matching with an incorrect CAID */
+  /** Test matching with an incorrect CAID. */
   @Test
   public void testMatchCaIdFail() {
     X509CertificateAuthenticationToken authenticationToken =
@@ -192,6 +208,7 @@ public class X509CertificateAuthenticationTokenTest {
     EasyMock.verify(accessUser);
   }
 
+  /** Test. */
   @Test
   public void testMatchWithFullDN() {
     AccessUserAspect accessUser;

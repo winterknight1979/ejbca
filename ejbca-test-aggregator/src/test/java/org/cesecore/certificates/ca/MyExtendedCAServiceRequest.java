@@ -24,6 +24,6 @@ public class MyExtendedCAServiceRequest extends ExtendedCAServiceRequest {
 
   @Override
   public int getServiceType() {
-    return MyExtendedCAServiceInfo.type;
+    return MyExtendedCAServiceInfo.TYPE;
   }
 }

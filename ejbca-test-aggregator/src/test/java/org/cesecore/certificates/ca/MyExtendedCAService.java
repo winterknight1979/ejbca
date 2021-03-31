@@ -29,12 +29,18 @@ import org.cesecore.keys.token.CryptoToken;
  */
 public class MyExtendedCAService extends ExtendedCAService {
 
+    /**
+     * @param info info
+     */
   public MyExtendedCAService(final ExtendedCAServiceInfo info) {
     super(info);
     data.put(
         ExtendedCAServiceInfo.IMPLEMENTATIONCLASS, this.getClass().getName());
   }
 
+  /**
+   * @param data data
+   */
   public MyExtendedCAService(final HashMap<?, ?> data) {
     super(data);
     loadData(data);
@@ -42,7 +48,10 @@ public class MyExtendedCAService extends ExtendedCAService {
 
   private static final long serialVersionUID = 1L;
 
-  public static int didrun = 0;
+  /**
+   * Param.
+   */
+  private static int didrun = 0;
 
   @Override
   public ExtendedCAServiceResponse extendedService(
@@ -65,19 +74,26 @@ public class MyExtendedCAService extends ExtendedCAService {
   }
 
   @Override
-  public void upgrade() {}
+  public void upgrade() { }
 
   @Override
   public void init(
       final CryptoToken cryptoToken,
       final CA ca,
       final AvailableCustomCertificateExtensionsConfiguration cceConfig)
-      throws Exception {}
+      throws Exception { }
 
   @Override
   public void update(
       final CryptoToken cryptoToken,
       final ExtendedCAServiceInfo info,
       final CA ca,
-      final AvailableCustomCertificateExtensionsConfiguration cceConfig) {}
+      final AvailableCustomCertificateExtensionsConfiguration cceConfig) { }
+
+/**
+ * @return the didrun
+ */
+public static int getDidrun() {
+    return didrun;
+}
 }

@@ -20,6 +20,7 @@ package org.ejbca.core.model.approval;
 public class ApprovalJunitHelper {
 
   public static class JunitApprovalExecutorUtil1 extends ApprovalExecutorUtil {
+      /** Init. */
     public static void init() {
       ApprovalExecutorUtil.globallyAllowedString =
           ApprovalExecutorUtilTest.class.getName();
@@ -28,7 +29,7 @@ public class ApprovalJunitHelper {
   }
 
   public static class JunitApprovalExecutorUtil2 extends ApprovalExecutorUtil {
-
+      /** Init. */
     public static void init() {
       ApprovalExecutorUtil.globallyAllowedString =
           "foo.base.Foo,"
@@ -40,6 +41,7 @@ public class ApprovalJunitHelper {
 
   public static class JunitApprovalExecutorUtil3 extends ApprovalExecutorUtil {
 
+      /** Init. */
     public static void init() {
       ApprovalExecutorUtil.globallyAllowedString = "foo.base.Foo, foo.bar.Bar";
       ApprovalExecutorUtil.globallyAllowed = null;

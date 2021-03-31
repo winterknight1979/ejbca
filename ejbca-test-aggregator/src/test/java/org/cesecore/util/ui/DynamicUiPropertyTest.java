@@ -28,12 +28,17 @@ import org.junit.Test;
  */
 public class DynamicUiPropertyTest {
 
-  private static final String roleName = "anybody";
+    /** Param. */
+  private static final String ROLENAME = "anybody";
 
+  /**
+   *
+   * @throws PropertyValidationException fail
+   */
   @Test
   public void testEncodingAndDecodingOfComplexType()
       throws PropertyValidationException {
-    RoleData anybody = new RoleData(new Role(null, roleName));
+    RoleData anybody = new RoleData(new Role(null, ROLENAME));
     DynamicUiProperty<RoleData> roleProperty =
         new DynamicUiProperty<>(
             "test", anybody, new HashSet<>(Collections.singletonList(anybody)));
@@ -48,9 +53,10 @@ public class DynamicUiPropertyTest {
         rolePropertyCopy.getValues().contains(anybody));
   }
 
+  /** Test. */
   @Test
   public void testConstructors() {
-    final RoleData anybody = new RoleData(new Role(null, roleName));
+    final RoleData anybody = new RoleData(new Role(null, ROLENAME));
     DynamicUiProperty<RoleData> property =
         new DynamicUiProperty<>("someproperty", anybody);
     checkPropertyState(property, "constructor with default value");
@@ -59,9 +65,12 @@ public class DynamicUiPropertyTest {
     checkPropertyState(property, "copy constructor");
   }
 
+  /**
+   * @throws PropertyValidationException Fail.
+   */
   @Test
   public void testSetValue() throws PropertyValidationException {
-    final RoleData anybody = new RoleData(new Role(null, roleName));
+    final RoleData anybody = new RoleData(new Role(null, ROLENAME));
     DynamicUiProperty<RoleData> property = new DynamicUiProperty<>();
     property.setType(RoleData.class);
     property.setValue(anybody);

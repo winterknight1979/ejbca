@@ -31,14 +31,17 @@ import org.ejbca.core.model.approval.profile.ApprovalProfile;
 public class DummyApprovalRequest extends ApprovalRequest {
 
   private static final long serialVersionUID = -2L;
-  private static final Logger log =
+  /** Param. */
+  private static final Logger LOG =
       Logger.getLogger(DummyApprovalRequest.class);
+  /** Param. */
   private static final int LATEST_VERSION = 1;
 
+  /** Param. */
   private boolean executable = false;
 
   /**
-   * Main constructor of an approval request
+   * Main constructor of an approval request.
    *
    * @param requestAdmin the certificate of the requesting admin
    * @param requestSignature signature of the requestor (OPTIONAL, for future
@@ -48,7 +51,7 @@ public class DummyApprovalRequest extends ApprovalRequest {
    * @param endEntityProfileId the related profile id that the approver must be
    *     authorized to or ApprovalDataVO.ANY_ENDENTITYPROFILE if applicable to
    *     any end entity profile
-   * @param executable Exe
+   * @param anexecutable Exe
    * @param approvalProfile Profile
    */
   public DummyApprovalRequest(
@@ -56,7 +59,7 @@ public class DummyApprovalRequest extends ApprovalRequest {
       final String requestSignature,
       final int cAId,
       final int endEntityProfileId,
-      final boolean executable,
+      final boolean anexecutable,
       final ApprovalProfile approvalProfile) {
     super(
         requestAdmin,
@@ -65,18 +68,18 @@ public class DummyApprovalRequest extends ApprovalRequest {
         cAId,
         endEntityProfileId,
         approvalProfile);
-    this.executable = executable;
+    this.executable = anexecutable;
   }
 
   /**
-   * Main constructor of an approval request with step functionality
+   * Main constructor of an approval request with step functionality.
    *
    * @param requestAdmin Admin
    * @param requestSignature Sig
    * @param cAId CA
    * @param endEntityProfileId Profile
    * @param steps Stepd
-   * @param executable EXE
+   * @param anexecutable EXE
    * @param approvalProfile Approval
    */
   public DummyApprovalRequest(
@@ -85,7 +88,7 @@ public class DummyApprovalRequest extends ApprovalRequest {
       final int cAId,
       final int endEntityProfileId,
       final int steps,
-      final boolean executable,
+      final boolean anexecutable,
       final ApprovalProfile approvalProfile) {
     super(
         requestAdmin,
@@ -95,11 +98,11 @@ public class DummyApprovalRequest extends ApprovalRequest {
         endEntityProfileId,
         steps,
         approvalProfile);
-    this.executable = executable;
+    this.executable = anexecutable;
   }
 
-  /** Constructor used in externalization only */
-  public DummyApprovalRequest() {}
+  /** Constructor used in externalization only. */
+  public DummyApprovalRequest() { }
 
   /**
    * Should return true if the request if of the type that should be executed by
@@ -122,9 +125,9 @@ public class DummyApprovalRequest extends ApprovalRequest {
   @Override
   public void execute() throws ApprovalRequestExecutionException {
     if (executable) {
-      log.info("Dummy Is Executable, this should be shown in the log");
+      LOG.info("Dummy Is Executable, this should be shown in the log");
     } else {
-      log.error(
+      LOG.error(
           "Error: This shouldn't be logged, DummyApprovalRequest isn't"
               + " executable");
     }
@@ -160,7 +163,7 @@ public class DummyApprovalRequest extends ApprovalRequest {
     return null;
   }
 
-  /** Should return one of the ApprovalDataVO.APPROVALTYPE_ constants */
+  /** Should return one of the ApprovalDataVO.APPROVALTYPE_ constants. */
   @Override
   public int getApprovalType() {
     return ApprovalDataVO.APPROVALTYPE_DUMMY;

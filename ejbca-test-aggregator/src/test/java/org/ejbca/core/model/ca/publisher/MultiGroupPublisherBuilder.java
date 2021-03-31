@@ -25,12 +25,19 @@ import java.util.TreeSet;
  */
 public class MultiGroupPublisherBuilder {
 
+      /** Param. */
   private String description;
+  /** Param. */
   private boolean keepPublishedInQueue;
+  /** Param. */
   private String name;
+  /** Param. */
   private boolean onlyUseQueue;
+  /** Param. */
   private List<TreeSet<Integer>> publisherGroups;
+  /** Param. */
   private boolean useQueueForCertificates;
+  /** Param. */
   private boolean useQueueForCRLs;
 
   /**
@@ -45,81 +52,81 @@ public class MultiGroupPublisherBuilder {
   /**
    * Sets the description.
    *
-   * @param description description.
+   * @param adescription description.
    * @return instance of this builder.
    */
-  public MultiGroupPublisherBuilder description(final String description) {
-    this.description = description;
+  public MultiGroupPublisherBuilder description(final String adescription) {
+    this.description = adescription;
     return this;
   }
 
   /**
    * Sets the 'Keep published in queue' flag.
    *
-   * @param keepPublishedInQueue 'Keep published in queue' flag.
+   * @param akeepPublishedInQueue 'Keep published in queue' flag.
    * @return instance of this builder.
    */
   public MultiGroupPublisherBuilder keepPublishedInQueue(
-      final boolean keepPublishedInQueue) {
-    this.keepPublishedInQueue = keepPublishedInQueue;
+      final boolean akeepPublishedInQueue) {
+    this.keepPublishedInQueue = akeepPublishedInQueue;
     return this;
   }
 
   /**
    * Sets the name.
    *
-   * @param name name.
+   * @param aname name.
    * @return instance of this builder.
    */
-  public MultiGroupPublisherBuilder name(final String name) {
-    this.name = name;
+  public MultiGroupPublisherBuilder name(final String aname) {
+    this.name = aname;
     return this;
   }
 
   /**
    * Sets the 'Only use in queue' flag.
    *
-   * @param onlyUseQueue 'Only use in queue' flag.
+   * @param aonlyUseQueue 'Only use in queue' flag.
    * @return instance of this builder.
    */
-  public MultiGroupPublisherBuilder onlyUseQueue(final boolean onlyUseQueue) {
-    this.onlyUseQueue = onlyUseQueue;
+  public MultiGroupPublisherBuilder onlyUseQueue(final boolean aonlyUseQueue) {
+    this.onlyUseQueue = aonlyUseQueue;
     return this;
   }
 
   /**
    * Sets the list of sets containing publisher ids.
    *
-   * @param publisherGroups the list of sets containing publisher ids.
+   * @param apublisherGroups the list of sets containing publisher ids.
    * @return instance of this builder.
    */
   public MultiGroupPublisherBuilder publisherGroups(
-      final List<TreeSet<Integer>> publisherGroups) {
-    this.publisherGroups = publisherGroups;
+      final List<TreeSet<Integer>> apublisherGroups) {
+    this.publisherGroups = apublisherGroups;
     return this;
   }
 
   /**
    * Sets the 'Use queue for certificates' flag.
    *
-   * @param useQueueForCertificates 'Use queue for certificates' flag.
+   * @param auseQueueForCertificates 'Use queue for certificates' flag.
    * @return instance of this builder.
    */
   public MultiGroupPublisherBuilder useQueueForCertificates(
-      final boolean useQueueForCertificates) {
-    this.useQueueForCertificates = useQueueForCertificates;
+      final boolean auseQueueForCertificates) {
+    this.useQueueForCertificates = auseQueueForCertificates;
     return this;
   }
 
   /**
    * Sets the 'Use queue for CRLs' flag.
    *
-   * @param useQueueForCRLs 'Use queue for CRLs' flag.
+   * @param auseQueueForCRLs 'Use queue for CRLs' flag.
    * @return instance of this builder.
    */
   public MultiGroupPublisherBuilder useQueueForCRLs(
-      final boolean useQueueForCRLs) {
-    this.useQueueForCRLs = useQueueForCRLs;
+      final boolean auseQueueForCRLs) {
+    this.useQueueForCRLs = auseQueueForCRLs;
     return this;
   }
 
