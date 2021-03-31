@@ -237,7 +237,7 @@ public class OcspResponseGeneratorSessionBean
   /** Setup. */
   @PostConstruct
   public void init() {
-   
+
     timerService = sessionContext.getTimerService();
   }
 
