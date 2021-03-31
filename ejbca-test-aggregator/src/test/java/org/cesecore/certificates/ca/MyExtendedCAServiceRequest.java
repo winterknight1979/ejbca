@@ -9,21 +9,21 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.ca;
 
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceRequest;
 
 /**
- * @version $Id: MyExtendedCAServiceRequest.java 22147 2015-11-03 16:24:00Z mikekushner $
- */ 
+ * @version $Id: MyExtendedCAServiceRequest.java 22147 2015-11-03 16:24:00Z
+ *     mikekushner $
+ */
 public class MyExtendedCAServiceRequest extends ExtendedCAServiceRequest {
 
-	private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-	@Override
-	public int getServiceType() {
-		return MyExtendedCAServiceInfo.type;
-	}
-
+  @Override
+  public int getServiceType() {
+    return MyExtendedCAServiceInfo.TYPE;
+  }
 }

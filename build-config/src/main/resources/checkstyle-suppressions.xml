@@ -153,15 +153,15 @@
 	<suppress checks="MagicNumberCheck"
 		files="CertificateCreateSessionBean.java" lines="569" /> <!-- This is actually setting final -->
 	<suppress checks="MagicNumberCheck"
-		files="CertificateDataSessionBean.java" lines="155-183,517-545" /> <!-- Array indices -->
+		files="CertificateDataSessionBean.java" lines="155-183,516-545" /> <!-- Array indices -->
 	<suppress checks="ParameterNumberCheck"
 		files="CertificateStoreSessionBean.java"
-		lines="164,194,226,293,2293,2381" />
+		lines="164,194,226,293,2293,2377" />
 	<suppress checks="ParameterNumberCheck"
 		files="CrlStoreSessionBean.java" lines="69" />
 	<suppress checks="MethodLengthCheck"
 		files="OcspResponseGeneratorSessionBean.java"
-		lines="285,1009,1534,2671" />
+		lines="279,1003,1528,2666" />
 	<suppress checks="LineLengthCheck"
 		files="OcspResponseGeneratorSessionBean.java" lines="2340" /> <!-- URL in comment -->
 	<suppress checks="ParameterNumberCheck"
@@ -621,5 +621,10 @@
 		files="RaSearchEesBean.java" lines="546" /> 
 		<suppress checks="MagicNumberCheck"
 		files="RaSearchCertsBean.java" lines="670" /> 
+		
+		
+		
+		<suppress checks="MethodLengthCheck"
+		files="X509CATest.java" lines="183 " /> 
 		
 </suppressions>

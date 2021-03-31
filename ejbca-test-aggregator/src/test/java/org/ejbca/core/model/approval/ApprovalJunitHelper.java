@@ -14,32 +14,37 @@
 package org.ejbca.core.model.approval;
 
 /**
- * @version $Id: ApprovalJunitHelper.java 22139 2015-11-03 10:41:56Z mikekushner $
+ * @version $Id: ApprovalJunitHelper.java 22139 2015-11-03 10:41:56Z mikekushner
+ *     $
  */
 public class ApprovalJunitHelper {
 
-	public static class JunitApprovalExecutorUtil1 extends ApprovalExecutorUtil {
-		public static void init() {
-			ApprovalExecutorUtil.globallyAllowedString = ApprovalExecutorUtilTest.class.getName();
-			ApprovalExecutorUtil.globallyAllowed = null;
-			
-		}
-	}
-	public static class JunitApprovalExecutorUtil2 extends ApprovalExecutorUtil {
-	      
-		public static void init() {
-			ApprovalExecutorUtil.globallyAllowedString = "foo.base.Foo,".concat(ApprovalExecutorUtilTest.class.getName()).concat(", foo.bar.Bar");
-			ApprovalExecutorUtil.globallyAllowed = null;
-			
-		}
-	}
-	public static class JunitApprovalExecutorUtil3 extends ApprovalExecutorUtil {
-	      
-		public static void init() {
-			ApprovalExecutorUtil.globallyAllowedString = "foo.base.Foo, foo.bar.Bar";
-			ApprovalExecutorUtil.globallyAllowed = null;
-			
-		}
-	}
+  public static class JunitApprovalExecutorUtil1 extends ApprovalExecutorUtil {
+      /** Init. */
+    public static void init() {
+      ApprovalExecutorUtil.globallyAllowedString =
+          ApprovalExecutorUtilTest.class.getName();
+      ApprovalExecutorUtil.globallyAllowed = null;
+    }
+  }
 
+  public static class JunitApprovalExecutorUtil2 extends ApprovalExecutorUtil {
+      /** Init. */
+    public static void init() {
+      ApprovalExecutorUtil.globallyAllowedString =
+          "foo.base.Foo,"
+              .concat(ApprovalExecutorUtilTest.class.getName())
+              .concat(", foo.bar.Bar");
+      ApprovalExecutorUtil.globallyAllowed = null;
+    }
+  }
+
+  public static class JunitApprovalExecutorUtil3 extends ApprovalExecutorUtil {
+
+      /** Init. */
+    public static void init() {
+      ApprovalExecutorUtil.globallyAllowedString = "foo.base.Foo, foo.bar.Bar";
+      ApprovalExecutorUtil.globallyAllowed = null;
+    }
+  }
 }
