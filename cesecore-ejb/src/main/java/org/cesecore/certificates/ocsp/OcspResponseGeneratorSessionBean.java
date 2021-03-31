@@ -2331,7 +2331,8 @@ public class OcspResponseGeneratorSessionBean
         // Limit Nonce to 32 bytes to avoid chosen-prefix attack on hash
         // collisions.
         // See
-        // https://groups.google.com/forum/#!topic/mozilla.dev.security.policy/x3TOIJL7MGw
+        // https://groups.google.com/forum/#!topic/mozilla.dev.security.policy
+        //       /x3TOIJL7MGw
         final int max = 32;
         if ((noncestr != null)
             && (noncestr.getOctets() != null)

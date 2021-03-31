@@ -43,7 +43,7 @@ public interface EnterpriseEditionEjbBridgeSessionLocal {
 
   /**
    * Rebuilds EJBCA Enterprise specific authorization caches, both locally and
-   * on remote systems
+   * on remote systems.
    */
   void requestClearEnterpriseAuthorizationCaches();
 }

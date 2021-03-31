@@ -50,7 +50,7 @@ public class CertificateDataSerializationTest {
    * CertificateData object that's intentionally missing the endEntityProfileId
    * column.
    */
-	private static final String OLD_DATA = 
+    private static final String OLD_DATA =
 "rO0ABXNyADVvcmcuY2VzZWNvcmUuY2VydGlmaWNhdGVzLmNlcnRpZmljYXRlLkNlcnRpZmljYXRl"
 + "RGF0YYoibbY+5VZeAgASSgAKZXhwaXJlRGF0ZUoADnJldm9jYXRpb25EYXRlSQAQcmV2b2NhdGlv"
 + "blJlYXNvbkkACnJvd1ZlcnNpb25JAAZzdGF0dXNJAAR0eXBlSgAKdXBkYXRlVGltZUwACmJhc2U2"
@@ -68,7 +68,7 @@ public class CertificateDataSerializationTest {
    * CertificateData object that intentionally has a non-existing column called
    * "testFutureColumn".
    */
-	private static final String FUTURE_DATA =
+    private static final String FUTURE_DATA =
 "rO0ABXNyADVvcmcuY2VzZWNvcmUuY2VydGlmaWNhdGVzLmNlcnRpZmljYXRlLkNlcnRpZmljYXRl"
 + "RGF0YYoibbY+5VZeAgAUSgAKZXhwaXJlRGF0ZUoADnJldm9jYXRpb25EYXRlSQAQcmV2b2NhdGlv"
 + "blJlYXNvbkkACnJvd1ZlcnNpb25JAAZzdGF0dXNJAAR0eXBlSgAKdXBkYXRlVGltZUwACmJhc2U2"
@@ -88,7 +88,7 @@ public class CertificateDataSerializationTest {
    * with of a non-existent type.
    * "org.cesecore.certificates.certificate.NonExistent"
    */
-	private static final String FUTURE_NEW_CLASS_DATA =
+    private static final String FUTURE_NEW_CLASS_DATA =
 "rO0ABXNyADVvcmcuY2VzZWNvcmUuY2VydGlmaWNhdGVzLmNlcnRpZmljYXRlLkNlcnRpZmljYXRl"
 + "RGF0YYoibbY+5VZeAgAUSgAKZXhwaXJlRGF0ZUoADnJldm9jYXRpb25EYXRlSQAQcmV2b2NhdGlv"
 + "blJlYXNvbkkACnJvd1ZlcnNpb25JAAZzdGF0dXNJAAR0eXBlSgAKdXBkYXRlVGltZUwACmJhc2U2"
