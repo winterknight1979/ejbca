@@ -729,6 +729,21 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 					<linkXRef>true</linkXRef>
 				</configuration>
 			</plugin>
+			<plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <version>3.13.0</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>goldeneyes.ejbca</groupId>
+                        <artifactId>build-config</artifactId>
+                        <version>1.0.1-beta-3-SNAPSHOT</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <rulesets>pmd-ruleset-java.xml</rulesets>
+                </configuration>
+            </plugin>
 		</plugins>
 	</build>
 
@@ -836,6 +851,10 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-pmd-plugin</artifactId>
 				<version>3.13.0</version>
+				
+				<configuration>
+				    <rulesets>pmd-ruleset-java.xml</rulesets>
+				</configuration>
 			</plugin>
 		</plugins>
 	</reporting>
