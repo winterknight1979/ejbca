@@ -210,19 +210,6 @@ public final class ErrorCode implements Serializable {
   /** References to item exist. */
   private static final String S_REFERENCES_TO_ITEM_EXIST =
       "REFERENCES_TO_ITEM_EXIST";
-
-  /** Default constructor. */
-  private ErrorCode() { }
-
-  /**
-   * Constructor.
-   *
-   * @param aInternalErrorCode error code.
-   */
-  private ErrorCode(final String aInternalErrorCode) {
-    this.internalErrorCode = aInternalErrorCode;
-  }
-
   /** CA does not exist. */
   public static final ErrorCode CA_NOT_EXISTS = new ErrorCode(S_CA_NOT_EXISTS);
   /** CA already exists. */
@@ -402,6 +389,18 @@ public final class ErrorCode implements Serializable {
    */
   public static final ErrorCode REFERENCES_TO_ITEM_EXIST =
       new ErrorCode(S_REFERENCES_TO_ITEM_EXIST);
+
+  /** Default constructor. */
+  private ErrorCode() { }
+
+  /**
+   * Constructor.
+   *
+   * @param aInternalErrorCode error code.
+   */
+  private ErrorCode(final String aInternalErrorCode) {
+    this.internalErrorCode = aInternalErrorCode;
+  }
 
   /**
    * Get the internal error code.
