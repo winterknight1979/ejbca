@@ -18,13 +18,12 @@ import java.util.Map;
 import java.util.Properties;
 import org.cesecore.audit.AuditLogDevice;
 import org.cesecore.audit.AuditLogEntry;
+import org.cesecore.audit.AuditLogger;
 import org.cesecore.audit.audit.AuditExporter;
 import org.cesecore.audit.audit.AuditLogExportReport;
 import org.cesecore.audit.audit.AuditLogExporterException;
 import org.cesecore.audit.audit.AuditLogValidationReport;
 import org.cesecore.audit.audit.AuditLogValidatorException;
-import org.cesecore.audit.enums.EventStatus;
-import org.cesecore.audit.enums.EventType;
 import org.cesecore.audit.enums.ModuleType;
 import org.cesecore.audit.enums.ServiceType;
 import org.cesecore.audit.log.AuditLogResetException;
@@ -133,30 +132,22 @@ public class IntegrityProtectedDevice implements AuditLogDevice {
   @Override
   public void log(
       final TrustedTime trustedTime,
-      final EventType eventType,
-      final EventStatus eventStatus,
+      final AuditLogger.Event event,
       final ModuleType module,
       final ServiceType service,
       final String authToken,
       final String customId,
-      final String searchDetail1,
-      final String searchDetail2,
-      final Map<String, Object> additionalDetails,
-      final Properties properties)
+      final AuditLogger.Details details)
       throws AuditRecordStorageException {
     getEjb(IntegrityProtectedLoggerSessionLocal.class)
         .log(
             trustedTime,
-            eventType,
-            eventStatus,
+            event,
             module,
             service,
             authToken,
             customId,
-            searchDetail1,
-            searchDetail2,
-            additionalDetails,
-            properties);
+            details);
   }
 
   @Override
