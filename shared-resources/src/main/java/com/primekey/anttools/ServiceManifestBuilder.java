@@ -25,12 +25,13 @@ public final class ServiceManifestBuilder {
     public static void main(final String[] args) {
         final int errorCode = mainInternal(args);
         if (errorCode != 0) {
-            System.exit(errorCode);
+            System.exit(errorCode); // NOPMD - this app is run from CLI
         }
     }
 
-    static int mainInternal(final String[] args) {
-        if (args.length < 2 || args.length > 3) {
+    private static int mainInternal(final String[] args) {
+    	final int maxArgs = 3;
+        if (args.length < 2 || args.length > maxArgs) {
             final StringBuffer out = new StringBuffer();
             out.append("DESCRIPTION:\n");
             out.append("     This command line tool inserts service manifest "
@@ -144,39 +145,22 @@ public final class ServiceManifestBuilder {
     public static void buildServiceManifestToLocation(final File location,
         final Class<?>... interfaceClasses)
             throws IOException {
-        if (!location.isDirectory()) {
-            throw new IOException("File " + location + " was not a directory.");
-        }
-        if (!location.canWrite() && !location.canRead()) {
-            throw new IOException("Could not read/write to directory "
-                + location);
-        }
+        testIsDirectory(location);
+        testCanReadWrite(location);
         for (final Class<?> interfaceClass : interfaceClasses) {
-            if (!interfaceClass.isInterface()
-                    && !Modifier.isAbstract(interfaceClass.getModifiers())) {
-                throw new IllegalArgumentException(
-                        "Class " + interfaceClass.getName()
-                            + " was not an interface or an asbtract class.");
-            }
+            testIsInterface(interfaceClass);
             final List<Class<?>> implementingClasses
                 = getImplementingClasses(location, location, interfaceClass);
             System.out
                     .println("Added " + implementingClasses.size()
                         + " implementations of " + interfaceClass.getName());
             final File metaInf = new File(location, "META-INF");
-            if (!metaInf.exists() && !metaInf.mkdir()) {
-                throw new IOException("Could not create directory " + metaInf);
-            }
+            testMetaInf(metaInf);
             final File servicesDirectory = new File(metaInf, "services");
-            if (!servicesDirectory.exists() && !servicesDirectory.mkdirs()) {
-                throw new IOException("Could not create directory "
-                    + servicesDirectory);
-            }
+            testServiceDir(servicesDirectory);
             final File manifestFile
                 = new File(servicesDirectory, interfaceClass.getName());
-            if (!manifestFile.exists() && !manifestFile.createNewFile()) {
-                throw new IOException("Could not create manifest file.");
-            }
+            testManifest(manifestFile);
             final PrintWriter printWriter = new PrintWriter(manifestFile);
             try {
                 for (final Class<?> implementingClass : implementingClasses) {
@@ -188,6 +172,51 @@ public final class ServiceManifestBuilder {
             }
         }
     }
+
+	private static void testManifest(final File manifestFile) 
+			throws IOException {
+		if (!manifestFile.exists() && !manifestFile.createNewFile()) {
+		    throw new IOException("Could not create manifest file.");
+		}
+	}
+
+	private static void testServiceDir(final File servicesDirectory) 
+			throws IOException {
+		if (!servicesDirectory.exists() && !servicesDirectory.mkdirs()) {
+		    throw new IOException("Could not create directory "
+		        + servicesDirectory);
+		}
+	}
+
+	private static void testMetaInf(final File metaInf) throws IOException {
+		if (!metaInf.exists() && !metaInf.mkdir()) {
+		    throw new IOException("Could not create directory " + metaInf);
+		}
+	}
+
+	private static void testIsInterface(final Class<?> interfaceClass) {
+		if (!interfaceClass.isInterface()
+		        && !Modifier.isAbstract(interfaceClass.getModifiers())) {
+		    throw new IllegalArgumentException(
+		            "Class " + interfaceClass.getName()
+		                + " was not an interface or an asbtract class.");
+		}
+	}
+
+	private static void testCanReadWrite(final File location) 
+			throws IOException {
+		if (!location.canWrite() && !location.canRead()) {
+            throw new IOException("Could not read/write to directory "
+                + location);
+        }
+	}
+
+	private static void testIsDirectory(final File location) 
+			throws IOException {
+		if (!location.isDirectory()) {
+            throw new IOException("File " + location + " was not a directory.");
+        }
+	}
 
     private static List<Class<?>> getImplementingClasses(
             final File baseLocation,
