@@ -54,19 +54,19 @@ public final class RemoteAccessSetCacheHolderTest {
     LOG.trace(">testStartFinishCycle");
     assertTrue(
         "The cache should be empty initially",
-        RemoteAccessSetCacheHolder.getCache().getKeys().isEmpty());
+        RemoteAccessSetCacheHelper.getCache().getKeys().isEmpty());
 
     LOG.debug("Starting a update number 10");
     Set<AuthenticationToken> existing =
-        RemoteAccessSetCacheHolder.startCacheReload(10);
+        RemoteAccessSetCacheHelper.startCacheReload(10);
     assertTrue("Returned set should be empty", existing.isEmpty());
     assertNull(
         "Should return null when trying to refresh with old update.",
-        RemoteAccessSetCacheHolder.startCacheReload(9));
+        RemoteAccessSetCacheHelper.startCacheReload(9));
     assertNull(
         "Should return null when trying to refresh with -1 while update is in"
             + " progress.",
-        RemoteAccessSetCacheHolder.startCacheReload(-1));
+        RemoteAccessSetCacheHelper.startCacheReload(-1));
 
     final Map<AuthenticationToken, AccessSet> newCache = new HashMap<>();
     final Set<String> set = new HashSet<>();
@@ -74,14 +74,14 @@ public final class RemoteAccessSetCacheHolderTest {
     final AccessSet as = new AccessSet(set);
     newCache.put(token1, as);
 
-    RemoteAccessSetCacheHolder.finishCacheReload(10, newCache);
+    RemoteAccessSetCacheHelper.finishCacheReload(10, newCache);
     assertEquals(
         "Cache should have been updated",
         1,
-        RemoteAccessSetCacheHolder.getCache().getKeys().size());
+        RemoteAccessSetCacheHelper.getCache().getKeys().size());
 
     LOG.debug("Starting a update number 11");
-    existing = RemoteAccessSetCacheHolder.startCacheReload(11);
+    existing = RemoteAccessSetCacheHelper.startCacheReload(11);
     assertEquals(
         "Wrong number of entries in list of existing auth tokens",
         1,
@@ -98,18 +98,18 @@ public final class RemoteAccessSetCacheHolderTest {
     newCache2.put(token2, as2);
 
     LOG.debug("Should not overwrite cache");
-    RemoteAccessSetCacheHolder.finishCacheReload(10, newCache2);
+    RemoteAccessSetCacheHelper.finishCacheReload(10, newCache2);
     assertEquals(
         "Old update number should not overwrite the cache",
         1,
-        RemoteAccessSetCacheHolder.getCache().getKeys().size());
+        RemoteAccessSetCacheHelper.getCache().getKeys().size());
 
     LOG.debug("Should overwrite cache");
-    RemoteAccessSetCacheHolder.finishCacheReload(11, newCache2);
+    RemoteAccessSetCacheHelper.finishCacheReload(11, newCache2);
     assertEquals(
         "Cache should have been updated again",
         2,
-        RemoteAccessSetCacheHolder.getCache().getKeys().size());
+        RemoteAccessSetCacheHelper.getCache().getKeys().size());
     LOG.trace("<testStartFinishCycle");
   }
 
@@ -126,18 +126,18 @@ public final class RemoteAccessSetCacheHolderTest {
       throws IllegalArgumentException, IllegalAccessException,
           NoSuchFieldException, SecurityException {
     final Field lastUpdField =
-        RemoteAccessSetCacheHolder.class.getDeclaredField("lastUpdate");
+        RemoteAccessSetCacheHelper.class.getDeclaredField("lastUpdate");
     lastUpdField.setAccessible(true);
     lastUpdField.setInt(null, 0);
 
     final Field inProgressField =
-        RemoteAccessSetCacheHolder.class.getDeclaredField(
+        RemoteAccessSetCacheHelper.class.getDeclaredField(
             "regularUpdateInProgress");
     inProgressField.setAccessible(true);
     inProgressField.setBoolean(null, false);
 
     final Field cacheField =
-        RemoteAccessSetCacheHolder.class.getDeclaredField("cache");
+        RemoteAccessSetCacheHelper.class.getDeclaredField("cache");
     cacheField.setAccessible(true);
     cacheField.set(null, new ConcurrentCache<AuthenticationToken, AccessSet>());
   }
