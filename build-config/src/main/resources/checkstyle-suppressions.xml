@@ -139,7 +139,7 @@
 	<suppress checks="ParameterNumberCheck"
 		files="IntegrityProtectedLoggerSessionBean.java" lines="100" />
 	<suppress checks="ParameterNumberCheck"
-		files="InternalSecurityEventsLoggerSessionBean.java" lines="61" />
+		files="InternalSecurityEventsLoggerSessionBean.java" lines="62" />
 	<suppress checks="ParameterNumberCheck"
 		files="SecurityEventsLoggerSessionBean.java" lines="89,123,150" />
 	<suppress checks="MethodLengthCheck"
