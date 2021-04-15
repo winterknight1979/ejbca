@@ -422,9 +422,9 @@
 	<suppress checks="ParameterNumberCheck"
 		files="AuthorizationSystemSessionBean.java" lines="216" />
 	<suppress checks="MethodLengthCheck"
-		files="CAAdminSessionBean.java" lines="439,717,1017,1304,1631,2023,2199,2964,3787,4056,4387,4556" />
+		files="CAAdminSessionBean.java" lines="439,717,1017,1306,1633,2025,2201,2967,3792,4061,4392,4561" />
 	<suppress checks="ParameterNumberCheck"
-		files="CAAdminSessionBean.java" lines="3961,4056" />
+		files="CAAdminSessionBean.java" lines="3966,4061" />
 	<suppress checks="MethodLengthCheck"
 		files="PublisherQueueSessionBean.java" lines="408" />
 	<suppress checks="ParameterNumberCheck"
