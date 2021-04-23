@@ -108,9 +108,9 @@ public interface CvcPlugin {
    * @return certificate
    * @throws Exception on error
    * @see org.cesecore.certificates.ca.CA#generateCertificate(CryptoToken,
-   *     EndEntityInformation, RequestMessage, PublicKey, int, Date, Date,
-   *     CertificateProfile, Extensions, String, CertificateGenerationParams,
-   *     AvailableCustomCertificateExtensionsConfiguration)
+   *     EndEntityInformation, RequestMessage, PublicKey, int, 
+   *     CA.CaCertValidity,
+   *    CA.CaCertConfig)
    */
   Certificate generateCertificate(
       CryptoToken cryptoToken,

@@ -2511,7 +2511,7 @@ public class X509CA extends CA implements Serializable {
     // that expire at or after the date contained in the ExpiredCertsOnCRL
     // extension).
     final ASN1ObjectIdentifier expiredCertsOnCRL =
-        new ASN1ObjectIdentifier("2.5.29.60");
+        new ASN1ObjectIdentifier("2.5.29.60"); // NOPMD: This is not an IP
     boolean keepexpiredcertsoncrl = getKeepExpiredCertsOnCRL();
     if (keepexpiredcertsoncrl) {
       SimpleDateFormat sdf = new SimpleDateFormat();

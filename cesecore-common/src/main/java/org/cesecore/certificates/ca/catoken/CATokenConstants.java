@@ -19,8 +19,7 @@ package org.cesecore.certificates.ca.catoken;
  */
 public final class CATokenConstants {
 
-  /** Private constructor - do not instantiate. */
-  private CATokenConstants() { }
+  
 
   /** default key used when there is no specific setting for a purpose. */
   public static final int CAKEYPURPOSE_DEFAULT = 0;
@@ -87,4 +86,7 @@ public final class CATokenConstants {
    * in CA token properties.
    */
   public static final String NEXT_SEQUENCE_PROPERTY = "nextSequence";
+  
+  /** Private constructor - do not instantiate. */
+  private CATokenConstants() { }
 }

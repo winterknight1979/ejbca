@@ -55,9 +55,9 @@
 	<suppress checks="UnusedImportsCheck"
 		files="CertificateProfile.java" lines="43" /> <!-- Used in Jdoc. -->
 	<suppress checks="MethodLengthCheck"
-		files="CertificateProfile.java" lines="4015" />
+		files="CertificateProfile.java" lines="4013" />
 	<suppress checks="MagicNumberCheck"
-		files="CertificateProfile.java" lines="1981" />	<!-- This is just a very big number. -->
+		files="CertificateProfile.java" lines="1979" />	<!-- This is just a very big number. -->
 	<suppress checks="MagicNumberCheck" files="CTLogInfo.java"
 		lines="42" />	<!-- Default timeout. -->
 	<suppress checks="ParameterNumberCheck"

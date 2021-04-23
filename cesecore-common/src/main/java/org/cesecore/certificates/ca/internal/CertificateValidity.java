@@ -61,6 +61,12 @@ public class CertificateValidity {
    * exception.
    */
   private static Date tooLateExpireDate;
+  /** The certificates 'notAfter' value. */
+  private Date lastDate;
+
+  /** The certificates 'notBefore' value. */
+  private Date firstDate;
+
 
   static {
     final String value = CesecoreConfiguration.getCaTooLateExpireDate();
@@ -133,12 +139,6 @@ public class CertificateValidity {
   public static void setTooLateExpireDate(final Date date) {
     tooLateExpireDate = date;
   }
-
-  /** The certificates 'notAfter' value. */
-  private Date lastDate;
-
-  /** The certificates 'notBefore' value. */
-  private Date firstDate;
 
   /** Constructor.
    *
