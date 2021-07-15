@@ -302,9 +302,10 @@ public class CmsCAService extends ExtendedCAService
               -1,
               null,
               ca.getEncodedValidity(),
+              new CA.CaCertConfig(
               certProfile,
               null,
-              cceConfig);
+              cceConfig));
       certificatechain = new ArrayList<Certificate>();
       certificatechain.add(certificate);
       certificatechain.addAll(ca.getCertificateChain());

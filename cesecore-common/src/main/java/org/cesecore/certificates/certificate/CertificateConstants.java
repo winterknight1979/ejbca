@@ -38,9 +38,6 @@ package org.cesecore.certificates.certificate;
  */
 public final class CertificateConstants {
 
-  /** Prevents creation of new class. */
-  private CertificateConstants() { }
-
   // Certificate status representations
   /** Certificate doesn't belong to anyone. */
   public static final int CERT_UNASSIGNED = 0;
@@ -129,4 +126,7 @@ public final class CertificateConstants {
   public static final int DECIPHERONLY = 8;
   /** Boundary. */
   public static final int HIGN_REASON_BOUNDRARY = 11;
+
+  /** Prevents creation of new class. */
+  private CertificateConstants() { }
 }

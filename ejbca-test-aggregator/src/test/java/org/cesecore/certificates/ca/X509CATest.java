@@ -290,9 +290,10 @@ public class X509CATest {
             0,
             null,
             "10d",
+            new CA.CaCertConfig(
             cp,
             "00000",
-            cceConfig);
+            cceConfig));
     assertNotNull(usercert);
     assertEquals("CN=User", CertTools.getSubjectDN(usercert));
     assertEquals(CADN, CertTools.getIssuerDN(usercert));
@@ -589,9 +590,10 @@ public class X509CATest {
             0,
             null,
             "10d",
+            new CA.CaCertConfig(
             cp,
             "00000",
-            cceConfig);
+            cceConfig));
     String authKeyId =
         new String(Hex.encode(CertTools.getAuthorityKeyId(usercert)));
     String keyhash =
@@ -626,9 +628,10 @@ public class X509CATest {
             0,
             null,
             "10d",
+            new CA.CaCertConfig(
             cp,
             "00000",
-            cceConfig);
+            cceConfig));
 
     String authKeyId1 =
         new String(Hex.encode(CertTools.getAuthorityKeyId(usercert1)));
@@ -654,9 +657,10 @@ public class X509CATest {
             0,
             null,
             "10d",
+            new CA.CaCertConfig(
             cp,
             "00000",
-            cceConfig);
+            cceConfig));
     String authKeyId2 =
         new String(Hex.encode(CertTools.getAuthorityKeyId(usercert2)));
     PublicKey publicKey2 =
@@ -971,9 +975,10 @@ public class X509CATest {
             0,
             null,
             "10d",
+            new CA.CaCertConfig(
             cp,
             "00000",
-            cceConfig);
+            cceConfig));
     assertNotNull(usercert);
 
     // Change CA keys, but not CA certificate, should not work to issue a
@@ -991,9 +996,10 @@ public class X509CATest {
               0,
               null,
               "10d",
+              new CA.CaCertConfig(
               cp,
               "00000",
-              cceConfig);
+              cceConfig));
       fail("should not work to issue this certificate");
     } catch (SignatureException e) {
     } // NOPMD: BC 1.47
@@ -1031,9 +1037,10 @@ public class X509CATest {
             0,
             null,
             "10d",
+            new CA.CaCertConfig(
             cp,
             "00000",
-            cceConfig);
+            cceConfig));
     assertNotNull(usercert);
     Collection<RevokedCertInfo> revcerts = new ArrayList<RevokedCertInfo>();
     X509CRLHolder crl = x509ca.generateCRL(cryptoToken, revcerts, 1);
@@ -1085,9 +1092,10 @@ public class X509CATest {
               0,
               null,
               "10d",
+              new CA.CaCertConfig(
               profile,
               "00000",
-              cceConfig);
+              cceConfig));
       assertNotNull(certificate);
       assertEquals(
           "rfc822name=" + emailPlain,
@@ -1121,9 +1129,10 @@ public class X509CATest {
               0,
               null,
               "10d",
+              new CA.CaCertConfig(
               profile,
               "00000",
-              cceConfig);
+              cceConfig));
       assertNotNull(certificate);
       // getSubjectAlternativeName performs escaping again
       assertEquals(
@@ -1158,9 +1167,10 @@ public class X509CATest {
               0,
               null,
               "10d",
+              new CA.CaCertConfig(
               profile,
               "00000",
-              cceConfig);
+              cceConfig));
       assertNotNull(certificate);
       // An unescaped '+' character is interpreted as a separator between two
       // connected subjectAltName fields. So "rfc822Name=user+plus@user.com" is
@@ -1243,9 +1253,10 @@ public class X509CATest {
               0,
               null,
               "10d",
+              new CA.CaCertConfig(
               profile,
               "00000",
-              cceConfig);
+              cceConfig));
       assertCertificateAuthorityInformationAccess(
           certificate, caIssuerUris, ocspUrls);
     } catch (CAOfflineException e) {
@@ -1267,9 +1278,10 @@ public class X509CATest {
               0,
               null,
               "10d",
+              new CA.CaCertConfig(
               profile,
               "00000",
-              cceConfig);
+              cceConfig));
       assertCertificateAuthorityInformationAccess(
           certificate, cpCaIssuerUris, cpOcspUrls);
     } catch (CAOfflineException e) {
@@ -1291,9 +1303,10 @@ public class X509CATest {
               0,
               null,
               "10d",
+              new CA.CaCertConfig(
               profile,
               "00000",
-              cceConfig);
+              cceConfig));
       assertCertificateAuthorityInformationAccess(
           certificate, caIssuerUris, cpOcspUrls);
     } catch (CAOfflineException e) {
@@ -1315,9 +1328,10 @@ public class X509CATest {
               0,
               null,
               "10d",
+              new CA.CaCertConfig(
               profile,
               "00000",
-              cceConfig);
+              cceConfig));
       assertCertificateAuthorityInformationAccess(
           certificate, cpCaIssuerUris, ocspUrls);
     } catch (CAOfflineException e) {
@@ -1456,9 +1470,10 @@ public class X509CATest {
           0,
           null,
           "10d",
+          new CA.CaCertConfig(
           cp,
           "00000",
-          cceConfig);
+          cceConfig));
       fail(
           "Should throw CAOfflineException when trying to issue cert before"
               + " PrivateKeyUsagePeriod starts.");
@@ -1477,9 +1492,10 @@ public class X509CATest {
               0,
               null,
               "10d",
+              new CA.CaCertConfig(
               cp,
               "00000",
-              cceConfig);
+              cceConfig));
       assertNotNull("A certificate should have been issued", cert);
     } catch (CAOfflineException e) {
       fail(
@@ -1498,9 +1514,10 @@ public class X509CATest {
           0,
           null,
           "10d",
+          new CA.CaCertConfig(
           cp,
           "00000",
-          cceConfig);
+          cceConfig));
       fail(
           "Should throw CAOfflineException when trying to issue cert after"
               + " PrivateKeyUsagePeriod ands.");
@@ -1616,9 +1633,10 @@ public class X509CATest {
                 0,
                 null,
                 "10d",
+                new CA.CaCertConfig(
                 cp,
                 "00000",
-                cceConfig);
+                cceConfig));
     assertNotNull("A certificate should have been issued", cert);
     byte[] ext1 = cert.getExtensionValue("2.16.840.1.113730.1.13");
     // The Extension value is an Octet String, containing my value
@@ -1732,9 +1750,10 @@ public class X509CATest {
             KeyUsage.digitalSignature | KeyUsage.keyEncipherment,
             null,
             "30d",
+            new CA.CaCertConfig(
             certProfile,
             null,
-            cceConfig);
+            cceConfig));
     // Get the full policy objects
     List<PolicyInformation> pi = CertTools.getCertificatePolicies(cert);
     assertEquals("Should be 5 Cert Policies", 5, pi.size());
@@ -1859,9 +1878,10 @@ public class X509CATest {
             KeyUsage.digitalSignature | KeyUsage.keyEncipherment,
             null,
             "30d",
+            new CA.CaCertConfig(
             certProfile,
             null,
-            cceConfig);
+            cceConfig));
     assertTrue(
         "Certificate CN was not UTF-8 encoded by default.",
         getValueFromDN(cert, X509ObjectIdentifiers.commonName)
@@ -1897,9 +1917,10 @@ public class X509CATest {
             KeyUsage.digitalSignature | KeyUsage.keyEncipherment,
             null,
             "30d",
+            new CA.CaCertConfig(
             certProfile,
             null,
-            cceConfig);
+            cceConfig));
     assertTrue(
         "Certificate CN was not encoded as PrintableString.",
         getValueFromDN(cert, X509ObjectIdentifiers.commonName)
@@ -1980,9 +2001,10 @@ public class X509CATest {
             KeyUsage.digitalSignature | KeyUsage.keyEncipherment,
             null,
             "30d",
+            new CA.CaCertConfig(
             certProfile,
             null,
-            cceConfig);
+            cceConfig));
     princ = ((X509Certificate) cert).getSubjectX500Principal();
     name = X500Name.getInstance(princ.getEncoded());
     // The EV DN components do not have names in standard java/BC. This is
@@ -2041,9 +2063,10 @@ public class X509CATest {
             KeyUsage.digitalSignature | KeyUsage.keyEncipherment,
             null,
             "30d",
+            new CA.CaCertConfig(
             certProfile,
             null,
-            cceConfig);
+            cceConfig));
     princ = ((X509Certificate) cert).getSubjectX500Principal();
     name = X500Name.getInstance(princ.getEncoded());
     // The EV DN components do not have names in standard java/BC
@@ -2111,12 +2134,14 @@ public class X509CATest {
             p10msg,
             keyPair.getPublic(),
             0,
+            new CA.CaCertValidity(
             null,
-            null,
+            null),
+            new CA.CaCertConfig(
             cp,
             null,
             "00000",
-            cceConfig);
+            cceConfig));
     assertNotNull(usercert);
     assertEquals("CN=User", CertTools.getSubjectDN(usercert));
     assertEquals(CADN, CertTools.getIssuerDN(usercert));
@@ -2136,12 +2161,14 @@ public class X509CATest {
             p10msg,
             keyPair.getPublic(),
             0,
+            new CA.CaCertValidity(
             null,
-            null,
+            null),
+            new CA.CaCertConfig(
             cp,
             null,
             "00000",
-            cceConfig);
+            cceConfig));
     assertNotNull(usercert);
     assertEquals(
         "CN=Override,O=PrimeKey,C=SE", CertTools.getSubjectDN(usercert));
@@ -2196,12 +2223,14 @@ public class X509CATest {
             null,
             keyPair.getPublic(),
             0,
+            new CA.CaCertValidity(
             null,
-            null,
+            null),
+            new CA.CaCertConfig(
             cp,
             null,
             "00000",
-            cceConfig);
+            cceConfig));
     assertNotNull(usercert);
     BigInteger serialNumber = CertTools.getSerialNumber(usercert);
 
@@ -2258,12 +2287,14 @@ public class X509CATest {
             null,
             keyPair.getPublic(),
             0,
+            new CA.CaCertValidity(
             null,
-            null,
+            null),
+            new CA.CaCertConfig(
             cp,
             null,
             "00000",
-            cceConfig);
+            cceConfig));
     assertNotNull(usercert);
     BigInteger serialNumber = CertTools.getSerialNumber(usercert);
 
@@ -2333,12 +2364,14 @@ public class X509CATest {
             requestMessage,
             /*providedPublicKey=*/ null,
             0,
+            new CA.CaCertValidity(
             null,
-            null,
+            null),
+            new CA.CaCertConfig(
             cp,
             null,
             "00000",
-            cceConfig);
+            cceConfig));
     assertNotNull(usercert);
 
     assertEquals(
@@ -2412,12 +2445,14 @@ public class X509CATest {
             requestMessage,
             keyPairEnforcedAlg.getPublic(),
             0,
+            new CA.CaCertValidity(
             null,
-            null,
+            null),
+            new CA.CaCertConfig(
             cp,
             null,
             "00000",
-            cceConfig);
+            cceConfig));
     assertNotNull(usercert);
 
     // RSA_1024 from requestMessage will be overriden with RSA_2048 from
@@ -2511,12 +2546,14 @@ public class X509CATest {
             requestMessage,
             keyPair.getPublic(),
             0,
+            new CA.CaCertValidity(
             null,
-            null,
+            null),
+            new CA.CaCertConfig(
             cp,
             null,
             "00000",
-            cceConfig);
+            cceConfig));
     assertNotNull(usercert);
 
     // RSA_1024 from requestMessage will be overriden with RSA_2048 from

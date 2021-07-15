@@ -28,10 +28,10 @@ import org.cesecore.util.ConcurrentCache;
  * @deprecated since EJBCA 6.8.0
  */
 @Deprecated
-public final class RemoteAccessSetCacheHolder {
+public final class RemoteAccessSetCacheHelper {
   /** Logger. */
   private static final Logger LOG =
-      Logger.getLogger(RemoteAccessSetCacheHolder.class);
+      Logger.getLogger(RemoteAccessSetCacheHelper.class);
 
   // These fields are also modified by the test RemoteAccessSetCacheHolderTest
   /** Last update. */
@@ -46,7 +46,7 @@ public final class RemoteAccessSetCacheHolder {
       new ConcurrentCache<>();
 
   /** Can't be instantiated. */
-  private RemoteAccessSetCacheHolder() { }
+  private RemoteAccessSetCacheHelper() { }
 
   /**
    * Returns a ConcurrentCache object that can be used for caching AccessSets

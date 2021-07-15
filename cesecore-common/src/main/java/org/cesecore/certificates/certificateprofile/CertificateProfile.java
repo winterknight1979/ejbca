@@ -83,7 +83,8 @@ public class CertificateProfile extends UpgradeableDataHashMap
   public static final String HARDTOKENENCPROFILENAME = "HARDTOKEN_ENC";
   /** Name. */
   public static final String HARDTOKENSIGNPROFILENAME = "HARDTOKEN_SIGN";
-
+  /** size of usage array. */
+  private static final int KEY_USAGE_LENGTH = 9;
   /** Names. */
   public static final List<String> FIXED_PROFILENAMES = new ArrayList<>();
 
@@ -635,6 +636,8 @@ public class CertificateProfile extends UpgradeableDataHashMap
   /** Constants holding the use properties for certificate extensions. */
   protected static final HashMap<String, String>
       USE_STD_CERT_EXTENSIONS = new HashMap<>();
+  /** Days in week. */
+  private static final int DAYS_IN_WEEK = 7;
 
   {
     USE_STD_CERT_EXTENSIONS.put(
@@ -991,9 +994,6 @@ public class CertificateProfile extends UpgradeableDataHashMap
     }
   }
 
-  /** size of usage array. */
-  private static final int KEY_USAGE_LENGTH = 9;
-
   // Public Methods.
   /**
    * @return the version of the certificate, should be one of the VERSION_
@@ -1198,8 +1198,6 @@ public class CertificateProfile extends UpgradeableDataHashMap
     setExpirationRestrictionWeekday(Calendar.SATURDAY, true);
     setExpirationRestrictionWeekday(Calendar.SUNDAY, true);
   }
-  /** Days in week. */
-  private static final int DAYS_IN_WEEK = 7;
 
   /**
    * If validity override is allowed, a certificate can have a shorter validity

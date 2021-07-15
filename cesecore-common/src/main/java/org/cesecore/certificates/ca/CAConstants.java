@@ -70,9 +70,6 @@ public final class CAConstants {
     "UNINITIALIZED"
   };
 
-  /** Prevents creation of new CAConstants. */
-  private CAConstants() { }
-
   /**
    * Constants used in the SignSessionBean indicating the userdata defined CA
    * should be used.
@@ -85,6 +82,9 @@ public final class CAConstants {
    * SecConst.
    */
   public static final int ALLCAS = 1;
+
+  /** Prevents creation of new CAConstants. */
+  private CAConstants() { }
 
   /**
    * Convert status code to message .

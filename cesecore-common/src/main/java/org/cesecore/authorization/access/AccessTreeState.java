@@ -29,6 +29,9 @@ public enum AccessTreeState {
   /** Decline. */
   STATE_DECLINE(4);
 
+    /** Legacy number. */
+    private int legacyNumber;
+
   /**
    * Constructor.
    *
@@ -43,6 +46,4 @@ public enum AccessTreeState {
     return legacyNumber;
   }
 
-  /** Legacy number. */
-  private int legacyNumber;
 }

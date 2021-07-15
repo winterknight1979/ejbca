@@ -40,6 +40,9 @@ public final class AccessSet implements Serializable {
 
   private static final long serialVersionUID = -6522714939328731306L;
 
+  /** Max search depth. */
+  private static final int MAX_DEPTH = 100;
+
   /**
    * Wildcard meaning: Access is granted to some items. Used only in calls to
    * isAuthorized to query whether we have access to any of the items (and in
@@ -61,7 +64,7 @@ public final class AccessSet implements Serializable {
    *
    * @deprecated Since 6.8.0
    */
-  @Deprecated static final String WILDCARD_RECURSIVE = "*RECURSIVE";
+  @Deprecated public static final String WILDCARD_RECURSIVE = "*RECURSIVE";
 
   /** Pattern. */
   private static final Pattern ID_IN_RULENAME =
@@ -100,9 +103,6 @@ public final class AccessSet implements Serializable {
     set.addAll(b.set);
   }
 
-  /** Max search depth. */
-  private static final int MAX_DEPTH = 100;
-
   /**
    * Is access to the resource authorised?
    *
@@ -112,14 +112,13 @@ public final class AccessSet implements Serializable {
   public boolean isAuthorized(final String... resources) {
     // Note that "*SOME" rules are added when the rules for the
     // AccessSet are built, and don't need to be handled here
+    boolean result = true;
     NEXT_RESOURCE:
     for (final String resource : resources) {
-      if (resource.charAt(0) != '/') {
-        throw new IllegalArgumentException("Resource must start with /");
-      } else if (resource.length() != 1
-          && resource.charAt(resource.length() - 1) == '/') {
-        throw new IllegalArgumentException("Resource should not end with /");
-      }
+      if (!result) {
+          break;
+         }
+      checkResourceFormat(resource);
 
       // Check for exact rule
       if (set.contains(resource)) {
@@ -135,38 +134,60 @@ public final class AccessSet implements Serializable {
           break;
         }
         parentResource = parentResource.substring(0, slash);
-        if (LOG.isTraceEnabled()) {
-          LOG.trace(
-              "Checking for '"
-                  + parentResource
-                  + "/"
-                  + WILDCARD_RECURSIVE
-                  + "'");
-        }
+        logCheck(parentResource);
         if (set.contains(parentResource + "/" + WILDCARD_RECURSIVE)) {
           continue NEXT_RESOURCE; // OK. Check next resource
         }
       }
-      if (depth == MAX_DEPTH && LOG.isDebugEnabled()) {
-        // Recursive rules are always accept rules, so it's safe to
-        // ignore some of them and continue
-        LOG.debug(
-            "Resource had more than 100 components, only the "
-                + "first 100 were checked for recursive accept access: "
-                + resource);
-      }
+      logDepth(resource, depth);
 
-      if (LOG.isTraceEnabled()) {
-        LOG.trace(
-            "No access rule for "
-                + resource
-                + ". Denying access."
-                + " Number of allowed resources="
-                + set.size());
-      }
-      return false;
+      logAccess(resource);
+      result = false;
     }
-    return true; // all resources match
+    return result; // all resources match
+  }
+
+  private void logDepth(final String resource, final int depth) {
+      if (depth == MAX_DEPTH && LOG.isDebugEnabled()) {
+          // Recursive rules are always accept rules, so it's safe to
+          // ignore some of them and continue
+          LOG.debug(
+                  "Resource had more than 100 components, only the "
+                    + "first 100 were checked for recursive accept access: "
+                          + resource);
+      }
+  }
+
+  private void logAccess(final String resource) {
+      if (LOG.isTraceEnabled()) {
+          LOG.trace(
+                  "No access rule for "
+                          + resource
+                          + ". Denying access."
+                          + " Number of allowed resources="
+                          + set.size());
+      }
+  }
+
+  private void logCheck(final String parentResource) {
+      if (LOG.isTraceEnabled()) {
+          LOG.trace(
+                  "Checking for '"
+                          + parentResource
+                          + "/"
+                          + WILDCARD_RECURSIVE
+                          + "'");
+      }
+  }
+
+  private void checkResourceFormat(
+          final String resource) throws IllegalArgumentException {
+      if (resource.charAt(0) != '/') {
+          throw new IllegalArgumentException("Resource must start with /");
+      } else if (resource.length() != 1
+              && resource.charAt(resource.length() - 1) == '/') {
+          throw new IllegalArgumentException("Resource should not end with /");
+      }
   }
 
   /** Use in tests only. */
@@ -240,7 +261,7 @@ public final class AccessSet implements Serializable {
     for (final String current : allResources) {
       // De-normalize if needed
       final String resource =
-          (current.length() > 1 && current.charAt(current.length() - 1) == '/')
+          current.length() > 1 && current.charAt(current.length() - 1) == '/'
               ? current.substring(0, current.length() - 1)
               : current;
       final boolean authorizedToResource =

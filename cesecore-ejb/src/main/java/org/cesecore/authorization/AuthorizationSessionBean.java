@@ -44,7 +44,7 @@ import org.cesecore.authorization.AuthorizationCache.AuthorizationCacheCallback;
 import org.cesecore.authorization.AuthorizationCache.AuthorizationResult;
 import org.cesecore.authorization.access.AuthorizationCacheReloadListener;
 import org.cesecore.authorization.cache.AccessTreeUpdateSessionLocal;
-import org.cesecore.authorization.cache.RemoteAccessSetCacheHolder;
+import org.cesecore.authorization.cache.RemoteAccessSetCacheHelper;
 import org.cesecore.config.CesecoreConfiguration;
 import org.cesecore.internal.InternalResources;
 import org.cesecore.jndi.JndiConstants;
@@ -238,7 +238,7 @@ public class AuthorizationSessionBean
     AuthorizationCache.INSTANCE.clear(
         accessTreeUpdateSession.getAccessTreeUpdateNumber());
     // Clear the local RA Access Set Cache
-    RemoteAccessSetCacheHolder.forceEmptyCache();
+    RemoteAccessSetCacheHelper.forceEmptyCache();
     authorizationSession.scheduleBackgroundRefresh();
   }
 

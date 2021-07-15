@@ -21,6 +21,7 @@ import javax.ejb.TransactionAttributeType;
 import org.apache.commons.lang.time.StopWatch;
 import org.apache.log4j.Logger;
 import org.cesecore.audit.AuditDevicesConfig;
+import org.cesecore.audit.AuditLogger;
 import org.cesecore.audit.audit.LogServiceState;
 import org.cesecore.audit.enums.EventStatus;
 import org.cesecore.audit.enums.EventType;
@@ -86,16 +87,16 @@ public class InternalSecurityEventsLoggerSessionBean
         AuditDevicesConfig.getDevice(ejbs, loggerId)
             .log(
                 trustedTime,
-                eventType,
-                eventStatus,
+                new AuditLogger.Event(eventType, eventStatus),
                 module,
                 service,
                 authToken,
                 customId,
-                searchDetail1,
-                searchDetail2,
-                additionalDetails,
-                AuditDevicesConfig.getProperties(loggerId));
+                new AuditLogger.Details(
+                        searchDetail1,
+                        searchDetail2,
+                        additionalDetails,
+                        AuditDevicesConfig.getProperties(loggerId)));
         if (LOG.isDebugEnabled()) {
           sw.stop();
           LOG.debug("LogDevice: " + loggerId + " Proc: " + sw.getTime());

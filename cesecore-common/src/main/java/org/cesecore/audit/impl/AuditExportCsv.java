@@ -77,8 +77,12 @@ public class AuditExportCsv implements AuditExporter {
   }
 
   @Override
-  public void startObjectLabel(final String label) throws IOException { }
+  public void startObjectLabel(final String label) throws IOException {
+      // No-op
+  }
 
   @Override
-  public void endObjectLabel() throws IOException { }
+  public void endObjectLabel() throws IOException {
+      // No-op
+  }
 }

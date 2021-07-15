@@ -44,6 +44,8 @@ public final class HashID {
   private final String b64url;
   /** Key to be used for hash tables. */
   private final Integer key;
+  /** Length. */
+  private static final int HASH_LENGTH = 27;
 
   private HashID(final byte[] hash) {
     final String b64padded = new String(Base64.encode(hash));
@@ -131,8 +133,6 @@ public final class HashID {
     }
   }
 
-  /** Length. */
-  private static final int HASH_LENGTH = 27;
   /**
    * @param s The hash base64 encoded. See RFC4387
    * @return the ID.

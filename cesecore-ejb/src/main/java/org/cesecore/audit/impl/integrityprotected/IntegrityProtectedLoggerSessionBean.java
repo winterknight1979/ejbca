@@ -12,8 +12,6 @@
  *************************************************************************/
 package org.cesecore.audit.impl.integrityprotected;
 
-import java.util.Map;
-import java.util.Properties;
 import javax.annotation.PostConstruct;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -22,8 +20,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import org.apache.log4j.Logger;
-import org.cesecore.audit.enums.EventStatus;
-import org.cesecore.audit.enums.EventType;
+import org.cesecore.audit.AuditLogger;
 import org.cesecore.audit.enums.ModuleType;
 import org.cesecore.audit.enums.ServiceType;
 import org.cesecore.audit.log.AuditRecordStorageException;
@@ -99,27 +96,23 @@ public class IntegrityProtectedLoggerSessionBean
   // Always persist audit log
   public void log(
       final TrustedTime trustedTime,
-      final EventType eventType,
-      final EventStatus eventStatus,
+      final AuditLogger.Event event,
       final ModuleType module,
       final ServiceType service,
       final String authToken,
       final String customId,
-      final String searchDetail1,
-      final String searchDetail2,
-      final Map<String, Object> additionalDetails,
-      final Properties properties)
+      final AuditLogger.Details details)
       throws AuditRecordStorageException {
     if (LOG.isTraceEnabled()) {
       LOG.trace(
           String.format(
               ">log:%s:%s:%s:%s:%s:%s",
-              eventType,
-              eventStatus,
+              event.getEventType(),
+              event.getEventStatus(),
               module,
               service,
               authToken,
-              additionalDetails));
+              details.getAdditionalDetails()));
     }
     try {
       final Long sequenceNumber =
@@ -134,15 +127,15 @@ public class IntegrityProtectedLoggerSessionBean
               nodeId,
               sequenceNumber,
               timeStamp,
-              eventType,
-              eventStatus,
+              event.getEventType(),
+              event.getEventStatus(),
               authToken,
               service,
               module,
               customId,
-              searchDetail1,
-              searchDetail2,
-              additionalDetails);
+              details.getSearchDetail1(),
+              details.getSearchDetail2(),
+              details.getAdditionalDetails());
       entityManager.persist(auditRecordData);
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
