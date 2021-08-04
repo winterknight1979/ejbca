@@ -34,11 +34,11 @@
 	<suppress checks="MagicNumberCheck"
 		files="SernoGeneratorRandom.java" lines="217" /> <!-- Only used for testing -->
 	<suppress checks="MethodLengthCheck" files="X509CA.java"
-		lines="2365,1274" />
+		lines="1319" />
 	<suppress checks="ParameterNumberCheck" files="X509CA.java"
-		lines="1274,1179" />
+		lines="1319,1777,2041,2125,2404" />
 	<suppress checks="LineLengthCheck" files="X509CA.java"
-		lines="2496" /> <!-- URL in comment, not caught by config -->
+		lines="2798" /> <!-- URL in comment, not caught by config -->
 	<suppress checks="ParameterNumberCheck"
 		files="X509CAInfo.java" lines="101,244,437" />
 	<suppress checks="MagicNumberCheck"

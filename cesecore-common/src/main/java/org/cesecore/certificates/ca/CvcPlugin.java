@@ -112,7 +112,7 @@ public interface CvcPlugin {
    *     CA.CaCertValidity,
    *    CA.CaCertConfig)
    */
-  Certificate generateCertificate(
+  Certificate generateCertificate(// NOPMD: Params.
       CryptoToken cryptoToken,
       EndEntityInformation subject,
       RequestMessage request,

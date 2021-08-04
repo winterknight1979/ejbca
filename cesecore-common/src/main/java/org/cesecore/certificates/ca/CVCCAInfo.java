@@ -129,7 +129,7 @@ public class CVCCAInfo extends CAInfo {
    * @param aUseCertificateStorage bool
    * @param aAcceptRevocationNonExistingEntry bool
    */
-  public CVCCAInfo( // NOPMD: yes, we actually need all these 
+  public CVCCAInfo(// NOPMD: yes, we actually need all these
       final String subjectDn,
       final String name,
       final int status,
@@ -225,7 +225,7 @@ public class CVCCAInfo extends CAInfo {
    * @param aAcceptRevocationNonExistingEntry bool
    * @param defaultCertprofileId ID
    */
-  public CVCCAInfo( //NOPMD: yes, we actually need all these
+  public CVCCAInfo(//NOPMD: yes, we actually need all these
       final int caid,
       final String encodedValidity,
       final CAToken catoken,
