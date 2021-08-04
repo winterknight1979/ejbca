@@ -43,6 +43,7 @@ import org.bouncycastle.cert.X509CRLHolder;
 import org.bouncycastle.cms.CMSException;
 import org.bouncycastle.jce.X509KeyUsage;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.cesecore.CesecoreRuntimeException;
 import org.cesecore.certificates.ca.catoken.CAToken;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAService;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceInfo;
@@ -75,7 +76,7 @@ import org.cesecore.util.ValidityDate;
  *
  * @version $Id: CA.java 31725 2019-03-07 10:05:50Z tarmo_r_helmes $
  */
-public abstract class CA extends UpgradeableDataHashMap
+public abstract class CA extends UpgradeableDataHashMap // NOPMD: Long class
     implements Serializable {
 
   private static final long serialVersionUID = -8755429830955594642L;
@@ -420,7 +421,7 @@ public abstract class CA extends UpgradeableDataHashMap
 
   /** @return date */
   public Date getExpireTime() {
-    return ((Date) data.get(EXPIRETIME));
+    return (Date) data.get(EXPIRETIME);
   }
 
   /** @param expiretime date */
@@ -440,7 +441,7 @@ public abstract class CA extends UpgradeableDataHashMap
 
   /** @return Description */
   public String getDescription() {
-    return ((String) data.get(DESCRIPTION));
+    return (String) data.get(DESCRIPTION);
   }
 
   /** @param description Description */
@@ -514,7 +515,7 @@ public abstract class CA extends UpgradeableDataHashMap
   /** @return Publishers */
   @SuppressWarnings("unchecked")
   public Collection<Integer> getCRLPublishers() {
-    return ((Collection<Integer>) data.get(CRLPUBLISHERS));
+    return (Collection<Integer>) data.get(CRLPUBLISHERS);
   }
 
   /** @param crlpublishers Publishers */
@@ -525,7 +526,7 @@ public abstract class CA extends UpgradeableDataHashMap
   /** @return Validators */
   @SuppressWarnings("unchecked")
   public Collection<Integer> getValidators() {
-    return ((Collection<Integer>) data.get(VALIDATORS));
+    return (Collection<Integer>) data.get(VALIDATORS);
   }
 
   /** @param validators Validators */
@@ -605,8 +606,8 @@ public abstract class CA extends UpgradeableDataHashMap
     // there is a sigAlg though
     // things like a NulLCryptoToken does not have signature algorithms
     final String sigAlg = catoken.getSignatureAlgorithm();
-    if (StringUtils.isNotEmpty(sigAlg)) {
-      if (!StringTools.containsCaseInsensitive(
+    if (StringUtils.isNotEmpty(sigAlg)
+      && !StringTools.containsCaseInsensitive(
           AlgorithmConstants.AVAILABLE_SIGALGS, sigAlg)) {
         final String msg =
             INTRES.getLocalizedMessage(
@@ -614,11 +615,11 @@ public abstract class CA extends UpgradeableDataHashMap
                 sigAlg,
                 ArrayUtils.toString(AlgorithmConstants.AVAILABLE_SIGALGS));
         throw new InvalidAlgorithmException(msg);
-      }
+
     }
     final String encAlg = catoken.getEncryptionAlgorithm();
-    if (StringUtils.isNotEmpty(encAlg)) {
-      if (!StringTools.containsCaseInsensitive(
+    if (StringUtils.isNotEmpty(encAlg)
+      && !StringTools.containsCaseInsensitive(
           AlgorithmConstants.AVAILABLE_SIGALGS, encAlg)) {
         final String msg =
             INTRES.getLocalizedMessage(
@@ -626,7 +627,7 @@ public abstract class CA extends UpgradeableDataHashMap
                 encAlg,
                 ArrayUtils.toString(AlgorithmConstants.AVAILABLE_SIGALGS));
         throw new InvalidAlgorithmException(msg);
-      }
+
     }
     data.put(CATOKENDATA, catoken.saveData());
     this.caToken = catoken;
@@ -669,7 +670,7 @@ public abstract class CA extends UpgradeableDataHashMap
       try {
         storechain.add(new String(Base64.encode(cert.getEncoded())));
       } catch (Exception e) {
-        throw new RuntimeException(e);
+        throw new CesecoreRuntimeException(e);
       }
     }
     data.put(REQUESTCERTCHAIN, storechain);
@@ -809,7 +810,7 @@ public abstract class CA extends UpgradeableDataHashMap
         String b64Cert = new String(Base64.encode(cert.getEncoded()));
         storechain.add(b64Cert);
       } catch (Exception e) {
-        throw new RuntimeException(e);
+        throw new CesecoreRuntimeException(e);
       }
     }
     data.put(ROLLOVERCERTIFICATECHAIN, storechain);
@@ -1133,27 +1134,7 @@ public abstract class CA extends UpgradeableDataHashMap
       final AvailableCustomCertificateExtensionsConfiguration cceConfig)
       throws InvalidAlgorithmException {
     setEncodedValidity(aCainfo.getEncodedValidity());
-    data.put(DESCRIPTION, aCainfo.getDescription());
-    data.put(CRLPERIOD, Long.valueOf(aCainfo.getCRLPeriod()));
-    data.put(DELTACRLPERIOD, Long.valueOf(aCainfo.getDeltaCRLPeriod()));
-    data.put(CRLISSUEINTERVAL, Long.valueOf(aCainfo.getCRLIssueInterval()));
-    data.put(CRLOVERLAPTIME, Long.valueOf(aCainfo.getCRLOverlapTime()));
-    data.put(CRLPUBLISHERS, aCainfo.getCRLPublishers());
-    data.put(VALIDATORS, aCainfo.getValidators());
-    data.put(APPROVALS, aCainfo.getApprovals());
-    data.put(
-        USENOCONFLICTCERTIFICATEDATA, aCainfo.isUseNoConflictCertificateData());
-    if (aCainfo.getCertificateProfileId() > 0) {
-      data.put(
-          CERTIFICATEPROFILEID,
-          Integer.valueOf(aCainfo.getCertificateProfileId()));
-    }
-    if (aCainfo.getDefaultCertificateProfileId() > 0
-        && !aCainfo.isUseCertificateStorage()) {
-      data.put(
-          DEFAULTCERTIFICATEPROFILEID,
-          Integer.valueOf(aCainfo.getDefaultCertificateProfileId()));
-    }
+    storeData(aCainfo);
     setKeepExpiredCertsOnCRL(aCainfo.getKeepExpiredCertsOnCRL());
 
     if (aCainfo.getCAToken() != null) {
@@ -1172,7 +1153,7 @@ public abstract class CA extends UpgradeableDataHashMap
     setAcceptRevocationNonExistingEntry(
         aCainfo.isAcceptRevocationNonExistingEntry());
     List<Certificate> newcerts = aCainfo.getCertificateChain();
-    if ((newcerts != null) && (newcerts.size() > 0)) {
+    if (newcerts != null && newcerts.size() > 0) {
       setCertificateChain(newcerts);
       Certificate cacert = newcerts.iterator().next();
       setExpireTime(CertTools.getNotAfter(cacert));
@@ -1226,6 +1207,31 @@ public abstract class CA extends UpgradeableDataHashMap
     this.cainfo = aCainfo;
   }
 
+  private void storeData(final CAInfo aCainfo) {
+      data.put(DESCRIPTION, aCainfo.getDescription());
+      data.put(CRLPERIOD, Long.valueOf(aCainfo.getCRLPeriod()));
+      data.put(DELTACRLPERIOD, Long.valueOf(aCainfo.getDeltaCRLPeriod()));
+      data.put(CRLISSUEINTERVAL, Long.valueOf(aCainfo.getCRLIssueInterval()));
+      data.put(CRLOVERLAPTIME, Long.valueOf(aCainfo.getCRLOverlapTime()));
+      data.put(CRLPUBLISHERS, aCainfo.getCRLPublishers());
+      data.put(VALIDATORS, aCainfo.getValidators());
+      data.put(APPROVALS, aCainfo.getApprovals());
+      data.put(
+              USENOCONFLICTCERTIFICATEDATA,
+              aCainfo.isUseNoConflictCertificateData());
+      if (aCainfo.getCertificateProfileId() > 0) {
+          data.put(
+                  CERTIFICATEPROFILEID,
+                  Integer.valueOf(aCainfo.getCertificateProfileId()));
+      }
+      if (aCainfo.getDefaultCertificateProfileId() > 0
+              && !aCainfo.isUseCertificateStorage()) {
+          data.put(
+                  DEFAULTCERTIFICATEPROFILEID,
+                  Integer.valueOf(aCainfo.getDefaultCertificateProfileId()));
+      }
+  }
+
   /**
    * Called when an uninitialized CA is updated, either from updateCA or from
    * other places in the code.
@@ -1250,12 +1256,7 @@ public abstract class CA extends UpgradeableDataHashMap
    *     X509KeyUsage.digitalSignature | X509KeyUsage.keyEncipherment
    * @param encodedValidity requested validity as SimpleTime string or ISO8601
    *     date string (see ValidityDate.java).
-   * @param certProfile Profile
-   * @param sequence an optional requested sequence number (serial number) for
-   *     the certificate, may or may not be used by the CA. Currently used by
-   *     CVC CAs for sequence field. Can be set to null.
-   * @param cceConfig containing a list of available custom certificate
-   *     extensions
+   * @param config config
    * @return The newly created certificate
    * @throws Exception On error
    */
@@ -1266,9 +1267,7 @@ public abstract class CA extends UpgradeableDataHashMap
       final int keyusage,
       final  Date onotBefore,
       final String encodedValidity,
-      final CertificateProfile certProfile,
-      final String sequence,
-      final AvailableCustomCertificateExtensionsConfiguration cceConfig)
+      final CaCertConfig config)
       throws Exception {
 
     // Calculate the notAfter date
@@ -1284,19 +1283,150 @@ public abstract class CA extends UpgradeableDataHashMap
     } else {
       notAfter = null;
     }
+
+
     return generateCertificate(
         cryptoToken,
         subject,
         null,
         publicKey,
         keyusage,
+        new CaCertValidity(
         notBefore,
-        notAfter,
-        certProfile,
-        null,
-        sequence,
-        null,
-        cceConfig);
+        notAfter),
+        config);
+  }
+
+  public static class CaCertValidity {
+      /** Param. */
+      private final Date notBefore;
+      /** Param. */
+      private final Date notAfter;
+
+      /**
+       * @param nb not before
+       * @param na not after
+       */
+      public CaCertValidity(final Date nb, final Date na) {
+          this.notBefore = nb;
+          this.notAfter = na;
+      }
+
+    /**
+     * @return the notBefore
+     */
+    public Date getNotBefore() {
+        return notBefore;
+    }
+
+    /**
+     * @return the notAfter
+     */
+    public Date getNotAfter() {
+        return notAfter;
+    }
+
+  }
+
+  public static class CaCertConfig {
+      /** Param. */
+      private final CertificateProfile certProfile;
+      /** Param. */
+      private final Extensions extensions;
+      /** Param. */
+      private final String sequence;
+      /** Param. */
+      private final CertificateGenerationParams certGenParams;
+      /** Param. */
+      private final AvailableCustomCertificateExtensionsConfiguration cceConfig;
+      /**
+       * @param profile Profile
+       * @param asequence Seq
+       * @param conf Config
+       */
+      public CaCertConfig(final CertificateProfile profile,
+              final String asequence,
+              final AvailableCustomCertificateExtensionsConfiguration conf) {
+          this.certProfile = profile;
+          this.sequence = asequence;
+          this.cceConfig = conf;
+          this.extensions = null;
+          this.certGenParams = null;
+      }
+
+      /**
+       * @param profile Profile
+       * @param ext Ext
+       * @param asequence Seq
+       * @param params Params
+       * @param conf Config
+       */
+      public CaCertConfig(final CertificateProfile profile,
+              final Extensions ext,
+              final String asequence,
+              final CertificateGenerationParams params,
+              final AvailableCustomCertificateExtensionsConfiguration conf) {
+          this.certProfile = profile;
+          this.sequence = asequence;
+          this.cceConfig = conf;
+          this.extensions = ext;
+          this.certGenParams = params;
+      }
+
+      /**
+       * @param profile Profile
+       * @param ext Ext
+       * @param asequence Seq
+       * @param conf Config
+       */
+      public CaCertConfig(final CertificateProfile profile,
+              final Extensions ext,
+              final String asequence,
+              final AvailableCustomCertificateExtensionsConfiguration conf) {
+          this.certProfile = profile;
+          this.sequence = asequence;
+          this.cceConfig = conf;
+          this.extensions = ext;
+          this.certGenParams = null;
+      }
+
+    /**
+     * @return the certProfile
+     */
+    public CertificateProfile getCertProfile() {
+        return certProfile;
+    }
+
+    /**
+     * @return the extensions
+     */
+    public Extensions getExtensions() {
+        return extensions;
+    }
+
+    /**
+     * @return the sequence
+     */
+    public String getSequence() {
+        return sequence;
+    }
+
+    /**
+     * @return the certGenParams
+     */
+    public CertificateGenerationParams getCertGenParams() {
+        return certGenParams;
+    }
+
+    /**
+     * @return the cceConfig
+     */
+    public AvailableCustomCertificateExtensionsConfiguration getCceConfig() {
+        return cceConfig;
+    }
+
+
+
   }
 
   /**
@@ -1315,19 +1445,9 @@ public abstract class CA extends UpgradeableDataHashMap
    *     RequestMessage and publicKey
    * @param keyusage BouncyCastle key usage {@link X509KeyUsage}, e.g.
    *     X509KeyUsage.digitalSignature | X509KeyUsage.keyEncipherment
-   * @param notBefore Start date
-   * @param notAfter End date
-   * @param certProfile Profile
-   * @param extensions an optional set of extensions to set in the created
-   *     certificate, if the profile allows extension override, null if the
-   *     profile default extensions should be used.
-   * @param sequence an optional requested sequence number (serial number) for
-   *     the certificate, may or may not be used by the CA. Currently used by
-   *     CVC CAs for sequence field. Can be set to null.
-   * @param certGenParams Extra parameters for certificate generation, e.g. for
-   *     the CT extension. May contain references to session beans.
-   * @param cceConfig containing a list of available custom certificate
-   *     extensions
+   * @param validity Validity
+   * @param config  Config
+   *
    * @return the generated certificate
    * @throws CryptoTokenOfflineException if the crypto token was unavailable
    * @throws CertificateExtensionException if any of the certificate extensions
@@ -1353,96 +1473,13 @@ public abstract class CA extends UpgradeableDataHashMap
       RequestMessage request,
       PublicKey publicKey,
       int keyusage,
-      Date notBefore,
-      Date notAfter,
-      CertificateProfile certProfile,
-      Extensions extensions,
-      String sequence,
-      CertificateGenerationParams certGenParams,
-      AvailableCustomCertificateExtensionsConfiguration cceConfig)
+      CaCertValidity validity,
+      CaCertConfig config)
       throws CryptoTokenOfflineException, CAOfflineException,
           InvalidAlgorithmException, IllegalValidityException,
           IllegalNameException, OperatorCreationException,
           CertificateCreateException, CertificateExtensionException,
           SignatureException, IllegalKeyException;
-
-  /**
-   * @param cryptoToken Token
-   * @param request provided request message containing optional information,
-   *     and will be set with the signing key and provider. If the certificate
-   *     profile allows subject DN override this value will be used instead of
-   *     the value from subject.getDN. Its public key is going to be used if
-   *     publicKey == null &amp;&amp;
-   *     subject.extendedInformation.certificateRequest == null. Can be null.
-   * @param publicKey provided public key which will have precedence over public
-   *     key from the provided RequestMessage but not over
-   *     subject.extendedInformation.certificateRequest
-   * @param subject end entity information. If it contains certificateRequest
-   *     under extendedInformation, it will be used instead of the provided
-   *     RequestMessage and publicKey
-   * @param keyusage BouncyCastle key usage {@link X509KeyUsage}, e.g.
-   *     X509KeyUsage.digitalSignature | X509KeyUsage.keyEncipherment
-   * @param notBefore Start date
-   * @param notAfter End date
-   * @param certProfile Profile
-   * @param extensions an optional set of extensions to set in the created
-   *     certificate, if the profile allows extension override, null if the
-   *     profile default extensions should be used.
-   * @param sequence an optional requested sequence number (serial number) for
-   *     the certificate, may or may not be used by the CA. Currently used by
-   *     CVC CAs for sequence field. Can be set to null.
-   * @param cceConfig containing a list of available custom certificate
-   *     extensions
-   * @return the generated certificate
-   * @throws CryptoTokenOfflineException if the crypto token was unavailable
-   * @throws CertificateExtensionException if any of the certificate extensions
-   *     were invalid
-   * @throws CertificateCreateException if an error occurred when trying to
-   *     create a certificate.
-   * @throws OperatorCreationException if CA's private key contained an unknown
-   *     algorithm or provider
-   * @throws IllegalNameException if the name specified in the certificate
-   *     request contains illegal characters
-   * @throws IllegalValidityException if validity was invalid
-   * @throws InvalidAlgorithmException if the signing algorithm in the
-   *     certificate profile (or the CA Token if not found) was invalid.
-   * @throws CAOfflineException if the CA wasn't active
-   * @throws SignatureException if the CA's certificate's and request's
-   *     certificate's and signature algorithms differ
-   * @throws IllegalKeyException if the using public key is not allowed to be
-   *     used by specified certProfile
-   */
-  public final Certificate generateCertificate(
-      final CryptoToken cryptoToken,
-      final EndEntityInformation subject,
-      final RequestMessage request,
-      final PublicKey publicKey,
-      final int keyusage,
-      final Date notBefore,
-      final Date notAfter,
-      final CertificateProfile certProfile,
-      final Extensions extensions,
-      final String sequence,
-      final AvailableCustomCertificateExtensionsConfiguration cceConfig)
-      throws CryptoTokenOfflineException, CAOfflineException,
-          InvalidAlgorithmException, IllegalValidityException,
-          IllegalNameException, OperatorCreationException,
-          CertificateCreateException, CertificateExtensionException,
-          SignatureException, IllegalKeyException {
-    return generateCertificate(
-        cryptoToken,
-        subject,
-        request,
-        publicKey,
-        keyusage,
-        notBefore,
-        notAfter,
-        certProfile,
-        extensions,
-        sequence,
-        null,
-        cceConfig);
-  }
 
   /**
    * CRL holder .
@@ -1713,36 +1750,7 @@ public abstract class CA extends UpgradeableDataHashMap
                     + "extended service type: "
                     + type
                     + ". Will try our known ones.");
-            switch (type) {
-              case 2: // Old XKMSCAService that should not be used
-                log.info(
-                    "Found an XKMS CA service type. Will"
-                        + " not create the deprecated service.");
-                break;
-              case ExtendedCAServiceTypes.TYPE_CMSEXTENDEDSERVICE:
-                implClassname =
-                    "org.ejbca.core.model.ca.caadmin."
-                        + "extendedcaservices.CmsCAService";
-                break;
-              case ExtendedCAServiceTypes.TYPE_HARDTOKENENCEXTENDEDSERVICE:
-                implClassname =
-                    "org.ejbca.core.model.ca.caadmin."
-                        + "extendedcaservices"
-                        + ".HardTokenEncryptCAService";
-                break;
-              case ExtendedCAServiceTypes.TYPE_KEYRECOVERYEXTENDEDSERVICE:
-                implClassname =
-                    "org.ejbca.core.model.ca.caadmin."
-                        + "extendedcaservices.KeyRecoveryCAService";
-                break;
-              default:
-                log.error(
-                    "implementation classname is null for "
-                        + "extended service type: "
-                        + type
-                        + ". Service not created.");
-                break;
-            }
+            implClassname = setClassName(type, implClassname);
           }
           if (implClassname != null) {
             if (log.isDebugEnabled()) {
@@ -1792,6 +1800,41 @@ public abstract class CA extends UpgradeableDataHashMap
     }
     return returnval;
   }
+
+private String setClassName(final int type, final String classname) {
+    String implClassname = classname;
+    switch (type) {
+      case 2: // Old XKMSCAService that should not be used
+        log.info(
+            "Found an XKMS CA service type. Will"
+                + " not create the deprecated service.");
+        break;
+      case ExtendedCAServiceTypes.TYPE_CMSEXTENDEDSERVICE:
+        implClassname =
+            "org.ejbca.core.model.ca.caadmin."
+                + "extendedcaservices.CmsCAService";
+        break;
+      case ExtendedCAServiceTypes.TYPE_HARDTOKENENCEXTENDEDSERVICE:
+        implClassname =
+            "org.ejbca.core.model.ca.caadmin."
+                + "extendedcaservices"
+                + ".HardTokenEncryptCAService";
+        break;
+      case ExtendedCAServiceTypes.TYPE_KEYRECOVERYEXTENDEDSERVICE:
+        implClassname =
+            "org.ejbca.core.model.ca.caadmin."
+                + "extendedcaservices.KeyRecoveryCAService";
+        break;
+      default:
+        log.error(
+            "implementation classname is null for "
+                + "extended service type: "
+                + type
+                + ". Service not created.");
+        break;
+    }
+    return implClassname;
+}
 
   /**
    * Set extended service.
@@ -1863,7 +1906,7 @@ public abstract class CA extends UpgradeableDataHashMap
             LATESTLINKCERTIFICATE,
             new String(Base64.encode(encodedLinkCertificate), "UTF8"));
       } catch (final UnsupportedEncodingException e) {
-        throw new RuntimeException(e); // Lack of UTF8 would be fatal.
+        throw new CesecoreRuntimeException(e); // Lack of UTF8 would be fatal.
       }
     }
   }
@@ -1877,7 +1920,7 @@ public abstract class CA extends UpgradeableDataHashMap
       return Base64.decode(
           ((String) data.get(LATESTLINKCERTIFICATE)).getBytes("UTF8"));
     } catch (final UnsupportedEncodingException e) {
-      throw new RuntimeException(e); // Lack of UTF8 would be fatal.
+      throw new CesecoreRuntimeException(e); // Lack of UTF8 would be fatal.
     }
   }
 }

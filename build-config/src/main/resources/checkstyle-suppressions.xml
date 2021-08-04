@@ -34,11 +34,11 @@
 	<suppress checks="MagicNumberCheck"
 		files="SernoGeneratorRandom.java" lines="217" /> <!-- Only used for testing -->
 	<suppress checks="MethodLengthCheck" files="X509CA.java"
-		lines="2370,1279" />
+		lines="1319" />
 	<suppress checks="ParameterNumberCheck" files="X509CA.java"
-		lines="1279,1179" />
+		lines="1319,1777,2041,2125,2404" />
 	<suppress checks="LineLengthCheck" files="X509CA.java"
-		lines="2501" /> <!-- URL in comment, not caught by config -->
+		lines="2798" /> <!-- URL in comment, not caught by config -->
 	<suppress checks="ParameterNumberCheck"
 		files="X509CAInfo.java" lines="101,244,437" />
 	<suppress checks="MagicNumberCheck"
@@ -55,9 +55,9 @@
 	<suppress checks="UnusedImportsCheck"
 		files="CertificateProfile.java" lines="43" /> <!-- Used in Jdoc. -->
 	<suppress checks="MethodLengthCheck"
-		files="CertificateProfile.java" lines="4015" />
+		files="CertificateProfile.java" lines="4013" />
 	<suppress checks="MagicNumberCheck"
-		files="CertificateProfile.java" lines="1981" />	<!-- This is just a very big number. -->
+		files="CertificateProfile.java" lines="1979" />	<!-- This is just a very big number. -->
 	<suppress checks="MagicNumberCheck" files="CTLogInfo.java"
 		lines="42" />	<!-- Default timeout. -->
 	<suppress checks="ParameterNumberCheck"
@@ -139,7 +139,7 @@
 	<suppress checks="ParameterNumberCheck"
 		files="IntegrityProtectedLoggerSessionBean.java" lines="100" />
 	<suppress checks="ParameterNumberCheck"
-		files="InternalSecurityEventsLoggerSessionBean.java" lines="61" />
+		files="InternalSecurityEventsLoggerSessionBean.java" lines="62" />
 	<suppress checks="ParameterNumberCheck"
 		files="SecurityEventsLoggerSessionBean.java" lines="89,123,150" />
 	<suppress checks="MethodLengthCheck"
@@ -422,9 +422,9 @@
 	<suppress checks="ParameterNumberCheck"
 		files="AuthorizationSystemSessionBean.java" lines="216" />
 	<suppress checks="MethodLengthCheck"
-		files="CAAdminSessionBean.java" lines="439,717,1017,1304,1631,2023,2199,2964,3787,4056,4387,4556" />
+		files="CAAdminSessionBean.java" lines="439,717,1017,1306,1633,2025,2201,2967,3792,4061,4392,4561" />
 	<suppress checks="ParameterNumberCheck"
-		files="CAAdminSessionBean.java" lines="3961,4056" />
+		files="CAAdminSessionBean.java" lines="3966,4061" />
 	<suppress checks="MethodLengthCheck"
 		files="PublisherQueueSessionBean.java" lines="408" />
 	<suppress checks="ParameterNumberCheck"

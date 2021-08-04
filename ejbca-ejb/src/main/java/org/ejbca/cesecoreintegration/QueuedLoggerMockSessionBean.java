@@ -12,11 +12,9 @@
  *************************************************************************/
 package org.ejbca.cesecoreintegration;
 
-import java.util.Map;
-import java.util.Properties;
 import javax.ejb.Stateless;
-import org.cesecore.audit.enums.EventStatus;
-import org.cesecore.audit.enums.EventType;
+
+import org.cesecore.audit.AuditLogger;
 import org.cesecore.audit.enums.ModuleType;
 import org.cesecore.audit.enums.ServiceType;
 import org.cesecore.audit.impl.queued.QueuedLoggerSessionLocal;
@@ -41,16 +39,12 @@ public class QueuedLoggerMockSessionBean implements QueuedLoggerSessionLocal {
   @Override
   public void log(
       final TrustedTime trustedTime,
-      final EventType eventType,
-      final EventStatus eventStatus,
+      final AuditLogger.Event event,
       final ModuleType module,
       final ServiceType service,
       final String authToken,
       final String customId,
-      final String searchDetail1,
-      final String searchDetail2,
-      final Map<String, Object> additionalDetails,
-      final Properties properties)
+      final AuditLogger.Details details)
       throws AuditRecordStorageException {
     throw new RuntimeException(UNSUPPORTED);
   }

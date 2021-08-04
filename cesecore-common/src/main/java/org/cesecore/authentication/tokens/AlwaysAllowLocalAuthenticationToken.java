@@ -96,7 +96,7 @@ public class AlwaysAllowLocalAuthenticationToken
     if (authenticationToken == null) {
       return false;
     }
-    return (getClass() == authenticationToken.getClass());
+    return getClass() == authenticationToken.getClass();
   }
 
   @Override

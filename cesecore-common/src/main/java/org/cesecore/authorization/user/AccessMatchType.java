@@ -85,6 +85,13 @@ public enum AccessMatchType {
   @Deprecated
   SPECIALADMIN_NOUSER(2005);
 
+  /** ID. */
+  private int numericValue;
+  /** Map of IDs to match types. */
+  private static Map<Integer, AccessMatchType> databaseLookup;
+  /** Map of names to match types. */
+  private static Map<String, AccessMatchType> nameLookup;
+
   /**
    * Constructor.
    *
@@ -118,13 +125,6 @@ public enum AccessMatchType {
   public static AccessMatchType matchFromName(final String name) {
     return nameLookup.get(name);
   }
-
-  /** ID. */
-  private int numericValue;
-  /** Map of IDs to match types. */
-  private static Map<Integer, AccessMatchType> databaseLookup;
-  /** Map of names to match types. */
-  private static Map<String, AccessMatchType> nameLookup;
 
   static {
     databaseLookup = new HashMap<Integer, AccessMatchType>();

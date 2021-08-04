@@ -45,6 +45,33 @@ public enum AuthorizationCache {
   /** Logger. */
   private final Logger log = Logger.getLogger(AuthorizationCache.class);
 
+  /** Cache. */
+  private ConcurrentHashMap<String, AuthorizationCacheEntry> cacheMap =
+          new ConcurrentHashMap<>();
+
+  /** Last update. */
+  private AtomicInteger latestUpdateNumber = new AtomicInteger(0);
+
+  /** True if listener has been registered. */
+  private final AtomicBoolean authorizationCacheReloadListenerRegistered =
+          new AtomicBoolean(false);
+
+  /** Reload listener. */
+  private final AuthorizationCacheReloadListener
+  authorizationCacheReloadListener =
+  new AuthorizationCacheReloadListener() {
+      @Override
+      public void onReload(final AuthorizationCacheReload event) {
+          setUpdateNumberIfLower(event.getAccessTreeUpdateNumber());
+      }
+
+      @Override
+      public String getListenerName() {
+          return AuthorizationCache.class.getSimpleName();
+      }
+  };
+
+
   /**
    * The access available to an authentication token and corresponding version
    * of the authorization systems updateNumber.
@@ -117,32 +144,6 @@ public enum AuthorizationCache {
     /** Countdown. */
     private final CountDownLatch countDownLatch = new CountDownLatch(1);
   }
-
-  /** Cache. */
-  private ConcurrentHashMap<String, AuthorizationCacheEntry> cacheMap =
-      new ConcurrentHashMap<>();
-
-  /** Last update. */
-  private AtomicInteger latestUpdateNumber = new AtomicInteger(0);
-
-  /** True if listener has been registered. */
-  private final AtomicBoolean authorizationCacheReloadListenerRegistered =
-      new AtomicBoolean(false);
-
-  /** Reload listener. */
-  private final AuthorizationCacheReloadListener
-      authorizationCacheReloadListener =
-          new AuthorizationCacheReloadListener() {
-            @Override
-            public void onReload(final AuthorizationCacheReload event) {
-              setUpdateNumberIfLower(event.getAccessTreeUpdateNumber());
-            }
-
-            @Override
-            public String getListenerName() {
-              return AuthorizationCache.class.getSimpleName();
-            }
-          };
 
   /**
    * Clear stale cache.
@@ -223,18 +224,15 @@ public enum AuthorizationCache {
               }
             }
           }
-        } else if (entry.timeOfLastUse + purgeUnusedAuthorizationAfter < now) {
-          // Remove the unused entry
-          if (cacheMap.remove(key, entry)) {
-            if (log.isDebugEnabled()) {
-              log.debug(
-                  "Removed entry for key '"
-                      + key
-                      + "' since it was last seen "
-                      + ValidityDate.formatAsUTC(entry.timeOfLastUse)
-                      + ".");
-            }
-          }
+        } else if (entry.timeOfLastUse + purgeUnusedAuthorizationAfter < now
+                && cacheMap.remove(key, entry)
+                && log.isDebugEnabled()) {
+            log.debug(
+                    "Removed entry for key '"
+                            + key
+                            + "' since it was last seen "
+                            + ValidityDate.formatAsUTC(entry.timeOfLastUse)
+                            + ".");
         }
       }
     }
@@ -314,17 +312,17 @@ public enum AuthorizationCache {
       }
       // Check if the returned entry is stale
       if (ret.updateNumber < latestUpdateNumber.get()) {
-        // Trigger an update on next get and recurse
-        if (cacheMap.remove(key, ret)) {
-          if (log.isDebugEnabled()) {
-            log.debug(
-                "Removed entry for key '"
-                    + key
-                    + "' since its updateNumber was "
-                    + ret.updateNumber
-                    + ".");
+          // Trigger an update on next get and recurse
+          if (cacheMap.remove(key, ret)
+                  && log.isDebugEnabled()) {
+              log.debug(
+                      "Removed entry for key '"
+                              + key
+                              + "' since its updateNumber was "
+                              + ret.updateNumber
+                              + ".");
+
           }
-        }
         return getAuthorizationResult(
             authenticationToken, authorizationCacheCallback);
       }

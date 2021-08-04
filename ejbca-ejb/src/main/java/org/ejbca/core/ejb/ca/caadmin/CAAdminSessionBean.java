@@ -1049,9 +1049,10 @@ public class CAAdminSessionBean
                 -1,
                 null,
                 cainfo.getEncodedValidity(),
+                new CA.CaCertConfig(
                 certprofile,
                 sequence,
-                cceConfig);
+                cceConfig));
         if (LOG.isDebugEnabled()) {
           LOG.debug(
               "CAAdminSessionBean : " + CertTools.getSubjectDN(cacertificate));
@@ -1123,9 +1124,10 @@ public class CAAdminSessionBean
                 -1,
                 null,
                 cainfo.getEncodedValidity(),
+                new CA.CaCertConfig(
                 certprofile,
                 sequence,
-                cceConfig);
+                cceConfig));
         // Build Certificate Chain
         List<Certificate> rootcachain = signca.getCertificateChain();
         certificatechain = new ArrayList<Certificate>();
@@ -2343,9 +2345,10 @@ public class CAAdminSessionBean
                   -1,
                   null,
                   cainfo.getEncodedValidity(),
+                  new CA.CaCertConfig(
                   certprofile,
                   sequence,
-                  cceConfig);
+                  cceConfig));
           // X509ResponseMessage works for both X509 CAs and CVC CAs, should
           // really be called CertificateResponsMessage
           returnval = new X509ResponseMessage();
@@ -3164,9 +3167,10 @@ public class CAAdminSessionBean
                 -1,
                 customNotBefore,
                 ca.getEncodedValidity(),
+                new CA.CaCertConfig(
                 certprofile,
                 sequence,
-                cceConfig);
+                cceConfig));
         // Build Certificate Chain
         cachain = new ArrayList<Certificate>();
         cachain.add(cacertificate);
@@ -3212,9 +3216,10 @@ public class CAAdminSessionBean
                   -1,
                   customNotBefore,
                   ca.getEncodedValidity(),
+                  new CA.CaCertConfig(
                   certprofile,
                   sequence,
-                  cceConfig);
+                  cceConfig));
           // Build Certificate Chain
           Collection<Certificate> rootcachain = signca.getCertificateChain();
           cachain = new ArrayList<Certificate>();

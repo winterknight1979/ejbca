@@ -32,29 +32,110 @@ public interface AuditLogger {
    *
    * @param trustedTime TrustedTime instance will be used to get a trusted
    *     timestamp.
-   * @param eventType The event log type.
-   * @param eventStatus The status of the operation to log.
+   * @param event  Event
    * @param module The module where the operation took place.
    * @param service The service(application) that performed the operation.
    * @param authToken The authentication token that invoked the operation.
    * @param customId ID
-   * @param searchDetail1 Search 1
-   * @param searchDetail2 Search 2
-   * @param additionalDetails Additional details to be logged.
-   * @param properties properties to be passed on the device
+   * @param details  Details
+   *
    * @throws AuditRecordStorageException if unable to store the log record
    */
   void log(
       TrustedTime trustedTime,
-      EventType eventType,
-      EventStatus eventStatus,
+      Event event,
       ModuleType module,
       ServiceType service,
       String authToken,
       String customId,
-      String searchDetail1,
-      String searchDetail2,
-      Map<String, Object> additionalDetails,
-      Properties properties)
+      Details details
+      )
       throws AuditRecordStorageException;
+
+   class Event {
+          /** Param. */
+      private final EventType eventType;
+      /** Param. */
+      private final EventStatus eventStatus;
+
+      /**
+        * @param type The event log type.
+        * @param status The status of the operation to log.
+       */
+    public Event(final EventType type, final EventStatus status) {
+        this.eventType = type;
+        this.eventStatus = status;
+    }
+    /**
+     * @return the eventType
+     */
+    public EventType getEventType() {
+        return eventType;
+    }
+    /**
+     * @return the eventStatus
+     */
+    public EventStatus getEventStatus() {
+        return eventStatus;
+    }
+  }
+
+
+   class Details {
+          /** Param. */
+      private final String searchDetail1;
+      /** Param. */
+      private final String searchDetail2;
+      /** Param. */
+      private final Map<String, Object> additionalDetails;
+      /** Param. */
+      private final Properties properties;
+
+      /**
+       * @param d1 Search 1
+       * @param d2 Search 2
+       * @param aD Additional details to be logged.
+       * @param props properties to be passed on the device
+       */
+      public Details(
+              final String d1,
+              final String d2,
+              final Map<String, Object> aD,
+              final Properties props) {
+          this.searchDetail1 = d1;
+          this.searchDetail2 = d2;
+          this.additionalDetails = aD;
+          this.properties = props;
+      }
+
+    /**
+     * @return the searchDetail1
+     */
+    public String getSearchDetail1() {
+        return searchDetail1;
+    }
+
+    /**
+     * @return the searchDetail2
+     */
+    public String getSearchDetail2() {
+        return searchDetail2;
+    }
+
+    /**
+     * @return the additionalDetails
+     */
+    public Map<String, Object> getAdditionalDetails() {
+        return additionalDetails;
+    }
+
+    /**
+     * @return the properties
+     */
+    public Properties getProperties() {
+        return properties;
+    }
+
+
+   }
 }

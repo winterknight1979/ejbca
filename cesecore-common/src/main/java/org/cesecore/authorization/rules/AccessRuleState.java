@@ -24,6 +24,17 @@ public enum AccessRuleState {
   /** Rule was declined. */
   RULE_DECLINE("DECLINE", 2);
 
+    /** Rule name. */
+    private String name;
+    /** Rule ID. */
+    private int databaseValue;
+    /** Map of rule ID's to rules. */
+    private static Map<Integer, AccessRuleState> databaseValueToRuleMap =
+            new HashMap<Integer, AccessRuleState>();
+    /** Map of rule names to rules. */
+    private static Map<String, AccessRuleState> nameToRuleMap =
+            new HashMap<String, AccessRuleState>();
+
   /**
    * Constructor.
    *
@@ -64,17 +75,6 @@ public enum AccessRuleState {
   public static AccessRuleState matchName(final String name) {
     return nameToRuleMap.get(name);
   }
-
-  /** Rule name. */
-  private String name;
-  /** Rule ID. */
-  private int databaseValue;
-  /** Map of rule ID's to rules. */
-  private static Map<Integer, AccessRuleState> databaseValueToRuleMap =
-      new HashMap<Integer, AccessRuleState>();
-  /** Map of rule names to rules. */
-  private static Map<String, AccessRuleState> nameToRuleMap =
-      new HashMap<String, AccessRuleState>();
 
   static {
     for (AccessRuleState state : AccessRuleState.values()) {

@@ -654,13 +654,15 @@ public class CertificateCreateSessionBean
                 request,
                 pk,
                 keyusage,
+                new CA.CaCertValidity(
                 notBefore,
-                notAfter,
+                notAfter),
+                new CA.CaCertConfig(
                 certProfile,
                 extensions,
                 sequence,
                 certGenParams,
-                cceConfig);
+                cceConfig));
         // Set null required here?
         certGenParams.setCertificateValidationDomainService(null);
 

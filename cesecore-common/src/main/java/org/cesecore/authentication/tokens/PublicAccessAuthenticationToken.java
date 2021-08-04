@@ -30,6 +30,16 @@ import org.cesecore.authorization.user.AccessUserAspect;
 public class PublicAccessAuthenticationToken
     extends NestableAuthenticationToken {
 
+      private static final long serialVersionUID = 1L;
+      /** Metadata. */
+      public static final PublicAccessAuthenticationTokenMetaData METADATA =
+          new PublicAccessAuthenticationTokenMetaData();
+
+      /** Principal. */
+      private final PublicAccessPrincipal principal;
+      /** Credential. */
+      private final PublicAccessCredential credential;
+
   /**
    * Public access to the RA. Compare to PublicWebPrincipal which serves the
    * same purpose, but is used in the PublicWeb.
@@ -67,16 +77,6 @@ public class PublicAccessAuthenticationToken
       return confidentialTransport;
     }
   }
-
-  private static final long serialVersionUID = 1L;
-  /** Metadata. */
-  public static final PublicAccessAuthenticationTokenMetaData METADATA =
-      new PublicAccessAuthenticationTokenMetaData();
-
-  /** Principal. */
-  private final PublicAccessPrincipal principal;
-  /** Credential. */
-  private final PublicAccessCredential credential;
 
   /**
    * Constructor.
@@ -141,11 +141,11 @@ public class PublicAccessAuthenticationToken
     return null;
   }
 
-  /** Returns information of the entity this authentication token belongs to. */
+  /* Returns information of the entity this authentication token belongs to. *
   @Override
   public String toString() {
     return super.toString();
-  }
+  } */
 
   /**
    * Override the default Principal.getName() when doing toString on this

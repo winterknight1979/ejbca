@@ -23,13 +23,12 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.spi.ErrorHandler;
 import org.cesecore.audit.AuditLogDevice;
 import org.cesecore.audit.AuditLogEntry;
+import org.cesecore.audit.AuditLogger;
 import org.cesecore.audit.audit.AuditExporter;
 import org.cesecore.audit.audit.AuditLogExportReport;
 import org.cesecore.audit.audit.AuditLogExporterException;
 import org.cesecore.audit.audit.AuditLogValidationReport;
 import org.cesecore.audit.audit.AuditLogValidatorException;
-import org.cesecore.audit.enums.EventStatus;
-import org.cesecore.audit.enums.EventType;
 import org.cesecore.audit.enums.ModuleType;
 import org.cesecore.audit.enums.ServiceType;
 import org.cesecore.audit.log.AuditLogResetException;
@@ -131,16 +130,12 @@ public class Log4jDevice implements AuditLogDevice {
   @Override
   public void log(
       final TrustedTime trustedTime,
-      final EventType eventType,
-      final EventStatus eventStatus,
+      final AuditLogger.Event event,
       final ModuleType module,
       final ServiceType service,
       final String authToken,
       final String customId,
-      final String searchDetail1,
-      final String searchDetail2,
-      final Map<String, Object> additionalDetails,
-      final Properties properties)
+      final AuditLogger.Details details)
       throws AuditRecordStorageException {
     // Log lines are usually between 117 and 1700 bytes. An initial length of
     // 1024 will cover most of them, speeding things up.
@@ -150,21 +145,21 @@ public class Log4jDevice implements AuditLogDevice {
           ValidityDate.formatAsISO8601(
               trustedTime.getTime(), ValidityDate.TIMEZONE_SERVER));
     }
-    appendIfNotNull(sb, eventType);
-    appendIfNotNull(sb, eventStatus);
+    appendIfNotNull(sb, event.getEventType());
+    appendIfNotNull(sb, event.getEventStatus());
     appendIfNotNull(sb, module);
     appendIfNotNull(sb, service);
     appendIfNotNull(sb, authToken);
     appendIfNotNull(sb, customId);
-    appendIfNotNull(sb, searchDetail1);
-    appendIfNotNull(sb, searchDetail2);
-    if (additionalDetails != null) {
-      for (final String detail : additionalDetails.keySet()) {
+    appendIfNotNull(sb, details.getSearchDetail1());
+    appendIfNotNull(sb, details.getSearchDetail2());
+    if (details.getAdditionalDetails() != null) {
+      for (final String detail : details.getAdditionalDetails().keySet()) {
         if (sb.length() != 0) {
           sb.append(';');
         }
         sb.append(detail).append('=');
-        final Object o = additionalDetails.get(detail);
+        final Object o = details.getAdditionalDetails().get(detail);
         if (o != null) {
           sb.append(o.toString());
         }

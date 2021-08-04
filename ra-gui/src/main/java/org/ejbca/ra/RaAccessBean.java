@@ -26,7 +26,7 @@ import org.cesecore.authorization.access.AccessSet;
 import org.cesecore.authorization.access.AuthorizationCacheReload;
 import org.cesecore.authorization.access.AuthorizationCacheReloadListener;
 import org.cesecore.authorization.cache.AccessTreeUpdateSessionLocal;
-import org.cesecore.authorization.cache.RemoteAccessSetCacheHolder;
+import org.cesecore.authorization.cache.RemoteAccessSetCacheHelper;
 import org.cesecore.authorization.control.AuditLogRules;
 import org.cesecore.authorization.control.StandardRules;
 import org.cesecore.util.ConcurrentCache;
@@ -100,7 +100,7 @@ public class RaAccessBean implements Serializable {
     ensureCacheReloadEventRegistered();
     AccessSet myAccess;
     final ConcurrentCache<AuthenticationToken, AccessSet> cache =
-        RemoteAccessSetCacheHolder.getCache();
+        RemoteAccessSetCacheHelper.getCache();
 
     // Try to read from cache
     final ConcurrentCache<AuthenticationToken, AccessSet>.Entry entry =
@@ -141,13 +141,13 @@ public class RaAccessBean implements Serializable {
             public void onReload(final AuthorizationCacheReload event) {
               if (event.getAccessTreeUpdateNumber() > lastUpdate) {
                 lastUpdate = event.getAccessTreeUpdateNumber();
-                RemoteAccessSetCacheHolder.forceEmptyCache();
+                RemoteAccessSetCacheHelper.forceEmptyCache();
               }
             }
 
             @Override
             public String getListenerName() {
-              return RemoteAccessSetCacheHolder.class.getName();
+              return RemoteAccessSetCacheHelper.class.getName();
             }
           });
     }

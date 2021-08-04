@@ -29,10 +29,10 @@ public class AuditLogExportReport extends AuditLogValidationReport {
   /** Count exports. */
   private int exportCount = 0;
 
-  /** Constructor. */
+  /* Constructor. *
   public AuditLogExportReport() {
     super();
-  }
+  } */
 
   /**
    * Full pathname to the exported file, if any.
