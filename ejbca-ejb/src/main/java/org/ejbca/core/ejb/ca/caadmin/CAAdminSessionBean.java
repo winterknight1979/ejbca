@@ -104,7 +104,7 @@ import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceNotActiveE
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceRequest;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceRequestException;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceResponse;
-import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypes;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypeConstants;
 import org.cesecore.certificates.ca.extendedservices.IllegalExtendedCAServiceRequestException;
 import org.cesecore.certificates.certificate.CertificateConstants;
 import org.cesecore.certificates.certificate.CertificateDataWrapper;
@@ -1265,7 +1265,7 @@ public class CAAdminSessionBean
           CmsCAServiceInfo info =
               (CmsCAServiceInfo)
                   ca.getExtendedCAServiceInfo(
-                      ExtendedCAServiceTypes.TYPE_CMSEXTENDEDSERVICE);
+                      ExtendedCAServiceTypeConstants.TYPE_CMSEXTENDEDSERVICE);
           if (info.getStatus() == ExtendedCAServiceInfo.STATUS_ACTIVE) {
             final ArrayList<Certificate> cmscertificate =
                 new ArrayList<Certificate>();
@@ -5394,13 +5394,13 @@ public class CAAdminSessionBean
                   ca.getCAToken().getCryptoTokenId());
           ca.initExtendedService(
               cryptoToken,
-              ExtendedCAServiceTypes.TYPE_CMSEXTENDEDSERVICE,
+              ExtendedCAServiceTypeConstants.TYPE_CMSEXTENDEDSERVICE,
               ca,
               cceConfig);
           final List<Certificate> certPath =
               ((CmsCAServiceInfo)
                       ca.getExtendedCAServiceInfo(
-                          ExtendedCAServiceTypes.TYPE_CMSEXTENDEDSERVICE))
+                          ExtendedCAServiceTypeConstants.TYPE_CMSEXTENDEDSERVICE))
                   .getCertificatePath();
           if (certPath != null) {
             certificates.add(certPath.get(0));

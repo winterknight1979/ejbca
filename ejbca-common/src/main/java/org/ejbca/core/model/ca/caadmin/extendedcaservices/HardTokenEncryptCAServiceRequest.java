@@ -15,7 +15,7 @@ package org.ejbca.core.model.ca.caadmin.extendedcaservices;
 
 import java.io.Serializable;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceRequest;
-import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypes;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypeConstants;
 
 /**
  * Class used when requesting hard token encrypt related services from a CA.
@@ -65,6 +65,6 @@ public class HardTokenEncryptCAServiceRequest extends ExtendedCAServiceRequest
 
   @Override
   public int getServiceType() {
-    return ExtendedCAServiceTypes.TYPE_HARDTOKENENCEXTENDEDSERVICE;
+    return ExtendedCAServiceTypeConstants.TYPE_HARDTOKENENCEXTENDEDSERVICE;
   }
 }

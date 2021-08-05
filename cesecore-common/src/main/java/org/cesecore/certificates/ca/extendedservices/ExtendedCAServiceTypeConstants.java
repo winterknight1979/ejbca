@@ -3,7 +3,7 @@ package org.cesecore.certificates.ca.extendedservices;
 /**
  * @version $Id: ExtendedCAServiceTypes.java 21900 2015-09-17 19:22:21Z anatom $
  */
-public final class ExtendedCAServiceTypes {
+public final class ExtendedCAServiceTypeConstants {
 
     /** OCSP. */
   @Deprecated // Removed in EJBCA 6.0.0, and retained to support migration.
@@ -19,5 +19,5 @@ public final class ExtendedCAServiceTypes {
   public static final int TYPE_KEYRECOVERYEXTENDEDSERVICE = 5;
 
   /** Not for instantiation. */
-  private ExtendedCAServiceTypes() { }
+  private ExtendedCAServiceTypeConstants() { }
 }

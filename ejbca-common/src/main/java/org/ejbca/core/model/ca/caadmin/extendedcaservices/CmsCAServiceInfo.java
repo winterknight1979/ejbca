@@ -16,7 +16,7 @@ package org.ejbca.core.model.ca.caadmin.extendedcaservices;
 import java.io.Serializable;
 import java.security.cert.Certificate;
 import java.util.List;
-import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypes;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypeConstants;
 
 /**
  * Class used mostly when creating service. Also used when info about the
@@ -81,6 +81,6 @@ public class CmsCAServiceInfo extends BaseSigningCAServiceInfo
 
   @Override
   public int getType() {
-    return ExtendedCAServiceTypes.TYPE_CMSEXTENDEDSERVICE;
+    return ExtendedCAServiceTypeConstants.TYPE_CMSEXTENDEDSERVICE;
   }
 }

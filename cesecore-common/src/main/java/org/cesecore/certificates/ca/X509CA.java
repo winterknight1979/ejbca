@@ -119,7 +119,7 @@ import org.cesecore.certificates.ca.catoken.CAToken;
 import org.cesecore.certificates.ca.catoken.CATokenConstants;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAService;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceInfo;
-import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypes;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypeConstants;
 import org.cesecore.certificates.ca.internal.CertificateValidity;
 import org.cesecore.certificates.ca.internal.RequestAndPublicKeySelector;
 import org.cesecore.certificates.ca.internal.SernoGenerator;
@@ -324,7 +324,7 @@ public class X509CA extends CA implements Serializable { //NOPMD: class length
       // Type was removed in 6.0.0. It is removed from the database in the
       // upgrade method in this class, but it needs to be ignored
       // for instantiation.
-      if (type != ExtendedCAServiceTypes.TYPE_OCSPEXTENDEDSERVICE) {
+      if (type != ExtendedCAServiceTypeConstants.TYPE_OCSPEXTENDEDSERVICE) {
         ExtendedCAServiceInfo info =
             this.getExtendedCAServiceInfo(type.intValue());
         if (info != null) {
@@ -3311,11 +3311,11 @@ private void updateUsePrintable() {
     Collection<Integer> externalServiceTypes = getExternalCAServiceTypes();
     if (!CesecoreConfiguration.getCaKeepOcspExtendedService()
         && externalServiceTypes.contains(
-            ExtendedCAServiceTypes.TYPE_OCSPEXTENDEDSERVICE)) {
+            ExtendedCAServiceTypeConstants.TYPE_OCSPEXTENDEDSERVICE)) {
       // This type has been removed, so remove it from any CAs it's been added
       // to as well.
       externalServiceTypes.remove(
-          ExtendedCAServiceTypes.TYPE_OCSPEXTENDEDSERVICE);
+          ExtendedCAServiceTypeConstants.TYPE_OCSPEXTENDEDSERVICE);
       data.put(EXTENDEDCASERVICES, externalServiceTypes);
       retval = true;
     }

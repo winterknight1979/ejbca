@@ -51,7 +51,7 @@ import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceNotActiveE
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceRequest;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceRequestException;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceResponse;
-import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypes;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypeConstants;
 import org.cesecore.certificates.ca.extendedservices.IllegalExtendedCAServiceRequestException;
 import org.cesecore.certificates.certificate.CertificateCreateException;
 import org.cesecore.certificates.certificate.IllegalKeyException;
@@ -1809,18 +1809,18 @@ private String setClassName(final int type, final String classname) {
             "Found an XKMS CA service type. Will"
                 + " not create the deprecated service.");
         break;
-      case ExtendedCAServiceTypes.TYPE_CMSEXTENDEDSERVICE:
+      case ExtendedCAServiceTypeConstants.TYPE_CMSEXTENDEDSERVICE:
         implClassname =
             "org.ejbca.core.model.ca.caadmin."
                 + "extendedcaservices.CmsCAService";
         break;
-      case ExtendedCAServiceTypes.TYPE_HARDTOKENENCEXTENDEDSERVICE:
+      case ExtendedCAServiceTypeConstants.TYPE_HARDTOKENENCEXTENDEDSERVICE:
         implClassname =
             "org.ejbca.core.model.ca.caadmin."
                 + "extendedcaservices"
                 + ".HardTokenEncryptCAService";
         break;
-      case ExtendedCAServiceTypes.TYPE_KEYRECOVERYEXTENDEDSERVICE:
+      case ExtendedCAServiceTypeConstants.TYPE_KEYRECOVERYEXTENDEDSERVICE:
         implClassname =
             "org.ejbca.core.model.ca.caadmin."
                 + "extendedcaservices.KeyRecoveryCAService";

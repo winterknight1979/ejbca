@@ -23,7 +23,7 @@ import java.util.ServiceLoader;
 import org.apache.log4j.Logger;
 import org.bouncycastle.cert.X509CRLHolder;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceInfo;
-import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypes;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypeConstants;
 import org.cesecore.certificates.crl.RevokedCertInfo;
 import org.cesecore.config.CesecoreConfiguration;
 import org.cesecore.internal.InternalResources;
@@ -163,7 +163,7 @@ public abstract class CvcCA extends CA implements Serializable {
       // upgrade method in this class, but it needs to be ignored
       // for instantiation.
       if (externalCAServiceType
-          != ExtendedCAServiceTypes.TYPE_OCSPEXTENDEDSERVICE) {
+          != ExtendedCAServiceTypeConstants.TYPE_OCSPEXTENDEDSERVICE) {
         final ExtendedCAServiceInfo info =
             this.getExtendedCAServiceInfo(externalCAServiceType.intValue());
         if (info != null) {
@@ -307,11 +307,11 @@ public abstract class CvcCA extends CA implements Serializable {
     Collection<Integer> externalServiceTypes = getExternalCAServiceTypes();
     if (!CesecoreConfiguration.getCaKeepOcspExtendedService()
         && externalServiceTypes.contains(
-            ExtendedCAServiceTypes.TYPE_OCSPEXTENDEDSERVICE)) {
+            ExtendedCAServiceTypeConstants.TYPE_OCSPEXTENDEDSERVICE)) {
       // This type has been removed, so remove it from any CAs it's been added
       // to as well.
       externalServiceTypes.remove(
-          ExtendedCAServiceTypes.TYPE_OCSPEXTENDEDSERVICE);
+          ExtendedCAServiceTypeConstants.TYPE_OCSPEXTENDEDSERVICE);
       data.put(EXTENDEDCASERVICES, externalServiceTypes);
       retval = true;
     }

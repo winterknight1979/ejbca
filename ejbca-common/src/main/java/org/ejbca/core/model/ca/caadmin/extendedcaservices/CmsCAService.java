@@ -61,7 +61,7 @@ import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceNotActiveE
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceRequest;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceRequestException;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceResponse;
-import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypes;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypeConstants;
 import org.cesecore.certificates.ca.extendedservices.IllegalExtendedCAServiceRequestException;
 import org.cesecore.certificates.certificate.CertificateConstants;
 import org.cesecore.certificates.certificate.certextensions.AvailableCustomCertificateExtensionsConfiguration;
@@ -153,7 +153,7 @@ public class CmsCAService extends ExtendedCAService
     data.put(
         EXTENDEDCASERVICETYPE,
         Integer.valueOf(
-            ExtendedCAServiceTypes
+            ExtendedCAServiceTypeConstants
                 .TYPE_CMSEXTENDEDSERVICE)); // For current version of EJBCA
     data.put(KEYSPEC, theInfo.getKeySpec());
     data.put(KEYALGORITHM, theInfo.getKeyAlgorithm());
@@ -232,7 +232,7 @@ public class CmsCAService extends ExtendedCAService
       }
       data.put(
           EXTENDEDCASERVICETYPE,
-          Integer.valueOf(ExtendedCAServiceTypes.TYPE_CMSEXTENDEDSERVICE));
+          Integer.valueOf(ExtendedCAServiceTypeConstants.TYPE_CMSEXTENDEDSERVICE));
     } else {
       if (LOG.isDebugEnabled()) {
         LOG.debug("KEYSTORE is null when creating CmsCAService");

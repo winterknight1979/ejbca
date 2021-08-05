@@ -14,7 +14,7 @@ package org.ejbca.core.model.ca.caadmin.extendedcaservices;
 
 import java.io.Serializable;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceInfo;
-import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypes;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypeConstants;
 
 /**
  * @version $Id: HardTokenEncryptCAServiceInfo.java 19901 2014-09-30 14:29:38Z
@@ -39,6 +39,6 @@ public class HardTokenEncryptCAServiceInfo extends ExtendedCAServiceInfo
 
   @Override
   public int getType() {
-    return ExtendedCAServiceTypes.TYPE_HARDTOKENENCEXTENDEDSERVICE;
+    return ExtendedCAServiceTypeConstants.TYPE_HARDTOKENENCEXTENDEDSERVICE;
   }
 }

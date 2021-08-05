@@ -16,7 +16,7 @@ package org.ejbca.core.model.ca.caadmin.extendedcaservices;
 import java.io.Serializable;
 import java.security.KeyPair;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceRequest;
-import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypes;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypeConstants;
 
 /**
  * Class used when requesting key recovery related services from a CA.
@@ -120,6 +120,6 @@ public class KeyRecoveryCAServiceRequest extends ExtendedCAServiceRequest
 
   @Override
   public int getServiceType() {
-    return ExtendedCAServiceTypes.TYPE_KEYRECOVERYEXTENDEDSERVICE;
+    return ExtendedCAServiceTypeConstants.TYPE_KEYRECOVERYEXTENDEDSERVICE;
   }
 }
