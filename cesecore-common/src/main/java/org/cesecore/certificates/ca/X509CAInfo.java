@@ -35,7 +35,7 @@ import org.cesecore.util.StringTools;
  *
  * @version $Id: X509CAInfo.java 34456 2020-02-06 18:36:20Z anatom $
  */
-public class X509CAInfo extends CAInfo {
+public class X509CAInfo extends CAInfo { // NOPMD: class length
 
   private static final long serialVersionUID = 2L;
   /** Policies. */
@@ -241,7 +241,7 @@ public class X509CAInfo extends CAInfo {
    * @param acmpRaAuthSecret bool
    * @param keepExpiredCertsOnCRL bool
    */
-  private X509CAInfo(
+  private X509CAInfo(// NOPMD: method length
       final String subjectDn,
       final String name,
       final int status,
@@ -434,7 +434,7 @@ public class X509CAInfo extends CAInfo {
    * @param acmpRaAuthSecret bool
    * @param keepExpiredCertsOnCRL bool
    */
-  public X509CAInfo(
+  public X509CAInfo(// NOPMD: Params
       final int caid,
       final String encodedValidity,
       final CAToken catoken,
@@ -755,7 +755,7 @@ public class X509CAInfo extends CAInfo {
    *
    * @param value new name
    */
-  void setNameChanged(final boolean value) {
+  void setNameChanged(final boolean value) { //NOPMD: PP
     nameChanged = value;
   }
 
