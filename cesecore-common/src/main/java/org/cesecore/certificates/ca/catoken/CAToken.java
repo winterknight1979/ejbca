@@ -21,6 +21,7 @@ import java.security.PublicKey;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Properties;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.cesecore.internal.InternalResources;
@@ -179,80 +180,17 @@ public class CAToken extends UpgradeableDataHashMap {
           for (final String alias : aliases) {
             PrivateKey privateKey = aliasMap.get(alias);
             if (privateKey == null) {
-              try {
-                privateKey = cryptoToken.getPrivateKey(alias);
-                // Cache lookup to avoid having to retrieve the same key when
-                // used for multiple purposes
-                if (privateKey != null) {
-                  aliasMap.put(alias, privateKey);
-                }
-              } catch (CryptoTokenOfflineException e) {
-                privateKey = null;
-              }
+              privateKey = getPrivateKey(cryptoToken, aliasMap, alias);
             }
-            if (privateKey == null) {
-              // We don't consider it critical if currently unused certificate
-              // signing keys has been deleted (as long as it isn't mapped for
-              // any other purposes)
-              if (alias.equals(aliasCertSignKeyPrevious)
-                  && keyStrings.isAliasMappedForSinglePurpose(
-                      aliasCertSignKeyPrevious)) {
-                foundKeys++;
-                if (LOG.isDebugEnabled()) {
-                  LOG.debug(
-                      "Missing private key for alias: "
-                          + alias
-                          + " (Not treated as an error, since it is only"
-                          + " mapped as the previous CA signing key.)");
-                }
-              } else if (alias.equals(aliasCertSignKeyNext)
-                  && keyStrings.isAliasMappedForSinglePurpose(
-                      aliasCertSignKeyNext)) {
-                foundKeys++;
-                if (LOG.isDebugEnabled()) {
-                  LOG.debug(
-                      "Missing private key for alias: "
-                          + alias
-                          + " (Not treated as an error, since it is only"
-                          + " mapped as the next CA signing key.)");
-                }
-              } else {
-                if (LOG.isDebugEnabled()) {
-                  LOG.debug("Missing private key for alias: " + alias);
-                }
-              }
-            } else {
-              foundKeys++;
-            }
+            foundKeys = handleNullPK(aliasCertSignKeyPrevious,
+                    aliasCertSignKeyNext, foundKeys, alias, privateKey);
             if (alias.equals(aliasTestKey)) {
-              PublicKey publicKey;
-              try {
-                publicKey = cryptoToken.getPublicKey(aliasTestKey);
-              } catch (CryptoTokenOfflineException e) {
-                publicKey = null;
-              }
-              if (publicKey == null) {
-                if (LOG.isDebugEnabled()) {
-                  LOG.debug("Missing public key for alias: " + alias);
-                }
-              }
+              PublicKey publicKey =
+                      getPublicKey(cryptoToken, aliasTestKey, alias);
               // Check that that the testkey is usable by doing a test
               // signature.
-              try {
-                if (caTokenSignTest) {
-                  cryptoToken.testKeyPair(alias, publicKey, privateKey);
-                }
-                // If we can test the testkey, we are finally active!
-                ret = CryptoToken.STATUS_ACTIVE;
-              } catch (
-                  Throwable
-                      th) { // NOPMD: we need to catch _everything_ when dealing
-                            // with HSMs
-                LOG.error(
-                    INTRES.getLocalizedMessage(
-                        "token.activationtestfail", cryptoToken.getId()),
-                    th);
-              }
+              ret = isKeyUsable(caTokenSignTest,
+                      cryptoToken, ret, alias, privateKey, publicKey);
             }
           }
         }
@@ -279,6 +217,131 @@ public class CAToken extends UpgradeableDataHashMap {
     }
     return ret;
   }
+
+/**
+ * @param caTokenSignTest test
+ * @param cryptoToken token
+ * @param r retval
+ * @param alias alias
+ * @param privateKey key
+ * @param publicKey key
+ * @return status
+ */
+private int isKeyUsable(final boolean caTokenSignTest,
+        final CryptoToken cryptoToken, final int r, final String alias,
+        final PrivateKey privateKey, final PublicKey publicKey) {
+    int ret = r;
+    try {
+        if (caTokenSignTest) {
+          cryptoToken.testKeyPair(alias, publicKey, privateKey);
+        }
+        // If we can test the testkey, we are finally active!
+        ret = CryptoToken.STATUS_ACTIVE;
+      } catch (
+          Throwable
+              th) { // NOPMD: we need to catch _everything_ when dealing
+                    // with HSMs
+        LOG.error(
+            INTRES.getLocalizedMessage(
+                "token.activationtestfail", cryptoToken.getId()),
+            th);
+      }
+    return ret;
+}
+
+/**
+ * @param cryptoToken token
+ * @param aliasTestKey  key
+ * @param alias alias
+ * @return key
+ */
+private PublicKey getPublicKey(final CryptoToken cryptoToken,
+        final String aliasTestKey, final String alias) {
+    PublicKey publicKey;
+      try {
+        publicKey = cryptoToken.getPublicKey(aliasTestKey);
+      } catch (CryptoTokenOfflineException e) {
+        publicKey = null;
+      }
+      if (publicKey == null
+        && LOG.isDebugEnabled()) {
+          LOG.debug("Missing public key for alias: " + alias);
+        }
+
+    return publicKey;
+}
+
+/**
+ * @param aliasCertSignKeyPrevious prev
+ * @param aliasCertSignKeyNext next
+ * @param fk num
+ * @param alias alias
+ * @param privateKey key
+ * @return num
+ */
+private int handleNullPK(final String aliasCertSignKeyPrevious,
+        final String aliasCertSignKeyNext, final int fk,
+        final String alias, final PrivateKey privateKey) {
+    int foundKeys = fk;
+    if (privateKey == null) {
+      // We don't consider it critical if currently unused certificate
+      // signing keys has been deleted (as long as it isn't mapped for
+      // any other purposes)
+      if (alias.equals(aliasCertSignKeyPrevious)
+          && keyStrings.isAliasMappedForSinglePurpose(
+              aliasCertSignKeyPrevious)) {
+        foundKeys++;
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
+              "Missing private key for alias: "
+                  + alias
+                  + " (Not treated as an error, since it is only"
+                  + " mapped as the previous CA signing key.)");
+        }
+      } else if (alias.equals(aliasCertSignKeyNext)
+          && keyStrings.isAliasMappedForSinglePurpose(
+              aliasCertSignKeyNext)) {
+        foundKeys++;
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
+              "Missing private key for alias: "
+                  + alias
+                  + " (Not treated as an error, since it is only"
+                  + " mapped as the next CA signing key.)");
+        }
+      } else {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Missing private key for alias: " + alias);
+        }
+      }
+    } else {
+      foundKeys++;
+    }
+    return foundKeys;
+}
+
+/**
+ * @param cryptoToken token
+ * @param aliasMap map
+ * @param alias alias
+ * @return key
+ */
+private PrivateKey getPrivateKey(final CryptoToken cryptoToken,
+        final HashMap<String, PrivateKey> aliasMap,
+        final String alias) {
+    PrivateKey privateKey;
+    try {
+        privateKey = cryptoToken.getPrivateKey(alias);
+        // Cache lookup to avoid having to retrieve the same key when
+        // used for multiple purposes
+        if (privateKey != null) {
+          aliasMap.put(alias, privateKey);
+        }
+      } catch (CryptoTokenOfflineException e) {
+        privateKey = null;
+      }
+    return privateKey;
+}
 
   /**
    * @param purpose purpose
@@ -400,7 +463,7 @@ public class CAToken extends UpgradeableDataHashMap {
   public String getKeySequence() {
     Object seq = data.get(SEQUENCE);
     if (seq == null) {
-      seq = new String(CAToken.DEFAULT_KEYSEQUENCE);
+      seq = CAToken.DEFAULT_KEYSEQUENCE;
     }
     return (String) seq;
   }
@@ -505,10 +568,10 @@ public class CAToken extends UpgradeableDataHashMap {
           // to
           // be able to use soft keystores that does not have a specific test or
           // default key
-          if ((prop.getProperty(CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING)
-                  == null)
-              && (prop.getProperty(CATokenConstants.CAKEYPURPOSE_DEFAULT_STRING)
-                  == null)) {
+          if (prop.getProperty(CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING)
+                  == null
+              && prop.getProperty(CATokenConstants.CAKEYPURPOSE_DEFAULT_STRING)
+                  == null) {
             // The soft key alias was changed from privatesignkeyalias to
             // signKey in EJBCA 6.4.1, which is long after
             // we changed the classpath. So if we come in here, we are upgrading
@@ -524,10 +587,10 @@ public class CAToken extends UpgradeableDataHashMap {
                 CATokenConstants.CAKEYPURPOSE_CRLSIGN_STRING,
                 CAToken.OLDPRIVATESIGNKEYALIAS);
           }
-          if ((prop.getProperty(CATokenConstants.CAKEYPURPOSE_DEFAULT_STRING)
-                  == null)
-              && (prop.getProperty(CATokenConstants.CAKEYPURPOSE_TESTKEY_STRING)
-                  == null)) {
+          if (prop.getProperty(CATokenConstants.CAKEYPURPOSE_DEFAULT_STRING)
+                  == null
+              && prop.getProperty(CATokenConstants.CAKEYPURPOSE_TESTKEY_STRING)
+                  == null) {
             // Same as above regarding key aliases
             LOG.info(
                 "Setting CAKEYPURPOSE_DEFAULT_STRING to privatedeckeyalias.");
