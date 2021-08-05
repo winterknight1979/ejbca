@@ -190,8 +190,8 @@ public final class PurposeMapping {
     // very strange things can happen
     // if we claim that our "defaultKey" is the previous or next signing key,
     // when it in fact is not.
-    if ((purpose != CATokenConstants.CAKEYPURPOSE_CERTSIGN_PREVIOUS)
-        && (purpose != CATokenConstants.CAKEYPURPOSE_CERTSIGN_NEXT)) {
+    if (purpose != CATokenConstants.CAKEYPURPOSE_CERTSIGN_PREVIOUS
+        && purpose != CATokenConstants.CAKEYPURPOSE_CERTSIGN_NEXT) {
       return CATokenConstants.CAKEYPURPOSE_DEFAULT_STRING;
     }
     return null;
