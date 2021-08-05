@@ -115,7 +115,21 @@ public class CrlDistributionPoints extends StandardCertificateExtension {
     }
     final ArrayList<DistributionPoint> distpoints =
         new ArrayList<DistributionPoint>();
-    if ((!issuers.isEmpty()) || (!dpns.isEmpty())) {
+    addDistPointsFromDpns(dpns, issuers, distpoints);
+    CRLDistPoint ret = getReturnValue(distpoints);
+    return ret;
+  }
+
+/**
+ * @param dpns DPNs
+ * @param issuers Issuers
+ * @param distpoints Points
+ */
+private void addDistPointsFromDpns(
+        final ArrayList<DistributionPointName> dpns,
+        final ArrayList<GeneralNames> issuers,
+        final ArrayList<DistributionPoint> distpoints) {
+    if (!issuers.isEmpty() || !dpns.isEmpty()) {
       int i = dpns.size();
       if (issuers.size() > i) {
         i = issuers.size();
@@ -129,11 +143,19 @@ public class CrlDistributionPoints extends StandardCertificateExtension {
         if (issuers.size() > j) {
           issuer = (GeneralNames) issuers.get(j);
         }
-        if ((dpn != null) || (issuer != null)) {
+        if (dpn != null || issuer != null) {
           distpoints.add(new DistributionPoint(dpn, null, issuer));
         }
       }
     }
+}
+
+/**
+ * @param distpoints points
+ * @return point
+ */
+private CRLDistPoint getReturnValue(
+        final ArrayList<DistributionPoint> distpoints) {
     CRLDistPoint ret = null;
     if (!distpoints.isEmpty()) {
       ret =
@@ -147,5 +169,5 @@ public class CrlDistributionPoints extends StandardCertificateExtension {
               + " available.");
     }
     return ret;
-  }
+}
 }

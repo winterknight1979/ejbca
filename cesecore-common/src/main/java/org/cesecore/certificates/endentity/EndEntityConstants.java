@@ -25,9 +25,6 @@ import java.util.List;
  */
 public final class EndEntityConstants {
 
-  /** don't instantiate. */
-  private EndEntityConstants() { }
-
   /** The id of a non-existing end entity profile. */
   public static final int NO_END_ENTITY_PROFILE = 0;
   /** The id for the built-in EMPTY end entity profile. */
@@ -116,6 +113,9 @@ public final class EndEntityConstants {
         Integer.valueOf(STATUS_WAITINGFORADDAPPROVAL),
         "STATUSWAITINGFORADDAPPROVAL");
   }
+
+  /** don't instantiate. */
+  private EndEntityConstants() { }
 
   /**
    * @param status Status code

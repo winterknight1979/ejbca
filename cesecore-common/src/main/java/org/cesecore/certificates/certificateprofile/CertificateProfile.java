@@ -688,6 +688,11 @@ public class CertificateProfile extends UpgradeableDataHashMap
   protected static final String POLICY_NOTICE_UNOTICE_TEXT =
       "policynoticeunoticetext";
 
+  /** Min RSA/DSA key size. */
+  private static final int MIN_RSA_DSA_SIZE = 1024;
+  /** Min EC key size. */
+  private static final int MIN_EC_SIZE = 521;
+
   // Public Methods
 
   /**
@@ -4345,8 +4350,5 @@ public class CertificateProfile extends UpgradeableDataHashMap
     }
     LOG.trace("<upgrade");
   }
-  /** Min RSA/DSA key size. */
-  private static final int MIN_RSA_DSA_SIZE = 1024;
-  /** Min EC key size. */
-  private static final int MIN_EC_SIZE = 521;
+
 }

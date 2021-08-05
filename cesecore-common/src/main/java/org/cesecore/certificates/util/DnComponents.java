@@ -45,7 +45,6 @@ import org.cesecore.util.CeSecoreNameStyle;
  */
 public final class DnComponents {
 
-    private DnComponents() { }
 
     /** Logger. */
   private static Logger log = Logger.getLogger(DnComponents.class);
@@ -335,6 +334,7 @@ public final class DnComponents {
     DnComponents.load();
   }
 
+  private DnComponents() { }
   /**
    * @param dnName name
    * @return id

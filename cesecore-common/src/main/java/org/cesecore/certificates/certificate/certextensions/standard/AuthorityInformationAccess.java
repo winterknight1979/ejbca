@@ -67,23 +67,11 @@ public class AuthorityInformationAccess extends StandardCertificateExtension {
 
     // Get AIA by CAs default AIA section or by the certificate profiles
     // configuration.
-    if (certProfile.getUseDefaultCAIssuer()) {
-      caIssuerUris = x509ca.getCertificateAiaDefaultCaIssuerUri();
-    } else {
-      caIssuerUris = certProfile.getCaIssuers();
-    }
+    caIssuerUris = getIssuerUris(certProfile, x509ca);
 
     // Get OCSP by CAs default OCSP Service Locator section or by the
     // certificate profiles configuration.
-    if (certProfile.getUseDefaultOCSPServiceLocator()) {
-      if (StringUtils.isNotBlank(x509ca.getDefaultOCSPServiceLocator())) {
-        ocspServiceLocatorUrls.add(x509ca.getDefaultOCSPServiceLocator());
-      }
-    } else {
-      if (StringUtils.isNotBlank(certProfile.getOCSPServiceLocatorURI())) {
-        ocspServiceLocatorUrls.add(certProfile.getOCSPServiceLocatorURI());
-      }
-    }
+    getOcsp(certProfile, x509ca, ocspServiceLocatorUrls);
 
     if (LOG.isDebugEnabled()) {
       LOG.debug("Using certificate AIA (CA Issuer URIs): " + caIssuerUris);
@@ -126,4 +114,38 @@ public class AuthorityInformationAccess extends StandardCertificateExtension {
     }
     return ret;
   }
+
+/**
+ * @param certProfile Profilr
+ * @param x509ca CA
+ * @param ocspServiceLocatorUrls URLs
+ */
+private void getOcsp(final CertificateProfile certProfile,
+        final X509CA x509ca, final List<String> ocspServiceLocatorUrls) {
+    if (certProfile.getUseDefaultOCSPServiceLocator()) {
+      if (StringUtils.isNotBlank(x509ca.getDefaultOCSPServiceLocator())) {
+        ocspServiceLocatorUrls.add(x509ca.getDefaultOCSPServiceLocator());
+      }
+    } else {
+      if (StringUtils.isNotBlank(certProfile.getOCSPServiceLocatorURI())) {
+        ocspServiceLocatorUrls.add(certProfile.getOCSPServiceLocatorURI());
+      }
+    }
+}
+
+/**
+ * @param certProfile Profile
+ * @param x509ca CA
+ * @return URIs
+ */
+private List<String> getIssuerUris(final CertificateProfile certProfile,
+        final X509CA x509ca) {
+    List<String> caIssuerUris;
+    if (certProfile.getUseDefaultCAIssuer()) {
+      caIssuerUris = x509ca.getCertificateAiaDefaultCaIssuerUri();
+    } else {
+      caIssuerUris = certProfile.getCaIssuers();
+    }
+    return caIssuerUris;
+}
 }

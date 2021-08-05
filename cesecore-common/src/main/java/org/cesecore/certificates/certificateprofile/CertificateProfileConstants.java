@@ -71,6 +71,24 @@ public final class CertificateProfileConstants {
   public static final int FIXED_CERTIFICATEPROFILE_BOUNDRY = 1000;
 
   /**
+   * Default key lengths. Users are allowed to choose from these key lengths
+   * when lookup of available bit lengths fails.
+   *
+   * @see "org.ejbca.ui.web.pub.ApplyBean (in publicweb-gui)"
+   */
+  public static final int[] DEFAULT_KEY_LENGTHS = new int[] {512, 1024, 2048};
+
+  /** QC ETSI Type OID: Electronic Signature. */
+  public static final String QC_ETSI_TYPE_ESIGN = "0.4.0.1862.1.6.1";
+  /** QC ETSI Type OID: Electronic Seal. */
+  public static final String QC_ETSI_TYPE_ESEAL = "0.4.0.1862.1.6.2";
+  /** QC ETSI Type OID: Website Authentication. */
+  public static final String QC_ETSI_TYPE_WEBAUTH = "0.4.0.1862.1.6.3";
+
+  /** Prevents creation of new class. */
+  private CertificateProfileConstants() { }
+
+  /**
    * @param profileId ID
    * @return true is certificate profile identified by profileId is fixed
    */
@@ -89,22 +107,4 @@ public final class CertificateProfileConstants {
         || profileId == CertificateProfileConstants.CERTPROFILE_FIXED_OCSPSIGNER
         || profileId == CertificateProfileConstants.CERTPROFILE_FIXED_SERVER);
   }
-
-  /**
-   * Default key lengths. Users are allowed to choose from these key lengths
-   * when lookup of available bit lengths fails.
-   *
-   * @see "org.ejbca.ui.web.pub.ApplyBean (in publicweb-gui)"
-   */
-  public static final int[] DEFAULT_KEY_LENGTHS = new int[] {512, 1024, 2048};
-
-  /** QC ETSI Type OID: Electronic Signature. */
-  public static final String QC_ETSI_TYPE_ESIGN = "0.4.0.1862.1.6.1";
-  /** QC ETSI Type OID: Electronic Seal. */
-  public static final String QC_ETSI_TYPE_ESEAL = "0.4.0.1862.1.6.2";
-  /** QC ETSI Type OID: Website Authentication. */
-  public static final String QC_ETSI_TYPE_WEBAUTH = "0.4.0.1862.1.6.3";
-
-  /** Prevents creation of new class. */
-  private CertificateProfileConstants() { }
 }

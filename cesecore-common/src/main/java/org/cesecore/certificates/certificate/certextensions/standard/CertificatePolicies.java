@@ -133,9 +133,9 @@ public class CertificatePolicies extends StandardCertificateExtension {
       final CertificatePolicy policy, final int displayencoding) {
     PolicyQualifierInfo pqi = null;
     final String qualifierId = policy.getQualifierId();
-    if ((qualifierId != null) && !StringUtils.isEmpty(qualifierId.trim())) {
+    if (qualifierId != null && !StringUtils.isEmpty(qualifierId.trim())) {
       final String qualifier = policy.getQualifier();
-      if ((qualifier != null) && !StringUtils.isEmpty(qualifier.trim())) {
+      if (qualifier != null && !StringUtils.isEmpty(qualifier.trim())) {
         if (qualifierId.equals(PolicyQualifierId.id_qt_cps.getId())) {
           pqi = new PolicyQualifierInfo(qualifier);
         } else if (qualifierId.equals(

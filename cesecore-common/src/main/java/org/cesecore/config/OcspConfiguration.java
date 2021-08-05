@@ -33,7 +33,6 @@ import org.cesecore.util.CertTools;
  */
 public final class OcspConfiguration {
 
-    private OcspConfiguration() { }
 
 /** Logger. */
   private static final Logger LOG = Logger.getLogger(OcspConfiguration.class);
@@ -124,6 +123,9 @@ public final class OcspConfiguration {
   public static final int RESPONDERIDTYPE_KEYHASH = 2;
   /** Algorithms. */
   private static Set<String> acceptedSignatureAlgorithms = new HashSet<>();
+
+
+  private OcspConfiguration() { }
 
   /**
  * @return the acceptedSignatureAlgorithms

@@ -87,6 +87,8 @@ public class EndEntityInformation implements Serializable {
   private int hardtokenissuerid;
   /** ExtendedInformation holding extra data of the End entity. */
   private ExtendedInformation extendedinformation;
+  /** Maz size of Extended Info buffer. */
+  private static final int INFO_SIZE = 512;
 
   /** Creates new empty EndEntityInformation. */
   public EndEntityInformation() { }
@@ -635,9 +637,6 @@ public class EndEntityInformation implements Serializable {
     }
     return ret;
   }
-
-  /** Maz size of Extended Info buffer. */
-  private static final int INFO_SIZE = 512;
 
   /**
    * @return the DN to be used when creating a certificate (without empty
