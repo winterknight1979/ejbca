@@ -126,8 +126,8 @@ public class SernoGeneratorRandom implements SernoGenerator {
     if (this.algorithm == null) {
       this.algorithm = "SHA1PRNG";
     }
-    if ((aNoOctets > SERNO_MAX_LENGTH
-        || aNoOctets < 0)) { // We allow 0 octets for testing
+    if (aNoOctets > SERNO_MAX_LENGTH
+        || aNoOctets < 0) { // We allow 0 octets for testing
       throw new IllegalArgumentException(
           "ca.serialnumberoctetsize must be between 0 and "
               + SERNO_MAX_LENGTH

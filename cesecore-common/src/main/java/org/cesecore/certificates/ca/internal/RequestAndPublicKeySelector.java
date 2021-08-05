@@ -66,9 +66,9 @@ public class RequestAndPublicKeySelector {
         publicKey = providedRequestMessage.getRequestPublicKey();
         debugPublicKeySource = "from providedRequestMessage";
         debugRequestMessageSource = "from providedRequestMessage";
-      } catch (InvalidKeyException
+      } catch (InvalidKeyException // NOPMD
           | NoSuchAlgorithmException
-          | NoSuchProviderException e1) {
+          | NoSuchProviderException e1) { // NOPMD
         // Fine since public key can be provided with providedPublicKey or
         // endEntityInformation.extendedInformation.certificateRequest
       }
