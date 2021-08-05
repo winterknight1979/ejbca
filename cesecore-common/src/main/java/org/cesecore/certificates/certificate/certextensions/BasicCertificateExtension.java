@@ -173,7 +173,10 @@ public class BasicCertificateExtension extends CertificateExtension
     PROPERTIES_MAP.put(PROPERTY_DYNAMIC, CustomCertificateExtension.BOOLEAN);
   }
 
-  {
+  /**
+   * Constructor.
+   */
+  public BasicCertificateExtension() {
     setDisplayName(DISPLAY_NAME);
   }
 
@@ -249,8 +252,8 @@ public class BasicCertificateExtension extends CertificateExtension
         StringUtils.trim(getProperties().getProperty(PROPERTY_ENCODING));
     if (values == null
         || values.length == 0
-        || (values[0] == null
-            && !encoding.equalsIgnoreCase(ENCODING_DERNULL))) {
+        || values[0] == null
+            && !encoding.equalsIgnoreCase(ENCODING_DERNULL)) {
       if (!isRequiredFlag()) {
         return null;
       }
@@ -310,13 +313,7 @@ public class BasicCertificateExtension extends CertificateExtension
                     .getProperty(PROPERTY_DYNAMIC, Boolean.FALSE.toString())));
 
     String strnvalues = getProperties().getProperty(PROPERTY_NVALUES);
-    int nvalues;
-
-    if (strnvalues == null || strnvalues.trim().equals("")) {
-      nvalues = 0;
-    } else {
-      nvalues = Integer.parseInt(strnvalues);
-    }
+    int nvalues = getInitNvalues(strnvalues);
 
     if (dynamic) {
       final ExtendedInformation ei = userData.getExtendedInformation();
@@ -395,6 +392,23 @@ public class BasicCertificateExtension extends CertificateExtension
     return result;
   }
 
+/**
+ * @param strnvalues vaues
+ * @return values
+ * @throws NumberFormatException fail
+ */
+private int getInitNvalues(final String strnvalues)
+        throws NumberFormatException {
+    int nvalues;
+
+    if (strnvalues == null || strnvalues.trim().equals("")) {
+      nvalues = 0;
+    } else {
+      nvalues = Integer.parseInt(strnvalues);
+    }
+    return nvalues;
+}
+
   private ASN1Encodable parseValue(final String encoding, final String value)
       throws CertificateExtensionException {
 
@@ -411,7 +425,7 @@ public class BasicCertificateExtension extends CertificateExtension
     }
 
     if (!Encoding.ENCODING_DERNULL.equals(encodingType)
-        && ((value == null || value.trim().equals("")) && isRequiredFlag())) {
+        && (value == null || value.trim().equals("")) && isRequiredFlag()) {
       throw new CertificateExtensionException(
           INT_RES.getLocalizedMessage(
               "certext.basic.incorrectvalue",
@@ -632,7 +646,7 @@ public class BasicCertificateExtension extends CertificateExtension
       throws CertificateExtensionException {
     try {
       return new DERIA5String(value, true);
-    } catch (java.lang.IllegalArgumentException e) {
+    } catch (IllegalArgumentException e) {
       throw new CertificateExtensionException(
           INT_RES.getLocalizedMessage(
               "certext.basic.illegalvalue",

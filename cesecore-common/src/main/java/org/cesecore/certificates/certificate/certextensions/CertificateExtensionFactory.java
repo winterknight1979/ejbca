@@ -69,7 +69,7 @@ public final class CertificateExtensionFactory {
   private HashMap<String, String> standardCertificateExtensions =
       new HashMap<String, String>();
 
-  {
+  private CertificateExtensionFactory() {
     standardCertificateExtensions.put(
         Extension.basicConstraints.getId(), BasicConstraint.class.getName());
     standardCertificateExtensions.put(
@@ -118,9 +118,7 @@ public final class CertificateExtensionFactory {
     standardCertificateExtensions.put(
         Extension.privateKeyUsagePeriod.getId(),
         PrivateKeyUsagePeriod.class.getName());
-  }
-
-  private CertificateExtensionFactory() { }
+   }
 
   /**
    * Method used to get the instance of the factory. If it is the first time the

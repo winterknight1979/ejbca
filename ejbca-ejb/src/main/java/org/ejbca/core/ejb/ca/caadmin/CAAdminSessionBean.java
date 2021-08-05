@@ -5400,7 +5400,7 @@ public class CAAdminSessionBean
           final List<Certificate> certPath =
               ((CmsCAServiceInfo)
                       ca.getExtendedCAServiceInfo(
-                          ExtendedCAServiceTypeConstants.TYPE_CMSEXTENDEDSERVICE))
+                       ExtendedCAServiceTypeConstants.TYPE_CMSEXTENDEDSERVICE))
                   .getCertificatePath();
           if (certPath != null) {
             certificates.add(certPath.get(0));

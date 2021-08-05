@@ -81,7 +81,7 @@ public class CertificateInfo implements Serializable {
    * @param aSubjectKeyId Key
    * @param aSubjectAltName Name
    */
-  public CertificateInfo(
+  public CertificateInfo(// NOPMD
       final String aFingerprint,
       final String aCafingerprint,
       final String aSerno,

@@ -231,8 +231,8 @@ public class CmsCAService extends ExtendedCAService
                 this.certificatechain);
       }
       data.put(
-          EXTENDEDCASERVICETYPE,
-          Integer.valueOf(ExtendedCAServiceTypeConstants.TYPE_CMSEXTENDEDSERVICE));
+       EXTENDEDCASERVICETYPE,
+       Integer.valueOf(ExtendedCAServiceTypeConstants.TYPE_CMSEXTENDEDSERVICE));
     } else {
       if (LOG.isDebugEnabled()) {
         LOG.debug("KEYSTORE is null when creating CmsCAService");
