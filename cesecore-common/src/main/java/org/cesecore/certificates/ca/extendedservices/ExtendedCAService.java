@@ -48,13 +48,13 @@ public abstract class ExtendedCAService extends UpgradeableDataHashMap
    *
    * @param info Info
    */
-  public ExtendedCAService(final ExtendedCAServiceInfo info) { }
+  public ExtendedCAService(final ExtendedCAServiceInfo info) { } // NOPMD
 
   /** Overriding classes needs this constructor.
    *
    * @param data Data
    */
-  public ExtendedCAService(final HashMap<?, ?> data) { }
+  public ExtendedCAService(final HashMap<?, ?> data) { } // NOPMD
 
   /** @param status atatus */
   protected void setStatus(final int status) {
