@@ -29,7 +29,7 @@ public enum CertificateTransparencyFactory {
       + "CertificateTransparencyImpl";
 
   /** Instance. */
-  private final CertificateTransparency ct;
+  private final CertificateTransparency ct; // NOPMD
 
   /** Pribate constructor. */
   CertificateTransparencyFactory() {

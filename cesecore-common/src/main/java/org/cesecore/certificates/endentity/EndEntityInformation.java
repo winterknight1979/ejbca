@@ -115,10 +115,10 @@ public class EndEntityInformation implements Serializable {
     this.timemodified = endEntityInformation.getTimeModified();
     this.tokentype = endEntityInformation.getTokenType();
     this.extendedinformation =
-        (endEntityInformation.getExtendedInformation() != null
+        endEntityInformation.getExtendedInformation() != null
             ? new ExtendedInformation(
                 endEntityInformation.getExtendedInformation())
-            : null);
+            : null;
   }
 
   /**
@@ -148,7 +148,7 @@ public class EndEntityInformation implements Serializable {
    *     issuer, else 0.
    * @param extendedinfo info
    */
-  public EndEntityInformation(
+  public EndEntityInformation(// NOPMD: params
       final String ausername,
       final String dn,
       final int acaid,
@@ -204,7 +204,7 @@ public class EndEntityInformation implements Serializable {
    *     issuer, else 0.
    * @param extendedinfo info
    */
-  public EndEntityInformation(
+  public EndEntityInformation(// NOPMD: params
       final String ausername,
       final String dn,
       final int acaid,

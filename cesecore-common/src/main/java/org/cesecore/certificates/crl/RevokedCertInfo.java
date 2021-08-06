@@ -298,6 +298,39 @@ public class RevokedCertInfo implements Serializable {
         tempRevoked.put(serial, revoked);
       }
     }
+    handleRevokedInfos(b, permRevoked, tempRevoked);
+    final CompressedCollection<RevokedCertInfo> mergedRevokedData =
+        new CompressedCollection<>(RevokedCertInfo.class);
+    mergedRevokedData.addAll(
+        permRevoked.values()); // Permanently revoked entries are always added
+    for (final RevokedCertInfo revoked : tempRevoked.values()) {
+      if (!revoked.isRevoked()
+          && (lastBaseCrlDate <= 0
+              || revoked.getRevocationDate().getTime() <= lastBaseCrlDate)) {
+        continue; // REMOVEFROMCRL entries are not added in Base CRLs
+                  // (lastBaseCrlDate=0) or if already removed from the latest
+                  // Base CRL
+      }
+      mergedRevokedData.add(revoked);
+    }
+    mergedRevokedData.closeForWrite();
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
+          "mergeByDateAndStatus: Merged to "
+              + mergedRevokedData.size()
+              + " entries");
+    }
+    return mergedRevokedData;
+  }
+
+/**
+ * @param b Infos
+ * @param permRevoked Perm
+ * @param tempRevoked Tmp
+ */
+private static void handleRevokedInfos(final Collection<RevokedCertInfo> b,
+        final Map<BigInteger, RevokedCertInfo> permRevoked,
+        final Map<BigInteger, RevokedCertInfo> tempRevoked) {
     for (final RevokedCertInfo revoked : b) {
       final BigInteger serial = revoked.getUserCertificate();
       final Date revdate = revoked.getRevocationDate();
@@ -323,27 +356,5 @@ public class RevokedCertInfo implements Serializable {
         tempRevoked.put(serial, revoked);
       }
     }
-    final CompressedCollection<RevokedCertInfo> mergedRevokedData =
-        new CompressedCollection<>(RevokedCertInfo.class);
-    mergedRevokedData.addAll(
-        permRevoked.values()); // Permanently revoked entries are always added
-    for (final RevokedCertInfo revoked : tempRevoked.values()) {
-      if (!revoked.isRevoked()
-          && (lastBaseCrlDate <= 0
-              || revoked.getRevocationDate().getTime() <= lastBaseCrlDate)) {
-        continue; // REMOVEFROMCRL entries are not added in Base CRLs
-                  // (lastBaseCrlDate=0) or if already removed from the latest
-                  // Base CRL
-      }
-      mergedRevokedData.add(revoked);
-    }
-    mergedRevokedData.closeForWrite();
-    if (LOG.isDebugEnabled()) {
-      LOG.debug(
-          "mergeByDateAndStatus: Merged to "
-              + mergedRevokedData.size()
-              + " entries");
-    }
-    return mergedRevokedData;
-  }
+}
 }

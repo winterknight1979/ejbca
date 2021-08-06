@@ -578,7 +578,83 @@ public class ExtendedInformation extends UpgradeableDataHashMap
       if (data.get(REMAININGLOGINATTEMPTS) == null) {
         setRemainingLoginAttempts(DEFAULT_REMAININGLOGINATTEMPTS);
       }
-      // In EJBCA 4.0.0 we changed the date format
+      doV3Upgrade();
+      // In 4.0.2 we further specify the storage format by saying that UTC
+      // TimeZone is implied instead of local server time
+      doV4Upgrade();
+      data.put(VERSION, LATEST_VERSION);
+    }
+  }
+
+/**
+ *
+ */
+private void doV4Upgrade() {
+    if (getVersion() < 4) {
+        final String[] timePatterns = {"yyyy-MM-dd HH:mm"};
+        final String oldStartTime =
+            getCustomData(ExtendedInformation.CUSTOM_STARTTIME);
+        if (!isEmptyOrRelative(oldStartTime)) {
+          try {
+            final String newStartTime =
+                ValidityDate.formatAsUTC(
+                    DateUtils.parseDateStrictly(oldStartTime, timePatterns));
+            setCustomData(ExtendedInformation.CUSTOM_STARTTIME, newStartTime);
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(
+                  "Upgraded "
+                      + ExtendedInformation.CUSTOM_STARTTIME
+                      + " from \""
+                      + oldStartTime
+                      + "\" to \""
+                      + newStartTime
+                      + "\" in EndEntityProfile.");
+            }
+          } catch (ParseException e) {
+            LOG.error(
+                "Unable to upgrade "
+                    + ExtendedInformation.CUSTOM_STARTTIME
+                    + " to UTC in EndEntityProfile! Manual interaction is"
+                    + " required (edit and verify).",
+                e);
+          }
+        }
+        final String oldEndTime =
+            getCustomData(ExtendedInformation.CUSTOM_ENDTIME);
+        if (!isEmptyOrRelative(oldEndTime)) {
+          // We use an absolute time format, so we need to upgrade
+          try {
+            final String newEndTime =
+                ValidityDate.formatAsUTC(
+                    DateUtils.parseDateStrictly(oldEndTime, timePatterns));
+            setCustomData(ExtendedInformation.CUSTOM_ENDTIME, newEndTime);
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(
+                  "Upgraded "
+                      + ExtendedInformation.CUSTOM_ENDTIME
+                      + " from \""
+                      + oldEndTime
+                      + "\" to \""
+                      + newEndTime
+                      + "\" in EndEntityProfile.");
+            }
+          } catch (ParseException e) {
+            LOG.error(
+                "Unable to upgrade "
+                    + ExtendedInformation.CUSTOM_ENDTIME
+                    + " to UTC in EndEntityProfile! Manual interaction is"
+                    + " required (edit and verify).",
+                e);
+          }
+        }
+      }
+}
+
+/**
+ *
+ */
+private void doV3Upgrade() {
+    // In EJBCA 4.0.0 we changed the date format
       if (getVersion() < 3) {
         final DateFormat oldDateFormat =
             DateFormat.getDateTimeInstance(
@@ -639,78 +715,16 @@ public class ExtendedInformation extends UpgradeableDataHashMap
               e);
         }
       }
-      // In 4.0.2 we further specify the storage format by saying that UTC
-      // TimeZone is implied instead of local server time
-      if (getVersion() < 4) {
-        final String[] timePatterns = {"yyyy-MM-dd HH:mm"};
-        final String oldStartTime =
-            getCustomData(ExtendedInformation.CUSTOM_STARTTIME);
-        if (!isEmptyOrRelative(oldStartTime)) {
-          try {
-            final String newStartTime =
-                ValidityDate.formatAsUTC(
-                    DateUtils.parseDateStrictly(oldStartTime, timePatterns));
-            setCustomData(ExtendedInformation.CUSTOM_STARTTIME, newStartTime);
-            if (LOG.isDebugEnabled()) {
-              LOG.debug(
-                  "Upgraded "
-                      + ExtendedInformation.CUSTOM_STARTTIME
-                      + " from \""
-                      + oldStartTime
-                      + "\" to \""
-                      + newStartTime
-                      + "\" in EndEntityProfile.");
-            }
-          } catch (ParseException e) {
-            LOG.error(
-                "Unable to upgrade "
-                    + ExtendedInformation.CUSTOM_STARTTIME
-                    + " to UTC in EndEntityProfile! Manual interaction is"
-                    + " required (edit and verify).",
-                e);
-          }
-        }
-        final String oldEndTime =
-            getCustomData(ExtendedInformation.CUSTOM_ENDTIME);
-        if (!isEmptyOrRelative(oldEndTime)) {
-          // We use an absolute time format, so we need to upgrade
-          try {
-            final String newEndTime =
-                ValidityDate.formatAsUTC(
-                    DateUtils.parseDateStrictly(oldEndTime, timePatterns));
-            setCustomData(ExtendedInformation.CUSTOM_ENDTIME, newEndTime);
-            if (LOG.isDebugEnabled()) {
-              LOG.debug(
-                  "Upgraded "
-                      + ExtendedInformation.CUSTOM_ENDTIME
-                      + " from \""
-                      + oldEndTime
-                      + "\" to \""
-                      + newEndTime
-                      + "\" in EndEntityProfile.");
-            }
-          } catch (ParseException e) {
-            LOG.error(
-                "Unable to upgrade "
-                    + ExtendedInformation.CUSTOM_ENDTIME
-                    + " to UTC in EndEntityProfile! Manual interaction is"
-                    + " required (edit and verify).",
-                e);
-          }
-        }
-      }
-      data.put(VERSION, LATEST_VERSION);
-    }
-  }
+}
 
   /**
    * @param time time
    * @return true if argument is null, empty or in the relative time format.
    */
   private boolean isEmptyOrRelative(final String time) {
-    return (time == null
+    return time == null
         || time.length() == 0
-        || time.matches("^\\d+:\\d?\\d:\\d?\\d$"));
+        || time.matches("^\\d+:\\d?\\d:\\d?\\d$");
   }
 
   /**

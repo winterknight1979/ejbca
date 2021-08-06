@@ -97,6 +97,10 @@ public final class EndEntityConstants {
   private static final HashMap<Integer, String> STATUS_TEXT_TRANS =
       new HashMap<Integer, String>();
 
+  /** These string values maps a status code to a plain string. */
+  private static final HashMap<Integer, String> STATUS_TEXT =
+      new HashMap<Integer, String>();
+
   static {
     STATUS_TEXT_TRANS.put(Integer.valueOf(STATUS_NEW), "STATUSNEW");
     STATUS_TEXT_TRANS.put(Integer.valueOf(STATUS_FAILED), "STATUSFAILED");
@@ -129,10 +133,6 @@ public final class EndEntityConstants {
     }
     return ret;
   }
-
-  /** These string values maps a status code to a plain string. */
-  private static final HashMap<Integer, String> STATUS_TEXT =
-      new HashMap<Integer, String>();
 
   static {
     STATUS_TEXT.put(Integer.valueOf(STATUS_NEW), "NEW");

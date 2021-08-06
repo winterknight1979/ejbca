@@ -63,7 +63,7 @@
 	<suppress checks="ParameterNumberCheck"
 		files="EndEntityInformation.java" lines="151,207" />
 	<suppress checks="MagicNumberCheck"
-		files="ExtendedInformation.java" lines="582,644" />	<!-- Old API versions used in upgrade process. -->
+		files="ExtendedInformation.java" lines="593,658" />	<!-- Old API versions used in upgrade process. -->
 	<suppress checks="ParameterNumberCheck"
 		files="OcspSigningCacheEntry.java" lines="88" />
 	<suppress checks="LineLengthCheck" files="AlgorithmTools.java"
