@@ -22,6 +22,9 @@ public enum TransactionCounter {
   /** Singleton instance. */
     INSTANCE;
 
+    /** Number. */
+  private int transactionNumber;
+
   TransactionCounter() {
     transactionNumber = 0;
   }
@@ -33,6 +36,5 @@ public enum TransactionCounter {
     return transactionNumber++;
   }
 
-  /** Number. */
-  private int transactionNumber;
+
 }

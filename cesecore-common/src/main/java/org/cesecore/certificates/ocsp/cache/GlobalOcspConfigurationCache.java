@@ -39,20 +39,17 @@ public final class GlobalOcspConfigurationCache implements ConfigurationCache {
    */
   private volatile long lastupdatetime = -1;
 
-  /** No-op constructor. */
+  /* * No-op constructor. * /
   public GlobalOcspConfigurationCache() {
     // Do nothing
-  }
+  } /**/
 
   @Override
   public boolean needsUpdate() {
-    if (ocspConfigurationCache != null
+    return !(ocspConfigurationCache != null
         && lastupdatetime
                 + CesecoreConfiguration.getCacheGlobalOcspConfigurationTime()
-            > System.currentTimeMillis()) {
-      return false;
-    }
-    return true;
+            > System.currentTimeMillis());
   }
 
   /** Clear cache. */

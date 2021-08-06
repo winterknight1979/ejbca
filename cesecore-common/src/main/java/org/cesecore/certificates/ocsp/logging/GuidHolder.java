@@ -23,6 +23,9 @@ public enum GuidHolder {
   /** Singleton instance. */
     INSTANCE;
 
+      /** GUID.*/
+      private final String guid;
+
     /** Constructor. */
   GuidHolder() {
     guid = GUIDGenerator.generateGUID(this);
@@ -35,6 +38,4 @@ public enum GuidHolder {
     return guid;
   }
 
-  /** GUID.*/
-  private final String guid;
 }
