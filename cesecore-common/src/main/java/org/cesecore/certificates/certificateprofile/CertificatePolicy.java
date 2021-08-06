@@ -123,7 +123,7 @@ public class CertificatePolicy implements Serializable, Cloneable {
 
   @Override
   public boolean equals(final Object obj) {
-    if ((obj == null) || !(obj instanceof CertificatePolicy)) {
+    if (obj == null || !(obj instanceof CertificatePolicy)) {
       return false;
     }
     final CertificatePolicy policy = (CertificatePolicy) obj;
@@ -132,13 +132,7 @@ public class CertificatePolicy implements Serializable, Cloneable {
     // value
     // Simply because, especially in gui code, it is somewhat tricky to trust
     // which is a non-existant value
-    boolean policyeq = false;
-    if (StringUtils.isEmpty(policy.getPolicyID())
-        && StringUtils.isEmpty(this.policyID)) {
-      policyeq = true;
-    } else if (StringUtils.equals(policy.getPolicyID(), this.policyID)) {
-      policyeq = true;
-    }
+    boolean policyeq = getPolicyEq(policy);
     boolean qualifierideq = false;
     if (StringUtils.isEmpty(policy.getQualifierId())
         && StringUtils.isEmpty(this.qualifierId)) {
@@ -155,6 +149,21 @@ public class CertificatePolicy implements Serializable, Cloneable {
     }
     return policyeq && qualifierideq && aQualifier;
   }
+
+/**
+ * @param policy Pol
+ * @return Bool
+ */
+private boolean getPolicyEq(final CertificatePolicy policy) {
+    boolean policyeq = false;
+    if (StringUtils.isEmpty(policy.getPolicyID())
+        && StringUtils.isEmpty(this.policyID)) {
+      policyeq = true;
+    } else if (StringUtils.equals(policy.getPolicyID(), this.policyID)) {
+      policyeq = true;
+    }
+    return policyeq;
+}
 
   @Override
   public int hashCode() {

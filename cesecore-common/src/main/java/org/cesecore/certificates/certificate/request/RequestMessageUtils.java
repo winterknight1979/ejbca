@@ -418,36 +418,36 @@ private static RequestMessage handleCRMF(final String username,
  * @param popoSigningKey key
  */
 private static void doPopoLog(final POPOSigningKey popoSigningKey) {
-	if (popoSigningKey != null) {
-	    LOG.debug(
-	        "CRMF POPOSigningKey poposkInput:                      "
-	            + popoSigningKey.getPoposkInput());
-	    if (popoSigningKey.getPoposkInput() != null) {
-	      LOG.debug(
-	          "CRMF POPOSigningKey poposkInput PublicKey:         "
-	              + "   "
-	              + popoSigningKey.getPoposkInput().getPublicKey());
-	      LOG.debug(
-	          "CRMF POPOSigningKey poposkInput PublicKeyMAC:      "
-	              + "   "
-	              + popoSigningKey
-	                  .getPoposkInput()
-	                  .getPublicKeyMAC());
-	    }
-	    LOG.debug(
-	        "CRMF POPOSigningKey algorithmIdentifier.algorithm.id: "
-	            + popoSigningKey
-	                .getAlgorithmIdentifier()
-	                .getAlgorithm()
-	                .getId());
-	    LOG.debug(
-	        "CRMF POPOSigningKey signature:                        "
-	            + popoSigningKey.getSignature());
-	  } else {
-	    LOG.debug(
-	        "CRMF POPOSigningKey is not defined even though POP"
-	            + " type is popSigningKey. Validation will fail.");
-	  }
+    if (popoSigningKey != null) {
+        LOG.debug(
+            "CRMF POPOSigningKey poposkInput:                      "
+                + popoSigningKey.getPoposkInput());
+        if (popoSigningKey.getPoposkInput() != null) {
+          LOG.debug(
+              "CRMF POPOSigningKey poposkInput PublicKey:         "
+                  + "   "
+                  + popoSigningKey.getPoposkInput().getPublicKey());
+          LOG.debug(
+              "CRMF POPOSigningKey poposkInput PublicKeyMAC:      "
+                  + "   "
+                  + popoSigningKey
+                      .getPoposkInput()
+                      .getPublicKeyMAC());
+        }
+        LOG.debug(
+            "CRMF POPOSigningKey algorithmIdentifier.algorithm.id: "
+                + popoSigningKey
+                    .getAlgorithmIdentifier()
+                    .getAlgorithm()
+                    .getId());
+        LOG.debug(
+            "CRMF POPOSigningKey signature:                        "
+                + popoSigningKey.getSignature());
+      } else {
+        LOG.debug(
+            "CRMF POPOSigningKey is not defined even though POP"
+                + " type is popSigningKey. Validation will fail.");
+      }
 }
 
 /**

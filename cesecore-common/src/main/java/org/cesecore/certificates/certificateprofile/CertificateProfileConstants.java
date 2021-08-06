@@ -93,7 +93,7 @@ public final class CertificateProfileConstants {
    * @return true is certificate profile identified by profileId is fixed
    */
   public static boolean isFixedCertificateProfile(final int profileId) {
-    return (profileId == CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER
+    return profileId == CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER
         || profileId == CertificateProfileConstants.CERTPROFILE_FIXED_SUBCA
         || profileId == CertificateProfileConstants.CERTPROFILE_FIXED_ROOTCA
         || profileId
@@ -105,6 +105,6 @@ public final class CertificateProfileConstants {
         || profileId
             == CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENSIGN
         || profileId == CertificateProfileConstants.CERTPROFILE_FIXED_OCSPSIGNER
-        || profileId == CertificateProfileConstants.CERTPROFILE_FIXED_SERVER);
+        || profileId == CertificateProfileConstants.CERTPROFILE_FIXED_SERVER;
   }
 }

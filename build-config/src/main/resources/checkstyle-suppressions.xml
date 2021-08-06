@@ -57,7 +57,7 @@
 	<suppress checks="MethodLengthCheck"
 		files="CertificateProfile.java" lines="4018" />
 	<suppress checks="MagicNumberCheck"
-		files="CertificateProfile.java" lines="1984" />	<!-- This is just a very big number. -->
+		files="CertificateProfile.java" lines="1983" />	<!-- This is just a very big number. -->
 	<suppress checks="MagicNumberCheck" files="CTLogInfo.java"
 		lines="42" />	<!-- Default timeout. -->
 	<suppress checks="ParameterNumberCheck"
