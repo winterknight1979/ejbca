@@ -49,7 +49,7 @@ public class SimpleRequestMessage implements RequestMessage {
    * href=http://java.sun.com/products/jdk/1.1/docs/guide
    * /serialization/spec/version.doc.html> details. </a>
    */
-  static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
   /** The public key. */
   protected PublicKeyWrapper pubkey;

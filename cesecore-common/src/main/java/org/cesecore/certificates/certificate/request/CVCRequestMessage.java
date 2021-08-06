@@ -53,7 +53,7 @@ public class CVCRequestMessage implements RequestMessage {
    * href=http://java.sun.com/products/jdk/1.1/docs/guide
    * /serialization/spec/version.doc.html> details. </a>
    */
-  static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
   /** Logger. */
   private static final Logger LOG = Logger.getLogger(CVCRequestMessage.class);
@@ -385,7 +385,7 @@ public class CVCRequestMessage implements RequestMessage {
       if (cvcert.getCertificateBody().getHolderReference() != null) {
         ret = cvcert.getCertificateBody().getHolderReference().getSequence();
       }
-    } catch (NoSuchFieldException e) {
+    } catch (NoSuchFieldException e) { // NOPMD: no-op
       // No sequence found...
     }
     return ret;
