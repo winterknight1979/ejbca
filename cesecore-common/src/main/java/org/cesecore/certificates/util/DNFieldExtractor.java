@@ -244,7 +244,7 @@ public class DNFieldExtractor implements java.io.Serializable {
       case DNFieldExtractor.TYPE_SUBJECTALTNAME:
         return DnComponents.getDnIdFromAltName(dnComponent);
       case DNFieldExtractor.TYPE_SUBJECTDIRATTR:
-        DnComponents.getDnIdFromDirAttr(dnComponent);
+        return DnComponents.getDnIdFromDirAttr(dnComponent);
       default:
         throw new IllegalStateException("Invalid DN type");
     }
@@ -276,7 +276,7 @@ public class DNFieldExtractor implements java.io.Serializable {
       fieldnumbers.put(id, 0);
     }
 
-    if ((dn != null) && !dn.equalsIgnoreCase("null")) {
+    if (dn != null && !dn.equalsIgnoreCase("null")) {
       dnfields = new HashMap<>();
       try {
         final String[] dnexploded = LDAPDN.explodeDN(dn, false);
@@ -285,28 +285,8 @@ public class DNFieldExtractor implements java.io.Serializable {
 
           for (Integer id : ids) {
             Integer number = fieldnumbers.get(id);
-            String field;
-            if (aType == TYPE_SUBJECTDN) {
-              field = DnComponents.getDnExtractorFieldFromDnId(id.intValue());
-            } else if (aType == TYPE_SUBJECTALTNAME) {
-              field =
-                  DnComponents.getAltNameExtractorFieldFromDnId(id.intValue());
-            } else {
-              field =
-                  DnComponents.getDirAttrExtractorFieldFromDnId(id.intValue());
-            }
             final String dnex = dnexploded[i].toUpperCase();
-            if (id.intValue() == DNFieldExtractor.URI) {
-              // Fix up URI, which can have several forms
-              if (dnex.indexOf(CertTools.URI.toUpperCase(Locale.ENGLISH) + "=")
-                  > -1) {
-                field = CertTools.URI.toUpperCase(Locale.ENGLISH) + "=";
-              }
-              if (dnex.indexOf(CertTools.URI1.toUpperCase(Locale.ENGLISH) + "=")
-                  > -1) {
-                field = CertTools.URI1.toUpperCase(Locale.ENGLISH) + "=";
-              }
-            }
+            String field = getLocalField(aType, id, dnex);
 
             if (dnex.startsWith(field)) {
 
@@ -332,7 +312,7 @@ public class DNFieldExtractor implements java.io.Serializable {
               // if it is not one of those types
               dnfields.put(
                   Integer.valueOf(
-                      (id.intValue() * BOUNDRARY) + number.intValue()),
+                      id.intValue() * BOUNDRARY + number.intValue()),
                   rdn);
 
               number = Integer.valueOf(number.intValue() + 1);
@@ -347,19 +327,51 @@ public class DNFieldExtractor implements java.io.Serializable {
         LOG.warn("setDN: ", e);
         illegal = true;
         if (aType == TYPE_SUBJECTDN) {
-          dnfields.put(Integer.valueOf((CN * BOUNDRARY)), "Illegal DN : " + dn);
+          dnfields.put(Integer.valueOf(CN * BOUNDRARY), "Illegal DN : " + dn);
         } else if (aType == TYPE_SUBJECTALTNAME) {
           dnfields.put(
-              Integer.valueOf((RFC822NAME * BOUNDRARY)),
+              Integer.valueOf(RFC822NAME * BOUNDRARY),
               "Illegal Subjectaltname : " + dn);
         } else if (aType == TYPE_SUBJECTDIRATTR) {
           dnfields.put(
-              Integer.valueOf((PLACEOFBIRTH * BOUNDRARY)),
+              Integer.valueOf(PLACEOFBIRTH * BOUNDRARY),
               "Illegal Subjectdirectory attribute : " + dn);
         }
       }
     }
   }
+
+/**
+ * @param aType type
+ * @param id id
+ * @param dnex dn
+ * @return field
+ */
+private String getLocalField(final int aType,
+        final Integer id, final String dnex) {
+    String field;
+    if (aType == TYPE_SUBJECTDN) {
+      field = DnComponents.getDnExtractorFieldFromDnId(id.intValue());
+    } else if (aType == TYPE_SUBJECTALTNAME) {
+      field =
+          DnComponents.getAltNameExtractorFieldFromDnId(id.intValue());
+    } else {
+      field =
+          DnComponents.getDirAttrExtractorFieldFromDnId(id.intValue());
+    }
+    if (id.intValue() == DNFieldExtractor.URI) {
+      // Fix up URI, which can have several forms
+      if (dnex.indexOf(CertTools.URI.toUpperCase(Locale.ENGLISH) + "=")
+          > -1) {
+        field = CertTools.URI.toUpperCase(Locale.ENGLISH) + "=";
+      }
+      if (dnex.indexOf(CertTools.URI1.toUpperCase(Locale.ENGLISH) + "=")
+          > -1) {
+        field = CertTools.URI1.toUpperCase(Locale.ENGLISH) + "=";
+      }
+    }
+    return field;
+}
 
   /**
    * Returns the value of a certain DN component.
@@ -375,7 +387,7 @@ public class DNFieldExtractor implements java.io.Serializable {
    */
   public String getField(final int field, final int number) {
     String returnval =
-        dnfields.get(Integer.valueOf((field * BOUNDRARY) + number));
+        dnfields.get(Integer.valueOf(field * BOUNDRARY + number));
 
     if (returnval == null) {
       returnval = "";

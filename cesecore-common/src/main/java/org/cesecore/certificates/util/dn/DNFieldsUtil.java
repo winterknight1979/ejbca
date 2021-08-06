@@ -120,7 +120,7 @@ public abstract class DNFieldsUtil {
           key)) { // check that serial numbers are not blank and not equal.
         if (StringUtils.isBlank(value1)
             || StringUtils.isBlank(value2)
-            || value1 == value2) {
+            || value1.equals(value2)) {
           result = false;
         }
       } else { // All other DN attributes must be equal.
@@ -186,12 +186,7 @@ public abstract class DNFieldsUtil {
     for (int i = 0; i < startOfPairs.size(); i++) {
       final int startOfThisPair = startOfPairs.get(i).intValue();
       final int startOfNextPair;
-      if (i == startOfPairs.size() - 1) {
-        startOfNextPair =
-            buf.length; // The "next element" begins at the end of the buffer
-      } else {
-        startOfNextPair = startOfPairs.get(i + 1).intValue();
-      }
+      startOfNextPair = setSONP(startOfPairs, buf, i);
       final int startOfThisValue = startOfValues.get(i).intValue();
       boolean addOnlyNonTrailingEmpties = true;
       boolean addAllNonEmpties = true;
@@ -215,7 +210,7 @@ public abstract class DNFieldsUtil {
         }
       }
       if (areStringBuildersEqual
-          && (addOnlyNonTrailingEmpties != addAllNonEmpties)) {
+          && addOnlyNonTrailingEmpties != addAllNonEmpties) {
         // The StringBuilders are no longer equal, so we need to populate the
         // empty one and let them diverge
         areStringBuildersEqual = false;
@@ -223,10 +218,8 @@ public abstract class DNFieldsUtil {
           removedTrailingEmpties = new StringBuilder(removedAllEmpties);
         }
       }
-      if (addAllNonEmpties) {
-        removedAllEmpties.append(
-            buf, startOfThisPair, startOfNextPair - startOfThisPair);
-      }
+      handleNonEmpties(removedAllEmpties, buf, startOfThisPair,
+              startOfNextPair, addAllNonEmpties);
       if (processTrailing
           && !areStringBuildersEqual
           && addOnlyNonTrailingEmpties) {
@@ -240,6 +233,40 @@ public abstract class DNFieldsUtil {
     }
     return removedTrailingEmpties;
   }
+
+/**
+ * @param removedAllEmpties bool
+ * @param buf buff
+ * @param startOfThisPair sotp
+ * @param startOfNextPair sonp
+ * @param addAllNonEmpties bool
+ */
+private static void handleNonEmpties(final StringBuilder removedAllEmpties,
+        final char[] buf, final int startOfThisPair,
+        final int startOfNextPair, final boolean addAllNonEmpties) {
+    if (addAllNonEmpties) {
+        removedAllEmpties.append(
+            buf, startOfThisPair, startOfNextPair - startOfThisPair);
+      }
+}
+
+/**
+ * @param startOfPairs start
+ * @param buf buf
+ * @param i i
+ * @return SONP
+ */
+private static int setSONP(final List<Integer> startOfPairs,
+        final char[] buf, final int i) {
+    final int startOfNextPair;
+    if (i == startOfPairs.size() - 1) {
+        startOfNextPair =
+            buf.length; // The "next element" begins at the end of the buffer
+      } else {
+        startOfNextPair = startOfPairs.get(i + 1).intValue();
+      }
+    return startOfNextPair;
+}
 
   /**
    * If we end up with a buffer ending with "," or ", " we need to remove these
@@ -322,6 +349,7 @@ public abstract class DNFieldsUtil {
           break;
         default:
           notEscaped = true;
+          break;
       }
     }
   }

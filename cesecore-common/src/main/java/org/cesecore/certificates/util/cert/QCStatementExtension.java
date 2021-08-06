@@ -121,7 +121,7 @@ public final class QCStatementExtension extends CertTools {
       for (int i = 0; i < seq.size(); i++) {
         final QCStatement qc = QCStatement.getInstance(seq.getObjectAt(i));
         final ASN1ObjectIdentifier oid = qc.getStatementId();
-        if ((oid != null)
+        if (oid != null
             && oid.equals(ETSIQCObjectIdentifiers.id_etsi_qcs_LimiteValue)) {
           // We MAY have a MonetaryValue object here
           final ASN1Encodable enc = qc.getStatementInfo();
@@ -147,7 +147,7 @@ public final class QCStatementExtension extends CertTools {
         if (curr == null) {
           LOG.error("ETSI LimitValue currency is null");
         }
-        if ((value >= 0) && (curr != null)) {
+        if (value >= 0 && curr != null) {
           ret = value + " " + curr;
         }
       }
@@ -179,22 +179,7 @@ public final class QCStatementExtension extends CertTools {
       SemanticsInformation si = null;
       // Look through all the QCStatements and see if we have a standard RFC3739
       // pkixQCSyntax
-      for (int i = 0; i < seq.size(); i++) {
-        final QCStatement qc = QCStatement.getInstance(seq.getObjectAt(i));
-        final ASN1ObjectIdentifier oid = qc.getStatementId();
-        if ((oid != null)
-            && (oid.equals(RFC3739QCObjectIdentifiers.id_qcs_pkixQCSyntax_v1)
-                || oid.equals(
-                    RFC3739QCObjectIdentifiers.id_qcs_pkixQCSyntax_v2))) {
-          // We MAY have a SemanticsInformation object here
-          final ASN1Encodable enc = qc.getStatementInfo();
-          if (enc != null) {
-            si = SemanticsInformation.getInstance(enc);
-            // We can break the loop now, we got it!
-            break;
-          }
-        }
-      }
+      si = getInitialSI(seq, si);
       if (si != null) {
         final GeneralName[] gns = si.getNameRegistrationAuthorities();
         if (gns == null) {
@@ -221,6 +206,33 @@ public final class QCStatementExtension extends CertTools {
     return ret;
   }
 
+/**
+ * @param seq seq
+ * @param s si
+ * @return si
+ */
+private static SemanticsInformation getInitialSI(final ASN1Sequence seq,
+        final SemanticsInformation s) {
+    SemanticsInformation si = s;
+    for (int i = 0; i < seq.size(); i++) {
+        final QCStatement qc = QCStatement.getInstance(seq.getObjectAt(i));
+        final ASN1ObjectIdentifier oid = qc.getStatementId();
+        if (oid != null
+            && (oid.equals(RFC3739QCObjectIdentifiers.id_qcs_pkixQCSyntax_v1)
+                || oid.equals(
+                    RFC3739QCObjectIdentifiers.id_qcs_pkixQCSyntax_v2))) {
+          // We MAY have a SemanticsInformation object here
+          final ASN1Encodable enc = qc.getStatementInfo();
+          if (enc != null) {
+            si = SemanticsInformation.getInstance(enc);
+            // We can break the loop now, we got it!
+            break;
+          }
+        }
+      }
+    return si;
+}
+
   /**
    * Assumes that the statementoid in the QcStatements Sequence, seq, is a
    * String and extracts that value from position, pos, of sequence.
@@ -239,7 +251,7 @@ public final class QCStatementExtension extends CertTools {
     for (int i = 0; i < seq.size(); i++) {
       final QCStatement qc = QCStatement.getInstance(seq.getObjectAt(i));
       final ASN1ObjectIdentifier oid = qc.getStatementId();
-      if ((oid != null) && oid.toString().equals(statementoid)) {
+      if (oid != null && oid.toString().equals(statementoid)) {
         // We MUST have a URL and LANG here
         final ASN1Encodable enc = qc.getStatementInfo();
         if (enc != null) {

@@ -67,7 +67,7 @@
 	<suppress checks="ParameterNumberCheck"
 		files="OcspSigningCacheEntry.java" lines="88" />
 	<suppress checks="LineLengthCheck" files="AlgorithmTools.java"
-		lines="510,307" /> <!-- URL in comment, not caught by config -->
+		lines="521,308" /> <!-- URL in comment, not caught by config -->
 	<suppress checks="LineLengthCheck"
 		files="AvailableExtendedKeyUsagesConfiguration.java" lines="118,124" /> <!-- URL in comment, not caught by config -->
 	<suppress checks="MagicNumberCheck" files="DnComponents.java"

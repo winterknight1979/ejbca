@@ -52,6 +52,7 @@ import org.bouncycastle.jce.ECNamedCurveTable;
 import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
 import org.bouncycastle.jce.spec.ECNamedCurveSpec;
 import org.bouncycastle.math.ec.ECCurve;
+import org.cesecore.CesecoreRuntimeException;
 import org.cesecore.config.CesecoreConfiguration;
 import org.cesecore.keys.util.KeyTools;
 import org.cesecore.util.StringTools;
@@ -71,7 +72,7 @@ import org.ejbca.cvc.OIDField;
  * @see KeyTools#getKeyLength
  * @version $Id: AlgorithmTools.java 28555 2018-03-27 07:19:14Z tarmo_r_helmes $
  */
-public abstract class AlgorithmTools {
+public abstract class AlgorithmTools { // NOPMD: length
 
   /** Log4j instance. */
   private static final Logger LOG = Logger.getLogger(AlgorithmTools.class);
@@ -402,78 +403,7 @@ public abstract class AlgorithmTools {
           }
         }
       } else {
-        keyspec = KEYSPEC_UNKNOWN;
-        // Try to detect if it is a curve name known by BC even though the
-        // public key isn't a BC key
-        final ECParameterSpec namedCurve = ecPublicKey.getParams();
-        if (namedCurve != null) {
-          final int c1 = namedCurve.getCofactor();
-          final EllipticCurve ec1 = namedCurve.getCurve();
-          final BigInteger a1 = ec1.getA();
-          final BigInteger b1 = ec1.getB();
-          final int fs1 = ec1.getField().getFieldSize();
-          // final byte[] s1 = ec1.getSeed();
-          final ECPoint g1 = namedCurve.getGenerator();
-          final BigInteger ax1 = g1.getAffineX();
-          final BigInteger ay1 = g1.getAffineY();
-          final BigInteger o1 = namedCurve.getOrder();
-          if (LOG.isDebugEnabled()) {
-            LOG.debug(
-                "a1=" + a1 + " b1=" + b1 + " fs1=" + fs1 + " ax1=" + ax1
-                    + " ay1=" + ay1 + " o1=" + o1 + " c1=" + c1);
-          }
-          @SuppressWarnings("unchecked")
-          final Enumeration<String> ecNamedCurves =
-              ECNamedCurveTable.getNames();
-          while (ecNamedCurves.hasMoreElements()) {
-            final String ecNamedCurveBc = ecNamedCurves.nextElement();
-            final ECNamedCurveParameterSpec parameterSpec2 =
-                ECNamedCurveTable.getParameterSpec(ecNamedCurveBc);
-            final ECCurve ec2 = parameterSpec2.getCurve();
-            final BigInteger a2 = ec2.getA().toBigInteger();
-            final BigInteger b2 = ec2.getB().toBigInteger();
-            final int fs2 = ec2.getFieldSize();
-            final org.bouncycastle.math.ec.ECPoint g2 = parameterSpec2.getG();
-            final BigInteger ax2 = g2.getAffineXCoord().toBigInteger();
-            final BigInteger ay2 = g2.getAffineYCoord().toBigInteger();
-            final BigInteger h2 = parameterSpec2.getH();
-            final BigInteger n2 = parameterSpec2.getN();
-            if (a1.equals(a2)
-                && ax1.equals(ax2)
-                && b1.equals(b2)
-                && ay1.equals(ay2)
-                && fs1 == fs2
-                && o1.equals(n2)
-                && c1 == h2.intValue()) {
-              // We have a matching curve here!
-              if (LOG.isDebugEnabled()) {
-                LOG.debug(
-                    "a2="
-                        + a2
-                        + " b2="
-                        + b2
-                        + " fs2="
-                        + fs2
-                        + " ax2="
-                        + ax2
-                        + " ay2="
-                        + ay2
-                        + " h2="
-                        + h2
-                        + " n2="
-                        + n2
-                        + " "
-                        + ecNamedCurveBc);
-              }
-              // Since this public key is a SUN PKCS#11 pub key if we get here,
-              // we only return an alias if it is recognized by the provider
-              if (isNamedECKnownInDefaultProvider(ecNamedCurveBc)) {
-                keyspec = ecNamedCurveBc;
-                break;
-              }
-            }
-          }
-        }
+        keyspec = setupUnknownKeyspec(ecPublicKey);
       }
     }
     if (LOG.isTraceEnabled()) {
@@ -481,6 +411,87 @@ public abstract class AlgorithmTools {
     }
     return keyspec;
   }
+
+/**
+ * @param ecPublicKey key
+ * @return spec
+ */
+private static String setupUnknownKeyspec(final ECPublicKey ecPublicKey) {
+    String keyspec;
+    keyspec = KEYSPEC_UNKNOWN;
+    // Try to detect if it is a curve name known by BC even though the
+    // public key isn't a BC key
+    final ECParameterSpec namedCurve = ecPublicKey.getParams();
+    if (namedCurve != null) {
+      final int c1 = namedCurve.getCofactor();
+      final EllipticCurve ec1 = namedCurve.getCurve();
+      final BigInteger a1 = ec1.getA();
+      final BigInteger b1 = ec1.getB();
+      final int fs1 = ec1.getField().getFieldSize();
+      // final byte[] s1 = ec1.getSeed();
+      final ECPoint g1 = namedCurve.getGenerator();
+      final BigInteger ax1 = g1.getAffineX();
+      final BigInteger ay1 = g1.getAffineY();
+      final BigInteger o1 = namedCurve.getOrder();
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
+            "a1=" + a1 + " b1=" + b1 + " fs1=" + fs1 + " ax1=" + ax1
+                + " ay1=" + ay1 + " o1=" + o1 + " c1=" + c1);
+      }
+      @SuppressWarnings("unchecked")
+      final Enumeration<String> ecNamedCurves =
+          ECNamedCurveTable.getNames();
+      while (ecNamedCurves.hasMoreElements()) {
+        final String ecNamedCurveBc = ecNamedCurves.nextElement();
+        final ECNamedCurveParameterSpec parameterSpec2 =
+            ECNamedCurveTable.getParameterSpec(ecNamedCurveBc);
+        final ECCurve ec2 = parameterSpec2.getCurve();
+        final BigInteger a2 = ec2.getA().toBigInteger();
+        final BigInteger b2 = ec2.getB().toBigInteger();
+        final int fs2 = ec2.getFieldSize();
+        final org.bouncycastle.math.ec.ECPoint g2 = parameterSpec2.getG();
+        final BigInteger ax2 = g2.getAffineXCoord().toBigInteger();
+        final BigInteger ay2 = g2.getAffineYCoord().toBigInteger();
+        final BigInteger h2 = parameterSpec2.getH();
+        final BigInteger n2 = parameterSpec2.getN();
+        if (a1.equals(a2)
+            && ax1.equals(ax2)
+            && b1.equals(b2)
+            && ay1.equals(ay2)
+            && fs1 == fs2
+            && o1.equals(n2)
+            && c1 == h2.intValue()) {
+          // We have a matching curve here!
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
+                "a2="
+                    + a2
+                    + " b2="
+                    + b2
+                    + " fs2="
+                    + fs2
+                    + " ax2="
+                    + ax2
+                    + " ay2="
+                    + ay2
+                    + " h2="
+                    + h2
+                    + " n2="
+                    + n2
+                    + " "
+                    + ecNamedCurveBc);
+          }
+          // Since this public key is a SUN PKCS#11 pub key if we get here,
+          // we only return an alias if it is recognized by the provider
+          if (isNamedECKnownInDefaultProvider(ecNamedCurveBc)) {
+            keyspec = ecNamedCurveBc;
+            break;
+          }
+        }
+      }
+    }
+    return keyspec;
+}
 
   /**
    * Check if the curve name is known by the first found PKCS#11 provider or
@@ -533,13 +544,13 @@ public abstract class AlgorithmTools {
             ecNamedCurveBc + " is not available in provider " + providerName);
       }
     } catch (NoSuchAlgorithmException e) {
-      throw new RuntimeException(
+      throw new CesecoreRuntimeException(
           "EC capable provider "
               + providerName
               + " could no longer handle elliptic curve algorithm..",
           e);
     } catch (NoSuchProviderException e) {
-      throw new RuntimeException(
+      throw new CesecoreRuntimeException(
           "EC capable provider " + providerName + " disappeard unexpectedly.",
           e);
     }
@@ -686,10 +697,10 @@ public abstract class AlgorithmTools {
         ret = true;
       }
     } else if (StringUtils.contains(
-        signatureAlgorithm, AlgorithmConstants.KEYALGORITHM_DSTU4145)) {
-      if (publicKey instanceof ECPublicKey && isDstu4145) {
+        signatureAlgorithm, AlgorithmConstants.KEYALGORITHM_DSTU4145)
+      && publicKey instanceof ECPublicKey && isDstu4145) {
         ret = true;
-      }
+
     }
     return ret;
   }
@@ -733,22 +744,8 @@ public abstract class AlgorithmTools {
       }
       // Try to make it easier to display some signature algorithms that
       // cert.getSigAlgName() does not have a good string for.
-      if (certSignatureAlgorithmTmp.equalsIgnoreCase("1.2.840.113549.1.1.10")
-          && cert instanceof X509Certificate) {
-        // Figure out if it is SHA1 or SHA256
-        // If we got this value we should have a x509 cert
-        final X509Certificate x509cert = (X509Certificate) cert;
-        final byte[] params = x509cert.getSigAlgParams();
-        if ((params != null) && (params.length == 2)) {
-          certSignatureAlgorithm =
-              AlgorithmConstants.SIGALG_SHA1_WITH_RSA_AND_MGF1;
-        } else {
-          certSignatureAlgorithm =
-              AlgorithmConstants.SIGALG_SHA256_WITH_RSA_AND_MGF1;
-        }
-      } else {
-        certSignatureAlgorithm = certSignatureAlgorithmTmp;
-      }
+      certSignatureAlgorithm =
+              handleUnknownName(cert, certSignatureAlgorithmTmp);
 
     // SHA256WithECDSA does not work to be translated in JDK5.
     if (certSignatureAlgorithm.equalsIgnoreCase("1.2.840.10045.4.3.2")) {
@@ -768,6 +765,33 @@ public abstract class AlgorithmTools {
     }
     return certSignatureAlgorithm;
   }
+
+/**
+ * @param cert Cert
+ * @param certSignatureAlgorithmTmp Alg
+ * @return Name
+ */
+private static String handleUnknownName(final Certificate cert,
+        final String certSignatureAlgorithmTmp) {
+    final String certSignatureAlgorithm;
+    if (certSignatureAlgorithmTmp.equalsIgnoreCase("1.2.840.113549.1.1.10")
+          && cert instanceof X509Certificate) {
+        // Figure out if it is SHA1 or SHA256
+        // If we got this value we should have a x509 cert
+        final X509Certificate x509cert = (X509Certificate) cert;
+        final byte[] params = x509cert.getSigAlgParams();
+        if (params != null && params.length == 2) {
+          certSignatureAlgorithm =
+              AlgorithmConstants.SIGALG_SHA1_WITH_RSA_AND_MGF1;
+        } else {
+          certSignatureAlgorithm =
+              AlgorithmConstants.SIGALG_SHA256_WITH_RSA_AND_MGF1;
+        }
+      } else {
+        certSignatureAlgorithm = certSignatureAlgorithmTmp;
+      }
+    return certSignatureAlgorithm;
+}
 
   /**
    * Simple method that looks at the certificate and determines, from EJBCA's
@@ -861,7 +885,7 @@ public abstract class AlgorithmTools {
    * @param sigAlg Algorithm
    * @return name
    */
-  public static String getDigestFromSigAlg(final String sigAlg) {
+  public static String getDigestFromSigAlg(final String sigAlg) { //NOPMD
     if (sigAlg.toUpperCase().contains("GOST")
         || sigAlg.toUpperCase().contains("DSTU")) {
       return CMSSignedGenerator.DIGEST_GOST3411;
@@ -933,7 +957,7 @@ public abstract class AlgorithmTools {
    *     X9ObjectIdentifiers.ecdsa_with_SHA1,
    *     X9ObjectIdentifiers.id_dsa_with_sha1, etc
    */
-  public static ASN1ObjectIdentifier getSignAlgOidFromDigestAndKey(
+  public static ASN1ObjectIdentifier getSignAlgOidFromDigestAndKey(//NOPMD
       final String digestAlg, final String keyAlg) {
     if (LOG.isTraceEnabled()) {
       LOG.trace(">getSignAlg(" + digestAlg + "," + keyAlg + ")");
@@ -1098,7 +1122,7 @@ public abstract class AlgorithmTools {
    * @return The name of the algorithm corresponding sigAlgOid or null if the
    *     algorithm is not recognized.
    */
-  public static String getAlgorithmNameFromOID(
+  public static String getAlgorithmNameFromOID(//NOPMD
           final ASN1ObjectIdentifier sigAlgOid) {
 
     if (sigAlgOid.equals(PKCSObjectIdentifiers.md5WithRSAEncryption)) {
