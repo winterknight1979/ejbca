@@ -130,7 +130,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
 				<artifactId>bcprov-jdk15on</artifactId>
-				<version>1.60</version>
+				<version>1.67</version>
 			</dependency>
 			<!-- Binary Cert-CVC blob -->
 			<dependency>
