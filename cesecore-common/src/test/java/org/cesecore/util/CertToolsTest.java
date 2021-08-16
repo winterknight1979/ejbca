@@ -3766,6 +3766,9 @@ public class CertToolsTest {
       fail(message);
     } catch (IllegalNameException e) {
       /* NOPMD expected */
+    } catch (Exception e) {
+    	e.printStackTrace();
+    	fail(e.getMessage());
     }
   }
 }

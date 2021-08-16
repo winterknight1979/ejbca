@@ -769,8 +769,8 @@ public final class CmpMessageHelper {
 
     // Reconstructing the CertRequest
     ASN1Encodable o2 =
-        ((DERSequence) messages.toASN1Primitive()).getObjectAt(0);
-    ASN1Encodable o3 = ((DERSequence) o2).getObjectAt(0);
+        ((ASN1Sequence) messages.toASN1Primitive()).getObjectAt(0);
+    ASN1Encodable o3 = ((ASN1Sequence) o2).getObjectAt(0);
     CertRequest cr = CertRequest.getInstance(o3);
 
     // Reconstructing the proof-of-posession
@@ -839,15 +839,15 @@ public final class CmpMessageHelper {
     // using bouncycastle OR not setting the correct revocation reason.
 
     ASN1Encodable o2 =
-        ((DERSequence) revContent.toASN1Primitive()).getObjectAt(0);
-    ASN1Encodable o3 = ((DERSequence) o2).getObjectAt(0);
+        ((ASN1Sequence) revContent.toASN1Primitive()).getObjectAt(0);
+    ASN1Encodable o3 = ((ASN1Sequence) o2).getObjectAt(0);
     CertTemplate ct = CertTemplate.getInstance(o3);
 
     ReasonFlags reasonbits = null;
     Extensions crlEntryDetails = null;
-    int seqSize = ((DERSequence) o2).size();
+    int seqSize = ((ASN1Sequence) o2).size();
     for (int i = 1; i < seqSize; i++) {
-      ASN1Encodable o4 = ((DERSequence) o2).getObjectAt(i);
+      ASN1Encodable o4 = ((ASN1Sequence) o2).getObjectAt(i);
       if (o4 instanceof DERBitString) {
         reasonbits = new ReasonFlags((DERBitString) o4);
       } else if (o4 instanceof DERGeneralizedTime) {
