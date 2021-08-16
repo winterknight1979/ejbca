@@ -34,7 +34,7 @@ import org.cesecore.certificates.endentity.EndEntityConstants;
 import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.certificates.util.AlgorithmTools;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.util.StringTools;
 import org.ejbca.config.WebConfiguration;
 import org.ejbca.core.ejb.ra.NoSuchEndEntityException;
@@ -587,21 +587,21 @@ public class ApplyBean implements Serializable {
                     AlgorithmTools.getAllCurveAliasesFromAlias(ecNamedCurve)));
       }
     }
-    for (final String algName : CesecoreConfiguration.getExtraAlgs()) {
+    for (final String algName : CesecoreConfigurationHelper.getExtraAlgs()) {
       if (availableKeyAlgorithms.contains(
-          CesecoreConfiguration.getExtraAlgTitle(algName))) {
+          CesecoreConfigurationHelper.getExtraAlgTitle(algName))) {
         for (final String subAlg
-           : CesecoreConfiguration.getExtraAlgSubAlgs(algName)) {
+           : CesecoreConfigurationHelper.getExtraAlgSubAlgs(algName)) {
           final String name =
-              CesecoreConfiguration.getExtraAlgSubAlgName(algName, subAlg);
+              CesecoreConfigurationHelper.getExtraAlgSubAlgName(algName, subAlg);
           final int bitLength = AlgorithmTools.getNamedEcCurveBitLength(name);
           if (availableBitLengths.contains(Integer.valueOf(bitLength))) {
             ret.add(
-                CesecoreConfiguration.getExtraAlgTitle(algName)
+                CesecoreConfigurationHelper.getExtraAlgTitle(algName)
                     + "_"
                     + name
                     + ";"
-                    + CesecoreConfiguration.getExtraAlgSubAlgTitle(
+                    + CesecoreConfigurationHelper.getExtraAlgSubAlgTitle(
                         algName, subAlg));
           } else {
             if (LOG.isTraceEnabled()) {

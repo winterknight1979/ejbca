@@ -65,7 +65,7 @@ import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
 import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
 import org.cesecore.certificates.crl.RevokedCertInfo;
 import org.cesecore.certificates.endentity.EndEntityConstants;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.config.GlobalCesecoreConfiguration;
 import org.cesecore.config.OcspConfiguration;
 import org.cesecore.configuration.GlobalConfigurationSessionLocal;
@@ -101,7 +101,7 @@ public class CertificateStoreSessionBean
   private static final int TIMERID_CACERTIFICATECACHE = 1;
 
   /** EM. */
-  @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+  @PersistenceContext(unitName = CesecoreConfigurationHelper.PERSISTENCE_UNIT)
   private EntityManager entityManager;
   /** Auth. */
   @EJB private AuthorizationSessionLocal authorizationSession;
@@ -310,7 +310,7 @@ public class CertificateStoreSessionBean
     // create one insert and one update statement to the database.
     // Probably not important in EJB3 anymore
     final boolean useBase64CertTable =
-        CesecoreConfiguration.useBase64CertTable();
+        CesecoreConfigurationHelper.useBase64CertTable();
     Base64CertData base64CertData = null;
     final CertificateProfile certificateProfile =
         certificateProfileSession.getCertificateProfile(certificateProfileId);
@@ -376,7 +376,7 @@ public class CertificateStoreSessionBean
       return null;
     }
     final Base64CertData base64CertData;
-    if (CesecoreConfiguration.useBase64CertTable()) {
+    if (CesecoreConfigurationHelper.useBase64CertTable()) {
       base64CertData =
           Base64CertData.findByFingerprint(entityManager, fingerprint);
     } else {
@@ -456,7 +456,7 @@ public class CertificateStoreSessionBean
       return false;
     }
     final boolean useBase64CertTable =
-        CesecoreConfiguration.useBase64CertTable();
+        CesecoreConfigurationHelper.useBase64CertTable();
     if (useBase64CertTable) {
       // use special table for encoded data if told so.
       entityManager.persist(new Base64CertData(certificate));
@@ -1210,7 +1210,7 @@ public class CertificateStoreSessionBean
     }
     final List<CertificateDataWrapper> cdws = new ArrayList<>();
     for (final CertificateData certificateData : certs) {
-      if (CesecoreConfiguration.useBase64CertTable()) {
+      if (CesecoreConfigurationHelper.useBase64CertTable()) {
         final Base64CertData base64CertData =
             Base64CertData.findByFingerprint(
                 entityManager, certificateData.getFingerprint());
@@ -1364,7 +1364,7 @@ public class CertificateStoreSessionBean
       }
     }
     for (final CertificateData certificateData : certificateDatas) {
-      if (CesecoreConfiguration.useBase64CertTable()) {
+      if (CesecoreConfigurationHelper.useBase64CertTable()) {
         ret.add(
             new CertificateDataWrapper(
                 certificateData,

@@ -64,7 +64,7 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.PKCSException;
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.certificates.util.AlgorithmTools;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.internal.InternalResources;
 import org.cesecore.keys.KeyCreationException;
 import org.cesecore.keys.token.CachingKeyStoreWrapper;
@@ -434,7 +434,7 @@ public class KeyStoreTools {
         && keySpec.startsWith(AlgorithmConstants.KEYSPECPREFIX_ECGOST3410)) {
       generateGOST3410(keySpec, keyEntryName);
     } else if (AlgorithmTools.isDstu4145Enabled()
-        && keySpec.startsWith(CesecoreConfiguration.getOidDstu4145() + ".")) {
+        && keySpec.startsWith(CesecoreConfigurationHelper.getOidDstu4145() + ".")) {
       generateDSTU4145(keySpec, keyEntryName);
     } else {
 
@@ -558,7 +558,7 @@ public class KeyStoreTools {
         final X509Certificate[] chain = new X509Certificate[] {selfSignedCert};
         LOG.debug("Creating certificate with entry " + keyAlias + '.');
         setKeyEntry(keyAlias, keyPair.getPrivate(), chain);
-        if (CesecoreConfiguration.makeKeyUnmodifiableAfterGeneration()) {
+        if (CesecoreConfigurationHelper.makeKeyUnmodifiableAfterGeneration()) {
           PKCS11Utils.getInstance()
               .makeKeyUnmodifiable(keyPair.getPrivate(), this.providerName);
         }

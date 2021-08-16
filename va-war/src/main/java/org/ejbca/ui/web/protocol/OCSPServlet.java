@@ -38,7 +38,7 @@ import org.cesecore.certificates.ocsp.logging.GuidHolder;
 import org.cesecore.certificates.ocsp.logging.PatternLogger;
 import org.cesecore.certificates.ocsp.logging.TransactionCounter;
 import org.cesecore.certificates.ocsp.logging.TransactionLogger;
-import org.cesecore.config.ConfigurationHolder;
+import org.cesecore.config.ConfigurationHolderUtil;
 import org.cesecore.config.OcspConfiguration;
 import org.cesecore.configuration.GlobalConfigurationSessionLocal;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
@@ -133,10 +133,10 @@ public class OCSPServlet extends HttpServlet {
           LOG.debug("Config change: " + aConfig[i]);
           final int separatorIx = aConfig[i].indexOf('=');
           if (separatorIx < 0) {
-            ConfigurationHolder.updateConfiguration(aConfig[i], null);
+            ConfigurationHolderUtil.updateConfiguration(aConfig[i], null);
             continue;
           }
-          ConfigurationHolder.updateConfiguration(
+          ConfigurationHolderUtil.updateConfiguration(
               aConfig[i].substring(0, separatorIx),
               aConfig[i].substring(separatorIx + 1, aConfig[i].length()));
         }
@@ -147,7 +147,7 @@ public class OCSPServlet extends HttpServlet {
         return;
       }
       if (doRestoreConfig) {
-        ConfigurationHolder.restoreConfiguration();
+        ConfigurationHolderUtil.restoreConfiguration();
         OcspConfigurationCache.INSTANCE.reloadConfiguration();
         LOG.info("Call from " + remote + " to restore configuration.");
         return;

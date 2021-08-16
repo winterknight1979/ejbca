@@ -77,7 +77,7 @@ import org.cesecore.certificates.certificatetransparency.CTLogInfo;
 import org.cesecore.certificates.ocsp.OcspResponseGeneratorSessionLocal;
 import org.cesecore.certificates.util.DNFieldExtractor;
 import org.cesecore.config.AvailableExtendedKeyUsagesConfiguration;
-import org.cesecore.config.ConfigurationHolder;
+import org.cesecore.config.ConfigurationHolderUtil;
 import org.cesecore.config.GlobalOcspConfiguration;
 import org.cesecore.config.OcspConfiguration;
 import org.cesecore.configuration.GlobalConfigurationSessionLocal;
@@ -674,7 +674,7 @@ public class UpgradeSessionBean
 
   private void importExtendedKeyUsagesFromFile() {
     final URL url =
-        ConfigurationHolder.class.getResource(
+        ConfigurationHolderUtil.class.getResource(
             "/conf/extendedkeyusage.properties");
     AvailableExtendedKeyUsagesConfiguration ekuConfig;
     if (url == null) {
@@ -686,7 +686,7 @@ public class UpgradeSessionBean
                   AvailableExtendedKeyUsagesConfiguration.CONFIGURATION_ID);
     } else {
       ekuConfig = new AvailableExtendedKeyUsagesConfiguration(false);
-      final Configuration conf = ConfigurationHolder.instance();
+      final Configuration conf = ConfigurationHolderUtil.instance();
       final String ekuname = "extendedkeyusage.name.";
       final String ekuoid = "extendedkeyusage.oid.";
       int j = 0;

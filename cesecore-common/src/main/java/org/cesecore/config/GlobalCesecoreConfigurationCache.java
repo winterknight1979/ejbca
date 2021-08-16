@@ -60,7 +60,7 @@ public class GlobalCesecoreConfigurationCache implements ConfigurationCache {
   public boolean needsUpdate() {
     if (globalconfigurationCache != null
         && lastupdatetime
-                + CesecoreConfiguration.getCacheGlobalConfigurationTime()
+                + CesecoreConfigurationHelper.getCacheGlobalConfigurationTime()
             > System.currentTimeMillis()) {
       return false;
     }
@@ -93,6 +93,6 @@ public class GlobalCesecoreConfigurationCache implements ConfigurationCache {
 
   @Override
   public Properties getAllProperties() {
-    return ConfigurationHolder.getAsProperties();
+    return ConfigurationHolderUtil.getAsProperties();
   }
 }

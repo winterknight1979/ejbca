@@ -86,7 +86,7 @@ import org.cesecore.certificates.endentity.ExtendedInformation;
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.certificates.util.AlgorithmTools;
 import org.cesecore.certificates.util.DNFieldExtractor;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.keys.token.CryptoToken;
 import org.cesecore.keys.token.CryptoTokenAuthenticationFailedException;
 import org.cesecore.keys.token.CryptoTokenInfo;
@@ -1000,7 +1000,7 @@ public class CAInterfaceBean implements Serializable {
         final Properties cryptoTokenProperties = new Properties();
         cryptoTokenProperties.setProperty(
             CryptoToken.AUTOACTIVATE_PIN_PROPERTY,
-            CesecoreConfiguration.getCaKeyStorePass());
+            CesecoreConfigurationHelper.getCaKeyStorePass());
         try {
           cryptoTokenId =
               cryptoTokenManagementSession.createCryptoToken(
@@ -1051,12 +1051,12 @@ public class CAInterfaceBean implements Serializable {
             && AlgorithmConstants.KEYALGORITHM_ECGOST3410.equals(
                 caSignKeyAlgo)) {
           caSignKeySpec =
-              CesecoreConfiguration.getExtraAlgSubAlgName("gost3410", "B");
+              CesecoreConfigurationHelper.getExtraAlgSubAlgName("gost3410", "B");
           extendedServiceSignatureKeySpec = caSignKeySpec;
         } else if (AlgorithmTools.isDstu4145Enabled()
             && AlgorithmConstants.KEYALGORITHM_DSTU4145.equals(caSignKeyAlgo)) {
           caSignKeySpec =
-              CesecoreConfiguration.getExtraAlgSubAlgName("dstu4145", "233");
+              CesecoreConfigurationHelper.getExtraAlgSubAlgName("dstu4145", "233");
           extendedServiceSignatureKeySpec = caSignKeySpec;
         }
         cryptoTokenManagementSession.createKeyPair(
@@ -1395,7 +1395,7 @@ public class CAInterfaceBean implements Serializable {
         final int caSerialNumberOctetSize =
             (caSerialNumberOctetSizeString != null)
                 ? Integer.parseInt(caSerialNumberOctetSizeString)
-                : CesecoreConfiguration.getSerialNumberOctetSizeForNewCa();
+                : CesecoreConfigurationHelper.getSerialNumberOctetSizeForNewCa();
 
         if (crlPeriod != 0 && !illegaldnoraltname) {
           if (buttonCreateCa) {
@@ -1706,7 +1706,7 @@ public class CAInterfaceBean implements Serializable {
           AlgorithmConstants.KEYSPECPREFIX_ECGOST3410)) {
         keyType = AlgorithmConstants.KEYALGORITHM_ECGOST3410;
       } else if (AlgorithmTools.isDstu4145Enabled()
-          && keySpec.startsWith(CesecoreConfiguration.getOidDstu4145())) {
+          && keySpec.startsWith(CesecoreConfigurationHelper.getOidDstu4145())) {
         keyType = AlgorithmConstants.KEYALGORITHM_DSTU4145;
       } else {
         keyType = AlgorithmConstants.KEYALGORITHM_ECDSA;
@@ -1969,7 +1969,7 @@ public class CAInterfaceBean implements Serializable {
         final int caSerialNumberOctetSize =
             (caSerialNumberOctetSizeString != null)
                 ? Integer.parseInt(caSerialNumberOctetSizeString)
-                : CesecoreConfiguration.getSerialNumberOctetSizeForNewCa();
+                : CesecoreConfigurationHelper.getSerialNumberOctetSizeForNewCa();
 
         // No need to add the HardTokenEncrypt or Keyrecovery extended service
         // here, because they are only "updated" in EditCA, and there
@@ -2381,12 +2381,12 @@ public class CAInterfaceBean implements Serializable {
       ret.add(new SimpleEntry<>(ecNamedCurve, "ECDSA " + ecNamedCurve));
     }
 
-    for (String alg : CesecoreConfiguration.getExtraAlgs()) {
-      for (String subalg : CesecoreConfiguration.getExtraAlgSubAlgs(alg)) {
+    for (String alg : CesecoreConfigurationHelper.getExtraAlgs()) {
+      for (String subalg : CesecoreConfigurationHelper.getExtraAlgSubAlgs(alg)) {
         final String title =
-            CesecoreConfiguration.getExtraAlgSubAlgTitle(alg, subalg);
+            CesecoreConfigurationHelper.getExtraAlgSubAlgTitle(alg, subalg);
         final String name =
-            CesecoreConfiguration.getExtraAlgSubAlgName(alg, subalg);
+            CesecoreConfigurationHelper.getExtraAlgSubAlgName(alg, subalg);
         ret.add(new SimpleEntry<>(name, title));
       }
     }

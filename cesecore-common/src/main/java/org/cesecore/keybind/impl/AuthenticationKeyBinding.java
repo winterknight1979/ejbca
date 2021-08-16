@@ -19,7 +19,7 @@ import java.util.Arrays;
 import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.cesecore.config.AvailableExtendedKeyUsagesConfiguration;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.keybind.CertificateImportException;
 import org.cesecore.keybind.InternalKeyBindingBase;
 import org.cesecore.util.CertTools;
@@ -48,7 +48,7 @@ public class AuthenticationKeyBinding extends InternalKeyBindingBase {
 
   {
     final String[] cipherSuitesSubset =
-        CesecoreConfiguration.getAvailableCipherSuites();
+        CesecoreConfigurationHelper.getAvailableCipherSuites();
     addProperty(
         new DynamicUiProperty<String>(
             PROPERTY_PROTOCOL_AND_CIPHER_SUITE,
@@ -70,7 +70,7 @@ public class AuthenticationKeyBinding extends InternalKeyBindingBase {
     final String value =
         (String) getProperty(PROPERTY_PROTOCOL_AND_CIPHER_SUITE).getValue();
     final String[] values =
-        value.split(CesecoreConfiguration.AVAILABLE_CIPHER_SUITES_SPLIT_CHAR);
+        value.split(CesecoreConfigurationHelper.AVAILABLE_CIPHER_SUITES_SPLIT_CHAR);
     if (LOG.isDebugEnabled() && pos == 0) {
       LOG.debug(
           "Configured cipher suite for this AuthenticationKeyBinding: "

@@ -15,7 +15,7 @@ package org.ejbca.core.model.validation;
 
 import java.util.List;
 import java.util.Map;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.internal.CommonCache;
 import org.cesecore.internal.CommonCacheBase;
 
@@ -38,7 +38,7 @@ public enum PublicKeyBlacklistEntryCache
         @Override
         protected long getCacheTime() {
           return Math.max(
-              CesecoreConfiguration.getCachePublicKeyBlacklistTime(), 0);
+              CesecoreConfigurationHelper.getCachePublicKeyBlacklistTime(), 0);
         }
 
 

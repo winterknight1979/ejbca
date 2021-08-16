@@ -148,7 +148,7 @@ import org.cesecore.certificates.ocsp.SHA1DigestCalculator;
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.certificates.util.AlgorithmTools;
 import org.cesecore.certificates.util.dn.DNFieldsUtil;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.internal.InternalResources;
 import org.cesecore.keys.token.CryptoToken;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
@@ -648,7 +648,7 @@ public class X509CA extends CA implements Serializable { //NOPMD: class length
     return (Integer)
         getMapValueWithDefault(
             SERIALNUMBEROCTETSIZE,
-            CesecoreConfiguration.getSerialNumberOctetSizeForNewCa());
+            CesecoreConfigurationHelper.getSerialNumberOctetSizeForNewCa());
   }
 
   /** @param serialNumberOctetSize size of SN in bytes */
@@ -3172,7 +3172,7 @@ private void setCrlExts(final boolean isDeltaCRL,
       // value if not configured)
       if (data.get(SERIALNUMBEROCTETSIZE) == null) {
         setCaSerialNumberOctetSize(
-            CesecoreConfiguration.getSerialNumberOctetSizeForExistingCa());
+           CesecoreConfigurationHelper.getSerialNumberOctetSizeForExistingCa());
       }
 
       data.put(VERSION, new Float(LATEST_VERSION));
@@ -3309,7 +3309,7 @@ private void updateUsePrintable() {
     boolean retval = false;
     // call upgrade, if needed, on installed CA services
     Collection<Integer> externalServiceTypes = getExternalCAServiceTypes();
-    if (!CesecoreConfiguration.getCaKeepOcspExtendedService()
+    if (!CesecoreConfigurationHelper.getCaKeepOcspExtendedService()
         && externalServiceTypes.contains(
             ExtendedCAServiceTypeConstants.TYPE_OCSPEXTENDEDSERVICE)) {
       // This type has been removed, so remove it from any CAs it's been added

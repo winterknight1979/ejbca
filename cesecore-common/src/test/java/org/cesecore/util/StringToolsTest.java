@@ -32,7 +32,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
-import org.cesecore.config.ConfigurationHolder;
+import org.cesecore.config.ConfigurationHolderUtil;
 import org.junit.Test;
 
 /**
@@ -141,7 +141,7 @@ public class StringToolsTest {
 
   private static void forbiddenTest(
       final String forbidden, final String input, final String output) {
-    ConfigurationHolder.instance().setProperty(FORBIDDEN_CHARS_KEY, forbidden);
+    ConfigurationHolderUtil.instance().setProperty(FORBIDDEN_CHARS_KEY, forbidden);
     StringTools.CharSet.reset();
     final String stripped = StringTools.strip(input);
     if (input.equals(output)) {
@@ -163,7 +163,7 @@ public class StringToolsTest {
   public void test05Strip() throws Exception {
     log.trace(">test05Strip()");
     final Object originalValue =
-        ConfigurationHolder.instance().getProperty(FORBIDDEN_CHARS_KEY);
+        ConfigurationHolderUtil.instance().getProperty(FORBIDDEN_CHARS_KEY);
     try {
       final String input =
           "|\n|\r|;|foo bar|!|\u0000|`|?|$|~|\\<|\\>|\\\"|\\\\";
@@ -180,7 +180,7 @@ public class StringToolsTest {
       forbiddenTest(
           "f", input, "|\n|\r|;|/oo bar|!|\u0000|`|?|$|~|\\<|\\>|\\\"|\\\\");
     } finally {
-      ConfigurationHolder.instance()
+      ConfigurationHolderUtil.instance()
           .setProperty(FORBIDDEN_CHARS_KEY, originalValue);
     }
     log.trace("<test05Strip()");
@@ -233,7 +233,7 @@ public class StringToolsTest {
     String dec =
         StringTools.pbeDecryptStringWithSha256Aes192(
             enc,
-            ConfigurationHolder.getString("password.encryption.key")
+            ConfigurationHolderUtil.getString("password.encryption.key")
                 .toCharArray());
     assertEquals("foo123", dec);
   }
@@ -648,7 +648,7 @@ public class StringToolsTest {
           BadPaddingException, UnsupportedEncodingException,
           InvalidKeySpecException {
     // First test with legacy encryption, using default pwd
-    ConfigurationHolder.backupConfiguration();
+    ConfigurationHolderUtil.backupConfiguration();
 
       String obf = StringTools.obfuscate("foo123");
       String deobf = StringTools.deobfuscate(obf);
@@ -659,7 +659,7 @@ public class StringToolsTest {
       String pwd =
           StringTools.pbeDecryptStringWithSha256Aes192(
               "6bc841b2745e2c95e042a68b4777b34c",
-              ConfigurationHolder.getDefaultValue("password.encryption.key")
+              ConfigurationHolderUtil.getDefaultValue("password.encryption.key")
                   .toCharArray());
       assertEquals(
           "Encrypted/decrypted password does not match", "foo123", pwd);
@@ -672,7 +672,7 @@ public class StringToolsTest {
       pwd =
           StringTools.pbeDecryptStringWithSha256Aes192(
               pbe,
-              ConfigurationHolder.getString("password.encryption.key")
+              ConfigurationHolderUtil.getString("password.encryption.key")
                   .toCharArray());
       assertEquals(
           "Encrypted/decrypted password does not match", "foo123", pwd);
@@ -701,7 +701,7 @@ public class StringToolsTest {
           pwd);
 
     // Second test with new encryption
-    ConfigurationHolder.updateConfiguration(
+    ConfigurationHolderUtil.updateConfiguration(
         "password.encryption.key", "1POTQK7ofSGTPsOOXwIo2Z0jfXsADtXx");
 
       obf = StringTools.obfuscate("foo123");
@@ -713,7 +713,7 @@ public class StringToolsTest {
       pwd =
           StringTools.pbeDecryptStringWithSha256Aes192(
               "6bc841b2745e2c95e042a68b4777b34c",
-              ConfigurationHolder.getDefaultValue("password.encryption.key")
+              ConfigurationHolderUtil.getDefaultValue("password.encryption.key")
                   .toCharArray());
       // Legacy decryption with default pwd should always work
       assertEquals(
@@ -722,7 +722,7 @@ public class StringToolsTest {
         pwd =
             StringTools.pbeDecryptStringWithSha256Aes192(
                 "6bc841b2745e2c95e042a68b4777b34c",
-                ConfigurationHolder.getString("password.encryption.key")
+                ConfigurationHolderUtil.getString("password.encryption.key")
                     .toCharArray());
         fail(
             "Decryption of legacey encrypted string with non default pwd"
@@ -735,7 +735,7 @@ public class StringToolsTest {
       pwd =
           StringTools.pbeDecryptStringWithSha256Aes192(
               pbe,
-              ConfigurationHolder.getString("password.encryption.key")
+              ConfigurationHolderUtil.getString("password.encryption.key")
                   .toCharArray());
       assertEquals(
           "Encrypted/decrypted password does not match", "foo123", pwd);
@@ -781,7 +781,7 @@ public class StringToolsTest {
 
 
     // Third test with a different count
-    ConfigurationHolder.updateConfiguration(
+    ConfigurationHolderUtil.updateConfiguration(
         "password.encryption.count", "100000");
 
       obf = StringTools.obfuscate("foo123");
@@ -793,7 +793,7 @@ public class StringToolsTest {
       pwd =
           StringTools.pbeDecryptStringWithSha256Aes192(
               "6bc841b2745e2c95e042a68b4777b34c",
-              ConfigurationHolder.getDefaultValue("password.encryption.key")
+              ConfigurationHolderUtil.getDefaultValue("password.encryption.key")
                   .toCharArray());
       // Legacy decryption with default pwd should always work
       assertEquals(
@@ -804,7 +804,7 @@ public class StringToolsTest {
       pwd =
           StringTools.pbeDecryptStringWithSha256Aes192(
               pbe,
-              ConfigurationHolder.getString("password.encryption.key")
+              ConfigurationHolderUtil.getString("password.encryption.key")
                   .toCharArray());
       assertEquals(
           "Encrypted/decrypted password does not match", "foo123", pwd);
@@ -863,7 +863,7 @@ public class StringToolsTest {
         "none",
         StringTools.getEncryptVersionFromString("foo123"));
 
-    ConfigurationHolder.restoreConfiguration();
+    ConfigurationHolderUtil.restoreConfiguration();
   }
   /**
    * Test.

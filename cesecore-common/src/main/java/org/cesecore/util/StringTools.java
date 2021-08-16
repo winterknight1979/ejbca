@@ -47,8 +47,8 @@ import org.apache.log4j.Logger;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.encoders.DecoderException;
 import org.bouncycastle.util.encoders.Hex;
-import org.cesecore.config.CesecoreConfiguration;
-import org.cesecore.config.ConfigurationHolder;
+import org.cesecore.config.CesecoreConfigurationHelper;
+import org.cesecore.config.ConfigurationHolderUtil;
 
 /**
  * This class implements some utility functions that are useful when handling
@@ -99,7 +99,7 @@ public final class StringTools {
   public static final class CharSet {
       /** Singleton. */
     private static CharSet instance =
-        new CharSet(CesecoreConfiguration.getForbiddenCharacters());
+        new CharSet(CesecoreConfigurationHelper.getForbiddenCharacters());
 
     /**
      * @return the instance
@@ -134,7 +134,7 @@ public final class StringTools {
 
     /** Used to reset the value so we can JUnit test the class. */
     public static void reset() {
-      instance = new CharSet(CesecoreConfiguration.getForbiddenCharacters());
+      instance = new CharSet(CesecoreConfigurationHelper.getForbiddenCharacters());
     }
   }
 
@@ -776,7 +776,7 @@ public final class StringTools {
   private static byte[] getSalt() {
     final boolean legacy =
         DEAULT_P.equals(
-            ConfigurationHolder.getString("password.encryption.key"));
+            ConfigurationHolderUtil.getString("password.encryption.key"));
     if (legacy) {
       LOG.debug("Using legacy password encryption/decryption");
       return getDefaultSalt();
@@ -815,10 +815,10 @@ public final class StringTools {
    */
   private static int getCount() {
     final String str =
-        ConfigurationHolder.getString("password.encryption.count");
+        ConfigurationHolderUtil.getString("password.encryption.count");
     final boolean legacy =
         DEAULT_P.equals(
-            ConfigurationHolder.getString("password.encryption.key"));
+            ConfigurationHolderUtil.getString("password.encryption.key"));
     if (StringUtils.isNumeric(str) && !legacy) {
       return Integer.valueOf(str);
     } else {
@@ -847,7 +847,7 @@ public final class StringTools {
           IllegalBlockSizeException, BadPaddingException,
           InvalidKeySpecException {
     char[] p =
-        ConfigurationHolder.getString("password.encryption.key").toCharArray();
+        ConfigurationHolderUtil.getString("password.encryption.key").toCharArray();
     return pbeEncryptStringWithSha256Aes192(in, p);
   }
 
@@ -902,7 +902,7 @@ public final class StringTools {
     StringBuilder ret = new StringBuilder(size);
     final boolean legacy =
         DEAULT_P.equals(
-            ConfigurationHolder.getString("password.encryption.key"));
+            ConfigurationHolderUtil.getString("password.encryption.key"));
     if (legacy) {
       // In the old legacy system we only return the encrypted data without
       // extra info
@@ -936,7 +936,7 @@ public final class StringTools {
       throws InvalidKeyException, IllegalBlockSizeException,
           BadPaddingException, InvalidKeySpecException {
     char[] p =
-        ConfigurationHolder.getString("password.encryption.key").toCharArray();
+        ConfigurationHolderUtil.getString("password.encryption.key").toCharArray();
     return pbeDecryptStringWithSha256Aes192(in, p);
   }
 
@@ -1022,7 +1022,7 @@ public final class StringTools {
       final String tmp =
           pbeDecryptStringWithSha256Aes192(
               in,
-              ConfigurationHolder.getString("password.encryption.key")
+              ConfigurationHolderUtil.getString("password.encryption.key")
                   .toCharArray());
       if (LOG.isDebugEnabled()) {
         LOG.debug("Using encrypted " + sDebug);
@@ -1033,7 +1033,7 @@ public final class StringTools {
         final String tmp =
             pbeDecryptStringWithSha256Aes192(
                 in,
-                ConfigurationHolder.getDefaultValue("password.encryption.key")
+                ConfigurationHolderUtil.getDefaultValue("password.encryption.key")
                     .toCharArray());
         LOG.warn(
             "Using encrypted "

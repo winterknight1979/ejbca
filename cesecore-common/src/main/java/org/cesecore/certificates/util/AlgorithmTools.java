@@ -53,7 +53,7 @@ import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
 import org.bouncycastle.jce.spec.ECNamedCurveSpec;
 import org.bouncycastle.math.ec.ECCurve;
 import org.cesecore.CesecoreRuntimeException;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.keys.util.KeyTools;
 import org.cesecore.util.StringTools;
 import org.ejbca.cvc.AlgorithmUtil;
@@ -161,8 +161,8 @@ public abstract class AlgorithmTools { // NOPMD: length
                 AlgorithmConstants.KEYALGORITHM_DSA,
                 AlgorithmConstants.KEYALGORITHM_ECDSA,
                 AlgorithmConstants.KEYALGORITHM_RSA));
-    for (final String algName : CesecoreConfiguration.getExtraAlgs()) {
-      ret.add(CesecoreConfiguration.getExtraAlgTitle(algName));
+    for (final String algName : CesecoreConfigurationHelper.getExtraAlgs()) {
+      ret.add(CesecoreConfigurationHelper.getExtraAlgTitle(algName));
     }
     return ret;
   }
@@ -754,13 +754,13 @@ private static String setupUnknownKeyspec(final ECPublicKey ecPublicKey) {
     // GOST3410
     if (isGost3410Enabled()
         && certSignatureAlgorithm.equalsIgnoreCase(
-            CesecoreConfiguration.getOidGost3410())) {
+            CesecoreConfigurationHelper.getOidGost3410())) {
       return AlgorithmConstants.SIGALG_GOST3411_WITH_ECGOST3410;
     }
     // DSTU4145
     if (isDstu4145Enabled()
         && certSignatureAlgorithm.startsWith(
-            CesecoreConfiguration.getOidDstu4145() + ".")) {
+            CesecoreConfigurationHelper.getOidDstu4145() + ".")) {
       return AlgorithmConstants.SIGALG_GOST3411_WITH_DSTU4145;
     }
     return certSignatureAlgorithm;
@@ -972,7 +972,8 @@ private static String handleUnknownName(final Certificate cert,
     } else if (keyAlg.equals(AlgorithmConstants.KEYALGORITHM_ECGOST3410)) {
       oid = CryptoProObjectIdentifiers.gostR3411_94_with_gostR3410_2001;
     } else if (keyAlg.equals(AlgorithmConstants.KEYALGORITHM_DSTU4145)) {
-      oid = new ASN1ObjectIdentifier(CesecoreConfiguration.getOidDstu4145());
+      oid = new ASN1ObjectIdentifier(
+              CesecoreConfigurationHelper.getOidDstu4145());
     }
     if (digestAlg != null) {
       if (digestAlg.equals(CMSSignedGenerator.DIGEST_SHA256)
@@ -1050,14 +1051,14 @@ private static String handleUnknownName(final Certificate cert,
    * @return bool
    */
   public static boolean isGost3410Enabled() {
-    return CesecoreConfiguration.getOidGost3410() != null;
+    return CesecoreConfigurationHelper.getOidGost3410() != null;
   }
 
   /**
    * @return bool
    */
   public static boolean isDstu4145Enabled() {
-    return CesecoreConfiguration.getOidDstu4145() != null;
+    return CesecoreConfigurationHelper.getOidDstu4145() != null;
   }
 
   /**
@@ -1195,14 +1196,14 @@ private static String handleUnknownName(final Certificate cert,
     if (isGost3410Enabled()
         && sigAlgOid
             .getId()
-            .equalsIgnoreCase(CesecoreConfiguration.getOidGost3410())) {
+            .equalsIgnoreCase(CesecoreConfigurationHelper.getOidGost3410())) {
       return AlgorithmConstants.SIGALG_GOST3411_WITH_ECGOST3410;
     }
     // DSTU4145
     if (isDstu4145Enabled()
         && sigAlgOid
             .getId()
-            .startsWith(CesecoreConfiguration.getOidDstu4145() + ".")) {
+            .startsWith(CesecoreConfigurationHelper.getOidDstu4145() + ".")) {
       return AlgorithmConstants.SIGALG_GOST3411_WITH_DSTU4145;
     }
 

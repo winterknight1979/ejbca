@@ -47,7 +47,7 @@ import org.cesecore.audit.enums.ModuleTypes;
 import org.cesecore.audit.enums.ServiceTypes;
 import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
 import org.cesecore.authentication.tokens.AuthenticationToken;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.dbprotection.DatabaseProtectionException;
 import org.cesecore.keys.token.CryptoToken;
 import org.cesecore.util.ValidityDate;
@@ -78,7 +78,7 @@ public class IntegrityProtectedAuditorSessionBean
       Logger.getLogger(IntegrityProtectedAuditorSessionBean.class);
 
   /** EM. */
-  @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+  @PersistenceContext(unitName = CesecoreConfigurationHelper.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
   /** Context. */

@@ -139,7 +139,7 @@ import org.cesecore.certificates.ocsp.logging.PatternLogger;
 import org.cesecore.certificates.ocsp.logging.TransactionLogger;
 import org.cesecore.certificates.util.AlgorithmTools;
 import org.cesecore.config.AvailableExtendedKeyUsagesConfiguration;
-import org.cesecore.config.ConfigurationHolder;
+import org.cesecore.config.ConfigurationHolderUtil;
 import org.cesecore.config.GlobalOcspConfiguration;
 import org.cesecore.config.OcspConfiguration;
 import org.cesecore.configuration.GlobalConfigurationSessionLocal;
@@ -2699,9 +2699,9 @@ public class OcspResponseGeneratorSessionBean
     //  if "ocsp.rekeying.swKeystorePath" isn't set, search the p11 slot later
     // on for an entry with an SSL certificate and use this
     final String swKeystorePath =
-        ConfigurationHolder.getString("ocsp.rekeying.swKeystorePath");
+        ConfigurationHolderUtil.getString("ocsp.rekeying.swKeystorePath");
     final String swKeystorePassword =
-        ConfigurationHolder.getString("ocsp.rekeying.swKeystorePassword");
+        ConfigurationHolderUtil.getString("ocsp.rekeying.swKeystorePassword");
     if (swKeystorePath != null
         && (swKeystorePassword != null || activationPassword != null)) {
       final String password =

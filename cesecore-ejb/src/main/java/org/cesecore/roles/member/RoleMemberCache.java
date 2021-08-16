@@ -15,7 +15,7 @@ package org.cesecore.roles.member;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.internal.CommonCache;
 import org.cesecore.internal.CommonCacheBase;
 
@@ -35,7 +35,7 @@ public enum RoleMemberCache implements CommonCache<RoleMember> {
       new CommonCacheBase<RoleMember>() {
         @Override
         protected long getCacheTime() {
-          return CesecoreConfiguration.getCacheAuthorizationTime();
+          return CesecoreConfigurationHelper.getCacheAuthorizationTime();
         }
 
         @Override

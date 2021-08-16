@@ -45,7 +45,7 @@ import org.cesecore.authorization.AuthorizationCache.AuthorizationResult;
 import org.cesecore.authorization.access.AuthorizationCacheReloadListener;
 import org.cesecore.authorization.cache.AccessTreeUpdateSessionLocal;
 import org.cesecore.authorization.cache.RemoteAccessSetCacheHelper;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.internal.InternalResources;
 import org.cesecore.jndi.JndiConstants;
 import org.cesecore.roles.AccessRulesHelper;
@@ -119,7 +119,7 @@ public class AuthorizationSessionBean
   @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
   public void timeOut(final Timer timer) {
     authorizationSession.refreshAuthorizationCache();
-    final long interval = CesecoreConfiguration.getCacheAuthorizationTime();
+    final long interval = CesecoreConfigurationHelper.getCacheAuthorizationTime();
     if (interval > 0) {
       timerService.createSingleActionTimer(
           interval, new TimerConfig("AuthorizationSessionTimer", false));
@@ -295,7 +295,7 @@ public class AuthorizationSessionBean
         public long getKeepUnusedEntriesFor() {
           // Setting this to the same as the background cache refresh interval
           // means that any token that has not been used will be purged
-          return CesecoreConfiguration.getCacheAuthorizationTime();
+          return CesecoreConfigurationHelper.getCacheAuthorizationTime();
         }
 
         @Override

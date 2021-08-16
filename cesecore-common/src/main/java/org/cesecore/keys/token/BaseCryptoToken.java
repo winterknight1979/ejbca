@@ -39,7 +39,7 @@ import org.apache.log4j.Logger;
 import org.bouncycastle.jce.ECKeyUtil;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.encoders.Hex;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.internal.InternalResources;
 import org.cesecore.keys.util.KeyTools;
 import org.cesecore.util.StringTools;
@@ -93,7 +93,7 @@ public abstract class BaseCryptoToken implements CryptoToken {
     } else {
       this.keyStore =
           new CachingKeyStoreWrapper(
-              keystore, CesecoreConfiguration.isKeyStoreCacheEnabled());
+              keystore, CesecoreConfigurationHelper.isKeyStoreCacheEnabled());
     }
   }
 
@@ -190,8 +190,8 @@ public abstract class BaseCryptoToken implements CryptoToken {
       String msg =
           INTRES.getLocalizedMessage(
               "token.extractablekey",
-              CesecoreConfiguration.isPermitExtractablePrivateKeys());
-      if (!CesecoreConfiguration.isPermitExtractablePrivateKeys()) {
+              CesecoreConfigurationHelper.isPermitExtractablePrivateKeys());
+      if (!CesecoreConfigurationHelper.isPermitExtractablePrivateKeys()) {
         throw new InvalidKeyException(msg);
       }
       LOG.info(msg);

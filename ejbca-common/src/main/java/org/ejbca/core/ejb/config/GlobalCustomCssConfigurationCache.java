@@ -15,7 +15,7 @@ package org.ejbca.core.ejb.config;
 
 import java.util.HashMap;
 import java.util.Properties;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.configuration.ConfigurationBase;
 import org.cesecore.configuration.ConfigurationCache;
 import org.ejbca.config.GlobalCustomCssConfiguration;
@@ -63,7 +63,7 @@ public class GlobalCustomCssConfigurationCache implements ConfigurationCache {
   public boolean needsUpdate() {
     if (globalCustomCssConfigurationCache != null
         && lastupdatetime
-                + CesecoreConfiguration.getCacheGlobalConfigurationTime()
+                + CesecoreConfigurationHelper.getCacheGlobalConfigurationTime()
             > System.currentTimeMillis()) {
       return false;
     }

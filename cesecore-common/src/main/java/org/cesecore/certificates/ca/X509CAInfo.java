@@ -25,7 +25,7 @@ import java.util.Map;
 import org.cesecore.certificates.ca.catoken.CAToken;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceInfo;
 import org.cesecore.certificates.certificateprofile.CertificatePolicy;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.SimpleTime;
 import org.cesecore.util.StringTools;
@@ -123,7 +123,7 @@ public class X509CAInfo extends CAInfo { // NOPMD: class length
         certificatechain, // Certificate chain
         catoken, // CA Token
         "", // Description
-        CesecoreConfiguration
+        CesecoreConfigurationHelper
             .getSerialNumberOctetSizeForNewCa(), // serial number octet size
         -1, // Revocation reason
         null, // Revocation date

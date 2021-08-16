@@ -26,7 +26,7 @@ import org.cesecore.certificates.ca.IllegalValidityException;
 import org.cesecore.certificates.certificateprofile.CertificateProfile;
 import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.cesecore.certificates.endentity.ExtendedInformation;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.internal.InternalResources;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.SimpleTime;
@@ -69,7 +69,7 @@ public class CertificateValidity {
 
 
   static {
-    final String value = CesecoreConfiguration.getCaTooLateExpireDate();
+    final String value = CesecoreConfigurationHelper.getCaTooLateExpireDate();
     try {
       tooLateExpireDate = ValidityDate.parseCaLatestValidDateTime(value);
     } catch (Exception e) {
@@ -95,7 +95,8 @@ public class CertificateValidity {
   private static long defaultValidityOffset;
 
   static {
-    final String value = CesecoreConfiguration.getCertificateValidityOffset();
+    final String value = 
+    		CesecoreConfigurationHelper.getCertificateValidityOffset();
     try {
       defaultValidityOffset =
           SimpleTime.getSecondsFormat().parseMillis(value);

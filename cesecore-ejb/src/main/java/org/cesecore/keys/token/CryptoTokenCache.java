@@ -14,7 +14,7 @@ package org.cesecore.keys.token;
 
 import java.util.List;
 import java.util.Map;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.internal.CommonCache;
 import org.cesecore.internal.CommonCacheBase;
 
@@ -37,7 +37,7 @@ public enum CryptoTokenCache implements CommonCache<CryptoToken> {
           // completely, since we want to keep any activation
           // So never use cache value "-1" in the setting, use the value 0
           // instead.
-          return CesecoreConfiguration.getCacheTimeCryptoToken();
+          return CesecoreConfigurationHelper.getCacheTimeCryptoToken();
         }
 
         @Override

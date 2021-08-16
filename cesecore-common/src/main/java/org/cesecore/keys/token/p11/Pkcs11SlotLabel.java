@@ -31,7 +31,7 @@ import java.util.Properties;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.bouncycastle.util.encoders.Hex;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.keys.token.p11.exception.NoSuchSlotException;
 import org.cesecore.keys.token.p11.exception.P11RuntimeException;
 
@@ -464,7 +464,7 @@ public class Pkcs11SlotLabel {
         }
         pw.println("  CKA_UNWRAP = true"); // for unwrapping of session keys,
         pw.println("}");
-        if (CesecoreConfiguration.p11disableHashingSignMechanisms()) {
+        if (CesecoreConfigurationHelper.p11disableHashingSignMechanisms()) {
           pw.println("disabledMechanisms = {");
           // by disabling these mechanisms the hashing will be done in the
           // application instead of the HSM.

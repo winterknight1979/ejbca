@@ -36,7 +36,7 @@ import java.security.spec.ECPoint;
 import java.util.List;
 import org.apache.log4j.Logger;
 import org.bouncycastle.jce.ECGOST3410NamedCurveTable;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.keys.util.KeyTools;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.CryptoProviderTools;
@@ -157,7 +157,7 @@ public class AlgorithmToolsTest {
   public void testGetKeySpecificationGOST3410() throws Exception {
     assumeTrue(AlgorithmTools.isGost3410Enabled());
     final String keyspec =
-        CesecoreConfiguration.getExtraAlgSubAlgName("gost3410", "B");
+        CesecoreConfigurationHelper.getExtraAlgSubAlgName("gost3410", "B");
     KeyPairGenerator keygen = KeyPairGenerator.getInstance("ECGOST3410", "BC");
     AlgorithmParameterSpec ecSpec =
         ECGOST3410NamedCurveTable.getParameterSpec(keyspec);
@@ -173,7 +173,7 @@ public class AlgorithmToolsTest {
   public void testGetKeySpecificationDSTU4145() throws Exception {
     assumeTrue(AlgorithmTools.isDstu4145Enabled());
     final String keyspec =
-        CesecoreConfiguration.getExtraAlgSubAlgName("dstu4145", "233");
+        CesecoreConfigurationHelper.getExtraAlgSubAlgName("dstu4145", "233");
     KeyPairGenerator keygen = KeyPairGenerator.getInstance("DSTU4145", "BC");
     AlgorithmParameterSpec ecSpec = KeyTools.dstuOidToAlgoParams(keyspec);
     keygen.initialize(ecSpec);
@@ -983,7 +983,7 @@ public class AlgorithmToolsTest {
     assumeTrue(AlgorithmTools.isGost3410Enabled());
     KeyPair keyPair =
         KeyTools.genKeys(
-            CesecoreConfiguration.getExtraAlgSubAlgName("gost3410", "B"),
+            CesecoreConfigurationHelper.getExtraAlgSubAlgName("gost3410", "B"),
             AlgorithmConstants.KEYALGORITHM_ECGOST3410);
     Certificate gost3411withgost3410 =
         CertTools.genSelfCert(
@@ -1011,7 +1011,7 @@ public class AlgorithmToolsTest {
     assumeTrue(AlgorithmTools.isDstu4145Enabled());
     KeyPair keyPair =
         KeyTools.genKeys(
-            CesecoreConfiguration.getExtraAlgSubAlgName("dstu4145", "233"),
+            CesecoreConfigurationHelper.getExtraAlgSubAlgName("dstu4145", "233"),
             AlgorithmConstants.KEYALGORITHM_DSTU4145);
     Certificate gost3411withgost3410 =
         CertTools.genSelfCert(

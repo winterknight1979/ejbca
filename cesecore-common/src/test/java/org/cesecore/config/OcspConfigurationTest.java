@@ -31,7 +31,7 @@ public class OcspConfigurationTest {
     /** Setup. */
   @Before
   public void setUp() {
-    ConfigurationHolder.instance().clear();
+    ConfigurationHolderUtil.instance().clear();
   }
   /**
    * Test.
@@ -61,7 +61,7 @@ public class OcspConfigurationTest {
             + "ocsp.888.maxAge=75\n"
             + "ocsp.888.untilNextUpdate=85\n");
     fos.close();
-    ConfigurationHolder.addConfigurationFile(f.getAbsolutePath());
+    ConfigurationHolderUtil.addConfigurationFile(f.getAbsolutePath());
 
     // New defaults
     maxAge = OcspConfiguration.getMaxAge(0);

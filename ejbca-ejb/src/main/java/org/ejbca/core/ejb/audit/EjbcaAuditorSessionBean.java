@@ -34,7 +34,7 @@ import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.authorization.AuthorizationSessionLocal;
 import org.cesecore.authorization.control.AuditLogRules;
 import org.cesecore.certificates.ca.CaSessionLocal;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 
 /**
  * Workaround for the very complex CESeCore query criteria API.
@@ -51,7 +51,7 @@ public class EjbcaAuditorSessionBean implements EjbcaAuditorSessionLocal {
       Logger.getLogger(EjbcaAuditorSessionBean.class);
 
   /** EM. */
-  @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+  @PersistenceContext(unitName = CesecoreConfigurationHelper.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
   /** EJB. */

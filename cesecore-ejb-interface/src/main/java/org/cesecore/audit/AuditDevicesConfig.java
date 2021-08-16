@@ -29,7 +29,7 @@ import org.apache.commons.lang.time.FastDateFormat;
 import org.apache.log4j.Logger;
 import org.cesecore.audit.audit.AuditExporter;
 import org.cesecore.audit.impl.AuditExporterDummy;
-import org.cesecore.config.ConfigurationHolder;
+import org.cesecore.config.ConfigurationHolderUtil;
 import org.cesecore.util.ValidityDate;
 
 /**
@@ -68,7 +68,7 @@ public final class AuditDevicesConfig {
       LOCK.lock();
       if (loggers == null) {
         loggers = new HashMap<String, AuditLogDevice>();
-        final Configuration conf = ConfigurationHolder.instance();
+        final Configuration conf = ConfigurationHolderUtil.instance();
         final String deviceClassRoot = "securityeventsaudit.implementation.";
         final String exporterClassRoot = "securityeventsaudit.exporter.";
         // Extract custom properties configured for any device, to avoid lookup
@@ -112,7 +112,7 @@ public final class AuditDevicesConfig {
             continue;
           }
           final String deviceClass =
-              ConfigurationHolder.getString(deviceClassRoot + i);
+              ConfigurationHolderUtil.getString(deviceClassRoot + i);
           if ((deviceClass != null)
               && (!"null".equalsIgnoreCase(deviceClass))) {
             if (LOG.isDebugEnabled()) {
@@ -140,7 +140,7 @@ public final class AuditDevicesConfig {
                   name, allDeviceProperties.get(Integer.valueOf(i)));
               // Setup an exporter for this device
               final String exporterClassName =
-                  ConfigurationHolder.getString(exporterClassRoot + i);
+                  ConfigurationHolderUtil.getString(exporterClassRoot + i);
               Class<? extends AuditExporter> exporterClass =
                   AuditExporterDummy.class;
               if (exporterClassName != null) {
@@ -190,7 +190,7 @@ public final class AuditDevicesConfig {
    * @return boolean
    */
   private static boolean checkNoDuplicateProperties(final String name) {
-    final String[] arr = ConfigurationHolder.instance().getStringArray(name);
+    final String[] arr = ConfigurationHolderUtil.instance().getStringArray(name);
     if (arr != null && arr.length > 1) {
       LOG.error(
           "Duplicate property definitions of \""

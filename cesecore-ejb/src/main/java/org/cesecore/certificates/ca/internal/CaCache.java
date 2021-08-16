@@ -15,7 +15,7 @@ package org.cesecore.certificates.ca.internal;
 import java.util.List;
 import java.util.Map;
 import org.cesecore.certificates.ca.CA;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.internal.CommonCache;
 import org.cesecore.internal.CommonCacheBase;
 
@@ -34,7 +34,7 @@ public enum CaCache implements CommonCache<CA> {
       new CommonCacheBase<CA>() {
         @Override
         protected long getCacheTime() {
-          return CesecoreConfiguration.getCacheCaTimeInCaSession();
+          return CesecoreConfigurationHelper.getCacheCaTimeInCaSession();
         }
 
 

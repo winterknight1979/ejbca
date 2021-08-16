@@ -35,7 +35,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.encoders.Hex;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.internal.InternalResources;
 import org.cesecore.keys.util.KeyStoreTools;
 import org.cesecore.util.CryptoProviderTools;
@@ -107,7 +107,7 @@ public class SoftCryptoToken extends BaseCryptoToken {
     if ((autoPwd == null) && (properties.getProperty(NODEFAULTPWD) == null)) {
       final String keystorepass =
           StringTools.passwordDecryption(
-              CesecoreConfiguration.getCaKeyStorePass(), "ca.keystorepass");
+              CesecoreConfigurationHelper.getCaKeyStorePass(), "ca.keystorepass");
       // Test it first, don't set an incorrect password as autoactivate password
       boolean okPwd =
           checkSoftKeystorePassword(keystorepass.toCharArray(), cryptoTokenId);
@@ -232,7 +232,7 @@ public class SoftCryptoToken extends BaseCryptoToken {
       if (authCode == null || authCode.length == 0) {
         final String defaultpass =
             StringTools.passwordDecryption(
-                CesecoreConfiguration.getCaKeyStorePass(), "ca.keystorepass");
+                CesecoreConfigurationHelper.getCaKeyStorePass(), "ca.keystorepass");
         loadKeyStore(keystoreData, defaultpass.toCharArray());
       } else {
         loadKeyStore(keystoreData, authCode);

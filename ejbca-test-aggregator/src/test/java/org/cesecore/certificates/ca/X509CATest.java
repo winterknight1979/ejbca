@@ -105,7 +105,7 @@ import org.cesecore.certificates.endentity.ExtendedInformation;
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.certificates.util.AlgorithmTools;
 import org.cesecore.certificates.util.cert.CrlExtensions;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.keys.token.CryptoToken;
 import org.cesecore.keys.token.CryptoTokenFactory;
 import org.cesecore.keys.token.SoftCryptoToken;
@@ -2685,13 +2685,13 @@ public class X509CATest {
           InvalidAlgorithmParameterException {
     if (algName.equals(AlgorithmConstants.SIGALG_GOST3411_WITH_ECGOST3410)) {
       final String keyspec =
-          CesecoreConfiguration.getExtraAlgSubAlgName("gost3410", "B");
+          CesecoreConfigurationHelper.getExtraAlgSubAlgName("gost3410", "B");
       return KeyTools.genKeys(
           keyspec, AlgorithmConstants.KEYALGORITHM_ECGOST3410);
     } else if (algName.equals(
         AlgorithmConstants.SIGALG_GOST3411_WITH_DSTU4145)) {
       final String keyspec =
-          CesecoreConfiguration.getExtraAlgSubAlgName("dstu4145", "233");
+          CesecoreConfigurationHelper.getExtraAlgSubAlgName("dstu4145", "233");
       return KeyTools.genKeys(
           keyspec, AlgorithmConstants.KEYALGORITHM_DSTU4145);
     } else if (algName.equals(AlgorithmConstants.SIGALG_SHA224_WITH_ECDSA)) {
@@ -2720,10 +2720,10 @@ public class X509CATest {
 
   private static String getTestKeySpec(final String algName) {
     if (algName.equals(AlgorithmConstants.SIGALG_GOST3411_WITH_ECGOST3410)) {
-      return CesecoreConfiguration.getExtraAlgSubAlgName("gost3410", "B");
+      return CesecoreConfigurationHelper.getExtraAlgSubAlgName("gost3410", "B");
     } else if (algName.equals(
         AlgorithmConstants.SIGALG_GOST3411_WITH_DSTU4145)) {
-      return CesecoreConfiguration.getExtraAlgSubAlgName("dstu4145", "233");
+      return CesecoreConfigurationHelper.getExtraAlgSubAlgName("dstu4145", "233");
     } else if (algName.equals(AlgorithmConstants.SIGALG_SHA224_WITH_ECDSA)) {
       return "brainpoolp224r1";
     } else if (algName.equalsIgnoreCase(

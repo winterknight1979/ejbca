@@ -37,7 +37,7 @@ import org.cesecore.certificates.ca.CAInfo;
 import org.cesecore.certificates.ca.CaSessionLocal;
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.certificates.util.AlgorithmTools;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.keybind.InternalKeyBindingInfo;
 import org.cesecore.keybind.InternalKeyBindingMgmtSessionLocal;
 import org.cesecore.keys.token.AvailableCryptoToken;
@@ -1504,12 +1504,12 @@ public class CryptoTokenMBean extends BaseManagedBean implements Serializable {
         LOG.debug("Ignoring exception " + e.getMessage());
       }
     }
-    for (String alg : CesecoreConfiguration.getExtraAlgs()) {
-      for (String subalg : CesecoreConfiguration.getExtraAlgSubAlgs(alg)) {
+    for (String alg : CesecoreConfigurationHelper.getExtraAlgs()) {
+      for (String subalg : CesecoreConfigurationHelper.getExtraAlgSubAlgs(alg)) {
         final String title =
-            CesecoreConfiguration.getExtraAlgSubAlgTitle(alg, subalg);
+            CesecoreConfigurationHelper.getExtraAlgSubAlgTitle(alg, subalg);
         final String name =
-            CesecoreConfiguration.getExtraAlgSubAlgName(alg, subalg);
+            CesecoreConfigurationHelper.getExtraAlgSubAlgName(alg, subalg);
         availableKeySpecs.add(new SelectItem(name, title));
       }
     }

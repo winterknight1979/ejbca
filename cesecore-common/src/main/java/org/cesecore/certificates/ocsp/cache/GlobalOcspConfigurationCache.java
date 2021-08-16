@@ -14,7 +14,7 @@ package org.cesecore.certificates.ocsp.cache;
 
 import java.util.HashMap;
 import java.util.Properties;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.config.GlobalOcspConfiguration;
 import org.cesecore.configuration.ConfigurationBase;
 import org.cesecore.configuration.ConfigurationCache;
@@ -48,7 +48,7 @@ public final class GlobalOcspConfigurationCache implements ConfigurationCache {
   public boolean needsUpdate() {
     return !(ocspConfigurationCache != null
         && lastupdatetime
-                + CesecoreConfiguration.getCacheGlobalOcspConfigurationTime()
+            + CesecoreConfigurationHelper.getCacheGlobalOcspConfigurationTime()
             > System.currentTimeMillis());
   }
 

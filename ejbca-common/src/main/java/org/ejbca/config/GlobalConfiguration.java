@@ -23,7 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.certificatetransparency.CTLogInfo;
 import org.cesecore.certificates.certificatetransparency.GoogleCtPolicy;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.config.ExternalScriptsConfiguration;
 import org.cesecore.configuration.ConfigurationBase;
 import org.cesecore.util.StringTools;
@@ -51,10 +51,10 @@ public class GlobalConfiguration extends ConfigurationBase
 
   /** Config. */
   public static final String PREFEREDINTERNALRESOURCES =
-      CesecoreConfiguration.getInternalResourcesPreferredLanguage();
+      CesecoreConfigurationHelper.getInternalResourcesPreferredLanguage();
   /** Config. */
   public static final String SECONDARYINTERNALRESOURCES =
-      CesecoreConfiguration.getInternalResourcesSecondaryLanguage();
+      CesecoreConfigurationHelper.getInternalResourcesSecondaryLanguage();
 
 
   /** Entries to choose from in userpreference part, defines the size of data to

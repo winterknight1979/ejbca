@@ -25,7 +25,7 @@ import org.bouncycastle.cert.X509CRLHolder;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceInfo;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypeConstants;
 import org.cesecore.certificates.crl.RevokedCertInfo;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.internal.InternalResources;
 import org.cesecore.keys.token.CryptoToken;
 
@@ -305,7 +305,7 @@ public abstract class CvcCA extends CA implements Serializable {
   public boolean upgradeExtendedCAServices() {
     boolean retval = false;
     Collection<Integer> externalServiceTypes = getExternalCAServiceTypes();
-    if (!CesecoreConfiguration.getCaKeepOcspExtendedService()
+    if (!CesecoreConfigurationHelper.getCaKeepOcspExtendedService()
         && externalServiceTypes.contains(
             ExtendedCAServiceTypeConstants.TYPE_OCSPEXTENDEDSERVICE)) {
       // This type has been removed, so remove it from any CAs it's been added

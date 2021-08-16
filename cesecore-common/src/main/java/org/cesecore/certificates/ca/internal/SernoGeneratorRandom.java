@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Random;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.internal.InternalResources;
 
 /**
@@ -122,7 +122,7 @@ public class SernoGeneratorRandom implements SernoGenerator {
     if (LOG.isTraceEnabled()) {
       LOG.trace(">SernoGenerator()");
     }
-    this.algorithm = CesecoreConfiguration.getCaSerialNumberAlgorithm();
+    this.algorithm = CesecoreConfigurationHelper.getCaSerialNumberAlgorithm();
     if (this.algorithm == null) {
       this.algorithm = "SHA1PRNG";
     }

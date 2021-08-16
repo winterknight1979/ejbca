@@ -37,7 +37,7 @@ public class ConfigurationHolderTest {
     /** Setup. */
   @Before
   public void setUp() {
-    ConfigurationHolder.instance().clear();
+    ConfigurationHolderUtil.instance().clear();
   }
 
   /**
@@ -52,7 +52,7 @@ public class ConfigurationHolderTest {
 
       // First the value "property1" should not exists in configuration
       // Test null default value and a default value
-      String val = ConfigurationHolder.getString("property1");
+      String val = ConfigurationHolderUtil.getString("property1");
       assertNull(val);
       // Create a configuration file
       fw.write("property1=foo\n");
@@ -61,19 +61,19 @@ public class ConfigurationHolderTest {
       fw.write("property3=EN,DE,FR\n");
       fw.close();
       // We haven't read it so it should still not contain our property
-      val = ConfigurationHolder.getString("property1");
+      val = ConfigurationHolderUtil.getString("property1");
       assertEquals(null, val);
       // Add the config file to configuration, now the property should be
       // visible
-      ConfigurationHolder.addConfigurationFile(f.getAbsolutePath());
-      val = ConfigurationHolder.getString("property1");
+      ConfigurationHolderUtil.addConfigurationFile(f.getAbsolutePath());
+      val = ConfigurationHolderUtil.getString("property1");
       assertEquals("foo", val);
       // An expanded string "${property1}bar" will be expanded with the value
       // from "property1" (foo)
-      val = ConfigurationHolder.getString("property2");
+      val = ConfigurationHolderUtil.getString("property2");
       assertEquals("foobar", val);
       // Make sure we handle comma in values
-      val = ConfigurationHolder.getString("property3");
+      val = ConfigurationHolderUtil.getString("property3");
       assertEquals("EN,DE,FR", val);
     } finally {
       f.deleteOnExit();
@@ -94,15 +94,15 @@ public class ConfigurationHolderTest {
           IllegalAccessException, IOException, ConfigurationException {
     // Make sure we handle comma in default values
     String val =
-        ConfigurationHolder.getString("intresources.preferredlanguage");
+        ConfigurationHolderUtil.getString("intresources.preferredlanguage");
     assertEquals("en", val);
     // A little reflection magic just to avoid dumping a test value in
     // defaultvalues.properties file.
-    Field field = ConfigurationHolder.class.getDeclaredField("defaultValues");
+    Field field = ConfigurationHolderUtil.class.getDeclaredField("defaultValues");
     field.setAccessible(true);
     CompositeConfiguration defaultValues =
         (CompositeConfiguration) field.get(null);
-    val = ConfigurationHolder.getString("test.comma.in.defaultvalue");
+    val = ConfigurationHolderUtil.getString("test.comma.in.defaultvalue");
     assertNull(val);
     File f = File.createTempFile("cesecore", "test");
     try {
@@ -110,7 +110,7 @@ public class ConfigurationHolderTest {
       fw.write("test.comma.in.defaultvalue=EN,DE,FR\n");
       fw.close();
       defaultValues.addConfiguration(new PropertiesConfiguration(f));
-      val = ConfigurationHolder.getString("test.comma.in.defaultvalue");
+      val = ConfigurationHolderUtil.getString("test.comma.in.defaultvalue");
       assertEquals("EN,DE,FR", val);
     } finally {
       f.deleteOnExit();

@@ -55,7 +55,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.Arrays;
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.certificates.util.AlgorithmTools;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.util.Base64;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.CryptoProviderTools;
@@ -667,7 +667,7 @@ public class KeyToolsTest {
             "ECGOST3410", BouncyCastleProvider.PROVIDER_NAME);
 
     final String keyspec =
-        CesecoreConfiguration.getExtraAlgSubAlgName("gost3410", "B");
+        CesecoreConfigurationHelper.getExtraAlgSubAlgName("gost3410", "B");
     AlgorithmParameterSpec ecSpec =
         ECGOST3410NamedCurveTable.getParameterSpec(keyspec);
     keygen.initialize(ecSpec);
@@ -769,7 +769,7 @@ public class KeyToolsTest {
             "DSTU4145", BouncyCastleProvider.PROVIDER_NAME);
 
     final String keyspec =
-        CesecoreConfiguration.getExtraAlgSubAlgName("dstu4145", "233");
+        CesecoreConfigurationHelper.getExtraAlgSubAlgName("dstu4145", "233");
     AlgorithmParameterSpec ecSpec =
         ECGOST3410NamedCurveTable.getParameterSpec(keyspec);
     keygen.initialize(ecSpec);

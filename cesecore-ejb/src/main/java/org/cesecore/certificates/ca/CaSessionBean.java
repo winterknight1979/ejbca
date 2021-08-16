@@ -57,7 +57,7 @@ import org.cesecore.certificates.ca.internal.CaCache;
 import org.cesecore.certificates.ca.internal.CaIDCacheBean;
 import org.cesecore.certificates.certificate.CertificateWrapper;
 import org.cesecore.certificates.certificate.certextensions.AvailableCustomCertificateExtensionsConfiguration;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.configuration.GlobalConfigurationSessionLocal;
 import org.cesecore.internal.InternalResources;
 import org.cesecore.internal.UpgradeableDataHashMap;
@@ -92,7 +92,7 @@ public class CaSessionBean implements CaSessionLocal, CaSessionRemote {
       InternalResources.getInstance();
 
   /** EM. */
-  @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+  @PersistenceContext(unitName = CesecoreConfigurationHelper.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
   /** Context. */
@@ -1222,7 +1222,7 @@ public class CaSessionBean implements CaSessionLocal, CaSessionRemote {
         (HashMap<String, String>) data.get(CA.CATOKENDATA);
     if (tokendata.get(CAToken.CRYPTOTOKENID) != null) {
       // Already upgraded
-      if (!CesecoreConfiguration.isKeepInternalCAKeystores()) {
+      if (!CesecoreConfigurationHelper.isKeepInternalCAKeystores()) {
         // All nodes in the cluster has been upgraded so we can remove any
         // internal CA keystore now
         if (tokendata.get(CAToken.KEYSTORE) != null) {

@@ -19,7 +19,7 @@ import java.io.InputStream;
 import java.util.Locale;
 import java.util.Properties;
 import org.apache.log4j.Logger;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.internal.InternalResources;
 
 /**
@@ -50,10 +50,10 @@ public class InternalEjbcaResources extends InternalResources {
 
   /** Config. */
   public static final String PREFEREDINTERNALRESOURCES =
-      CesecoreConfiguration.getInternalResourcesPreferredLanguage();
+      CesecoreConfigurationHelper.getInternalResourcesPreferredLanguage();
   /** Config. */
   public static final String SECONDARYINTERNALRESOURCES =
-      CesecoreConfiguration.getInternalResourcesSecondaryLanguage();
+      CesecoreConfigurationHelper.getInternalResourcesSecondaryLanguage();
 
   /** Config. */
   protected static InternalEjbcaResources instance = null;

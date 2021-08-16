@@ -19,7 +19,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.crl.RevokedCertInfo;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.util.CompressedCollection;
 import org.cesecore.util.ValueExtractor;
 
@@ -140,7 +140,7 @@ public abstract class BaseCertificateDataSessionBean {
   private Collection<RevokedCertInfo> getRevokedCertInfosInternal(
       final Query query) {
     final int maxResults =
-        CesecoreConfiguration.getDatabaseRevokedCertInfoFetchSize();
+        CesecoreConfigurationHelper.getDatabaseRevokedCertInfoFetchSize();
     query.setMaxResults(maxResults);
     int firstResult = 0;
     final CompressedCollection<RevokedCertInfo> revokedCertInfos =

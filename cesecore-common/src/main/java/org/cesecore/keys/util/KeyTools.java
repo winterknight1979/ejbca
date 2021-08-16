@@ -100,7 +100,7 @@ import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
 import org.bouncycastle.util.encoders.Hex;
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.certificates.util.AlgorithmTools;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.internal.InternalResources;
 import org.cesecore.util.Base64;
 import org.cesecore.util.CertTools;
@@ -1546,7 +1546,7 @@ public final class KeyTools {
             && AlgorithmConstants.KEYALGORITHM_ECGOST3410.equals(keyAlg);
     final boolean isDstu4145 =
         AlgorithmTools.isDstu4145Enabled()
-            && keyAlg.startsWith(CesecoreConfiguration.getOidDstu4145() + ".");
+            && keyAlg.startsWith(CesecoreConfigurationHelper.getOidDstu4145() + ".");
     if (isEcdsa || isGost3410 || isDstu4145) {
       // We allow key lengths of 0, because that means that implicitlyCA is
       // used.
@@ -1607,7 +1607,7 @@ public final class KeyTools {
       return AlgorithmConstants.KEYALGORITHM_ECGOST3410;
     }
     if (AlgorithmTools.isDstu4145Enabled()
-        && keyspec.startsWith(CesecoreConfiguration.getOidDstu4145() + ".")) {
+        && keyspec.startsWith(CesecoreConfigurationHelper.getOidDstu4145() + ".")) {
       return AlgorithmConstants.KEYALGORITHM_DSTU4145;
     }
     return AlgorithmConstants.KEYALGORITHM_ECDSA;

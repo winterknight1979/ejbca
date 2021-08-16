@@ -55,7 +55,7 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.cesecore.certificates.endentity.ExtendedInformation;
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.certificates.util.AlgorithmTools;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.StringTools;
 import org.ejbca.core.EjbcaException;
@@ -975,21 +975,21 @@ public class EnrollWithRequestIdBean implements Serializable {
                               ecNamedCurve))));
         }
       }
-      for (final String algName : CesecoreConfiguration.getExtraAlgs()) {
+      for (final String algName : CesecoreConfigurationHelper.getExtraAlgs()) {
         if (availableKeyAlgorithms.contains(
-            CesecoreConfiguration.getExtraAlgTitle(algName))) {
+            CesecoreConfigurationHelper.getExtraAlgTitle(algName))) {
           for (final String subAlg
-              : CesecoreConfiguration.getExtraAlgSubAlgs(algName)) {
+              : CesecoreConfigurationHelper.getExtraAlgSubAlgs(algName)) {
             final String name =
-                CesecoreConfiguration.getExtraAlgSubAlgName(algName, subAlg);
+                CesecoreConfigurationHelper.getExtraAlgSubAlgName(algName, subAlg);
             final int bitLength = AlgorithmTools.getNamedEcCurveBitLength(name);
             if (availableBitLengths.contains(Integer.valueOf(bitLength))) {
               availableAlgorithmSelectItems.add(
                   new SelectItem(
-                      CesecoreConfiguration.getExtraAlgTitle(algName)
+                      CesecoreConfigurationHelper.getExtraAlgTitle(algName)
                           + "_"
                           + name,
-                      CesecoreConfiguration.getExtraAlgSubAlgTitle(
+                      CesecoreConfigurationHelper.getExtraAlgSubAlgTitle(
                           algName, subAlg)));
             } else {
               if (LOG.isTraceEnabled()) {

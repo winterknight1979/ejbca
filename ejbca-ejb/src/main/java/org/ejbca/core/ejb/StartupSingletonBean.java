@@ -57,7 +57,7 @@ import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLoc
 import org.cesecore.certificates.endentity.EndEntityConstants;
 import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.cesecore.certificates.ocsp.OcspResponseGeneratorSessionLocal;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.configuration.GlobalConfigurationSessionLocal;
 import org.cesecore.keys.token.CryptoTokenFactory;
 import org.cesecore.util.Base64;
@@ -538,7 +538,7 @@ public class StartupSingletonBean {
           final Integer keyid =
               (Integer) getKeyId.invoke(config, auditTableName);
           if ((keyid != null) && (keyid > 0)) {
-            if (CesecoreConfiguration.useDatabaseIntegrityProtection(
+            if (CesecoreConfigurationHelper.useDatabaseIntegrityProtection(
                 auditTableName)) {
               // Call ProtectedDataConfiguration.instance().getProtectVersion
               final Integer protectVersion =
