@@ -774,7 +774,7 @@ public final class CmpMessageHelper {
     CertRequest cr = CertRequest.getInstance(o3);
 
     // Reconstructing the proof-of-posession
-    ASN1TaggedObject o4 = (ASN1TaggedObject) ((DERSequence) o2).getObjectAt(1);
+    ASN1TaggedObject o4 = (ASN1TaggedObject) ((ASN1Sequence) o2).getObjectAt(1);
     ProofOfPossession pp;
     int tagnr = o4.getTagNo();
     ASN1Encodable o5;
