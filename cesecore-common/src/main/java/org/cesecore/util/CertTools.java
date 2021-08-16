@@ -4564,8 +4564,8 @@ public abstract class CertTools {
     if (namesSequence.size() == 0) {
       return null;
     }
-    final DERTaggedObject taggedObject =
-        (DERTaggedObject) namesSequence.getObjectAt(0);
+    final ASN1TaggedObject taggedObject =
+        (ASN1TaggedObject) namesSequence.getObjectAt(0);
     if (taggedObject.getTagNo()
         != GeneralName
             .uniformResourceIdentifier) { // uniformResourceIdentifier [6]

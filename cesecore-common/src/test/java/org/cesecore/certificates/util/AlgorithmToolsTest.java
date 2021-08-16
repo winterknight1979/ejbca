@@ -806,7 +806,7 @@ public class AlgorithmToolsTest {
             "SHA1WithDSA",
             true);
     assertEquals(
-        "DSA",
+        "SHA1withDSA", // BC has changed what is returned here
         AlgorithmTools.getCertSignatureAlgorithmNameAsString(sha1rsadsa));
     assertEquals(
         "SHA1WithDSA", AlgorithmTools.getSignatureAlgorithm(sha1rsadsa));

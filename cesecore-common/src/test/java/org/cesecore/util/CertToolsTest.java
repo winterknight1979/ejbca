@@ -50,11 +50,11 @@ import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.ASN1Set;
 import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERPrintableString;
 import org.bouncycastle.asn1.DERSequence;
-import org.bouncycastle.asn1.DERSet;
 import org.bouncycastle.asn1.DERTaggedObject;
 import org.bouncycastle.asn1.DERUTF8String;
 import org.bouncycastle.asn1.pkcs.Attribute;
@@ -2017,7 +2017,7 @@ public class CertToolsTest {
       // The set of attributes contains a sequence of with type oid
       // PKCSObjectIdentifiers.pkcs_9_at_extensionRequest
       boolean found = false;
-      DERSet s = (DERSet) attribute.getAttrValues();
+      ASN1Set s = (ASN1Set) attribute.getAttrValues();
       Extensions exts = Extensions.getInstance(s.getObjectAt(0));
       Extension ext = exts.getExtension(Extension.subjectAlternativeName);
       if (ext != null) {
@@ -2037,7 +2037,7 @@ public class CertToolsTest {
           p10.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest)[
               0];
       found = false;
-      s = (DERSet) attribute.getAttrValues();
+      s = (ASN1Set) attribute.getAttrValues();
       exts = Extensions.getInstance(s.getObjectAt(0));
       ext = exts.getExtension(Extension.subjectAlternativeName);
       if (ext != null) {
