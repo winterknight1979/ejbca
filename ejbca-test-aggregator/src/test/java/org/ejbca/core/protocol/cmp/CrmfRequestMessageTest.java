@@ -41,13 +41,14 @@ import java.util.Collection;
 import java.util.Date;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1EncodableVector;
+import org.bouncycastle.asn1.ASN1Encoding;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1OctetString;
+import org.bouncycastle.asn1.ASN1OutputStream;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.DERGeneralizedTime;
 import org.bouncycastle.asn1.DERNull;
 import org.bouncycastle.asn1.DEROctetString;
-import org.bouncycastle.asn1.DEROutputStream;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.DERTaggedObject;
 import org.bouncycastle.asn1.DERUTF8String;
@@ -225,7 +226,8 @@ public class CrmfRequestMessageTest {
         SubjectPublicKeyInfo.getInstance(keys.getPublic().getEncoded());
     myCertTemplate.setPublicKey(keyInfo);
     ByteArrayOutputStream bOut = new ByteArrayOutputStream();
-    DEROutputStream dOut = new DEROutputStream(bOut);
+    ASN1OutputStream dOut =
+  		  ASN1OutputStream.create(bOut, ASN1Encoding.DER);
     ExtensionsGenerator extgen = new ExtensionsGenerator();
     int bcku =
         X509KeyUsage.digitalSignature
@@ -233,7 +235,7 @@ public class CrmfRequestMessageTest {
             | X509KeyUsage.nonRepudiation;
     X509KeyUsage ku = new X509KeyUsage(bcku);
     bOut = new ByteArrayOutputStream();
-    dOut = new DEROutputStream(bOut);
+    dOut = ASN1OutputStream.create(bOut, ASN1Encoding.DER);
     dOut.writeObject(ku);
     byte[] value = bOut.toByteArray();
     extgen.addExtension(Extension.keyUsage, false, new DEROctetString(value));

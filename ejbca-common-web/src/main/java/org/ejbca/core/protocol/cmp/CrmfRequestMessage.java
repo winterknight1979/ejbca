@@ -32,11 +32,12 @@ import java.util.Date;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.ASN1Encoding;
 import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.ASN1OutputStream;
 import org.bouncycastle.asn1.DERBitString;
 import org.bouncycastle.asn1.DERNull;
-import org.bouncycastle.asn1.DEROutputStream;
 import org.bouncycastle.asn1.cmp.CMPObjectIdentifiers;
 import org.bouncycastle.asn1.cmp.InfoTypeAndValue;
 import org.bouncycastle.asn1.cmp.PKIBody;
@@ -629,7 +630,7 @@ public class CrmfRequestMessage extends BaseCmpMessage
         // If a protectObject is present we extract the bytes and verify it
         if (protObject != null) {
           final ByteArrayOutputStream bao = new ByteArrayOutputStream();
-          new DEROutputStream(bao).writeObject(protObject);
+        ASN1OutputStream.create(bao, ASN1Encoding.DER).writeObject(protObject);
           final byte[] protBytes = bao.toByteArray();
           final AlgorithmIdentifier algId = sk.getAlgorithmIdentifier();
           if (LOG.isDebugEnabled()) {
