@@ -37,7 +37,8 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		<module>log4jconfig-bundle</module>
 
 		<!-- CeSeCore JARs -->
-
+		
+		<module>cert-cvc</module>
 		<module>cesecore-common</module>
 		<module>cesecore-entity</module>
 		<module>cesecore-ejb-interface</module>
@@ -136,7 +137,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 			<dependency>
 				<groupId>org.ejbca.cvc</groupId>
 				<artifactId>cert-cvc</artifactId>
-				<version>1.4.9</version>
+				<version>1.4.13</version>
 			</dependency>
 			<!-- Apache Commons -->
 			<dependency>
