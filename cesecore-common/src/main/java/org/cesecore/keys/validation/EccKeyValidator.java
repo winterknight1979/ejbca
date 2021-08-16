@@ -369,7 +369,7 @@ public class EccKeyValidator extends KeyValidatorBase {
       // First convert the Java.security publicKey into a BC ECPoint
       ECPoint q =
           EC5Util.convertPoint(
-              bcEcPublicKey.getParams(), bcEcPublicKey.getW(), false);
+              bcEcPublicKey.getParams(), bcEcPublicKey.getW());
 
       // --- Begin BC code
       // FSM_STATE:5.9, "FIPS 186-3/SP 800-89 ASSURANCES", "The module is
