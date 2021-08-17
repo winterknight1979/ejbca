@@ -40,17 +40,18 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1EncodableVector;
+import org.bouncycastle.asn1.ASN1Encoding;
 import org.bouncycastle.asn1.ASN1GeneralizedTime;
 import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1OctetString;
+import org.bouncycastle.asn1.ASN1OutputStream;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1TaggedObject;
 import org.bouncycastle.asn1.DERBitString;
 import org.bouncycastle.asn1.DERGeneralizedTime;
 import org.bouncycastle.asn1.DERNull;
 import org.bouncycastle.asn1.DEROctetString;
-import org.bouncycastle.asn1.DEROutputStream;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.cmp.CMPCertificate;
 import org.bouncycastle.asn1.cmp.CMPObjectIdentifiers;
@@ -719,7 +720,8 @@ public final class CmpMessageHelper {
     ASN1Encodable protectedPart = new DERSequence(v);
     try {
       ByteArrayOutputStream bao = new ByteArrayOutputStream();
-      DEROutputStream out = new DEROutputStream(bao);
+      ASN1OutputStream out =
+              ASN1OutputStream.create(bao, ASN1Encoding.DER);
       out.writeObject(protectedPart);
       res = bao.toByteArray();
     } catch (Exception ex) {
@@ -767,12 +769,12 @@ public final class CmpMessageHelper {
 
     // Reconstructing the CertRequest
     ASN1Encodable o2 =
-        ((DERSequence) messages.toASN1Primitive()).getObjectAt(0);
-    ASN1Encodable o3 = ((DERSequence) o2).getObjectAt(0);
+        ((ASN1Sequence) messages.toASN1Primitive()).getObjectAt(0);
+    ASN1Encodable o3 = ((ASN1Sequence) o2).getObjectAt(0);
     CertRequest cr = CertRequest.getInstance(o3);
 
     // Reconstructing the proof-of-posession
-    ASN1TaggedObject o4 = (ASN1TaggedObject) ((DERSequence) o2).getObjectAt(1);
+    ASN1TaggedObject o4 = (ASN1TaggedObject) ((ASN1Sequence) o2).getObjectAt(1);
     ProofOfPossession pp;
     int tagnr = o4.getTagNo();
     ASN1Encodable o5;
@@ -837,15 +839,15 @@ public final class CmpMessageHelper {
     // using bouncycastle OR not setting the correct revocation reason.
 
     ASN1Encodable o2 =
-        ((DERSequence) revContent.toASN1Primitive()).getObjectAt(0);
-    ASN1Encodable o3 = ((DERSequence) o2).getObjectAt(0);
+        ((ASN1Sequence) revContent.toASN1Primitive()).getObjectAt(0);
+    ASN1Encodable o3 = ((ASN1Sequence) o2).getObjectAt(0);
     CertTemplate ct = CertTemplate.getInstance(o3);
 
     ReasonFlags reasonbits = null;
     Extensions crlEntryDetails = null;
-    int seqSize = ((DERSequence) o2).size();
+    int seqSize = ((ASN1Sequence) o2).size();
     for (int i = 1; i < seqSize; i++) {
-      ASN1Encodable o4 = ((DERSequence) o2).getObjectAt(i);
+      ASN1Encodable o4 = ((ASN1Sequence) o2).getObjectAt(i);
       if (o4 instanceof DERBitString) {
         reasonbits = new ReasonFlags((DERBitString) o4);
       } else if (o4 instanceof DERGeneralizedTime) {

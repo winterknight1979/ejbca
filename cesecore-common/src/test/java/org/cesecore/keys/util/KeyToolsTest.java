@@ -63,7 +63,7 @@ import org.ejbca.cvc.AuthorizationRoleEnum;
 import org.ejbca.cvc.CAReferenceField;
 import org.ejbca.cvc.CVCPublicKey;
 import org.ejbca.cvc.CVCertificate;
-import org.ejbca.cvc.CertificateGenerator;
+import org.ejbca.cvc.CertificateGeneratorHelper;
 import org.ejbca.cvc.HolderReferenceField;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -646,7 +646,7 @@ public class KeyToolsTest {
     HolderReferenceField holderRef =
         new HolderReferenceField("SE", "TEST002", "SE001");
     // Call method in CertificateGenerator
-    return CertificateGenerator.createTestCertificate(
+    return CertificateGeneratorHelper.createTestCertificate(
         keyPair.getPublic(),
         keyPair.getPrivate(),
         caRef,

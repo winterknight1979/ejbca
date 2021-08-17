@@ -129,6 +129,8 @@
 	<suppress checks="MethodLengthCheck"
 		files="StringToolsTest.java" lines="643" />
 	<suppress checks="MethodLengthCheck"
+		files="RsaKeyValidatorTest.java" lines="425" />
+	<suppress checks="MethodLengthCheck"
 		files="TimeUnitFormatTest.java" lines="85" />
 	<suppress checks="RedundantModifierCheck"
 		files="LookAheadObjectInputStreamTest.java" lines="75,89,119,134" /> <!-- These are instantiated by reflection so must be explicitly public. -->
@@ -282,7 +284,7 @@
 	<suppress checks="MagicNumberCheck"
 		files="ServiceConfiguration.java" lines="299-319" /> <!-- Version numbers -->
 	<suppress checks="MethodLengthCheck"
-		files="ScepRequestMessage.java" lines="236" />
+		files="ScepRequestMessage.java" lines="237" />
 	<suppress checks="MethodLengthCheck"
 		files="ScepResponseMessage.java" lines="250" />
 	<suppress checks="InnerAssignmentCheck"
@@ -364,13 +366,13 @@
 	<suppress checks="MethodLengthCheck"
 		files="CRLDownloadWorker.java" lines="64" />
 	<suppress checks="ParameterNumberCheck"
-		files="CmpMessageHelper.java" lines="613" />
+		files="CmpMessageHelper.java" lines="614" />
 	<suppress checks="MagicNumberCheck"
-		files="CmpMessageHelper.java" lines="789" /> <!-- case label -->
+		files="CmpMessageHelper.java" lines="791" /> <!-- case label -->
 	<suppress checks="MethodLengthCheck"
 		files="CmpResponseMessage.java" lines="268" />
 	<suppress checks="MagicNumberCheck"
-		files="CrmfRequestMessage.java" lines="747" /> <!-- case label -->
+		files="CrmfRequestMessage.java" lines="748" /> <!-- case label -->
 	<suppress checks="MagicNumberCheck"
 		files="HTMLTools.java" lines="58-132" /> <!-- HTML Entities -->
 	<suppress checks="ParameterNumberCheck"
@@ -627,4 +629,13 @@
 		<suppress checks="MethodLengthCheck"
 		files="X509CATest.java" lines="183 " /> 
 		
+	<!-- cert-cvc -->
+		<suppress checks="ParameterNumberCheck"
+		files="CertificateGeneratorHelper.java" lines="154,203,252" />
+		<suppress checks="ParameterNumberCheck"
+		files="CVCertificateBody.java" lines="242" />
+		<suppress checks="MagicNumberCheck"
+		files="DateField.java" lines="94-96,141-143" /> <!-- Array indexes --> 
+		<suppress checks="InterfaceIsTypeCheck"
+		files="CVCTest.java" lines="24" />
 </suppressions>

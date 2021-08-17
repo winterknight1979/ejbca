@@ -350,7 +350,7 @@ public final class KeyTools {
             ECNamedCurveTable.getParameterSpec(keySpec);
         final java.security.spec.ECPoint p = pkec.getW();
         final org.bouncycastle.math.ec.ECPoint ecp =
-            EC5Util.convertPoint(bcspec.getCurve(), p, false);
+            EC5Util.convertPoint(bcspec.getCurve(), p);
         final ECPublicKeySpec pubKey = new ECPublicKeySpec(ecp, bcspec);
         final KeyFactory keyfact = KeyFactory.getInstance("ECDSA", "BC");
         ret = keyfact.generatePublic(pubKey);
@@ -399,10 +399,10 @@ public final class KeyTools {
       return pk;
     }
     final org.bouncycastle.jce.spec.ECParameterSpec bcspec =
-        EC5Util.convertSpec(pkspec, false);
+        EC5Util.convertSpec(pkspec);
     final java.security.spec.ECPoint p = pkec.getW();
     final org.bouncycastle.math.ec.ECPoint ecp =
-        EC5Util.convertPoint(pkspec, p, false);
+        EC5Util.convertPoint(pkspec, p);
     final ECPublicKeySpec pubKey = new ECPublicKeySpec(ecp, bcspec);
     final KeyFactory keyfact;
     try {

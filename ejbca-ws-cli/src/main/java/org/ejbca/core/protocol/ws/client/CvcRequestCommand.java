@@ -34,7 +34,7 @@ import org.ejbca.cvc.CAReferenceField;
 import org.ejbca.cvc.CVCAuthenticatedRequest;
 import org.ejbca.cvc.CVCObject;
 import org.ejbca.cvc.CVCertificate;
-import org.ejbca.cvc.CertificateGenerator;
+import org.ejbca.cvc.CertificateGeneratorHelper;
 import org.ejbca.cvc.CertificateParser;
 import org.ejbca.cvc.HolderReferenceField;
 import org.ejbca.ui.cli.ErrorAdminCommandException;
@@ -157,7 +157,7 @@ public class CvcRequestCommand extends EJBCAWSRABaseCommand
           HolderReferenceField holderRef =
               new HolderReferenceField(country, mnemonic, sequence);
           CVCertificate request =
-              CertificateGenerator.createRequest(
+              CertificateGeneratorHelper.createRequest(
                   keyPair, signatureAlg, caRef, holderRef);
           byte[] der = request.getDEREncoded();
           if (authSignKeyFile != null) {
@@ -204,7 +204,7 @@ public class CvcRequestCommand extends EJBCAWSRABaseCommand
               authCaRef = new CAReferenceField(c, m, s);
             }
             CVCAuthenticatedRequest authRequest =
-                CertificateGenerator.createAuthenticatedRequest(
+                CertificateGeneratorHelper.createAuthenticatedRequest(
                     request, authKeyPair, signatureAlg, authCaRef);
             // Test to verify it yourself first
             if (authCert != null) {
