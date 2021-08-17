@@ -14,7 +14,7 @@ package org.ejbca.core.protocol.cmp;
 
 import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.ASN1Integer;
-import org.bouncycastle.asn1.DERSequence;
+import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.cmp.CertConfirmContent;
 import org.bouncycastle.asn1.cmp.CertStatus;
 import org.bouncycastle.asn1.cmp.PKIBody;
@@ -74,7 +74,7 @@ public class GeneralCmpMessage extends BaseCmpMessage {
       } catch (Exception e) {
         cs =
             CertStatus.getInstance(
-                ((DERSequence) obj.toASN1Primitive()).getObjectAt(0));
+                ((ASN1Sequence) obj.toASN1Primitive()).getObjectAt(0));
       }
       final PKIStatusInfo status = cs.getStatusInfo();
       if (status != null) {

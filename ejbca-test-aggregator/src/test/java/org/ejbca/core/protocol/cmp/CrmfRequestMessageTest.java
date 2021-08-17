@@ -141,6 +141,7 @@ public class CrmfRequestMessageTest {
   }
 
   /**
+   * BC 1.67 prosuces "SURNAME" rather than SN.
    * @throws IOException fail
  * @throws ClassNotFoundException fail
    * @throws NoSuchAlgorithmException fail
@@ -173,7 +174,7 @@ public class CrmfRequestMessageTest {
       username = gen.generateUsername(dnname.toString());
       assertEquals(
           "Username was not constructed properly from DN",
-          "CN=subject,SN=000106716,O=Org,C=SE",
+          "CN=subject,SURNAME=000106716,O=Org,C=SE",
           username);
 
 
@@ -198,7 +199,7 @@ public class CrmfRequestMessageTest {
       username = gen.generateUsername(dnname.toString());
       assertEquals(
           "Username was not constructed properly from DN",
-          "C=SE,O=Org,SN=000106716,CN=subject",
+          "C=SE,O=Org,SURNAME=000106716,CN=subject",
           username);
 
   }
