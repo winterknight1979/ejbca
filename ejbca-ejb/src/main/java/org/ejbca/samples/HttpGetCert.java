@@ -24,7 +24,8 @@ import java.net.URLEncoder;
 import java.security.KeyPair;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
-import org.bouncycastle.asn1.DEROutputStream;
+import org.bouncycastle.asn1.ASN1Encoding;
+import org.bouncycastle.asn1.ASN1OutputStream;
 import org.bouncycastle.asn1.DERSet;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.cesecore.certificates.util.AlgorithmConstants;
@@ -286,7 +287,8 @@ public class HttpGetCert {
             rsaKeys.getPrivate(),
             null);
     ByteArrayOutputStream bOut = new ByteArrayOutputStream();
-    DEROutputStream dOut = new DEROutputStream(bOut);
+    ASN1OutputStream dOut =
+            ASN1OutputStream.create(bOut, ASN1Encoding.DER);
     dOut.writeObject(req.toASN1Structure());
     dOut.close();
 

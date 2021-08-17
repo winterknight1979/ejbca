@@ -43,7 +43,7 @@ import org.cesecore.util.CryptoProviderTools;
 import org.ejbca.cvc.AuthorizationRoleEnum;
 import org.ejbca.cvc.CAReferenceField;
 import org.ejbca.cvc.CardVerifiableCertificate;
-import org.ejbca.cvc.CertificateGenerator;
+import org.ejbca.cvc.CertificateGeneratorHelper;
 import org.ejbca.cvc.HolderReferenceField;
 import org.junit.Before;
 import org.junit.Test;
@@ -737,7 +737,7 @@ public class AlgorithmToolsTest {
         new HolderReferenceField("SE", "HOLDERRE", "00000");
     CardVerifiableCertificate cvsha1 =
         new CardVerifiableCertificate(
-            CertificateGenerator.createTestCertificate(
+            CertificateGeneratorHelper.createTestCertificate(
                 keyPair.getPublic(),
                 keyPair.getPrivate(),
                 caRef,
@@ -746,7 +746,7 @@ public class AlgorithmToolsTest {
                 AuthorizationRoleEnum.IS));
     CardVerifiableCertificate cvsha256 =
         new CardVerifiableCertificate(
-            CertificateGenerator.createTestCertificate(
+            CertificateGeneratorHelper.createTestCertificate(
                 keyPair.getPublic(),
                 keyPair.getPrivate(),
                 caRef,
@@ -755,7 +755,7 @@ public class AlgorithmToolsTest {
                 AuthorizationRoleEnum.IS));
     CardVerifiableCertificate cvsha1mgf =
         new CardVerifiableCertificate(
-            CertificateGenerator.createTestCertificate(
+            CertificateGeneratorHelper.createTestCertificate(
                 keyPair.getPublic(),
                 keyPair.getPrivate(),
                 caRef,
@@ -764,7 +764,7 @@ public class AlgorithmToolsTest {
                 AuthorizationRoleEnum.IS));
     CardVerifiableCertificate cvsha256mgf =
         new CardVerifiableCertificate(
-            CertificateGenerator.createTestCertificate(
+            CertificateGeneratorHelper.createTestCertificate(
                 keyPair.getPublic(),
                 keyPair.getPrivate(),
                 caRef,
@@ -806,7 +806,7 @@ public class AlgorithmToolsTest {
             "SHA1WithDSA",
             true);
     assertEquals(
-        "DSA",
+        "SHA1withDSA", // BC has changed what is returned here
         AlgorithmTools.getCertSignatureAlgorithmNameAsString(sha1rsadsa));
     assertEquals(
         "SHA1WithDSA", AlgorithmTools.getSignatureAlgorithm(sha1rsadsa));
@@ -932,7 +932,7 @@ public class AlgorithmToolsTest {
     // CVC + ECC
     CardVerifiableCertificate cvsha1ecc =
         new CardVerifiableCertificate(
-            CertificateGenerator.createTestCertificate(
+            CertificateGeneratorHelper.createTestCertificate(
                 keyPair.getPublic(),
                 keyPair.getPrivate(),
                 caRef,
@@ -941,7 +941,7 @@ public class AlgorithmToolsTest {
                 AuthorizationRoleEnum.IS));
     CardVerifiableCertificate cvsha224ecc =
         new CardVerifiableCertificate(
-            CertificateGenerator.createTestCertificate(
+            CertificateGeneratorHelper.createTestCertificate(
                 keyPair.getPublic(),
                 keyPair.getPrivate(),
                 caRef,
@@ -950,7 +950,7 @@ public class AlgorithmToolsTest {
                 AuthorizationRoleEnum.IS));
     CardVerifiableCertificate cvsha256ecc =
         new CardVerifiableCertificate(
-            CertificateGenerator.createTestCertificate(
+            CertificateGeneratorHelper.createTestCertificate(
                 keyPair.getPublic(),
                 keyPair.getPrivate(),
                 caRef,

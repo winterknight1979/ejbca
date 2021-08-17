@@ -321,28 +321,7 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-install-plugin</artifactId>
-                <version>3.0.0-M1</version>
-                <executions>
-                    <execution>
-                        <phase>initialize</phase>
-                        <id>Install cert-cvc</id>
-                        <goals>
-                            <goal>install-file</goal>
-                        </goals>
-                        <configuration>
-                            <file>ext/cert-cvc-1.4.9.jar</file>
-                            <groupId>org.ejbca.cvc</groupId>
-                            <artifactId>cert-cvc</artifactId>
-                            <version>1.4.9</version>
-                            <packaging>jar</packaging>
-                            <generatePom>true</generatePom>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+            
         </plugins>
     </build>
 
