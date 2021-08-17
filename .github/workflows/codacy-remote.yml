@@ -6,13 +6,15 @@
 # For more information on Codacy Analysis CLI in general, see
 # https://github.com/codacy/codacy-analysis-cli.
 
-name: Codacy Security Scan
+name: Codacy Security Scan (Remote)
 
 on: 
   push:
     branches: [ "master", "main" ]
   pull_request:
     branches: [ "master", "main" ]
+  schedule:
+    - cron: '0 2 * * 6'
 
 jobs:
   codacy-security-scan:
@@ -38,7 +40,7 @@ jobs:
       - name: setup env
         run: echo 'APPSRV_HOME=~' >> $GITHUB_ENV 
       - name: Build
-        run: mvn -fn -B -Pjboss -DskipTests=true clean verify
+        run: mvn -fn -B -Pjboss -DskipTests=true clean verify pmd:pmd checkstyle:checkstyle com.github.spotbugs:spotbugs-maven-plugin:spotbugs
      
 
       #We want to run and upload spotbugs results BEFORE we generate the SARIF file
@@ -48,7 +50,7 @@ jobs:
           # Check https://github.com/codacy/codacy-analysis-cli#project-token to get your project token from your Codacy repository
           # You can also omit the token and run the tools that support default configurations   
           project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-          tool: spotbugs
+          #tool: spotbugs
           verbose: true
           upload: true
           allow-network: true
@@ -56,22 +58,4 @@ jobs:
           # This will handover control about PR rejection to the GitHub side
           max-allowed-issues: 2147483647
       
-      # Execute Codacy Analysis CLI and generate a SARIF output with the security issues identified during the analysis
-      - name: Run Codacy Analysis CLI
-        uses: codacy/codacy-analysis-cli-action@master
-        with:
-          # Check https://github.com/codacy/codacy-analysis-cli#project-token to get your project token from your Codacy repository
-          # You can also omit the token and run the tools that support default configurations   
-          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-          verbose: true
-          output: results.sarif
-          format: sarif
-          # Force 0 exit code to allow SARIF file generation
-          # This will handover control about PR rejection to the GitHub side
-          max-allowed-issues: 2147483647
-      
-      # Upload the SARIF file generated in the previous step
-      - name: Upload SARIF results file
-        uses: github/codeql-action/upload-sarif@v1
-        with:
-          sarif_file: results.sarif
+   
