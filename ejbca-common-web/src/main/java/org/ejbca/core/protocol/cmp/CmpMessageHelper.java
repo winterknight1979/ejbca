@@ -721,7 +721,7 @@ public final class CmpMessageHelper {
     try {
       ByteArrayOutputStream bao = new ByteArrayOutputStream();
       ASN1OutputStream out =
-    		  ASN1OutputStream.create(bao, ASN1Encoding.DER);
+              ASN1OutputStream.create(bao, ASN1Encoding.DER);
       out.writeObject(protectedPart);
       res = bao.toByteArray();
     } catch (Exception ex) {

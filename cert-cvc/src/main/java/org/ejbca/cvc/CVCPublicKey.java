@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- *  CERT-CVC: EAC 1.11 Card Verifiable Certificate Library               * 
+ *  CERT-CVC: EAC 1.11 Card Verifiable Certificate Library               *
  *                                                                       *
  *  This software is free software; you can redistribute it and/or       *
  *  modify it under the terms of the GNU Lesser General Public           *
@@ -14,50 +14,51 @@ package org.ejbca.cvc;
 
 import java.io.IOException;
 import java.security.PublicKey;
-
 import org.ejbca.cvc.exception.ConstructionException;
 
 /**
  * Represents the sequence Public Key
- * 
+ *
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
- * 
  */
-public abstract class CVCPublicKey extends AbstractSequence implements PublicKey {
+public abstract class CVCPublicKey extends AbstractSequence
+    implements PublicKey {
 
-    private static final long serialVersionUID = 5330644668163139836L;
+  private static final long serialVersionUID = 5330644668163139836L;
 
-    CVCPublicKey() {
-        super(CVCTagEnum.PUBLIC_KEY);
+  CVCPublicKey() {
+    super(CVCTagEnum.PUBLIC_KEY);
+  }
+
+  // Implements java.security.PublicKey
+  @Override
+  public byte[] getEncoded() {
+    byte[] data = null;
+    try {
+      data = getDEREncoded();
+    } catch (IOException e) {
+      e.printStackTrace();
     }
+    return data;
+  }
 
-    // Implements java.security.PublicKey
-    public byte[] getEncoded() {
-        byte[] data = null;
-        try {
-            data = getDEREncoded();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return data;
-    }
+  /**
+   * Returns Object Identifier
+   *
+   * @return
+   */
+  public OIDField getObjectIdentifier() throws NoSuchFieldException {
+    return (OIDField) getSubfield(CVCTagEnum.OID);
+  }
 
-    /**
-     * Returns Object Identifier
-     * 
-     * @return
-     */
-    public OIDField getObjectIdentifier() throws NoSuchFieldException {
-        return (OIDField) getSubfield(CVCTagEnum.OID);
-    }
-
-    /**
-     * Sets an Object Identifier. Can be used to override an algorithm OID for example:
-     *   cvcNewPubKey.setObjectIdentifier(cvcOldPubKey.getObjectIdentifier());
-     */
-    public void setObjectIdentifier(OIDField oid) throws ConstructionException {
-    	addSubfield(oid, true);
-    }
-
+  /**
+   * Sets an Object Identifier. Can be used to override an algorithm OID for
+   * example:
+   * cvcNewPubKey.setObjectIdentifier(cvcOldPubKey.getObjectIdentifier());
+   */
+  public void setObjectIdentifier(final OIDField oid)
+      throws ConstructionException {
+    addSubfield(oid, true);
+  }
 }

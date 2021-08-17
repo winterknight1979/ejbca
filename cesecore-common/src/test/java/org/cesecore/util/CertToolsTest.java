@@ -3155,7 +3155,7 @@ public class CertToolsTest {
         CertTools.stringToBcX500Name(
             "C=SE,O=PrimeKey,CN=example.com", CeSecoreNameStyle.INSTANCE, true);
     checkNCException(cacert, invalidDN1, null, "ldapDnOrder true was accepted");
-   
+
     /** TODO: this causes BC 1.67 to throw a NPE.
     X500Name invalidDN2 =
         CertTools.stringToBcX500Name(
@@ -3770,8 +3770,8 @@ public class CertToolsTest {
     } catch (IllegalNameException e) {
       /* NOPMD expected */
     } catch (Exception e) {
-    	e.printStackTrace();
-    	fail(e.getMessage());
+        e.printStackTrace();
+        fail(e.getMessage());
     }
   }
 }

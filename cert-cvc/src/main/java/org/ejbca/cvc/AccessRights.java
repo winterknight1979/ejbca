@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- *  CERT-CVC: EAC 1.11 Card Verifiable Certificate Library               * 
+ *  CERT-CVC: EAC 1.11 Card Verifiable Certificate Library               *
  *                                                                       *
  *  This software is free software; you can redistribute it and/or       *
  *  modify it under the terms of the GNU Lesser General Public           *
@@ -14,16 +14,15 @@ package org.ejbca.cvc;
 
 /**
  * Represents Access Rights regarding ePassport data groups DG3, DG4.
- * 
+ *
  * @author Samuel Lidén Borell, PrimeKey Solutions AB
  * @version $Id$
  */
 public interface AccessRights {
 
-   /** @return the encoded byte value */
-   byte[] getEncoded();
+  /** @return the encoded byte value */
+  byte[] getEncoded();
 
-   /** @see Enum#name() */
-   String name();
-
+  /** @see Enum#name() */
+  String name();
 }

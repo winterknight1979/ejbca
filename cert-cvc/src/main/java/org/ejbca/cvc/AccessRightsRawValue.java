@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- *  CERT-CVC: EAC 1.11 Card Verifiable Certificate Library               * 
+ *  CERT-CVC: EAC 1.11 Card Verifiable Certificate Library               *
  *                                                                       *
  *  This software is free software; you can redistribute it and/or       *
  *  modify it under the terms of the GNU Lesser General Public           *
@@ -15,33 +15,32 @@ package org.ejbca.cvc;
 import org.bouncycastle.util.encoders.Hex;
 
 /**
- * Internal object representing an access rights value of an unknown type.
- * These objects should be replaced by AuthorizationField.fixEnumTypes
- * and should never occur outside of CERT-CVC.
- * 
+ * Internal object representing an access rights value of an unknown type. These
+ * objects should be replaced by AuthorizationField.fixEnumTypes and should
+ * never occur outside of CERT-CVC.
+ *
  * @author Samuel Lidén Borell, PrimeKey Solutions AB
  */
 public class AccessRightsRawValue implements AccessRights {
 
-   private final byte[] bytes;
+  private final byte[] bytes;
 
-   public AccessRightsRawValue(byte[] bytes) {
-      this.bytes = bytes;
-   }
+  public AccessRightsRawValue(final byte[] bytes) {
+    this.bytes = bytes;
+  }
 
-   @Override
-   public byte[] getEncoded() {
-      return bytes;
-   }
+  @Override
+  public byte[] getEncoded() {
+    return bytes;
+  }
 
-   @Override
-   public String name() {
-      return "RAW_ACCESS_RIGHTS";
-   }
+  @Override
+  public String name() {
+    return "RAW_ACCESS_RIGHTS";
+  }
 
-   @Override
-    public String toString()
-    {
-       return "AccessRightsRawValue(" + Hex.toHexString(bytes).toUpperCase() + ")";
-    }
+  @Override
+  public String toString() {
+    return "AccessRightsRawValue(" + Hex.toHexString(bytes).toUpperCase() + ")";
+  }
 }

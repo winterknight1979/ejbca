@@ -227,7 +227,7 @@ public class CmpRevokeResponseMessage extends BaseCmpMessage
     try {
       final ByteArrayOutputStream baos = new ByteArrayOutputStream();
       ASN1OutputStream mout =
-    		  ASN1OutputStream.create(baos, ASN1Encoding.DER);
+              ASN1OutputStream.create(baos, ASN1Encoding.DER);
       mout.writeObject(msg);
       mout.close();
       resp = baos.toByteArray();

@@ -431,10 +431,10 @@ public class RsaKeyValidatorTest {
             AlgorithmConstants.KEYALGORITHM_RSA,
             BouncyCastleProvider.PROVIDER_NAME);
 
-    
+
     // A-1: Test RSA key validation OK with default settings except key size.
     org.bouncycastle.util.Properties.setThreadOverride(
-    		"org.bouncycastle.rsa.allow_unsafe_mod", true); // prevents Illegal
+            "org.bouncycastle.rsa.allow_unsafe_mod", true); // prevents Illegal
     BigInteger modulus = BigInteger.valueOf(15);
     BigInteger exponent = BigInteger.valueOf(3);
     PublicKey publicKey =
@@ -461,11 +461,11 @@ public class RsaKeyValidatorTest {
     LOG.trace("Key validation error messages: " + messages);
     Assert.assertTrue(
         "Key validation should have been successful.", messages.size() == 0);
-   
-    
+
+
     // A-2: Test RSA key validation failed RSA parameter bounds with even
     // parameters.
-    // As of BC 1.67 this throws an error on key generation; remainder of test 
+    // As of BC 1.67 this throws an error on key generation; remainder of test
     // disabled.
     modulus = BigInteger.valueOf(16);
     exponent = BigInteger.valueOf(4);
@@ -474,8 +474,8 @@ public class RsaKeyValidatorTest {
         keyFactory.generatePublic(new RSAPublicKeySpec(modulus, exponent));
     Assert.fail("Exception should have been thrown");
     } catch (IllegalArgumentException ex) {
-    	Assert.assertTrue(ex.getMessage().contains(
-    			"RSA publicExponent is even"));
+        Assert.assertTrue(ex.getMessage().contains(
+                "RSA publicExponent is even"));
     }
     /*
     keyValidator.setPublicKeyExponentMin(exponent.add(BigInteger.ONE));
@@ -541,7 +541,7 @@ public class RsaKeyValidatorTest {
     Assert.assertTrue(
         "Key valildation should have failed because of smallest factor"
             + " restriction for modulus.",
-        messages.size() == 2); 
+        messages.size() == 2);
     Assert.assertEquals(
             "Strength failure message isn't right",
             "Invalid: RSA key size/strength: Use one of the following [4].",
@@ -560,7 +560,7 @@ public class RsaKeyValidatorTest {
     Assert.assertTrue(
             "Key valildation should have failed because of smallest factor"
                 + " restriction for modulus.",
-            messages.size() == 2); 
+            messages.size() == 2);
         Assert.assertEquals(
                 "Strength failure message isn't right",
                 "Invalid: RSA key size/strength: Use one of the following [4].",
@@ -570,9 +570,9 @@ public class RsaKeyValidatorTest {
         "Invalid: RSA public key modulus is not allowed to be the power of a"
             + " prime.",
         messages.get(1));
-    
+
     org.bouncycastle.util.Properties.setThreadOverride(
-    		"org.bouncycastle.rsa.allow_unsafe_mod", false); // prevents Illegal
+            "org.bouncycastle.rsa.allow_unsafe_mod", false); // prevents Illegal
 
     LOG.trace("<test03RsaParameterValidations()");
   }

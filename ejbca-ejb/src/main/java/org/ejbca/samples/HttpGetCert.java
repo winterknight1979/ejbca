@@ -288,7 +288,7 @@ public class HttpGetCert {
             null);
     ByteArrayOutputStream bOut = new ByteArrayOutputStream();
     ASN1OutputStream dOut =
-  		  ASN1OutputStream.create(bOut, ASN1Encoding.DER);
+            ASN1OutputStream.create(bOut, ASN1Encoding.DER);
     dOut.writeObject(req.toASN1Structure());
     dOut.close();
 

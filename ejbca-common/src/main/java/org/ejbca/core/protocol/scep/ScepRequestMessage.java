@@ -285,7 +285,7 @@ public class ScepRequestMessage extends PKCS10RequestMessage
           // Requester's self-signed certificate is requestKeyInfo
           ByteArrayOutputStream bOut = new ByteArrayOutputStream();
           ASN1OutputStream dOut =
-        		  ASN1OutputStream.create(bOut, ASN1Encoding.DER);
+                  ASN1OutputStream.create(bOut, ASN1Encoding.DER);
           dOut.writeObject(dercert);
           if (bOut.size() > 0) {
             requestKeyInfo = bOut.toByteArray();

@@ -228,7 +228,7 @@ public class CrmfRequestMessageTest {
     myCertTemplate.setPublicKey(keyInfo);
     ByteArrayOutputStream bOut = new ByteArrayOutputStream();
     ASN1OutputStream dOut =
-  		  ASN1OutputStream.create(bOut, ASN1Encoding.DER);
+            ASN1OutputStream.create(bOut, ASN1Encoding.DER);
     ExtensionsGenerator extgen = new ExtensionsGenerator();
     int bcku =
         X509KeyUsage.digitalSignature
