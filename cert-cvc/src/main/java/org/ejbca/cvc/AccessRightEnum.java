@@ -20,31 +20,42 @@ package org.ejbca.cvc;
  * @version $Id$
  */
 public enum AccessRightEnum implements AccessRights {
+      /** Param. */
   READ_ACCESS_NONE(0x00),
+  /** Param. */
   READ_ACCESS_DG3(0x01),
+  /** Param. */
   READ_ACCESS_DG4(0x02),
+  /** Param. */
   READ_ACCESS_DG3_AND_DG4(0x03);
   // bit 0x4 and 0x8 are Reserved for Future Use
 
+  /** Param. */
   private byte value;
 
-  private AccessRightEnum(final int value) {
-    this.value = (byte) value;
+  AccessRightEnum(final int avalue) {
+    this.value = (byte) avalue;
   }
 
   /**
-   * Returns the tag as a bitmap
+   * Returns the tag as a bitmap.
    *
-   * @return
+   * @return value
    */
   public byte getValue() {
     return value;
   }
 
+  /**
+   * @return bool
+   */
   public boolean hasDG3() {
     return (this.value & READ_ACCESS_DG3.value) != 0;
   }
 
+  /**   *
+   * @return bool
+   */
   public boolean hasDG4() {
     return (this.value & READ_ACCESS_DG4.value) != 0;
   }
@@ -65,6 +76,7 @@ public enum AccessRightEnum implements AccessRights {
         return "DG3";
       case READ_ACCESS_NONE:
         return "none";
+      default: break;
     }
     throw new IllegalStateException("Enum case not handled");
   }

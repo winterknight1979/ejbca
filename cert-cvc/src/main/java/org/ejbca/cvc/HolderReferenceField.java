@@ -23,7 +23,7 @@ public class HolderReferenceField extends ReferenceField {
   private static final long serialVersionUID = 1L;
 
   /**
-   * Constructs a new instance from separate field values
+   * Constructs a new instance from separate field values.
    *
    * @param country - CountryCode according to ISO 3166-1 ALPHA-2 (2 characters)
    * @param mnemonic - Holder Mnemonic (up to 9 characters)
@@ -35,9 +35,9 @@ public class HolderReferenceField extends ReferenceField {
   }
 
   /**
-   * Constructs a new instance by parsing DER-encoded data
+   * Constructs a new instance by parsing DER-encoded data.
    *
-   * @param data
+   * @param data Data
    */
   public HolderReferenceField(final byte[] data) {
     super(CVCTagEnum.HOLDER_REFERENCE, data);

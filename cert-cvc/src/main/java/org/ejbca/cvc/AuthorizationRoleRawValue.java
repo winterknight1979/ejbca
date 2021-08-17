@@ -21,10 +21,14 @@ package org.ejbca.cvc;
  */
 public class AuthorizationRoleRawValue implements AuthorizationRole {
 
+    /** Value. */
   private final byte value;
 
-  public AuthorizationRoleRawValue(final byte value) {
-    this.value = value;
+  /**
+   * @param avalue value
+   */
+  public AuthorizationRoleRawValue(final byte avalue) {
+    this.value = avalue;
   }
 
   @Override
@@ -84,8 +88,9 @@ public class AuthorizationRoleRawValue implements AuthorizationRole {
 
   @Override
   public String toString() {
+    final int mask = 0xff;
     return "AuthorizationRoleRawValue("
-        + Integer.toString(value & 0xFF, 16).toUpperCase()
+        + Integer.toString(value & mask, 16).toUpperCase()
         + ")";
   }
 }

@@ -18,7 +18,7 @@ import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERTaggedObject;
 
 /**
- * Represents Object Identifier
+ * Represents Object Identifier.
  *
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
@@ -26,26 +26,28 @@ import org.bouncycastle.asn1.DERTaggedObject;
 public class OIDField extends AbstractDataField {
 
   private static final long serialVersionUID = 5212215839749666908L;
+  /** ID. */
   private String id;
 
+  /** Constructor. */
   OIDField() {
     super(CVCTagEnum.OID);
   }
 
   /**
-   * Constructs a new instance from a String (the oid value)
+   * Constructs a new instance from a String (the oid value).
    *
-   * @param id
+   * @param anid id
    */
-  OIDField(final String id) {
+  OIDField(final String anid) {
     this();
-    this.id = id;
+    this.id = anid;
   }
 
   /**
-   * Constructs a new instance by parsing DER-encoded data
+   * Constructs a new instance by parsing DER-encoded data.
    *
-   * @param data
+   * @param data data
    */
   OIDField(final byte[] data) {
     this();
@@ -69,6 +71,9 @@ public class OIDField extends AbstractDataField {
             .getId();
   }
 
+  /**
+   * @return VALUE
+   */
   public String getValue() {
     return id;
   }
@@ -103,12 +108,22 @@ public class OIDField extends AbstractDataField {
     return getValue();
   }
 
-  @Override
-  public boolean equals(final Object other) {
-    if (other instanceof OIDField) {
-      return id.equals(((OIDField) other).getValue());
-    } else {
-      return false;
-    }
+@Override
+public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((id == null) ? 0 : id.hashCode());
+    return result;
+}
+
+@Override
+public boolean equals(final Object other) {
+  if (other instanceof OIDField) {
+    return id.equals(((OIDField) other).getValue());
+  } else {
+    return false;
   }
+}
+
+
 }

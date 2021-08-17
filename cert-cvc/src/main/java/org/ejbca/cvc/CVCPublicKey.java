@@ -17,7 +17,7 @@ import java.security.PublicKey;
 import org.ejbca.cvc.exception.ConstructionException;
 
 /**
- * Represents the sequence Public Key
+ * Represents the sequence Public Key.
  *
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
@@ -44,9 +44,10 @@ public abstract class CVCPublicKey extends AbstractSequence
   }
 
   /**
-   * Returns Object Identifier
+   * Returns Object Identifier.
    *
-   * @return
+   * @return ID
+ * @throws NoSuchFieldException fail
    */
   public OIDField getObjectIdentifier() throws NoSuchFieldException {
     return (OIDField) getSubfield(CVCTagEnum.OID);
@@ -56,6 +57,8 @@ public abstract class CVCPublicKey extends AbstractSequence
    * Sets an Object Identifier. Can be used to override an algorithm OID for
    * example:
    * cvcNewPubKey.setObjectIdentifier(cvcOldPubKey.getObjectIdentifier());
+ * @param oid OID
+ * @throws ConstructionException Fail
    */
   public void setObjectIdentifier(final OIDField oid)
       throws ConstructionException {

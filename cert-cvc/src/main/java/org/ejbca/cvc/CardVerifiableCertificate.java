@@ -23,29 +23,30 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 
 /**
- * Wrapper of CVCertificate that extends java.security.cert.Certificate
+ * Wrapper of CVCertificate that extends java.security.cert.Certificate.
  *
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
  */
 public class CardVerifiableCertificate extends Certificate {
 
+    /** param. */
   private final CVCertificate cvc;
 
   /**
-   * Constructs an instance from a CVCertificate
+   * Constructs an instance from a CVCertificate.
    *
-   * @param cvc
+   * @param acvc cert
    */
-  public CardVerifiableCertificate(final CVCertificate cvc) {
+  public CardVerifiableCertificate(final CVCertificate acvc) {
     super("CVC");
-    this.cvc = cvc;
+    this.cvc = acvc;
   }
 
   /**
-   * Returns embedded CVCertificate
+   * Returns embedded CVCertificate.
    *
-   * @return
+   * @return cert
    */
   public CVCertificate getCVCertificate() {
     return cvc;

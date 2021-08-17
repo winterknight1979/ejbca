@@ -16,7 +16,7 @@ import java.math.BigInteger;
 import org.ejbca.cvc.util.StringConverter;
 
 /**
- * Generic field representing binary data (or Octet String)
+ * Generic field representing binary data (or Octet String).
  *
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
@@ -24,66 +24,69 @@ import org.ejbca.cvc.util.StringConverter;
 public class ByteField extends AbstractDataField {
 
   private static final long serialVersionUID = 1L;
+  /** Param. */
   private byte[] data;
+  /** Param. */
   private boolean showBitLength = false;
 
   /**
-   * Constructor taking tag
+   * Constructor taking tag.
    *
-   * @param tag
+   * @param tag tag
    */
   ByteField(final CVCTagEnum tag) {
     super(tag);
   }
 
   /**
-   * Constructor taking tag and data
+   * Constructor taking tag and data .
    *
-   * @param tag
-   * @param data
+   * @param tag tag
+   * @param adata data
    */
-  ByteField(final CVCTagEnum tag, final byte[] data) {
-    this(tag, data, false);
+  ByteField(final CVCTagEnum tag, final byte[] adata) {
+    this(tag, adata, false);
   }
 
   /**
    * Constructor taking tag, data and flag indicating if data length should be
-   * shown in valueAsText()
+   * shown in valueAsText().
    *
-   * @param tag
-   * @param data
-   * @param showBitLength
+   * @param tag tag
+   * @param adata data
+   * @param ashowBitLength len
    */
   ByteField(
-      final CVCTagEnum tag, final byte[] data, final boolean showBitLength) {
+      final CVCTagEnum tag, final byte[] adata, final boolean ashowBitLength) {
     super(tag);
-    this.data = data;
-    this.showBitLength = showBitLength;
+    this.data = adata;
+    this.showBitLength = ashowBitLength;
   }
 
   /**
-   * Returns flag for 'showBitLen'
+   * Returns flag for 'showBitLen'.
    *
-   * @return
+   * @return bool
    */
   public boolean isShowBitLength() {
     return showBitLength;
   }
 
   /**
-   * Sets flag 'showBitLen'
+   * Sets flag 'showBitLen'.
    *
-   * @param showBitLength - if true then valueAsText() will add an entry showing
+   * @param ashowBitLength - if true then
+   * valueAsText() will add an entry showing
    *     the length in bits
    */
-  public void setShowBitLength(final boolean showBitLength) {
-    this.showBitLength = showBitLength;
+  public void setShowBitLength(final boolean ashowBitLength) {
+    this.showBitLength = ashowBitLength;
   }
 
   /**
    * Returns the data.
    *
-   * @return
+   * @return data
    */
   public byte[] getData() {
     return data;

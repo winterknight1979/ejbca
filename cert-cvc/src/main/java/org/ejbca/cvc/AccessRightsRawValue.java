@@ -23,10 +23,14 @@ import org.bouncycastle.util.encoders.Hex;
  */
 public class AccessRightsRawValue implements AccessRights {
 
+    /** Param. */
   private final byte[] bytes;
 
-  public AccessRightsRawValue(final byte[] bytes) {
-    this.bytes = bytes;
+  /**
+   * @param abytes bytes
+   */
+  public AccessRightsRawValue(final byte[] abytes) {
+    this.bytes = abytes;
   }
 
   @Override

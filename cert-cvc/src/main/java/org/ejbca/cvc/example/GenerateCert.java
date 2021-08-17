@@ -27,23 +27,27 @@ import org.ejbca.cvc.CertificateParser;
 import org.ejbca.cvc.HolderReferenceField;
 
 /**
- * Example code for generating a CVCertificate
+ * Example code for generating a CVCertificate.
  *
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
  */
 public final class GenerateCert {
 
-  private GenerateCert() {}
+  private GenerateCert() { }
 
+  /**
+   * @param args args
+   */
   public static void main(final String[] args) {
     try {
       // Install BC as security provider
       Security.addProvider(new BouncyCastleProvider());
 
       // Create a new key pair
+      final int siz = 1024;
       final KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA", "BC");
-      keyGen.initialize(1024, new SecureRandom());
+      keyGen.initialize(siz, new SecureRandom());
       final KeyPair keyPair = keyGen.generateKeyPair();
 
       final CAReferenceField caRef =

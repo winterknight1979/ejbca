@@ -29,7 +29,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.ejbca.cvc.example.FileHelper;
 
 /**
- * Tests specific for ECC CV Certificates
+ * Tests specific for ECC CV Certificates.
  *
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
@@ -50,7 +50,8 @@ public class TestECCCVCertificate extends TestCase implements CVCTest {
 
   /**
    * Check: Creating testcertificate + kodning to/from DER should not affect
-   * contents
+   * contents.
+ * @throws Exception fail
    */
   public void testEncoding() throws Exception {
     //
@@ -118,7 +119,8 @@ public class TestECCCVCertificate extends TestCase implements CVCTest {
         "DER-coded public keys not equal", Arrays.equals(pubkey1, pubkey2));
   }
 
-  /** Check: the signature for a CardVerifiableCertificate should verify */
+  /** Check: the signature for a CardVerifiableCertificate should verify.
+ * @throws Exception fail */
   public void testVerifyCertificate() throws Exception {
     // Skaffa nytt nyckelpar
     KeyPairGenerator keyGen = KeyPairGenerator.getInstance("ECDSA", "BC");
@@ -147,17 +149,18 @@ public class TestECCCVCertificate extends TestCase implements CVCTest {
     cvc.verify(keyPair.getPublic(), "BC");
   }
 
-  /** Check: A is should be possible to verify a certificate chain */
+  /** Check: A is should be possible to verify a certificate chain.
+ * @throws Exception fail*/
   public void testVerifyCertificateChain() throws Exception {
     // Create keypair for CA
     KeyPairGenerator keyGen = KeyPairGenerator.getInstance("ECDSA", "BC");
     keyGen.initialize(239, new SecureRandom());
-    KeyPair ca_KeyPair = keyGen.generateKeyPair();
+    KeyPair caKeyPair = keyGen.generateKeyPair();
 
     // Simulate an IS certificate signed by the CA
     // New keypair
     keyGen.initialize(239, new SecureRandom());
-    KeyPair is_KeyPair = keyGen.generateKeyPair();
+    KeyPair isKeyPair = keyGen.generateKeyPair();
     CAReferenceField caRef =
         new CAReferenceField(
             CA_COUNTRY_CODE, CA_HOLDER_MNEMONIC, CA_SEQUENCE_NO);
@@ -168,10 +171,10 @@ public class TestECCCVCertificate extends TestCase implements CVCTest {
     Date dateFrom = cal.getTime();
     cal.add(Calendar.DAY_OF_MONTH, 3);
     Date dateTo = cal.getTime();
-    CVCertificate is_cert =
+    CVCertificate isCert =
         CertificateGenerator.createCertificate(
-            is_KeyPair.getPublic(),
-            ca_KeyPair.getPrivate(),
+            isKeyPair.getPublic(),
+            caKeyPair.getPrivate(),
             "SHA256WithECDSA",
             caRef,
             holderRef,
@@ -182,18 +185,19 @@ public class TestECCCVCertificate extends TestCase implements CVCTest {
             "BC");
 
     try {
-      is_cert.verify(is_KeyPair.getPublic(), "BC");
+      isCert.verify(isKeyPair.getPublic(), "BC");
       throw new Exception(
           "Verifying with holder's public key should not work!");
     } catch (SignatureException e) {
       // This should work well in the other hand
-      is_cert.verify(ca_KeyPair.getPublic(), "BC");
+      isCert.verify(caKeyPair.getPublic(), "BC");
     }
   }
 
   /**
    * Check: DER-encoded CV-certificate should be generated from a
-   * CertificateFactory
+   * CertificateFactory.
+ * @throws Exception fail
    */
   public void testSecurityProvider() throws Exception {
     Security.addProvider(new CVCProvider());
@@ -224,6 +228,9 @@ public class TestECCCVCertificate extends TestCase implements CVCTest {
     Security.removeProvider("CVC");
   }
 
+  /**
+   * @throws Exception fail
+   */
   public void testExternalCert() throws Exception {
     // byte[] bytes = FileHelper.loadFile(new
     // File("./src/test/resources/GO_CVCA_EC256.cvcert"));

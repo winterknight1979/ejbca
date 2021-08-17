@@ -15,7 +15,7 @@ package org.ejbca.cvc;
 import junit.framework.TestCase;
 
 /**
- * Tests AlgorithmUtil
+ * Tests AlgorithmUtil.
  *
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
@@ -32,7 +32,8 @@ public class TestAlgorithmUtil extends TestCase implements CVCTest {
     super.tearDown();
   }
 
-  /** Check: Validate AlgorithmUtil */
+  /** Check: Validate AlgorithmUtil.
+ * @throws Exception fail*/
   public void testAlgorithmUtil() throws Exception {
     String algorithmName1 = "SHA224withECDSA";
     OIDField oid = AlgorithmUtil.getOIDField(algorithmName1);

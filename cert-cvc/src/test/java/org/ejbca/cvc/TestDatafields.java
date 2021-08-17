@@ -23,7 +23,7 @@ import junit.framework.TestCase;
 import org.ejbca.cvc.exception.ParseException;
 
 /**
- * Tests basic functionality for AbstractDataField
+ * Tests basic functionality for AbstractDataField.
  *
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
@@ -31,10 +31,14 @@ import org.ejbca.cvc.exception.ParseException;
 public class TestDatafields extends TestCase implements CVCTest {
 
   // Arrays containing DER-encoded lengths
+      /** Param. */
   private static final byte[] ENCODED_LENGTH_7 = new byte[] {0x07};
+  /** Param. */
   private static final byte[] ENCODED_LENGTH_127 = new byte[] {0x7F};
+  /** Param. */
   private static final byte[] ENCODED_LENGTH_128 =
       new byte[] {(byte) 0x81, (byte) 0x80};
+  /** Param. */
   private static final byte[] ENCODED_LENGTH_1288 =
       new byte[] {(byte) 0x82, 0x05, 0x08};
 
@@ -48,6 +52,9 @@ public class TestDatafields extends TestCase implements CVCTest {
     super.tearDown();
   }
 
+  /**
+   * @throws Exception fail
+   */
   public void testParseError() throws Exception {
     try {
       CertificateParser.parseCertificate(
@@ -61,7 +68,8 @@ public class TestDatafields extends TestCase implements CVCTest {
     }
   }
 
-  /** Check: DER-encoding of length must be done by specific rules */
+  /** Check: DER-encoding of length must be done by specific rules.
+ * @throws Exception fail */
   public void testLengthEncoding() throws Exception {
 
     int len = 7;
@@ -88,7 +96,8 @@ public class TestDatafields extends TestCase implements CVCTest {
         Arrays.equals(ENCODED_LENGTH_1288, derData));
   }
 
-  /** Check: Decoding of length */
+  /** Check: Decoding of length.
+ * @throws Exception fail*/
   public void testReadLength() throws Exception {
     assertEquals(7, readLength(ENCODED_LENGTH_7));
     assertEquals(127, readLength(ENCODED_LENGTH_127));
@@ -104,11 +113,14 @@ public class TestDatafields extends TestCase implements CVCTest {
       DataInputStream din = new DataInputStream(bin);
       return CVCObject.decodeLength(din);
     } finally {
-      if (bin != null) bin.close();
+      if (bin != null) {
+          bin.close();
+      }
     }
   }
 
-  /** Check: Trimming a byte array should remove all leading zeroes */
+  /** Check: Trimming a byte array should remove all leading zeroes.
+ * @throws Exception fail */
   public void testArrayTrim() throws Exception {
     byte[] data1 = new byte[] {0x00, 0x00, 0x00, 0x00, 0x07};
     byte[] data2 = new byte[] {0x00, 0x00, 0x00, 0x00, 0x00};
@@ -122,12 +134,13 @@ public class TestDatafields extends TestCase implements CVCTest {
     assertEquals("Array length", 10, CVCObject.trimByteArray(data4).length);
   }
 
-  /** Check: Decoding of AuthorizationField */
+  /** Check: Decoding of AuthorizationField.
+ * @throws Exception fail */
   public void testAuthorizationField() throws Exception {
     AuthorizationField auth1 =
         new AuthorizationField(
             new byte[] {(byte) 0xC3}); // This means CVCA/DG3+DG4
-    auth1.fixEnumTypes(CVCObjectIdentifiers.id_EAC_ePassport);
+    auth1.fixEnumTypes(CVCObjectIdentifiers.ID_EAC_PASSPORT);
     assertEquals(
         AccessRightEnum.READ_ACCESS_DG3_AND_DG4, auth1.getAccessRights());
     assertTrue("role was not CVCA", auth1.getAuthRole().isCVCA());
@@ -139,7 +152,7 @@ public class TestDatafields extends TestCase implements CVCTest {
 
     AuthorizationField auth2 =
         new AuthorizationField(new byte[] {(byte) 0x42}); // This means CV-f/DG4
-    auth2.fixEnumTypes(CVCObjectIdentifiers.id_EAC_ePassport);
+    auth2.fixEnumTypes(CVCObjectIdentifiers.ID_EAC_PASSPORT);
     assertEquals(AccessRightEnum.READ_ACCESS_DG4, auth2.getAccessRights());
     assertTrue("role was not Foreign DV", auth2.getAuthRole().isForeignDV());
 
@@ -153,7 +166,7 @@ public class TestDatafields extends TestCase implements CVCTest {
               (byte) 0xA0, 0, 0, 0, 1
             }); // This means CV-d / Write-DG17 + Age Verification (first and
                 // last bits)
-    auth3.fixEnumTypes(CVCObjectIdentifiers.id_EAC_roles_AT);
+    auth3.fixEnumTypes(CVCObjectIdentifiers.ID_EAC_ROLES_AT);
     AccessRightAuthTerm rightsAT =
         (AccessRightAuthTerm) auth3.getAccessRights();
     assertTrue(
@@ -176,7 +189,7 @@ public class TestDatafields extends TestCase implements CVCTest {
             new byte[] {
               (byte) 0x01
             }); // This means SignatureTerminal / Signature
-    auth4.fixEnumTypes(CVCObjectIdentifiers.id_EAC_roles_ST);
+    auth4.fixEnumTypes(CVCObjectIdentifiers.ID_EAC_ROLES_ST);
     assertEquals(AccessRightSignTermEnum.ACCESS_SIGN, auth4.getAccessRights());
     assertTrue(
         "role was not Signature Terminal",
@@ -184,7 +197,8 @@ public class TestDatafields extends TestCase implements CVCTest {
   }
 
   /**
-   * Check: Encoding/decoding of a HolderReference should not affect its data
+   * Check: Encoding/decoding of a HolderReference should not affect its data.
+ * @throws Exception fail
    */
   public void testHolderReference() throws Exception {
     try {
@@ -263,7 +277,8 @@ public class TestDatafields extends TestCase implements CVCTest {
         holderRef2.getConcatenated());
   }
 
-  /** Check: Validate IntegerField */
+  /** Check: Validate IntegerField.
+ * @throws Exception fail */
   public void testIntegerField() throws Exception {
     try {
       new IntegerField(
@@ -280,7 +295,8 @@ public class TestDatafields extends TestCase implements CVCTest {
     assertEquals("Decoced int", 41120, intField.getValue());
   }
 
-  /** Check: Encoding/decoding of a DateField should not affect its data */
+  /** Check: Encoding/decoding of a DateField should not affect its data.
+ * @throws Exception fail */
   public void testDateField() throws Exception {
     Calendar cal1 = Calendar.getInstance();
     cal1.set(Calendar.YEAR, 2011);
@@ -344,7 +360,8 @@ public class TestDatafields extends TestCase implements CVCTest {
     assertEquals(millis, date5.getDate().getTime());
   }
 
-  /** Check: Encoding of the OID field */
+  /** Check: Encoding of the OID field.
+ * @throws Exception fail */
   public void testOIDField() throws Exception {
     String oidValue = "1.2.3";
     OIDField oid1 = new OIDField(oidValue);

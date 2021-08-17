@@ -32,13 +32,14 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.ejbca.cvc.example.FileHelper;
 
 /**
- * Tests specific for CV Certificates
+ * Tests specific for CV Certificates.
  *
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
  */
 public class TestCVCertificate extends TestCase implements CVCTest {
 
+    /** Param. */
   private static final byte[] TEST_EXTENSION_VALUE =
       new byte[] {(byte) 0xf0, (byte) 0xe1, (byte) 0xd2};
 
@@ -55,7 +56,8 @@ public class TestCVCertificate extends TestCase implements CVCTest {
   }
 
   /**
-   * Check: DER-encoding/decoding of a CVCertificate should not affect its data
+   * Check: DER-encoding/decoding of a CVCertificate should not affect its data.
+ * @throws Exception fail
    */
   public void testEncoding() throws Exception {
 
@@ -79,7 +81,8 @@ public class TestCVCertificate extends TestCase implements CVCTest {
         "DER-coded public keys not equal", Arrays.equals(pubkey1, pubkey2));
   }
 
-  /** Check: The CVCertificate signature should be verifiable */
+  /** Check: The CVCertificate signature should be verifiable.
+ * @throws Exception fail */
   public void testVerifyCertificate() throws Exception {
     // Create new key pair
     KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA", "BC");
@@ -108,17 +111,18 @@ public class TestCVCertificate extends TestCase implements CVCTest {
     cvc.verify(keyPair.getPublic(), "BC");
   }
 
-  /** Check: Verify certificate chain */
+  /** Check: Verify certificate chain.
+ * @throws Exception fail*/
   public void testVerifyCertificateChain() throws Exception {
     // Create key pair for CA
     KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA", "BC");
     keyGen.initialize(1024, new SecureRandom());
-    KeyPair ca_KeyPair = keyGen.generateKeyPair();
+    KeyPair caKeyPair = keyGen.generateKeyPair();
 
     // Simulate an IS certificate that has been signed by CA
     // Create new key pair
     keyGen.initialize(1024, new SecureRandom());
-    KeyPair is_KeyPair = keyGen.generateKeyPair();
+    KeyPair isKeyPair = keyGen.generateKeyPair();
     CAReferenceField caRef =
         new CAReferenceField(
             CA_COUNTRY_CODE, CA_HOLDER_MNEMONIC, CA_SEQUENCE_NO);
@@ -129,10 +133,10 @@ public class TestCVCertificate extends TestCase implements CVCTest {
     Date dateFrom = cal.getTime();
     cal.add(Calendar.DAY_OF_MONTH, 3);
     Date dateTo = cal.getTime();
-    CVCertificate is_cert =
+    CVCertificate isCert =
         CertificateGenerator.createCertificate(
-            is_KeyPair.getPublic(),
-            ca_KeyPair.getPrivate(),
+            isKeyPair.getPublic(),
+            caKeyPair.getPrivate(),
             "SHA256WithRSA",
             caRef,
             holderRef,
@@ -143,17 +147,18 @@ public class TestCVCertificate extends TestCase implements CVCTest {
             "BC");
 
     try {
-      is_cert.verify(is_KeyPair.getPublic(), "BC");
+      isCert.verify(isKeyPair.getPublic(), "BC");
       throw new Exception(
           "Verifying with holder's public key should not work!");
     } catch (SignatureException e) {
       // This is expected
 
-      is_cert.verify(ca_KeyPair.getPublic(), "BC");
+      isCert.verify(caKeyPair.getPublic(), "BC");
     }
   }
 
-  /** Check: Validate CVCProvider */
+  /** Check: Validate CVCProvider.
+ * @throws Exception fail  */
   public void testSecurityProvider() throws Exception {
     Security.addProvider(new CVCProvider());
 
@@ -177,7 +182,10 @@ public class TestCVCertificate extends TestCase implements CVCTest {
 
     Security.removeProvider("CVC");
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   public void testExternalCert() throws Exception {
     byte[] bytes =
         FileHelper.loadFile(
@@ -188,6 +196,10 @@ public class TestCVCertificate extends TestCase implements CVCTest {
     cvcacert.verify(cvc.getCertificateBody().getPublicKey(), "BC");
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   public void testEncodeAuthTermCert() throws Exception {
     byte[] bytes =
         FileHelper.loadFile(
@@ -206,6 +218,10 @@ public class TestCVCertificate extends TestCase implements CVCTest {
     // atcert.verify(atcert.getPublicKey(), "BC");
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   public void testCertificateExtensions() throws Exception {
     // Create new key pair
     KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA", "BC");

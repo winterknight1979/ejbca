@@ -13,7 +13,7 @@
 package org.ejbca.cvc.exception;
 
 /**
- * Base class for CVC-specific exceptions
+ * Base class for CVC-specific exceptions.
  *
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
@@ -27,17 +27,21 @@ public class CvcException extends Exception {
     super();
   }
 
-  /** @see Exception */
+  /** @see Exception
+   * @param msg msg */
   public CvcException(final String msg) {
     super(msg);
   }
 
-  /** @see Exception */
+  /** @see Exception
+   * @param t cause */
   public CvcException(final Throwable t) {
     super(t);
   }
 
-  /** @see Exception */
+  /** @see Exception
+   * @param msg msg
+   * @param t cause */
   public CvcException(final String msg, final Throwable t) {
     super(msg, t);
   }

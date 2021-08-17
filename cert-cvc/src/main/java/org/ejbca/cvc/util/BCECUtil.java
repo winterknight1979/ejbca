@@ -21,9 +21,15 @@ import org.bouncycastle.asn1.DERSequence;
  * @version $Id$
  */
 public final class BCECUtil {
-  /** private constructor this is a static utility class */
-  private BCECUtil() {}
+  /** private constructor this is a static utility class. */
+  private BCECUtil() { }
 
+  /**
+   * @param algorithmName name
+   * @param xsig sig
+   * @return ata
+   * @throws IOException fail
+   */
   public static byte[] convertX962SigToCVC(
       final String algorithmName, final byte[] xsig) throws IOException {
     // Only do this if it's an ECDSA algorithm
@@ -59,6 +65,12 @@ public final class BCECUtil {
     return res;
   }
 
+  /**
+   * @param algorithmName Name
+   * @param xsig Sig
+   * @return Data
+   * @throws SignatureException fail
+   */
   public static byte[] convertCVCSigToX962(
       final String algorithmName, final byte[] xsig) throws SignatureException {
     // Only do this if it's an ECDSA algorithm

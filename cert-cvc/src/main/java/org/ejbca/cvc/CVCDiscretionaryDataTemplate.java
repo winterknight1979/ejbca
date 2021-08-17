@@ -25,6 +25,7 @@ public class CVCDiscretionaryDataTemplate extends AbstractSequence {
 
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   private static CVCTagEnum[] allowedFields =
       new CVCTagEnum[] {CVCTagEnum.OID, CVCTagEnum.ARBITRARY_DATA};
 
@@ -33,7 +34,7 @@ public class CVCDiscretionaryDataTemplate extends AbstractSequence {
     return allowedFields;
   }
 
-  /** Default constructor */
+  /** Default constructor. */
   CVCDiscretionaryDataTemplate() {
     super(CVCTagEnum.DISCRETIONARY_DATA_TEMPLATE);
   }
@@ -45,6 +46,7 @@ public class CVCDiscretionaryDataTemplate extends AbstractSequence {
    * @param oid Object Identifier representing the extension. There's also an
    *     overloaded constructor that takes a string for the OID.
    * @param data Data for the extension.
+ * @throws ConstructionException fail
    */
   CVCDiscretionaryDataTemplate(final OIDField oid, final ByteField data)
       throws ConstructionException {
@@ -60,18 +62,23 @@ public class CVCDiscretionaryDataTemplate extends AbstractSequence {
    *
    * @param oid Object Identifier representing the extension, as a string.
    * @param data Data for the extension.
+ * @throws ConstructionException fail
    */
   public CVCDiscretionaryDataTemplate(final String oid, final byte[] data)
       throws ConstructionException {
     this(new OIDField(oid), new ByteField(CVCTagEnum.ARBITRARY_DATA, data));
   }
 
-  /** Returns the Object Identifier as a String */
+  /** Returns the Object Identifier as a String.
+ * @return ID
+ * @throws NoSuchFieldException fail */
   public String getObjectIdentifier() throws NoSuchFieldException {
     return ((OIDField) getSubfield(CVCTagEnum.OID)).getValue();
   }
 
-  /** Returns the extension data. */
+  /** Returns the extension data.
+ * @return data
+ * @throws NoSuchFieldException fail */
   public byte[] getExtensionData() throws NoSuchFieldException {
     final ByteField bf = (ByteField) getSubfield(CVCTagEnum.ARBITRARY_DATA);
     return bf.getData();

@@ -26,24 +26,24 @@ public abstract class AbstractDataField extends CVCObject {
   private static final long serialVersionUID = 1L;
 
   /**
-   * Constructor, must supply the tag
+   * Constructor, must supply the tag.
    *
-   * @param pType
+   * @param pType Type
    */
   public AbstractDataField(final CVCTagEnum pType) {
     super(pType);
   }
 
   /**
-   * Generates a DER-encoded byte array from this object
+   * Generates a DER-encoded byte array from this object.
    *
-   * @return
+   * @return DER
    */
   protected abstract byte[] getEncoded();
 
   /**
    * Generates a DER-encoded byte array from this object, including tag and
-   * length
+   * length.
    *
    * @param out to write to
    * @return number of bytes written
@@ -60,7 +60,7 @@ public abstract class AbstractDataField extends CVCObject {
     return out.size() - s0;
   }
 
-  /** Returns this field as text */
+  /** Returns this field as text. */
   @Override
   public String getAsText(final String tab, final boolean showTagNo) {
     StringBuffer sb = new StringBuffer();
@@ -70,9 +70,9 @@ public abstract class AbstractDataField extends CVCObject {
   }
 
   /**
-   * Returns this field's data as text
+   * Returns this field's data as text.
    *
-   * @return
+   * @return text
    */
   protected abstract String valueAsText();
 }

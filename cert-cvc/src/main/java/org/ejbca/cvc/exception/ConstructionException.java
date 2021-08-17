@@ -28,17 +28,21 @@ public class ConstructionException extends CvcException {
     super();
   }
 
-  /** @see Exception */
+  /** @see Exception
+   * @param msg msg */
   public ConstructionException(final String msg) {
     super(msg);
   }
 
-  /** @see Exception */
+  /** @see Exception
+   * @param t cause */
   public ConstructionException(final Throwable t) {
     super(t);
   }
 
-  /** @see Exception */
+  /** @see Exception
+   * @param msg msh
+   * @param t cause */
   public ConstructionException(final String msg, final Throwable t) {
     super(msg, t);
   }

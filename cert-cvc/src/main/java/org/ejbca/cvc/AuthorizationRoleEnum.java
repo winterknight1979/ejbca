@@ -19,21 +19,29 @@ package org.ejbca.cvc;
  * @version $Id$
  */
 public enum AuthorizationRoleEnum implements AuthorizationRole {
+    /** Param. */
   CVCA(0xC0),
+    /** Param. */
   DV_D(0x80),
+    /** Param. */
   DV_F(0x40),
+    /** Param. */
   IS(0x00);
 
+    /** Param. */
   private byte value;
 
-  private AuthorizationRoleEnum(final int value) {
-    this.value = (byte) value;
+  /**
+   * @param avalue val
+   */
+  AuthorizationRoleEnum(final int avalue) {
+    this.value = (byte) avalue;
   }
 
   /**
-   * Returns the value as a bitmap
+   * Returns the value as a bitmap.
    *
-   * @return
+   * @return value
    */
   @Override
   public byte getValue() {
@@ -97,6 +105,7 @@ public enum AuthorizationRoleEnum implements AuthorizationRole {
         return "DV-foreign";
       case IS:
         return "IS";
+      default: break;
     }
     throw new IllegalStateException("Enum case not handled");
   }

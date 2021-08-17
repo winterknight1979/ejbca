@@ -23,17 +23,24 @@ import java.security.Provider;
 public class CVCProvider extends Provider {
 
   private static final long serialVersionUID = 1L;
-  static double version = 1.0;
+  /** Param. */
+  public static final double VERSION = 1.0;
   // TODO: Text OK?
-  static String INFO =
+  /** Param. */
+  public static final String INFO =
       "CVC Security Provider "
-          + version
+          + VERSION
           + " (supports Card Verifiable Certificates for ePassports)";
 
-  public static String PROVIDER_NAME = "CVC";
+  /** Param. */
+  public static final String PROVIDER_NAME = "CVC";
 
+  /**
+   * Constructor.
+   */
+  @SuppressWarnings("deprecation")
   public CVCProvider() {
-    super(PROVIDER_NAME, version, INFO);
+    super(PROVIDER_NAME, VERSION, INFO);
 
     put("CertificateFactory.CVC", JDKCVCertificateFactory.class.getName());
     put("Alg.Alias.CertificateFactory.CVC", "CVC");

@@ -21,7 +21,7 @@ package org.ejbca.cvc;
 public class GenericPublicKeyField extends AbstractSequence {
 
   private static final long serialVersionUID = 1L;
-  // This declares all subfields that may be added to this Sequence.
+  /** This declares all subfields that may be added to this Sequence. */
   private static CVCTagEnum[] allowedFields =
       new CVCTagEnum[] {
         CVCTagEnum.OID,

@@ -20,22 +20,22 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.ejbca.cvc.exception.ConstructionException;
 
 /**
- * Tests basic functionality in Sequences
+ * Tests basic functionality in Sequences.
  *
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
  */
 public class TestSequences extends TestCase implements CVCTest {
 
-  /** DER-encoding of a AuthorizationTemplate for IS, DG3 */
-  static byte[] AuthorizationTemplateDER =
+  /** DER-encoding of a AuthorizationTemplate for IS, DG3. */
+  private static final byte[] AUTH_TEMPLATE_DER =
       new byte[] {
           /* tag */
         0x7F,
         0x4C,
         /* length */ 0x0E,
         /* oid tag */ 0x06,
-        /* length  */ 0x09, /* Below is the encoded value for id_EAC_ePassport */
+        /* length  */ 0x09, /* Below is the encoded value for id_EAC_ePassport*/
         /* data    */ 0x04,
         0x00,
         0x7F,
@@ -62,7 +62,8 @@ public class TestSequences extends TestCase implements CVCTest {
     Security.removeProvider("BC");
   }
 
-  /** Check: Only specific subfields can be added to a specific sequence */
+  /** Check: Only specific subfields can be added to a specific sequence.
+ * @throws Exception fail*/
   public void testAddUnexpectedSubfield() throws Exception {
     GenericPublicKeyField generic = new GenericPublicKeyField();
     // This shouldn't work since EFFECTIVE_DATE is not an allowedField in
@@ -79,7 +80,8 @@ public class TestSequences extends TestCase implements CVCTest {
     }
   }
 
-  /** Check: A specific subfield may only be added once */
+  /** Check: A specific subfield may only be added once.
+ * @throws Exception fail*/
   public void testAddSubfieldTwice() throws Exception {
     GenericPublicKeyField generic = new GenericPublicKeyField();
 
@@ -99,7 +101,8 @@ public class TestSequences extends TestCase implements CVCTest {
 
   /**
    * Check: DER-encoded CVCAuthorizationTemplate byte array should have specific
-   * contents
+   * contents.
+ * @throws Exception fail
    */
   public void testEncodeAuthorizationTemplate() throws Exception {
     CVCAuthorizationTemplate authTemplate =
@@ -109,6 +112,6 @@ public class TestSequences extends TestCase implements CVCTest {
 
     // Compare byte by byte
     assertTrue(
-        "Arrays not equal", Arrays.equals(der, AuthorizationTemplateDER));
+        "Arrays not equal", Arrays.equals(der, AUTH_TEMPLATE_DER));
   }
 }

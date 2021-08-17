@@ -15,7 +15,7 @@ package org.ejbca.cvc;
 import org.ejbca.cvc.exception.ConstructionException;
 
 /**
- * Represents the field 'Certificate Holder Authorization Template'
+ * Represents the field 'Certificate Holder Authorization Template'.
  *
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
@@ -23,7 +23,7 @@ import org.ejbca.cvc.exception.ConstructionException;
 public class CVCAuthorizationTemplate extends AbstractSequence {
 
   private static final long serialVersionUID = 1L;
-
+/** Param. */
   private static CVCTagEnum[] allowedFields =
       new CVCTagEnum[] {CVCTagEnum.OID, CVCTagEnum.ROLE_AND_ACCESS_RIGHTS};
 
@@ -32,7 +32,7 @@ public class CVCAuthorizationTemplate extends AbstractSequence {
     return allowedFields;
   }
 
-  /** Default constructor */
+  /** Default constructor. */
   CVCAuthorizationTemplate() {
     super(CVCTagEnum.HOLDER_AUTH_TEMPLATE);
   }
@@ -55,10 +55,11 @@ public class CVCAuthorizationTemplate extends AbstractSequence {
 
   /**
    * Constructor taking the individual fields, deriving the OID from role and
-   * rights
+   * rights.
    *
-   * @param role
-   * @param rights
+   * @param role role
+   * @param rights rights
+ * @throws ConstructionException fail
    */
   public CVCAuthorizationTemplate(
       final AuthorizationRole role, final AccessRights rights)
@@ -67,11 +68,12 @@ public class CVCAuthorizationTemplate extends AbstractSequence {
   }
 
   /**
-   * Constructor taking the individual fields
+   * Constructor taking the individual fields.
    *
-   * @param role
-   * @param rights
-   * @param oid
+   * @param role role
+   * @param rights rights
+   * @param oid OID
+ * @throws ConstructionException fail
    */
   public CVCAuthorizationTemplate(
       final AuthorizationRole role, final AccessRights rights, final String oid)
@@ -80,11 +82,12 @@ public class CVCAuthorizationTemplate extends AbstractSequence {
   }
 
   /**
-   * Constructor taking the individual fields
+   * Constructor taking the individual fields.
    *
-   * @param role
-   * @param rights
-   * @param oid
+   * @param role Role
+   * @param rights Rights
+   * @param oid OID
+ * @throws ConstructionException fail
    */
   CVCAuthorizationTemplate(
       final AuthorizationRole role,
@@ -101,6 +104,9 @@ public class CVCAuthorizationTemplate extends AbstractSequence {
    * Constructor taking the individual fields. This seemingly redundant
    * overloaded constructor is for binary (.class file) backwards compatibility.
    * It is NOT deprecated to use these argument types.
+ * @param role role
+ * @param rights rights
+ * @throws ConstructionException fail
    */
   public CVCAuthorizationTemplate(
       final AuthorizationRoleEnum role, final AccessRightEnum rights)
@@ -110,18 +116,21 @@ public class CVCAuthorizationTemplate extends AbstractSequence {
 
   /**
    * Determines the OID to use for the types of the given role/rights objects.
+ * @param role role
+ * @param rights rights
+ * @return OID
    */
   public static OIDField getOIDForEnums(
       final AuthorizationRole role, final AccessRights rights) {
     if (role instanceof AuthorizationRoleEnum
         && rights instanceof AccessRightEnum) {
-      return CVCObjectIdentifiers.id_EAC_ePassport;
+      return CVCObjectIdentifiers.ID_EAC_PASSPORT;
     } else if (role instanceof AuthorizationRoleAuthTermEnum
         && rights instanceof AccessRightAuthTerm) {
-      return CVCObjectIdentifiers.id_EAC_roles_AT;
+      return CVCObjectIdentifiers.ID_EAC_ROLES_AT;
     } else if (role instanceof AuthorizationRoleSignTermEnum
         && rights instanceof AccessRightSignTermEnum) {
-      return CVCObjectIdentifiers.id_EAC_roles_ST;
+      return CVCObjectIdentifiers.ID_EAC_ROLES_ST;
     } else {
       throw new IllegalArgumentException(
           "Unsupported roles/rights type (or mismatch). Got role of type "
@@ -131,12 +140,16 @@ public class CVCAuthorizationTemplate extends AbstractSequence {
     }
   }
 
-  /** Returns the Object Identifier as a String */
+  /** Returns the Object Identifier as a String.
+ * @return ID
+ * @throws NoSuchFieldException fail */
   public String getObjectIdentifier() throws NoSuchFieldException {
     return ((OIDField) getSubfield(CVCTagEnum.OID)).getValue();
   }
 
-  /** Returns AuthorizationField */
+  /** Returns AuthorizationField.
+ * @return field
+ * @throws NoSuchFieldException fail */
   public AuthorizationField getAuthorizationField()
       throws NoSuchFieldException {
     return (AuthorizationField) getSubfield(CVCTagEnum.ROLE_AND_ACCESS_RIGHTS);

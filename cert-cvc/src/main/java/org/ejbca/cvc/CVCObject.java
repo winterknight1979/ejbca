@@ -19,7 +19,7 @@ import java.io.Serializable;
 import java.nio.ByteBuffer;
 
 /**
- * Base class for all objects in a CV-certificate
+ * Base class for all objects in a CV-certificate.
  *
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
@@ -28,29 +28,35 @@ public abstract class CVCObject implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   public static final int CVC_VERSION = 0;
 
+  /** Param. */
   public static final String NEWLINE = System.getProperty("line.separator");
 
+  /** Param. */
   private static final int INT_LENGTH = 4;
+  /** Param. */
   private static final int LONG_LENGTH = 8;
 
+  /** Param. */
   private final CVCTagEnum tag;
+  /** Param. */
   private AbstractSequence parent;
 
   /**
-   * Constructor taking a tag
+   * Constructor taking a tag.
    *
-   * @param tag
+   * @param atag tag
    */
-  public CVCObject(final CVCTagEnum tag) {
-    this.tag = tag;
+  public CVCObject(final CVCTagEnum atag) {
+    this.tag = atag;
   }
 
   /**
-   * Returns the tag
+   * Returns the tag.
    *
-   * @return
+   * @return tag
    */
   public CVCTagEnum getTag() {
     return tag;
@@ -58,42 +64,47 @@ public abstract class CVCObject implements Serializable {
 
   /**
    * Returns parent, that is, the AbstractSequence that contains this object (if
-   * any)
+   * any).
    *
-   * @return
+   * @return parent
    */
   public AbstractSequence getParent() {
     return parent;
   }
 
   /**
-   * Sets the parent
+   * Sets the parent.
    *
-   * @param parent
+   * @param aparent parent
    */
-  public void setParent(final AbstractSequence parent) {
-    this.parent = parent;
+  public void setParent(final AbstractSequence aparent) {
+    this.parent = aparent;
   }
 
   /**
-   * Writes this object as a DER-encoded byte array to 'out'
+   * Writes this object as a DER-encoded byte array to 'out'.
+ * @param out out
    *
    * @return number of written bytes
+ * @throws IOException fail
    */
   protected abstract int encode(DataOutputStream out) throws IOException;
 
   /**
    * DER-encodes field length according to ITU-T X.690.
    *
-   * @param lenValue
-   * @return
+   * @param lenValue value
+   * @return len
    */
   protected static byte[] encodeLength(final int lenValue) {
+    final int mid = 0x7f;
+    final int max = 0xff;
+    final int msb = 0x80;
     byte lenBytes = 0;
-    if (lenValue > 0x7F) {
+    if (lenValue > mid) {
       // Assume that one byte is sufficient for representing the length
       lenBytes = 1;
-      if (lenValue > 0xFF) {
+      if (lenValue > max) {
         // No, two bytes is required (assuming that the length is always <=
         // 65535)
         lenBytes = 2;
@@ -106,7 +117,7 @@ public abstract class CVCObject implements Serializable {
     } else {
       // First write down how many bytes the length value requires.
       // This is done by setting the MSB + bitmap representing the actual length
-      bb.put(0, (byte) (0x80 + lenBytes));
+      bb.put(0, (byte) (msb + lenBytes));
       if (lenBytes == 1) {
         bb.put(1, (byte) lenValue);
       } else {
@@ -117,19 +128,22 @@ public abstract class CVCObject implements Serializable {
   }
 
   /**
-   * Reads and decodes a DER-encoded length value
+   * Reads and decodes a DER-encoded length value.
    *
-   * @param in
-   * @return
+   * @param in input
+   * @return len
+ * @throws IOException dail
    */
   protected static int decodeLength(final DataInputStream in)
       throws IOException {
     int lenBytes = 1;
     int length = 0;
     final int b1 = in.read();
+    final int lowMask = 0xf;
+    final int highMask = 0x7f;
     if (b1
-        > 0x7F) { // If the MSB is set then the number of bytes is stored here
-      lenBytes = b1 & 0xF;
+        > highMask) { //If the MSB is set then the number of bytes is stored
+      lenBytes = b1 & lowMask;
       if (lenBytes == 1) {
         length = in.readUnsignedByte();
       } else {
@@ -150,8 +164,8 @@ public abstract class CVCObject implements Serializable {
   /**
    * Converts an Integer to a trimmed byte array.
    *
-   * @param intVal
-   * @return
+   * @param intVal value
+   * @return dtat
    * @see #trimByteArray(byte[])
    */
   protected static byte[] toByteArray(final Integer intVal) {
@@ -163,8 +177,8 @@ public abstract class CVCObject implements Serializable {
   /**
    * Converts a Long to a trimmed byte array.
    *
-   * @param longVal
-   * @return
+   * @param longVal value
+   * @return data
    * @see #trimByteArray(byte[])
    */
   protected static byte[] toByteArray(final Long longVal) {
@@ -177,8 +191,8 @@ public abstract class CVCObject implements Serializable {
    * Trims a byte array meaning that leading bytes containing zeros have been
    * removed. However, if 'longVal' is zero then the array contains one zero.
    *
-   * @param data
-   * @return
+   * @param data data
+   * @return data
    */
   protected static byte[] trimByteArray(final byte[] data) {
     boolean numberFound = false;
@@ -206,7 +220,7 @@ public abstract class CVCObject implements Serializable {
   /**
    * Same as getAsText("", true).
    *
-   * @return
+   * @return text
    */
   public String getAsText() {
     return getAsText("", true);
@@ -215,8 +229,8 @@ public abstract class CVCObject implements Serializable {
   /**
    * Same as getAsText("", boolean).
    *
-   * @param showTagNo
-   * @return
+   * @param showTagNo bool
+   * @return text
    */
   public String getAsText(final boolean showTagNo) {
     return getAsText("", showTagNo);
@@ -225,8 +239,8 @@ public abstract class CVCObject implements Serializable {
   /**
    * Same as getAsText(String, true).
    *
-   * @param tab
-   * @return
+   * @param tab tab
+   * @return text
    */
   public String getAsText(final String tab) {
     return getAsText(tab, true);
@@ -239,7 +253,7 @@ public abstract class CVCObject implements Serializable {
    *
    * @param tab supply some whitespace if indentation is wanted
    * @param showTagNo if 'true' then the hex tag value is printed also
-   * @return
+   * @return text
    */
   public String getAsText(final String tab, final boolean showTagNo) {
     final StringBuffer sb = new StringBuffer();

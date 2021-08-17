@@ -20,31 +20,43 @@ package org.ejbca.cvc;
  * @version $Id$
  */
 public enum AccessRightSignTermEnum implements AccessRights {
+    /** PAram. */
   ACCESS_NONE(0x00),
+    /** PAram. */
   ACCESS_SIGN(0x01),
+    /** PAram. */
   ACCESS_QUALSIGN(0x02),
+    /** PAram. */
   ACCESS_SIGN_AND_QUALSIGN(0x03);
   // bit 0x4 and 0x8 are Reserved for Future Use
 
+    /** PAram. */
   private byte value;
 
-  private AccessRightSignTermEnum(final int value) {
-    this.value = (byte) value;
+  AccessRightSignTermEnum(final int avalue) {
+    this.value = (byte) avalue;
   }
 
   /**
-   * Returns the tag as a bitmap
+   * Returns the tag as a bitmap.
    *
-   * @return
+   * @return value
    */
   public byte getValue() {
     return value;
   }
 
+  /**
+   *
+   * @return bool
+   */
   public boolean allowsSignature() {
     return (this.value & ACCESS_SIGN.value) != 0;
   }
 
+  /**   *
+   * @return BOOl
+   */
   public boolean allowsQualifiedSignature() {
     return (this.value & ACCESS_QUALSIGN.value) != 0;
   }
@@ -65,6 +77,7 @@ public enum AccessRightSignTermEnum implements AccessRights {
         return "Signature_and_Qualified_Signature";
       case ACCESS_NONE:
         return "none";
+      default: break;
     }
     throw new IllegalStateException("Enum case not handled");
   }

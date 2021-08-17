@@ -26,25 +26,25 @@ import java.io.IOException;
  */
 public final class FileHelper {
 
-  private FileHelper() {}
+  private FileHelper() { }
 
   /**
-   * Loads a file
+   * Loads a file.
    *
-   * @param path
-   * @return
-   * @throws IOException
+   * @param path path
+   * @return data
+   * @throws IOException fail
    */
   public static byte[] loadFile(final String path) throws IOException {
     return loadFile(new File(path));
   }
 
   /**
-   * Loads a file
+   * Loads a file.
    *
-   * @param file
-   * @return
-   * @throws IOException
+   * @param file file
+   * @return load
+   * @throws IOException file
    */
   public static byte[] loadFile(final File file) throws IOException {
     byte[] dataBuffer = null;
@@ -76,19 +76,20 @@ public final class FileHelper {
   }
 
   /**
-   * Writes data to a file
+   * Writes data to a file.
    *
-   * @param file
-   * @param data
-   * @throws IOException
+   * @param file file
+   * @param data data
+   * @throws IOException fail
    */
   public static void writeFile(final File file, final byte[] data)
       throws IOException {
     FileOutputStream outStream = null;
     BufferedOutputStream bout = null;
+    final int len = 1000;
     try {
       outStream = new FileOutputStream(file);
-      bout = new BufferedOutputStream(outStream, 1000);
+      bout = new BufferedOutputStream(outStream, len);
       bout.write(data);
     } finally {
       if (bout != null) {

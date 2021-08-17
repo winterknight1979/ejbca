@@ -17,7 +17,7 @@ import java.util.Date;
 import org.ejbca.cvc.exception.ConstructionException;
 
 /**
- * Represents a CertificateBody
+ * Represents a CertificateBody.
  *
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
@@ -26,6 +26,7 @@ public class CVCertificateBody extends AbstractSequence {
 
   private static final long serialVersionUID = 1L;
 
+  /** Fields. */
   private static CVCTagEnum[] allowedFields =
       new CVCTagEnum[] {
         CVCTagEnum.PROFILE_IDENTIFIER,
@@ -43,12 +44,16 @@ public class CVCertificateBody extends AbstractSequence {
     return allowedFields;
   }
 
-  /** Creates an empty instance */
+  /** Creates an empty instance. */
   CVCertificateBody() {
     super(CVCTagEnum.CERTIFICATE_BODY);
   }
 
-  /** Creates an instance suitable for CertificateRequest */
+  /** Creates an instance suitable for CertificateRequest.
+ * @param authorityReference  auth
+ * @param publicKey key
+ * @param holderReference holder
+ * @throws ConstructionException fail */
   public CVCertificateBody(
       final CAReferenceField authorityReference,
       final CVCPublicKey publicKey,
@@ -58,13 +63,13 @@ public class CVCertificateBody extends AbstractSequence {
   }
 
   /**
-   * Creates an instance suitable for CertificateRequest
+   * Creates an instance suitable for CertificateRequest.
    *
    * @param authorityReference CA reference
    * @param publicKey Public key for new certificate.
    * @param holderReference Holder reference
    * @param extensions Certificate extensions, or null to exclude.
-   * @throws ConstructionException
+   * @throws ConstructionException fail
    */
   public CVCertificateBody(
       final CAReferenceField authorityReference,
@@ -95,14 +100,15 @@ public class CVCertificateBody extends AbstractSequence {
   }
 
   /**
-   * Creates an instance suitable for a CVCertificate
+   * Creates an instance suitable for a CVCertificate.
    *
-   * @param authorityReference
-   * @param publicKey
-   * @param holderReference
-   * @param holderAuthorizationTemplate
-   * @param validFrom
-   * @param validTo
+   * @param authorityReference auth
+   * @param publicKey key
+   * @param holderReference holder
+   * @param holderAuthorizationTemplate temp
+   * @param validFrom dte
+   * @param validTo date
+ * @throws ConstructionException fail
    */
   public CVCertificateBody(
       final CAReferenceField authorityReference,
@@ -131,15 +137,16 @@ public class CVCertificateBody extends AbstractSequence {
   }
 
   /**
-   * Creates an instance suitable for a CVCertificate
+   * Creates an instance suitable for a CVCertificate.
    *
-   * @param authorityReference
-   * @param publicKey
-   * @param holderReference
-   * @param authRole
-   * @param accessRight
-   * @param validFrom
-   * @param validTo
+   * @param authorityReference auth
+   * @param publicKey key
+   * @param holderReference holder
+   * @param authRole role
+   * @param accessRight rights
+   * @param validFrom date
+   * @param validTo date
+ * @throws ConstructionException fail
    */
   public CVCertificateBody(
       final CAReferenceField authorityReference,
@@ -175,6 +182,14 @@ public class CVCertificateBody extends AbstractSequence {
    * Creates an instance suitable for a CVCertificate. This seemingly redundant
    * overloaded constructor is for binary (.class file) backwards compatibility.
    * It is NOT deprecated to use these argument types.
+ * @param authorityReference auth
+ * @param publicKey key
+ * @param holderReference  holder
+ * @param authRole role
+ * @param accessRight rights
+ * @param validFrom date
+ * @param validTo date
+ * @throws ConstructionException fail
    */
   public CVCertificateBody(
       final CAReferenceField authorityReference,
@@ -196,9 +211,10 @@ public class CVCertificateBody extends AbstractSequence {
   }
 
   /**
-   * Returns CVCAuthorizationTemplate
+   * Returns CVCAuthorizationTemplate.
    *
-   * @return
+   * @return template
+ * @throws NoSuchFieldException fail
    */
   public CVCAuthorizationTemplate getAuthorizationTemplate()
       throws NoSuchFieldException {
@@ -207,7 +223,7 @@ public class CVCertificateBody extends AbstractSequence {
   }
 
   /**
-   * Creates an instance suitable for a CVCertificate
+   * Creates an instance suitable for a CVCertificate.
    *
    * @param authorityReference Contains country code, holder mnemonic, and
    *     sequence number for the issuer.
@@ -221,6 +237,7 @@ public class CVCertificateBody extends AbstractSequence {
    * @param validTo Validity to
    * @param extensions Certificate extensions, or null to not add a "Certificate
    *     Extensions" object to the certificate.
+ * @throws ConstructionException fail
    */
   public CVCertificateBody(
       final CAReferenceField authorityReference,
@@ -246,18 +263,20 @@ public class CVCertificateBody extends AbstractSequence {
   }
 
   /**
-   * Returns 'Effective Date'
+   * Returns 'Effective Date'.
    *
-   * @return
+   * @return date
+ * @throws NoSuchFieldException fail
    */
   public Date getValidFrom() throws NoSuchFieldException {
     return ((DateField) getSubfield(CVCTagEnum.EFFECTIVE_DATE)).getDate();
   }
 
   /**
-   * Returns 'Expiration Date'
+   * Returns 'Expiration Date'.
    *
-   * @return
+   * @return date
+ * @throws NoSuchFieldException fail
    */
   public Date getValidTo() throws NoSuchFieldException {
     return ((DateField) getSubfield(CVCTagEnum.EXPIRATION_DATE)).getDate();
@@ -265,36 +284,40 @@ public class CVCertificateBody extends AbstractSequence {
 
   /**
    * Returns 'Certificate Authority Reference' Since this field is optional in a
-   * CVCRequest this method may return null
+   * CVCRequest this method may return null.
    *
-   * @return
+   * @return auth
+ * @throws NoSuchFieldException fail
    */
   public CAReferenceField getAuthorityReference() throws NoSuchFieldException {
     return (CAReferenceField) getOptionalSubfield(CVCTagEnum.CA_REFERENCE);
   }
 
   /**
-   * Returns the public key
+   * Returns the public key.
    *
-   * @return
+   * @return key
+ * @throws NoSuchFieldException fail
    */
   public CVCPublicKey getPublicKey() throws NoSuchFieldException {
     return (CVCPublicKey) getSubfield(CVCTagEnum.PUBLIC_KEY);
   }
 
   /**
-   * Returns 'Certificate Holder Reference'
+   * Returns 'Certificate Holder Reference'.
    *
-   * @return
+   * @return holder
+ * @throws NoSuchFieldException fail
    */
   public HolderReferenceField getHolderReference() throws NoSuchFieldException {
     return (HolderReferenceField) getSubfield(CVCTagEnum.HOLDER_REFERENCE);
   }
 
   /**
-   * Returns 'Certificate Extensions'
+   * Returns 'Certificate Extensions'.
    *
-   * @return
+   * @return ests
+ * @throws NoSuchFieldException fail
    */
   public CVCertificateExtensions getCertificateExtensions()
       throws NoSuchFieldException {

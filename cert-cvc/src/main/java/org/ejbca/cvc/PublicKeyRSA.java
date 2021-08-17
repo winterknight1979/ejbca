@@ -25,6 +25,7 @@ import org.ejbca.cvc.exception.ConstructionException;
 public class PublicKeyRSA extends CVCPublicKey implements RSAPublicKey {
 
   private static final long serialVersionUID = 1L;
+  /** Param. */
   private static CVCTagEnum[] allowedFields =
       new CVCTagEnum[] {
         CVCTagEnum.OID, CVCTagEnum.MODULUS, CVCTagEnum.EXPONENT
@@ -36,10 +37,11 @@ public class PublicKeyRSA extends CVCPublicKey implements RSAPublicKey {
   }
 
   /**
-   * Constructs an instance from a GenericPublicKeyField
+   * Constructs an instance from a GenericPublicKeyField.
    *
-   * @param genericKey
-   * @throws NoSuchFieldException
+   * @param genericKey Key
+ * @throws ConstructionException fail
+   * @throws NoSuchFieldException fail
    */
   PublicKeyRSA(final GenericPublicKeyField genericKey)
       throws ConstructionException, NoSuchFieldException {
@@ -54,10 +56,11 @@ public class PublicKeyRSA extends CVCPublicKey implements RSAPublicKey {
   }
 
   /**
-   * Constructs an instance from OIDField and RSAPublicKey
+   * Constructs an instance from OIDField and RSAPublicKey.
    *
-   * @param oid
-   * @param pubKey
+   * @param oid OID
+ * @param rsaKey  Key
+ * @throws ConstructionException Fail
    */
   PublicKeyRSA(final OIDField oid, final RSAPublicKey rsaKey)
       throws ConstructionException {

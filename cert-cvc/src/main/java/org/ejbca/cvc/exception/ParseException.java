@@ -13,7 +13,7 @@
 package org.ejbca.cvc.exception;
 
 /**
- * Exception indicating that a byte array could not be parsed as a CVC object
+ * Exception indicating that a byte array could not be parsed as a CVC object.
  *
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
@@ -27,17 +27,21 @@ public class ParseException extends CvcException {
     super();
   }
 
-  /** @see Exception */
+  /** @see Exception
+   * @param msg msg */
   public ParseException(final String msg) {
     super(msg);
   }
 
-  /** @see Exception */
+  /** @see Exception
+   * @param t cause */
   public ParseException(final Throwable t) {
     super(t);
   }
 
-  /** @see Exception */
+  /** @see Exception
+   * @param msg message
+   * @param t cause */
   public ParseException(final String msg, final Throwable t) {
     super(msg, t);
   }

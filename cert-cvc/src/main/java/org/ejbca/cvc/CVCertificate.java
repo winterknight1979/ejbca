@@ -34,6 +34,7 @@ public class CVCertificate extends AbstractSequence implements Signable {
 
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   private static CVCTagEnum[] allowedFields =
       new CVCTagEnum[] {CVCTagEnum.CERTIFICATE_BODY, CVCTagEnum.SIGNATURE};
 
@@ -42,15 +43,16 @@ public class CVCertificate extends AbstractSequence implements Signable {
     return allowedFields;
   }
 
-  /** Default constructor */
+  /** Default constructor. */
   CVCertificate() {
     super(CVCTagEnum.CV_CERTIFICATE);
   }
 
   /**
-   * Creates an instance from a CVCertificateBody
+   * Creates an instance from a CVCertificateBody.
    *
-   * @param body
+   * @param body bosy
+ * @throws ConstructionException fail
    * @throws IllegalArgumentException if the argument is null
    */
   public CVCertificate(final CVCertificateBody body)
@@ -64,10 +66,10 @@ public class CVCertificate extends AbstractSequence implements Signable {
   }
 
   /**
-   * Adds signature data
+   * Adds signature data.
    *
-   * @param signatureData
-   * @throws ConstructionException
+   * @param signatureData data
+   * @throws ConstructionException fail
    */
   public void setSignature(final byte[] signatureData)
       throws ConstructionException {
@@ -75,24 +77,26 @@ public class CVCertificate extends AbstractSequence implements Signable {
   }
 
   /**
-   * Returns the embedded CertificateBody
+   * Returns the embedded CertificateBody.
    *
-   * @return
+   * @return cert
+ * @throws NoSuchFieldException fail
    */
   public CVCertificateBody getCertificateBody() throws NoSuchFieldException {
     return (CVCertificateBody) getSubfield(CVCTagEnum.CERTIFICATE_BODY);
   }
 
   /**
-   * Returns the signature
+   * Returns the signature.
    *
-   * @return
+   * @return sig
+ * @throws NoSuchFieldException fail
    */
   public byte[] getSignature() throws NoSuchFieldException {
     return ((ByteField) getSubfield(CVCTagEnum.SIGNATURE)).getData();
   }
 
-  /** Returns the data To Be Signed */
+  /** Returns the data To Be Signed. */
   @Override
   public byte[] getTBS() throws ConstructionException {
     try {
@@ -104,13 +108,20 @@ public class CVCertificate extends AbstractSequence implements Signable {
     }
   }
 
-  /** Returns the certificate in text format */
+  /** Returns the certificate in text format. */
   @Override
   public String toString() {
     return getAsText("");
   }
 
-  /** Verifies the signature */
+  /** Verifies the signature.
+ * @param key key
+ * @param provider prov
+ * @throws CertificateException fail
+ * @throws NoSuchAlgorithmException fail
+ * @throws NoSuchProviderException fail
+ * @throws InvalidKeyException fail
+ * @throws SignatureException fail */
   public void verify(final PublicKey key, final String provider)
       throws CertificateException, NoSuchAlgorithmException,
           NoSuchProviderException, InvalidKeyException, SignatureException {

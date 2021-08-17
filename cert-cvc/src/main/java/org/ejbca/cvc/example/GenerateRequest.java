@@ -33,25 +33,31 @@ import org.ejbca.cvc.HolderReferenceField;
  */
 public final class GenerateRequest {
 
-  private GenerateRequest() {}
+  private GenerateRequest() { }
 
+  /**
+   * @param args rgs
+   */
   public static void main(final String[] args) {
     try {
       // Install Bouncy Castle as security provider
       Security.addProvider(new BouncyCastleProvider());
 
       // Create a new key pair
+      final int siz = 1024;
       final KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA", "BC");
-      keyGen.initialize(1024, new SecureRandom());
+      keyGen.initialize(siz, new SecureRandom());
       final KeyPair keyPair = keyGen.generateKeyPair();
 
       /*
-       * Certificate Authority Reference shall identify the public key in the last
+       * Certificate Authority Reference shall identify the public
+       *  key in the last
        * request
        */
       final CAReferenceField previousHolderRef =
           new CAReferenceField("SE", "PASSRD1", "00008");
-      /* Certificate Holder Reference is incremented to reflect the new key pair */
+      /* Certificate Holder Reference is incremented to reflect
+       *  the new key pair */
       final HolderReferenceField holderRef =
           new HolderReferenceField("SE", "PASSRD1", "00009");
 

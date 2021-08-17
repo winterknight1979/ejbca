@@ -19,24 +19,29 @@ package org.ejbca.cvc;
  * @version $Id$
  */
 public enum AuthorizationRoleSignTermEnum implements AuthorizationRole {
-  CVCA(0xC0),
-  /** DV (Accreditation Body) */
+  /** CVC. */
+    CVCA(0xC0),
+  /** DV (Accreditation Body). */
   DV_AB(0x80),
-  /** DV (Certification Service Provider) */
+  /** DV (Certification Service Provider). */
   DV_CSP(0x40),
-  /** Signature Terminal */
+  /** Signature Terminal. */
   SIGNTERM(0x00);
 
+    /** Value. */
   private byte value;
 
-  private AuthorizationRoleSignTermEnum(final int value) {
-    this.value = (byte) value;
+  /**
+   * @param avalue val
+   */
+  AuthorizationRoleSignTermEnum(final int avalue) {
+    this.value = (byte) avalue;
   }
 
   /**
-   * Returns the value as a bitmap
+   * Returns the value as a bitmap.
    *
-   * @return
+   * @return val
    */
   @Override
   public byte getValue() {
@@ -100,6 +105,7 @@ public enum AuthorizationRoleSignTermEnum implements AuthorizationRole {
         return "DV-Certification-Service-Provider";
       case SIGNTERM:
         return "Signature-Terminal";
+      default: break;
     }
     throw new IllegalStateException("Enum case not handled");
   }

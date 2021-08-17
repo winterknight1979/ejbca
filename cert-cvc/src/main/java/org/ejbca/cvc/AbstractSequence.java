@@ -24,7 +24,7 @@ import java.util.Map;
 import org.ejbca.cvc.exception.ConstructionException;
 
 /**
- * Represents a CVC sequence, i e contains one or more subfields
+ * Represents a CVC sequence, i e contains one or more subfields.
  *
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
@@ -33,14 +33,16 @@ public abstract class AbstractSequence extends CVCObject {
 
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   private final Map<CVCTagEnum, CVCObject> subfields =
       new HashMap<CVCTagEnum, CVCObject>();
+  /** Param. */
   private final List<CVCTagEnum> allowedFields;
 
   /**
-   * Constructor, must supply the tag
+   * Constructor, must supply the tag.
    *
-   * @param type
+   * @param type tag
    */
   AbstractSequence(final CVCTagEnum type) {
     super(type);
@@ -50,7 +52,7 @@ public abstract class AbstractSequence extends CVCObject {
   /**
    * Adds a subfield to this sequence. Nothing happens if the argument is null.
    *
-   * @param field
+   * @param field field
    * @throws ConstructionException if the supplied field is not allowed in this
    *     sequence, or the field already exists.
    */
@@ -94,17 +96,17 @@ public abstract class AbstractSequence extends CVCObject {
 
   /**
    * Returns tags for all allowed subfields, in the same order as they appear
-   * when DER-encoded
+   * when DER-encoded.
    *
-   * @return
+   * @return fields
    */
   protected abstract CVCTagEnum[] getAllowedFields();
 
   /**
-   * Returns a mandatory subfield
+   * Returns a mandatory subfield.
    *
-   * @param fieldTag
-   * @return
+   * @param fieldTag Tag
+   * @return Field
    * @throws NoSuchFieldException if the subfield hasn't been added
    */
   CVCObject getSubfield(final CVCTagEnum fieldTag) throws NoSuchFieldException {
@@ -119,7 +121,7 @@ public abstract class AbstractSequence extends CVCObject {
   /**
    * Returns optional subfield (no Exception is thrown).
    *
-   * @param tag
+   * @param tag Tag
    * @return AbstractDataField or null if the field hasn't been added
    */
   CVCObject getOptionalSubfield(final CVCTagEnum tag) {
@@ -127,9 +129,9 @@ public abstract class AbstractSequence extends CVCObject {
   }
 
   /**
-   * Returns all added subfields
+   * Returns all added subfields.
    *
-   * @return
+   * @return Fields
    */
   protected Collection<CVCObject> getSubfields() {
     return subfields.values();
@@ -159,9 +161,9 @@ public abstract class AbstractSequence extends CVCObject {
   }
 
   /**
-   * Returns all subfields for DER-encoding
+   * Returns all subfields for DER-encoding.
    *
-   * @return
+   * @return DER
    */
   protected List<CVCObject> getEncodableFields() {
     return getOrderedSubfields();
@@ -170,8 +172,8 @@ public abstract class AbstractSequence extends CVCObject {
   /**
    * Helper for creating a DER-encoded byte array.
    *
-   * @return
-   * @throws IOException
+   * @return DER
+   * @throws IOException fail
    */
   public byte[] getDEREncoded() throws IOException {
 
@@ -184,16 +186,18 @@ public abstract class AbstractSequence extends CVCObject {
       encode(dout);
 
     } finally {
-      if (bout != null) bout.close();
+      if (bout != null) {
+          bout.close();
+      }
     }
     return bout.toByteArray();
   }
 
   /**
-   * Returns this object as text, including tag value
+   * Returns this object as text, including tag value.
    *
-   * @param tab
-   * @return
+   * @param tab tab
+   * @return text
    */
   @Override
   public String getAsText(final String tab) {
@@ -212,7 +216,8 @@ public abstract class AbstractSequence extends CVCObject {
     return sb.toString();
   }
 
-  /** Returns a List of ordered subfields */
+  /** Returns a List of ordered subfields.
+   * @return list */
   protected List<CVCObject> getOrderedSubfields() {
     List<CVCObject> orderedList = new ArrayList<CVCObject>();
     for (CVCTagEnum tag : allowedFields) {

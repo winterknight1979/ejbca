@@ -14,18 +14,19 @@ package org.ejbca.cvc;
 
 /**
  * Factory for creating sequences, that is certificate objects containing
- * subfields
+ * subfields.
  *
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
  */
-public class SequenceFactory {
+public final class SequenceFactory {
 
+    private SequenceFactory() { }
   /**
-   * Constructs a new instance of a subclass to AbstractSequence
+   * Constructs a new instance of a subclass to AbstractSequence.
    *
-   * @param tag
-   * @return
+   * @param tag Tag
+   * @return seq
    * @throws IllegalArgumentException if the supplied tag does not represent a
    *     sequence
    */

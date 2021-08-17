@@ -24,7 +24,9 @@ public class AuthorizationField extends AbstractDataField {
 
   private static final long serialVersionUID = -5478250843535697147L;
 
+  /** Param. */
   private AuthorizationRole role;
+  /** Param. */
   private AccessRights rights;
 
   AuthorizationField() {
@@ -36,18 +38,19 @@ public class AuthorizationField extends AbstractDataField {
    * should be of matching types (e.g. AuthorizationRoleAuthTermEnum and
    * AccessRightAuthTerm)
    *
-   * @param role
-   * @param rights
+   * @param arole role
+   * @param arights rights
    */
-  AuthorizationField(final AuthorizationRole role, final AccessRights rights) {
+  AuthorizationField(final AuthorizationRole arole, final
+          AccessRights arights) {
     this();
-    this.role = role;
-    this.rights = rights;
+    this.role = arole;
+    this.rights = arights;
   }
 
   AuthorizationField(
-      final AuthorizationRoleEnum role, final AccessRightEnum rights) {
-    this((AuthorizationRole) role, (AccessRights) rights);
+      final AuthorizationRoleEnum arole, final AccessRightEnum arights) {
+    this((AuthorizationRole) arole, (AccessRights) arights);
   }
 
   /**
@@ -55,7 +58,7 @@ public class AuthorizationField extends AbstractDataField {
    * called as soon as the OID is known (CVCObjectIdentifiers.id_EAC_ePassport,
    * etc.)
    *
-   * @param data
+   * @param data data
    */
   AuthorizationField(final byte[] data) {
     this();
@@ -68,7 +71,8 @@ public class AuthorizationField extends AbstractDataField {
   }
 
   /**
-   * Returns role
+   * Returns role.
+ * @return  enum
    *
    * @throws UnsupportedOperationException if the rights is of authentication or
    *     signing terminal type.
@@ -86,6 +90,7 @@ public class AuthorizationField extends AbstractDataField {
 
   /**
    * Returns the role. The return value is one of the AuthorizationRole* types.
+ * @return Role
    *
    * @see AuthorizationRoleEnum
    * @see AuthorizationRoleAuthTermEnum
@@ -96,7 +101,8 @@ public class AuthorizationField extends AbstractDataField {
   }
 
   /**
-   * Returns access rights
+   * Returns access rights.
+ * @return  enum
    *
    * @throws UnsupportedOperationException if the rights is of authentication or
    *     signing terminal type.
@@ -114,6 +120,7 @@ public class AuthorizationField extends AbstractDataField {
 
   /**
    * Returns access rights. The return value is one of the AccessRight* types.
+ * @return  rights
    *
    * @see AccessRightEnum
    * @see AccessRightAuthTerm
@@ -135,17 +142,21 @@ public class AuthorizationField extends AbstractDataField {
     return StringConverter.byteToHex(getEncoded()) + ": " + role + "/" + rights;
   }
 
-  /** Translates a byte to AuthorizationRole */
+  /** Translates a byte to AuthorizationRole.
+ * @param oid OID
+ * @param b  Byte
+ * @return Role */
   private static AuthorizationRole getRoleFromByte(
       final OIDField oid, final byte b) {
-    byte testVal = (byte) (b & 0xC0);
+    final int mask = 0xc0;
+    byte testVal = (byte) (b & mask);
 
-    AuthorizationRole values[];
-    if (CVCObjectIdentifiers.id_EAC_ePassport.equals(oid)) {
+    AuthorizationRole[] values;
+    if (CVCObjectIdentifiers.ID_EAC_PASSPORT.equals(oid)) {
       values = AuthorizationRoleEnum.values();
-    } else if (CVCObjectIdentifiers.id_EAC_roles_ST.equals(oid)) {
+    } else if (CVCObjectIdentifiers.ID_EAC_ROLES_ST.equals(oid)) {
       values = AuthorizationRoleSignTermEnum.values();
-    } else if (CVCObjectIdentifiers.id_EAC_roles_AT.equals(oid)) {
+    } else if (CVCObjectIdentifiers.ID_EAC_ROLES_AT.equals(oid)) {
       values = AuthorizationRoleAuthTermEnum.values();
     } else {
       return new AuthorizationRoleRawValue(b);
@@ -161,15 +172,19 @@ public class AuthorizationField extends AbstractDataField {
     return foundRole;
   }
 
-  /** Translates a byte array to AccessRights */
+  /** Translates a byte array to AccessRights.
+ * @param oid OID
+ * @param data Dats=a
+ * @return Rights */
   private static AccessRights getRightsFromBytes(
       final OIDField oid, final byte[] data) {
-    if (CVCObjectIdentifiers.id_EAC_ePassport.equals(oid)) {
+    final int mask = 0x03;
+    if (CVCObjectIdentifiers.ID_EAC_PASSPORT.equals(oid)) {
       if (data.length != 1) {
         throw new IllegalArgumentException(
             "byte array length must be 1, was " + data.length);
       }
-      byte testVal = (byte) (data[0] & 0x03);
+      byte testVal = (byte) (data[0] & mask);
       AccessRightEnum foundRight = null;
       for (AccessRightEnum right : AccessRightEnum.values()) {
         if (testVal == right.getValue()) {
@@ -178,12 +193,12 @@ public class AuthorizationField extends AbstractDataField {
         }
       }
       return foundRight;
-    } else if (CVCObjectIdentifiers.id_EAC_roles_ST.equals(oid)) {
+    } else if (CVCObjectIdentifiers.ID_EAC_ROLES_ST.equals(oid)) {
       if (data.length != 1) {
         throw new IllegalArgumentException(
             "byte array length must be 1, was " + data.length);
       }
-      byte testVal = (byte) (data[0] & 0x03);
+      byte testVal = (byte) (data[0] & mask);
       AccessRightSignTermEnum foundRight = null;
       for (AccessRightSignTermEnum right : AccessRightSignTermEnum.values()) {
         if (testVal == right.getValue()) {
@@ -193,8 +208,9 @@ public class AuthorizationField extends AbstractDataField {
       }
       return foundRight;
     }
-    if (CVCObjectIdentifiers.id_EAC_roles_AT.equals(oid)) {
-      if (data.length != 5) {
+    final int len = 5;
+    if (CVCObjectIdentifiers.ID_EAC_ROLES_AT.equals(oid)) {
+      if (data.length != len) {
         throw new IllegalArgumentException(
             "byte array length must be 5, was " + data.length);
       }
@@ -207,6 +223,7 @@ public class AuthorizationField extends AbstractDataField {
   /**
    * Re-creates the role/rights objects as the correct classes. This is
    * necessary when deserializing from binary data.
+   * @param oid OID
    */
   void fixEnumTypes(final OIDField oid) {
     role = getRoleFromByte(oid, role.getValue());

@@ -17,15 +17,18 @@ import org.ejbca.cvc.CVCObject;
 import org.ejbca.cvc.CertificateParser;
 
 /**
- * Example code for parsing a DER-encoded byte array
+ * Example code for parsing a DER-encoded byte array.
  *
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
  */
 public final class Parse {
 
-  private Parse() {}
+  private Parse() { }
 
+  /**
+   * @param args args
+   */
   public static void main(final String[] args) {
     File file = new File("C:/cv_certs/mycert1.cvcert");
 

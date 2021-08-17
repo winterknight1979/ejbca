@@ -627,4 +627,13 @@
 		<suppress checks="MethodLengthCheck"
 		files="X509CATest.java" lines="183 " /> 
 		
+	<!-- cert-cvc -->
+		<suppress checks="ParameterNumberCheck"
+		files="CertificateGenerator.java" lines="154,203,252" />
+		<suppress checks="ParameterNumberCheck"
+		files="CVCertificateBody.java" lines="242" />
+		<suppress checks="MagicNumberCheck"
+		files="DateField.java" lines="94-96,141-143" /> <!-- Array indexes --> 
+		<suppress checks="InterfaceIsTypeCheck"
+		files="CVCTest.java" lines="24" />
 </suppressions>

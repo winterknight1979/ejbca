@@ -20,7 +20,7 @@ import junit.framework.TestCase;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 /**
- * Tests CVCRequest
+ * Tests CVCRequest.
  *
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
@@ -39,7 +39,8 @@ public class TestCVCRequest extends TestCase implements CVCTest {
     Security.removeProvider("BC");
   }
 
-  /** Check: OID should have been set to a specific value */
+  /** Check: OID should have been set to a specific value.
+ * @throws Exception fail*/
   public void testCVCRequestOID() throws Exception {
     String algorithmName = "SHA256withRSA";
 
@@ -51,7 +52,8 @@ public class TestCVCRequest extends TestCase implements CVCTest {
 
   /**
    * Check: CARef that is created in CertificateGenerator should been given the
-   * same values as Holder Ref
+   * same values as Holder Ref.
+ * @throws Exception fail
    */
   public void testCVCAuthorityReference() throws Exception {
     String algorithmName = "SHA1withRSA";
@@ -73,7 +75,8 @@ public class TestCVCRequest extends TestCase implements CVCTest {
         certRequest.getCertificateBody().getAuthorityReference());
   }
 
-  /** Check: DER encoding/decoding of a Request should not affect the data */
+  /** Check: DER encoding/decoding of a Request should not affect the data.
+ * @throws Exception fail */
   public void testEncoding() throws Exception {
     String algorithmName = "SHA1withRSA";
     CVCertificate certReq1 = createTestRequest(algorithmName);
@@ -93,7 +96,8 @@ public class TestCVCRequest extends TestCase implements CVCTest {
 
   /**
    * Check: DER encoding/decoding of a CVCAuthenticatedRequest should not affect
-   * the data
+   * the data.
+ * @throws Exception fail
    */
   public void testAuthRequest() throws Exception {
     String algorithmName = "SHA256WITHRSA";
@@ -109,7 +113,8 @@ public class TestCVCRequest extends TestCase implements CVCTest {
         authRequest2.getAsText(""));
   }
 
-  /** Check: Verify a request's outer signature */
+  /** Check: Verify a request's outer signature.
+ * @throws Exception fail */
   public void testVerifyRequestRSA() throws Exception {
     String algName = "SHA256WITHRSA";
 
@@ -122,7 +127,8 @@ public class TestCVCRequest extends TestCase implements CVCTest {
     authReq.verify(keyPair.getPublic());
   }
 
-  /** Check: Verify a request's outer signature */
+  /** Check: Verify a request's outer signature.
+ * @throws Exception fail */
   public void testVerifyRequestECDSA() throws Exception {
     String algName = "SHA256WITHECDSA";
 

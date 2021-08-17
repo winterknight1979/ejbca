@@ -28,13 +28,15 @@ import org.ejbca.cvc.exception.ParseException;
 public final class CertificateParser {
 
   // Only static methods...
-  private CertificateParser() {}
+  private CertificateParser() { }
 
   /**
-   * Decodes a DER-encoded byte array containing any CVCObject
+   * Decodes a DER-encoded byte array containing any CVCObject.
    *
-   * @param data
-   * @return
+   * @param data data
+   * @return CVC
+ * @throws ParseException fail
+ * @throws ConstructionException fail
    */
   public static CVCObject parseCVCObject(final byte[] data)
       throws ParseException, ConstructionException {
@@ -42,10 +44,12 @@ public final class CertificateParser {
   }
 
   /**
-   * Decodes a DER-encoded byte array containing a CVCertificate
+   * Decodes a DER-encoded byte array containing a CVCertificate.
    *
-   * @param data
-   * @return
+   * @param data data
+   * @return cert
+ * @throws ParseException fail
+ * @throws ConstructionException fail
    */
   public static CVCertificate parseCertificate(final byte[] data)
       throws ParseException, ConstructionException {
@@ -154,15 +158,17 @@ public final class CertificateParser {
   }
 
   /**
-   * Reads a tag value from the input stream. Encoded according to ITU-T X.690
+   * Reads a tag value from the input stream. Encoded according to ITU-T X.690.
    *
-   * @param din
-   * @return
+   * @param din din
+   * @return tag
+ * @throws IOException  fail
    */
   private static int decodeTag(final DataInputStream din) throws IOException {
     int tagValue = 0;
+    final int mask = 0x1f;
     int b1 = din.readUnsignedByte();
-    if ((b1 & 0x1F) == 0x1F) {
+    if ((b1 & mask) == mask) {
       // There is another byte to read
       byte b2 = din.readByte();
       tagValue = (b1 << 8) + b2;

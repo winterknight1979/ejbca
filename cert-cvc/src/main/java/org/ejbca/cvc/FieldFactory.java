@@ -20,16 +20,18 @@ import java.io.IOException;
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
  */
-public class FieldFactory {
+public final class FieldFactory {
+
+    private FieldFactory() { }
 
   /**
    * Constructs a new instance and populates it with data from the supplied
    * DER-encoded byte array.
    *
-   * @param tag
-   * @param data
-   * @return
-   * @throws IOException
+   * @param tag tag
+   * @param data data
+   * @return decoded
+   * @throws IOException fail
    * @throws IllegalArgumentException if the tag represents a sequence
    */
   public static AbstractDataField decodeField(

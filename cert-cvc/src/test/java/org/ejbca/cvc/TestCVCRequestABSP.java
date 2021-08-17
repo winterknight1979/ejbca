@@ -20,7 +20,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.ejbca.cvc.example.FileHelper;
 
 /**
- * Tests CVCRequest with outer signature
+ * Tests CVCRequest with outer signature.
  *
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
@@ -39,7 +39,8 @@ public class TestCVCRequestABSP extends TestCase implements CVCTest {
     Security.removeProvider("BC");
   }
 
-  /** Check: OID should have been set to a specific value */
+  /** Check: OID should have been set to a specific value.
+ * @throws Exception fail */
   public void testCVCRequestABSP() throws Exception {
     byte[] bytes =
         FileHelper.loadFile(new File("./src/test/resources/absp.cvcert"));

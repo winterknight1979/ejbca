@@ -16,13 +16,17 @@ import junit.framework.Test;
 import junit.framework.TestSuite;
 
 /**
- * Creates a JUnit test suite for all test cases
+ * Creates a JUnit test suite for all test cases.
  *
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
  */
-public class CVCTestSuite {
+public final class CVCTestSuite {
 
+    private CVCTestSuite() { }
+    /**
+     * @return Test
+     */
   public static Test suite() {
     TestSuite suite = new TestSuite("cert-cvc test suite");
 

@@ -19,24 +19,29 @@ package org.ejbca.cvc;
  * @version $Id$
  */
 public enum AuthorizationRoleAuthTermEnum implements AuthorizationRole {
+    /** CVCA. */
   CVCA(0xC0),
-  /** DV (Domestic/official) */
+  /** DV (Domestic/official). */
   DV_D(0x80),
-  /** DV (Foreign/non-official) */
+  /** DV (Foreign/non-official). */
   DV_F(0x40),
-  /** Authentication Terminal */
+  /** Authentication Terminal. */
   AUTHTERM(0x00);
 
+    /** Value. */
   private byte value;
 
-  private AuthorizationRoleAuthTermEnum(final int value) {
-    this.value = (byte) value;
+  /**
+   * @param avalue value
+   */
+  AuthorizationRoleAuthTermEnum(final int avalue) {
+    this.value = (byte) avalue;
   }
 
   /**
-   * Returns the value as a bitmap
+   * Returns the value as a bitmap.
    *
-   * @return
+   * @return value
    */
   @Override
   public byte getValue() {
@@ -100,6 +105,7 @@ public enum AuthorizationRoleAuthTermEnum implements AuthorizationRole {
         return "DV-foreign";
       case AUTHTERM:
         return "Authentication-Terminal";
+      default: break;
     }
     throw new IllegalStateException("Enum case not handled");
   }

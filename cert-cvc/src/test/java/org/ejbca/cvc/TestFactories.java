@@ -22,7 +22,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.ejbca.cvc.exception.ConstructionException;
 
 /**
- * Tests Factory classes
+ * Tests Factory classes.
  *
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
@@ -41,7 +41,8 @@ public class TestFactories extends TestCase implements CVCTest {
     Security.removeProvider("BC");
   }
 
-  /** Check: validate FieldFactory */
+  /** Check: validate FieldFactory.
+ * @throws Exception fail */
   public void testFieldFactory() throws Exception {
     AbstractDataField field =
         FieldFactory.decodeField(
@@ -67,7 +68,8 @@ public class TestFactories extends TestCase implements CVCTest {
     }
   }
 
-  /** Check: validate KeyFactory */
+  /** Check: validate KeyFactory.
+ * @throws Exception fail */
   public void testKeyFactory() throws Exception {
     GenericPublicKeyField genKey = new GenericPublicKeyField();
 
@@ -124,7 +126,8 @@ public class TestFactories extends TestCase implements CVCTest {
         "CVCPublicKey objects not same instance", cvcPubkey2 == cvcPubkey);
   }
 
-  /** Check: validate SequenceFactory */
+  /** Check: validate SequenceFactory.
+ * @throws Exception fail */
   public void testSequenceFactory() throws Exception {
     AbstractSequence seq =
         SequenceFactory.createSequence(CVCTagEnum.CV_CERTIFICATE);

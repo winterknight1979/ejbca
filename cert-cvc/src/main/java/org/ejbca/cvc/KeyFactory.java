@@ -18,21 +18,24 @@ import java.security.interfaces.RSAPublicKey;
 import org.ejbca.cvc.exception.ConstructionException;
 
 /**
- * Tiny factory for creating instances of (subclasses to) CVCPublicKey
+ * Tiny factory for creating instances of (subclasses to) CVCPublicKey.
  *
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
  */
-public class KeyFactory {
+public final class KeyFactory {
+
+    private KeyFactory() { }
 
   /**
-   * Constructs instance from a PublicKey and a hash algorithm
+   * Constructs instance from a PublicKey and a hash algorithm.
    *
-   * @param pubKey
+   * @param pubKey key
    * @param algorithmName @see AlgorithmUtil
    * @param authRole role of certificate holder (affects creation of PublicKeyEC
    *     instances)
-   * @return
+   * @return instance
+ * @throws ConstructionException fail
    */
   public static CVCPublicKey createInstance(
       final PublicKey pubKey,
@@ -49,10 +52,10 @@ public class KeyFactory {
     // which in turn identifies the type of key (RSA or EC)
     CVCPublicKey cvcPublicKey = null;
     OIDField oid = AlgorithmUtil.getOIDField(algorithmName);
-    if (oid.getValue().startsWith(CVCObjectIdentifiers.id_TA_RSA)) {
+    if (oid.getValue().startsWith(CVCObjectIdentifiers.ID_TA_RSA)) {
       // It's RSA
       cvcPublicKey = new PublicKeyRSA(oid, (RSAPublicKey) pubKey);
-    } else if (oid.getValue().startsWith(CVCObjectIdentifiers.id_TA_ECDSA)) {
+    } else if (oid.getValue().startsWith(CVCObjectIdentifiers.ID_TA_ECDSA)) {
       // It's EC
       cvcPublicKey = new PublicKeyEC(oid, (ECPublicKey) pubKey, authRole);
     } else {
@@ -65,6 +68,11 @@ public class KeyFactory {
    * Constructs instance from a PublicKey and a hash algorithm. This seemingly
    * redundant overloaded method is for binary (.class file) backwards
    * compatibility. It is NOT deprecated to use these argument types.
+ * @param pubKey key
+ * @param algorithmName name
+ * @param authRole role
+ * @return instance
+ * @throws ConstructionException fail
    */
   public static CVCPublicKey createInstance(
       final PublicKey pubKey,
@@ -76,10 +84,11 @@ public class KeyFactory {
 
   /**
    * Constructs instance from a GenericPublicKeyField (i e when parsing
-   * DER-encoded data)
+   * DER-encoded data).
    *
-   * @param genericKey
-   * @return
+   * @param genericKey key
+   * @return instance
+ * @throws ConstructionException fail
    */
   static CVCPublicKey createInstance(final GenericPublicKeyField genericKey)
       throws ConstructionException {
@@ -87,10 +96,10 @@ public class KeyFactory {
 
     try {
       OIDField oid = (OIDField) genericKey.getOptionalSubfield(CVCTagEnum.OID);
-      if (oid.getValue().startsWith(CVCObjectIdentifiers.id_TA_RSA)) {
+      if (oid.getValue().startsWith(CVCObjectIdentifiers.ID_TA_RSA)) {
         copyField(CVCTagEnum.COEFFICIENT_A, CVCTagEnum.EXPONENT, genericKey);
         cvcPublicKey = new PublicKeyRSA(genericKey);
-      } else if (oid.getValue().startsWith(CVCObjectIdentifiers.id_TA_ECDSA)) {
+      } else if (oid.getValue().startsWith(CVCObjectIdentifiers.ID_TA_ECDSA)) {
         copyField(CVCTagEnum.EXPONENT, CVCTagEnum.COEFFICIENT_A, genericKey);
         cvcPublicKey = new PublicKeyEC(genericKey);
       } else {
@@ -108,9 +117,10 @@ public class KeyFactory {
    * key tags have the same value. TODO: This handling is subject for
    * improvement!
    *
-   * @param fromTag
-   * @param toTag
-   * @param generic
+   * @param fromTag tag
+   * @param toTag tag
+   * @param generic field
+ * @throws ConstructionException fail
    */
   private static void copyField(
       final CVCTagEnum fromTag,

@@ -23,13 +23,20 @@ import java.text.SimpleDateFormat;
  */
 public interface CVCTest {
 
-  static String CA_COUNTRY_CODE = "SE";
-  static String CA_HOLDER_MNEMONIC = "CVCA-RPS";
-  static String CA_SEQUENCE_NO = "00111";
+      /** Param. */
+  String CA_COUNTRY_CODE = "SE";
+  /** Param. */
+  String CA_HOLDER_MNEMONIC = "CVCA-RPS";
+  /** Param. */
+  String CA_SEQUENCE_NO = "00111";
 
-  static String HR_COUNTRY_CODE = "SE";
-  static String HR_HOLDER_MNEMONIC = "IS-ABSP08";
-  static String HR_SEQUENCE_NO = "SE801";
+  /** Param. */
+  String HR_COUNTRY_CODE = "SE";
+  /** Param. */
+  String HR_HOLDER_MNEMONIC = "IS-ABSP08";
+  /** Param. */
+  String HR_SEQUENCE_NO = "SE801";
 
-  static final DateFormat FORMAT_PRINTABLE = new SimpleDateFormat("yyyy-MM-dd");
+  /** Param. */
+  DateFormat FORMAT_PRINTABLE = new SimpleDateFormat("yyyy-MM-dd");
 }

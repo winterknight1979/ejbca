@@ -27,7 +27,7 @@ import org.ejbca.cvc.exception.ConstructionException;
 import org.ejbca.cvc.util.BCECUtil;
 
 /**
- * Represents a CVC-request having an outer signature
+ * Represents a CVC-request having an outer signature.
  *
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
@@ -37,6 +37,7 @@ public class CVCAuthenticatedRequest extends AbstractSequence
 
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   private static CVCTagEnum[] allowedFields =
       new CVCTagEnum[] {
         CVCTagEnum.CV_CERTIFICATE, CVCTagEnum.CA_REFERENCE, CVCTagEnum.SIGNATURE
@@ -47,16 +48,17 @@ public class CVCAuthenticatedRequest extends AbstractSequence
     return allowedFields;
   }
 
-  /** Default constructor */
+  /** Default constructor. */
   CVCAuthenticatedRequest() {
     super(CVCTagEnum.REQ_AUTHENTICATION);
   }
 
   /**
-   * Creates an instance
+   * Creates an instance.
    *
-   * @param cvcert
-   * @param caReference
+   * @param cvcert cert
+   * @param caReference ref
+ * @throws ConstructionException fail
    */
   public CVCAuthenticatedRequest(
       final CVCertificate cvcert, final CAReferenceField caReference)
@@ -68,17 +70,17 @@ public class CVCAuthenticatedRequest extends AbstractSequence
   }
 
   /**
-   * Adds signature
+   * Adds signature.
    *
-   * @param signatureData
-   * @throws ConstructionException
+   * @param signatureData sig
+   * @throws ConstructionException fail
    */
   public void setSignature(final byte[] signatureData)
       throws ConstructionException {
     addSubfield(new ByteField(CVCTagEnum.SIGNATURE, signatureData));
   }
 
-  /** Returns the data To Be Signed */
+  /** Returns the data To Be Signed. */
   @Override
   public byte[] getTBS() throws ConstructionException {
     try {
@@ -106,41 +108,44 @@ public class CVCAuthenticatedRequest extends AbstractSequence
   }
 
   /**
-   * Returns the embedded request (as an instance of CVCertificate)
+   * Returns the embedded request (as an instance of CVCertificate).
    *
-   * @return
+   * @return req
+ * @throws NoSuchFieldException fail
    */
   public CVCertificate getRequest() throws NoSuchFieldException {
     return (CVCertificate) getSubfield(CVCTagEnum.CV_CERTIFICATE);
   }
 
   /**
-   * Returns CA_REFERENCE
+   * Returns CA_REFERENCE.
    *
-   * @return
+   * @return auth
+ * @throws NoSuchFieldException fail
    */
   public CAReferenceField getAuthorityReference() throws NoSuchFieldException {
     return (CAReferenceField) getSubfield(CVCTagEnum.CA_REFERENCE);
   }
 
   /**
-   * Returns signature
+   * Returns signature.
    *
-   * @return
+   * @return sig
+   * @throws NoSuchFieldException fail
    */
   public byte[] getSignature() throws NoSuchFieldException {
     return ((ByteField) getSubfield(CVCTagEnum.SIGNATURE)).getData();
   }
 
   /**
-   * Verifies the signature
+   * Verifies the signature.
    *
-   * @param pubKey
-   * @throws CertificateException
-   * @throws NoSuchAlgorithmException
-   * @throws InvalidKeyException
-   * @throws NoSuchProviderException
-   * @throws SignatureException
+   * @param pubKey fail
+   * @throws CertificateException fail
+   * @throws NoSuchAlgorithmException fail
+   * @throws InvalidKeyException fail
+   * @throws NoSuchProviderException fail
+   * @throws SignatureException fail
    */
   public void verify(final PublicKey pubKey)
       throws CertificateException, NoSuchAlgorithmException,
@@ -181,7 +186,7 @@ public class CVCAuthenticatedRequest extends AbstractSequence
     }
   }
 
-  /** Helper method, returns this request as text */
+  /** Helper method, returns this request as text. */
   @Override
   public String toString() {
     return getAsText("", true);

@@ -32,7 +32,7 @@ import org.ejbca.cvc.example.FileHelper;
 import org.ejbca.cvc.util.StringConverter;
 
 /**
- * Tests PublicKey classes
+ * Tests PublicKey classes.
  *
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
@@ -51,7 +51,8 @@ public class TestPublicKey extends TestCase implements CVCTest {
     Security.removeProvider("BC");
   }
 
-  /** Check: DER encoding/decoding must not affect data */
+  /** Check: DER encoding/decoding must not affect data.
+ * @throws Exception fail*/
   public void testPubliKeyField() throws Exception {
     // Create new key pair
     KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA", "BC");
@@ -84,7 +85,8 @@ public class TestPublicKey extends TestCase implements CVCTest {
 
   /**
    * Check: Some modulus values has caused problems with leading zeroes when
-   * encoding
+   * encoding.
+ * @throws Exception fail
    */
   public void testParseAndCreate() throws Exception {
     byte[] keydata =
@@ -124,7 +126,8 @@ public class TestPublicKey extends TestCase implements CVCTest {
 
   /**
    * Check: Create CVC public key from a java public key - the encoded modulus
-   * should not have ant leading zeroes
+   * should not have ant leading zeroes.
+ * @throws Exception fail
    */
   public void testModulusValue() throws Exception {
     // Create key pair using java.security
@@ -140,7 +143,8 @@ public class TestPublicKey extends TestCase implements CVCTest {
     assertTrue("Leading zero found in modulus", modulusData[0] != 0);
   }
 
-  /** Check: Validate methods specific for Elliptic Curve public keys */
+  /** Check: Validate methods specific for Elliptic Curve public keys.
+ * @throws Exception fail */
   public void testPublicKeyEC() throws Exception {
     // Test encoding of a ECPoint
     String expectedByteStr = "04013579024680";
@@ -210,7 +214,8 @@ public class TestPublicKey extends TestCase implements CVCTest {
 
   /**
    * Check: Domain parameters shall be included when encoding only in specific
-   * cases
+   * cases.
+ * @throws Exception Fail
    */
   public void testPublicKeyECFields() throws Exception {
     CVCertificateBody bodyIS = createBody(AuthorizationRoleEnum.IS);
@@ -257,7 +262,8 @@ public class TestPublicKey extends TestCase implements CVCTest {
         new EllipticCurve(
             new ECFieldFp(
                 new BigInteger(
-                    "883423532389192164791648750360308885314476597252960362792450860609699839")), // q
+                        "883423532389192164791648750360308885314476"
+                        + "597252960362792450860609699839")), // q
             new BigInteger(
                 "7fffffffffffffffffffffff7fffffffffff8000000000007ffffffffffc",
                 16), // a
@@ -270,9 +276,11 @@ public class TestPublicKey extends TestCase implements CVCTest {
             ECPointUtil.decodePoint(
                 curve,
                 Hex.decode(
-                    "020ffa963cdca8816ccc33b8642bedf905c3d358573d3f27fbbd3b3cb9aaaf")), // G
+                    "020ffa963cdca8816ccc33b8642bedf905"
+                    + "c3d358573d3f27fbbd3b3cb9aaaf")), // G
             new BigInteger(
-                "883423532389192164791648750360308884807550341691627752275345424702807307"), // n
+                "88342353238919216479164875036030888480755034169"
+                + "1627752275345424702807307"), // n
             3); // h
 
     keyGen.initialize(spec);

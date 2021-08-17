@@ -28,7 +28,7 @@ import org.ejbca.cvc.exception.ConstructionException;
 import org.ejbca.cvc.util.BCECUtil;
 
 /**
- * Generates CV-certificates and CVC-requests
+ * Generates CV-certificates and CVC-requests.
  *
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
@@ -36,7 +36,7 @@ import org.ejbca.cvc.util.BCECUtil;
 public final class CertificateGenerator {
 
   // Only static methods...
-  private CertificateGenerator() {}
+  private CertificateGenerator() { }
 
   /**
    * Generates a CVCertificate for testing with the following characteristics: -
@@ -45,18 +45,19 @@ public final class CertificateGenerator {
    *
    * <p>TODO: Move this method to the test cases!
    *
-   * @param publicKey
-   * @param privateKey
-   * @param caRef
-   * @param holderRef
+   * @param publicKey key
+   * @param privateKey key
+   * @param caRef CA
+   * @param holderRef holder
    * @param algorithm SHA1WithRSA, SHA256WithECDSA etc
-   * @param role
-   * @return
-   * @throws IOException
-   * @throws NoSuchAlgorithmException
-   * @throws NoSuchProviderException
-   * @throws InvalidKeyException
-   * @throws SignatureException
+   * @param role role
+   * @return cert
+   * @throws IOException fail
+   * @throws NoSuchAlgorithmException fail
+   * @throws NoSuchProviderException fail
+   * @throws InvalidKeyException fail
+   * @throws SignatureException fail
+ * @throws ConstructionException fail
    */
   public static CVCertificate createTestCertificate(
       final PublicKey publicKey,
@@ -70,9 +71,9 @@ public final class CertificateGenerator {
     // Skapa default-datum
     Calendar cal1 = Calendar.getInstance();
     Date validFrom = cal1.getTime();
-
+    final int offset = 3;
     Calendar cal2 = Calendar.getInstance();
-    cal2.add(Calendar.MONTH, 3);
+    cal2.add(Calendar.MONTH, offset);
     Date validTo = cal2.getTime();
     return createCertificate(
         publicKey,
@@ -88,26 +89,19 @@ public final class CertificateGenerator {
   }
 
   /**
-   * Generates a CVCertificate
+   * Generates a CVCertificate.
    *
-   * @param publicKey
-   * @param signerKey
-   * @param algorithmName
-   * @param caRef
-   * @param holderRef
-   * @param authRole
-   * @param validFrom
-   * @param validTo
-   * @param extensions Certificate extensions, or null to not add a "Certificate
-   *     Extensions" object to the certificate.
-   * @param provider
-   * @return
-   * @throws IOException
-   * @throws NoSuchAlgorithmException
-   * @throws NoSuchProviderException
-   * @throws InvalidKeyException
-   * @throws SignatureException
-   * @throws ConstructionException
+   * @param signerKey key
+   * @param algorithmName algo
+ * @param body body
+   * @param provider prov
+   * @return cert
+   * @throws IOException fail
+   * @throws NoSuchAlgorithmException fail
+   * @throws NoSuchProviderException fail
+   * @throws InvalidKeyException fail
+   * @throws SignatureException fail
+   * @throws ConstructionException fail
    */
   public static CVCertificate createCertificate(
       final PrivateKey signerKey,
@@ -135,26 +129,27 @@ public final class CertificateGenerator {
   }
 
   /**
-   * Generates a CVCertificate
+   * Generates a CVCertificate.
    *
-   * @param publicKey
-   * @param signerKey
-   * @param algorithmName
-   * @param caRef
-   * @param holderRef
-   * @param authRole
-   * @param validFrom
-   * @param validTo
+   * @param publicKey Key
+   * @param signerKey Key
+   * @param algorithmName Algo
+   * @param caRef CA
+   * @param holderRef holder
+   * @param authRole role
+ * @param rights rights
+   * @param validFrom date
+   * @param validTo date
    * @param extensions Certificate extensions, or null to not add a "Certificate
    *     Extensions" object to the certificate.
-   * @param provider
-   * @return
-   * @throws IOException
-   * @throws NoSuchAlgorithmException
-   * @throws NoSuchProviderException
-   * @throws InvalidKeyException
-   * @throws SignatureException
-   * @throws ConstructionException
+   * @param provider prov
+   * @return cert
+   * @throws IOException fail
+   * @throws NoSuchAlgorithmException fail
+   * @throws NoSuchProviderException fail
+   * @throws InvalidKeyException fail
+   * @throws SignatureException fail
+   * @throws ConstructionException fail
    */
   public static CVCertificate createCertificate(
       final PublicKey publicKey,
@@ -187,7 +182,24 @@ public final class CertificateGenerator {
     return createCertificate(signerKey, algorithmName, body, provider);
   }
 
-  /** Generates a CVCertificate */
+  /** Generates a CVCertificate.
+ * @param publicKey Key
+ * @param signerKey Key
+ * @param algorithmName Name
+ * @param caRef CA
+ * @param holderRef holder
+ * @param authRole role
+ * @param rights rights
+ * @param validFrom date
+ * @param validTo date
+ * @param provider prov
+ * @return cert
+ * @throws IOException fail
+ * @throws NoSuchAlgorithmException fail
+ * @throws NoSuchProviderException fail
+ * @throws InvalidKeyException fail
+ * @throws SignatureException fail
+ * @throws ConstructionException fail */
   public static CVCertificate createCertificate(
       final PublicKey publicKey,
       final PrivateKey signerKey,
@@ -219,6 +231,23 @@ public final class CertificateGenerator {
    * Generates a CVCertificate. This seemingly redundant overloaded method is
    * for binary (.class file) backwards compatibility. It is NOT deprecated to
    * use these argument types.
+ * @param publicKey key
+ * @param signerKey key
+ * @param algorithmName name
+ * @param caRef CA
+ * @param holderRef holder
+ * @param authRole role
+ * @param rights rights
+ * @param validFrom date
+ * @param validTo  date
+ * @param provider provider
+ * @return  cert
+ * @throws IOException fail
+ * @throws NoSuchAlgorithmException fail
+ * @throws NoSuchProviderException  fail
+ * @throws InvalidKeyException  fail
+ * @throws SignatureException fail
+ * @throws ConstructionException fail
    */
   public static CVCertificate createCertificate(
       final PublicKey publicKey,
@@ -248,17 +277,18 @@ public final class CertificateGenerator {
 
   /**
    * Generates a CVC-request without an outer signature using BouncyCastle as
-   * signature provider
+   * signature provider.
    *
-   * @param keyPair
-   * @param algorithmName
-   * @param holderRef
-   * @return
-   * @throws IOException
-   * @throws NoSuchAlgorithmException
-   * @throws NoSuchProviderException
-   * @throws InvalidKeyException
-   * @throws SignatureException
+   * @param keyPair key
+   * @param algorithmName algo
+   * @param holderRef holder
+   * @return cert
+   * @throws IOException fail
+   * @throws NoSuchAlgorithmException fail
+   * @throws NoSuchProviderException fail
+   * @throws InvalidKeyException fail
+   * @throws SignatureException fail
+ * @throws ConstructionException fail
    */
   public static CVCertificate createRequest(
       final KeyPair keyPair,
@@ -270,19 +300,19 @@ public final class CertificateGenerator {
   }
 
   /**
-   * Same as above except that signature provider is an argument
+   * Same as above except that signature provider is an argument fail.
    *
-   * @param keyPair
-   * @param algorithmName
-   * @param holderRef
-   * @param signProvicer
-   * @return
-   * @throws IOException
-   * @throws NoSuchAlgorithmException
-   * @throws NoSuchProviderException
-   * @throws InvalidKeyException
-   * @throws SignatureException
-   * @throws ConstructionException
+   * @param keyPair key
+   * @param algorithmName name
+   * @param holderRef holder
+   * @param signProvicer prov
+   * @return cert
+   * @throws IOException fail
+   * @throws NoSuchAlgorithmException fail
+   * @throws NoSuchProviderException fail
+   * @throws InvalidKeyException fail
+   * @throws SignatureException fail
+   * @throws ConstructionException fail
    */
   public static CVCertificate createRequest(
       final KeyPair keyPair,
@@ -298,6 +328,17 @@ public final class CertificateGenerator {
    * Generates a CVC-request without an outer signature using BouncyCastle as
    * signature provider, taking Certificate Authority Reference as argument.
    *
+   * @param keyPair keys
+   * @param algorithmName name
+   * @param caRef CA
+   * @param holderRef holder
+   * @return cert
+   *  @throws IOException fail
+   *     @throws NoSuchAlgorithmException fail
+   *     @throws NoSuchProviderException fail
+   *     @throws ConstructionException fail
+   *     @throws SignatureException fail
+   *     @throws InvalidKeyException fail
    * @see CertificateGenerator#createRequest(KeyPair, String, CAReferenceField,
    *     HolderReferenceField, Collection, String)
    */
@@ -317,6 +358,18 @@ public final class CertificateGenerator {
    *
    * @see CertificateGenerator#createRequest(KeyPair, String, CAReferenceField,
    *     HolderReferenceField, Collection, String)
+   *     @param keyPair pair
+   *     @param algorithmName name
+   *     @param caRef ref
+   *     @param holderRef hoder
+   *     @param signProvider prov
+   *     @return cert
+   *     @throws IOException fail
+   *     @throws NoSuchAlgorithmException fail
+   *     @throws NoSuchProviderException fail
+   *     @throws ConstructionException fail
+   *     @throws SignatureException fail
+   *     @throws InvalidKeyException fail
    */
   public static CVCertificate createRequest(
       final KeyPair keyPair,
@@ -342,11 +395,12 @@ public final class CertificateGenerator {
    * @param signProvider Crypto provider to use for proof of possession
    *     signature.
    * @return A certificate request
-   * @throws IOException
-   * @throws NoSuchAlgorithmException
-   * @throws NoSuchProviderException
-   * @throws InvalidKeyException
-   * @throws SignatureException
+   * @throws IOException fail
+   * @throws NoSuchAlgorithmException fail
+   * @throws NoSuchProviderException fail
+   * @throws InvalidKeyException fail
+   * @throws SignatureException fail
+ * @throws ConstructionException fail
    */
   public static CVCertificate createRequest(
       final KeyPair keyPair,
@@ -385,19 +439,20 @@ public final class CertificateGenerator {
 
   /**
    * Generates a CVCAuthenticatedRequest using BouncyCastle as signature
-   * provider
+   * provider.
    *
-   * @param cvcRequest
-   * @param keyPair
-   * @param algorithmName
+   * @param cvcRequest req
+   * @param keyPair key
+   * @param algorithmName name
    * @param caRef Should be the same as caRef in the supplied cvcRequest but
    *     with an incremented sequence number
-   * @return
-   * @throws IOException
-   * @throws NoSuchAlgorithmException
-   * @throws NoSuchProviderException
-   * @throws InvalidKeyException
-   * @throws SignatureException
+   * @return req
+   * @throws IOException fail
+   * @throws NoSuchAlgorithmException fail
+   * @throws NoSuchProviderException fail
+   * @throws InvalidKeyException fail
+   * @throws SignatureException fail
+ * @throws ConstructionException fail
    */
   public static CVCAuthenticatedRequest createAuthenticatedRequest(
       final CVCertificate cvcRequest,
@@ -411,20 +466,20 @@ public final class CertificateGenerator {
   }
 
   /**
-   * Same as above except that signature provider is an argument
+   * Same as above except that signature provider is an argument.
    *
-   * @param cvcRequest
-   * @param keyPair
-   * @param algorithmName
-   * @param caRef
-   * @param signProvider
-   * @return
-   * @throws IOException
-   * @throws NoSuchAlgorithmException
-   * @throws NoSuchProviderException
-   * @throws InvalidKeyException
-   * @throws SignatureException
-   * @throws ConstructionException
+   * @param cvcRequest cvc
+   * @param keyPair key
+   * @param algorithmName algo
+   * @param caRef ref
+   * @param signProvider prov
+   * @return req
+   * @throws IOException fail
+   * @throws NoSuchAlgorithmException fail
+   * @throws NoSuchProviderException fail
+   * @throws InvalidKeyException fail
+   * @throws SignatureException fail
+   * @throws ConstructionException fail
    */
   public static CVCAuthenticatedRequest createAuthenticatedRequest(
       final CVCertificate cvcRequest,

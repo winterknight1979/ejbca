@@ -199,7 +199,7 @@ public class CrmfRequestMessageTest {
       username = gen.generateUsername(dnname.toString());
       assertEquals(
           "Username was not constructed properly from DN",
-          "C=SE,O=Org,SURNAME=000106716,CN=subject",
+          "C=SE,O=Org,SN=000106716,CN=subject",
           username);
 
   }

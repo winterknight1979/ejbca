@@ -40,7 +40,8 @@ public class JDKCVCertificateFactory extends CertificateFactorySpi {
   private byte[] readBytes(final InputStream in) throws IOException {
     ByteArrayOutputStream os = new ByteArrayOutputStream();
     int len = 0;
-    byte[] buf = new byte[512];
+    final int max = 512;
+    byte[] buf = new byte[max];
     while ((len = in.read(buf)) > 0) {
       os.write(buf, 0, len);
     }

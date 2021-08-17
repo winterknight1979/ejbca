@@ -35,9 +35,10 @@ public class PublicKeyEC extends CVCPublicKey implements ECPublicKey {
 
   static final long serialVersionUID = 1L; // TODO: Fix better value
 
-  /** Byte value indicating the start of an uncompressed Point data array */
+  /** Byte value indicating the start of an uncompressed Point data array. */
   public static final byte UNCOMPRESSED_POINT_TAG = 0x04;
 
+  /** Fields. */
   private static CVCTagEnum[] allowedFields =
       new CVCTagEnum[] {
         CVCTagEnum.OID,
@@ -56,10 +57,11 @@ public class PublicKeyEC extends CVCPublicKey implements ECPublicKey {
   }
 
   /**
-   * Creates an instance from a GenericPublicKeyField
+   * Creates an instance from a GenericPublicKeyField.
    *
-   * @param genericKey
-   * @throws NoSuchFieldException
+   * @param genericKey Key
+ * @throws ConstructionException fail
+   * @throws NoSuchFieldException fail
    */
   public PublicKeyEC(final GenericPublicKeyField genericKey)
       throws ConstructionException, NoSuchFieldException {
@@ -76,12 +78,13 @@ public class PublicKeyEC extends CVCPublicKey implements ECPublicKey {
 
   /**
    * Creates an instance from an OIDField and a
-   * java.security.interfaces.ECPublicKey
+   * java.security.interfaces.ECPublicKey.
    *
-   * @param oid
-   * @param pubKeyEC
+   * @param oid OID
+   * @param pubKeyEC Key
    * @param authRole role of certificate holder. If null or 'CVCA' all subfields
    *     are added, otherwise only the required ones.
+ * @throws ConstructionException fail
    */
   public PublicKeyEC(
       final OIDField oid,
@@ -140,6 +143,10 @@ public class PublicKeyEC extends CVCPublicKey implements ECPublicKey {
    * java.security.interfaces.ECPublicKey. This seemingly redundant overloaded
    * constructor is for binary (.class file) backwards compatibility. It is NOT
    * deprecated to use these argument types.
+ * @param oid OID
+ * @param pubKeyEC Key
+ * @param authRole Role
+ * @throws ConstructionException fail
    */
   public PublicKeyEC(
       final OIDField oid,
@@ -238,13 +245,13 @@ public class PublicKeyEC extends CVCPublicKey implements ECPublicKey {
     // Fetch the subfields and construct the ECParameterSpec
     ECParameterSpec ecParameterSpec = null;
     ByteField modulus = (ByteField) getOptionalSubfield(CVCTagEnum.MODULUS);
-    ByteField coefficient_a =
+    ByteField coefficientA =
         (ByteField) getOptionalSubfield(CVCTagEnum.COEFFICIENT_A);
-    ByteField coefficient_b =
+    ByteField coefficientB =
         (ByteField) getOptionalSubfield(CVCTagEnum.COEFFICIENT_B);
-    ByteField base_point_g =
+    ByteField basePointG =
         (ByteField) getOptionalSubfield(CVCTagEnum.BASE_POINT_G);
-    ByteField point_r_order =
+    ByteField pointROrder =
         (ByteField) getOptionalSubfield(CVCTagEnum.BASE_POINT_R_ORDER);
     IntegerField cofactor =
         (IntegerField) getOptionalSubfield(CVCTagEnum.COFACTOR_F);
@@ -254,14 +261,14 @@ public class PublicKeyEC extends CVCPublicKey implements ECPublicKey {
           new EllipticCurve(
               // ECField2m ?
               new ECFieldFp(new BigInteger(1, modulus.getData())), // q
-              new BigInteger(1, coefficient_a.getData()), // a
-              new BigInteger(1, coefficient_b.getData())); // b
+              new BigInteger(1, coefficientA.getData()), // a
+              new BigInteger(1, coefficientB.getData())); // b
 
       ecParameterSpec =
           new ECParameterSpec(
               curve,
-              ECPointUtil.decodePoint(curve, base_point_g.getData()), // G
-              new BigInteger(1, point_r_order.getData()), // n
+              ECPointUtil.decodePoint(curve, basePointG.getData()), // G
+              new BigInteger(1, pointROrder.getData()), // n
               cofactor.getValue()); // h
     }
     return ecParameterSpec;
@@ -270,9 +277,9 @@ public class PublicKeyEC extends CVCPublicKey implements ECPublicKey {
   @Override
   public ECPoint getW() {
     try {
-      ByteField public_point_y =
+      ByteField publicPointY =
           (ByteField) getSubfield(CVCTagEnum.PUBLIC_POINT_Y);
-      return decodePoint(public_point_y.getData());
+      return decodePoint(publicPointY.getData());
     } catch (NoSuchFieldException e) {
       // This instance has not been created correctly
       throw new IllegalStateException(e);
@@ -281,7 +288,7 @@ public class PublicKeyEC extends CVCPublicKey implements ECPublicKey {
 
   /**
    * Uncompressed encoding of a ECPoint according to BSI-TR-03111 chapter 3.1.1:
-   * 0x04 || enc(X) || enc(Y)
+   * 0x04 || enc(X) || enc(Y).
    *
    * @param ecPoint the point to encode
    * @param curve the curve used to get the field size, or null. If curve is
@@ -289,17 +296,19 @@ public class PublicKeyEC extends CVCPublicKey implements ECPublicKey {
    *     the field size to be the largest of affineX.length and affineY.length,
    *     which will work in the majority of cases but might randomly produce the
    *     wrong result (a chance of 1 over 2^16).
-   * @return
+   * @return point
    */
   public static byte[] encodePoint(
       final ECPoint ecPoint, final EllipticCurve curve) {
     byte[] pointX = trimByteArray(ecPoint.getAffineX().toByteArray());
     byte[] pointY = trimByteArray(ecPoint.getAffineY().toByteArray());
 
+    final int offset = 7;
+    final int shift = 3;
     int n = 0;
     if (curve != null) {
       // get fieldsize in bytes (+7 to round up and >>3 to divide by 8)
-      n = (curve.getField().getFieldSize() + 7) >> 3;
+      n = (curve.getField().getFieldSize() + offset) >> shift;
     } else {
       // Normally n is the curve field size and pointX and pointY has length n.
       // This will simply try to use this size in case we don't have access to
@@ -312,14 +321,18 @@ public class PublicKeyEC extends CVCPublicKey implements ECPublicKey {
     // the points will be trimmed to the length n
 
     // pointX.length and pointY.length should be equal to n
-    int paddingX_length = 0;
-    int paddingY_length = 0;
+    int paddingXLength = 0;
+    int paddingYLength = 0;
 
     // If the length of x was smaller than n we need to pad x on the left with 0
-    if (pointX.length < n) paddingX_length = n - pointX.length;
+    if (pointX.length < n) {
+        paddingXLength = n - pointX.length;
+    }
 
     // If the length of y was smaller than n we need to pad y on the left with 0
-    if (pointY.length < n) paddingY_length = n - pointY.length;
+    if (pointY.length < n) {
+        paddingYLength = n - pointY.length;
+    }
 
     // the resulting array should be two times n (n << 1) plus 1
     byte[] encoded = new byte[1 + (n << 1)];
@@ -330,9 +343,9 @@ public class PublicKeyEC extends CVCPublicKey implements ECPublicKey {
     encoded[0] = UNCOMPRESSED_POINT_TAG;
 
     System.arraycopy(
-        pointX, 0, encoded, 1 + paddingX_length, n - paddingX_length);
+        pointX, 0, encoded, 1 + paddingXLength, n - paddingXLength);
     System.arraycopy(
-        pointY, 0, encoded, 1 + n + paddingY_length, n - paddingY_length);
+        pointY, 0, encoded, 1 + n + paddingYLength, n - paddingYLength);
 
     return encoded;
   }
@@ -341,8 +354,8 @@ public class PublicKeyEC extends CVCPublicKey implements ECPublicKey {
    * Decodes an uncompressed ECPoint. First byte must be 0x04, otherwise
    * IllegalArgumentException is thrown.
    *
-   * @param data
-   * @return
+   * @param data data
+   * @return point
    */
   public static ECPoint decodePoint(final byte[] data) {
     if (data[0] != UNCOMPRESSED_POINT_TAG) {

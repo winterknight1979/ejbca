@@ -15,7 +15,7 @@ package org.ejbca.cvc;
 import java.math.BigInteger;
 
 /**
- * Represents a generic field of type Integer
+ * Represents a generic field of type Integer.
  *
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
@@ -23,13 +23,14 @@ import java.math.BigInteger;
 public class IntegerField extends AbstractDataField {
 
   private static final long serialVersionUID = 1L;
+  /** Param. */
   private int intValue;
 
   /**
-   * Constructs a new instance from a tag and an int
+   * Constructs a new instance from a tag and an int.
    *
-   * @param tag
-   * @param value
+   * @param tag tag
+   * @param value value
    */
   IntegerField(final CVCTagEnum tag, final int value) {
     super(tag);
@@ -40,22 +41,29 @@ public class IntegerField extends AbstractDataField {
    * Constructs a new instance by parsing DER-encoded data. If the length of
    * data is > 4 then IllegalArgumentException is thrown.
    *
-   * @param tag
-   * @param data
+   * @param tag tag
+   * @param data data
    */
   IntegerField(final CVCTagEnum tag, final byte[] data) {
     super(tag);
-    if (data != null && data.length > 4) {
+    final int max = 4;
+    if (data != null && data.length > max) {
       throw new IllegalArgumentException(
           "Byte array too long, max is 4, was " + data.length);
     }
     this.intValue = new BigInteger(1, data).intValue();
   }
 
-  public void setValue(final int intValue) {
-    this.intValue = intValue;
+  /**
+   * @param aintValue valye
+   */
+  public void setValue(final int aintValue) {
+    this.intValue = aintValue;
   }
 
+  /**
+   * @return value
+   */
   public int getValue() {
     return intValue;
   }

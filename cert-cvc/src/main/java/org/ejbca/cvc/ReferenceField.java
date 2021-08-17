@@ -22,40 +22,47 @@ package org.ejbca.cvc;
 public abstract class ReferenceField extends AbstractDataField {
 
   private static final long serialVersionUID = 1L;
+  /** Param. */
   private String country = null;
+  /** Param. */
   private String mnemonic = null;
+  /** Param. */
   private String sequence = null;
 
   /**
-   * Constructs a new instance from separate fields
+   * Constructs a new instance from separate fields.
+ * @param tag tag.
    *
-   * @param country - CountryCode according to ISO 3166-1 ALPHA-2 (2 characters)
-   * @param mnemonic - Holder Mnemonic (up to 9 characters)
+   * @param acountry - CountryCode according to ISO 3166-1 ALPHA-2
+   *     (2 characters)
+   * @param amnemonic - Holder Mnemonic (up to 9 characters)
    * @param seq - Sequence Number (exactly 5 alphanumeric characters)
    */
   public ReferenceField(
       final CVCTagEnum tag,
-      final String country,
-      final String mnemonic,
+      final String acountry,
+      final String amnemonic,
       final String seq) {
     super(tag);
+      final int mLen = 9;
+      final int len = 5;
 
-    if (country.length() != 2) {
+    if (acountry.length() != 2) {
       throw new IllegalArgumentException(
-          "Country code length must be 2, was " + country.length());
+          "Country code length must be 2, was " + acountry.length());
     }
-    if (!isValidCountry(country)) {
-      throw new IllegalArgumentException("Unknown country code: " + country);
+    if (!isValidCountry(acountry)) {
+      throw new IllegalArgumentException("Unknown country code: " + acountry);
     }
-    if (mnemonic.length() == 0) {
+    if (amnemonic.length() == 0) {
       throw new IllegalArgumentException(
           "Holder mnemonic too short, must have at least one character");
     }
-    if (mnemonic.length() > 9) {
+    if (amnemonic.length() > mLen) {
       throw new IllegalArgumentException(
-          "Holder mnemonic too long, max=9, was " + mnemonic.length());
+          "Holder mnemonic too long, max=9, was " + amnemonic.length());
     }
-    if (seq.length() != 5) {
+    if (seq.length() != len) {
       throw new IllegalArgumentException(
           "Sequence number must have length 5, was " + seq.length());
     }
@@ -68,58 +75,58 @@ public abstract class ReferenceField extends AbstractDataField {
       }
     }
 
-    this.country = country;
-    this.mnemonic = mnemonic;
+    this.country = acountry;
+    this.mnemonic = amnemonic;
     this.sequence = seq;
   }
 
   /**
-   * Constructs a new instance by parsing DER-encoded data
+   * Constructs a new instance by parsing DER-encoded data.
    *
-   * @param tag
-   * @param data
+   * @param tag Tag
+   * @param data Data
    */
   protected ReferenceField(final CVCTagEnum tag, final byte[] data) {
     super(tag);
-
+    final int offset = 5;
     String dataStr = new String(data);
     this.country = dataStr.substring(0, 2); // Has always length = 2
-    this.mnemonic = dataStr.substring(2, dataStr.length() - 5);
-    this.sequence = dataStr.substring(dataStr.length() - 5); // Has always
+    this.mnemonic = dataStr.substring(2, dataStr.length() - offset);
+    this.sequence = dataStr.substring(dataStr.length() - offset); // Has always
     // length = 5
   }
 
   /**
-   * Returns the value as a concatenation of country, mnemonic and sequence
+   * Returns the value as a concatenation of country, mnemonic and sequence.
    *
-   * @return
+   * @return value
    */
   public String getConcatenated() {
     return country + mnemonic + sequence;
   }
 
   /**
-   * Returns country
+   * Returns country.
    *
-   * @return
+   * @return country
    */
   public String getCountry() {
     return country;
   }
 
   /**
-   * Returns mnemonic
+   * Returns mnemonic.
    *
-   * @return
+   * @return mnem
    */
   public String getMnemonic() {
     return mnemonic;
   }
 
   /**
-   * Returns sequence
+   * Returns sequence.
    *
-   * @return
+   * @return seq
    */
   public String getSequence() {
     return sequence;

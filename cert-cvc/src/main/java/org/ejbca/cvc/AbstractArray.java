@@ -28,13 +28,15 @@ public abstract class AbstractArray extends AbstractSequence {
 
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   private final List<CVCObject> subfields = new ArrayList<CVCObject>();
+  /** Param. */
   private final CVCTagEnum allowedField;
 
   /**
-   * Constructor, must supply the tag
+   * Constructor, must supply the tag.
    *
-   * @param type
+   * @param type type
    */
   AbstractArray(final CVCTagEnum type) {
     super(type);
@@ -44,7 +46,7 @@ public abstract class AbstractArray extends AbstractSequence {
   /**
    * Adds a subfield to this sequence. Nothing happens if the argument is null.
    *
-   * @param field
+   * @param field field
    * @throws ConstructionException if the supplied field is not allowed in this
    *     sequence.
    */
@@ -66,7 +68,7 @@ public abstract class AbstractArray extends AbstractSequence {
   /**
    * Returns the allow tag for the subfields.
    *
-   * @return
+   * @return tag
    */
   protected abstract CVCTagEnum getAllowedField();
 
@@ -87,16 +89,16 @@ public abstract class AbstractArray extends AbstractSequence {
   }
 
   /**
-   * Returns all added subfields
+   * Returns all added subfields.
    *
-   * @return
+   * @return subfields
    */
   @Override
   protected Collection<CVCObject> getSubfields() {
     return new ArrayList<CVCObject>(subfields);
   }
 
-  // Returns a List of ordered subfields
+  /** @return a List of ordered subfields */
   @Override
   protected List<CVCObject> getOrderedSubfields() {
     return new ArrayList<CVCObject>(subfields);

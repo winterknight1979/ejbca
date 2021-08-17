@@ -16,17 +16,17 @@ import org.ejbca.cvc.exception.ConstructionException;
 
 /**
  * Interface for signable classes, forcing them to implement a method for
- * getting the data to be signed
+ * getting the data to be signed.
  *
  * @version $Id$
  */
 public interface Signable {
 
   /**
-   * Returns the data to be signed
+   * Returns the data to be signed.
    *
-   * @return
-   * @throws ConstructionException
+   * @return TBS
+   * @throws ConstructionException fail
    */
-  public byte[] getTBS() throws ConstructionException;
+  byte[] getTBS() throws ConstructionException;
 }

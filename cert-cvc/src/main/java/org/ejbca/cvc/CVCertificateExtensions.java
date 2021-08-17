@@ -33,7 +33,7 @@ public class CVCertificateExtensions extends AbstractArray {
     return CVCTagEnum.DISCRETIONARY_DATA_TEMPLATE;
   }
 
-  /** Default constructor */
+  /** Default constructor. */
   CVCertificateExtensions() {
     super(CVCTagEnum.CERTIFICATE_EXTENSIONS);
   }
@@ -43,6 +43,7 @@ public class CVCertificateExtensions extends AbstractArray {
    * Discretionary Data Template objects).
    *
    * @param extensions Extensions with OIDs and extension specific data
+ * @throws ConstructionException fail
    */
   public CVCertificateExtensions(
       final Collection<CVCDiscretionaryDataTemplate> extensions)
@@ -57,6 +58,7 @@ public class CVCertificateExtensions extends AbstractArray {
    * Returns the certificate extensions (wrapped in Discretionary Data Template
    * objects). Each Discretionary Data Template object contains an OID and the
    * raw extension specific data.
+ * @return ests
    */
   public List<CVCDiscretionaryDataTemplate> getExtensions() {
     List<CVCDiscretionaryDataTemplate> exts =
