@@ -140,7 +140,7 @@ public class TestDatafields extends TestCase implements CVCTest {
     AuthorizationField auth1 =
         new AuthorizationField(
             new byte[] {(byte) 0xC3}); // This means CVCA/DG3+DG4
-    auth1.fixEnumTypes(CVCObjectIdentifiers.ID_EAC_PASSPORT);
+    auth1.fixEnumTypes(CVCObjectIdentifierConstants.ID_EAC_PASSPORT);
     assertEquals(
         AccessRightEnum.READ_ACCESS_DG3_AND_DG4, auth1.getAccessRights());
     assertTrue("role was not CVCA", auth1.getAuthRole().isCVCA());
@@ -152,7 +152,7 @@ public class TestDatafields extends TestCase implements CVCTest {
 
     AuthorizationField auth2 =
         new AuthorizationField(new byte[] {(byte) 0x42}); // This means CV-f/DG4
-    auth2.fixEnumTypes(CVCObjectIdentifiers.ID_EAC_PASSPORT);
+    auth2.fixEnumTypes(CVCObjectIdentifierConstants.ID_EAC_PASSPORT);
     assertEquals(AccessRightEnum.READ_ACCESS_DG4, auth2.getAccessRights());
     assertTrue("role was not Foreign DV", auth2.getAuthRole().isForeignDV());
 
@@ -166,7 +166,7 @@ public class TestDatafields extends TestCase implements CVCTest {
               (byte) 0xA0, 0, 0, 0, 1
             }); // This means CV-d / Write-DG17 + Age Verification (first and
                 // last bits)
-    auth3.fixEnumTypes(CVCObjectIdentifiers.ID_EAC_ROLES_AT);
+    auth3.fixEnumTypes(CVCObjectIdentifierConstants.ID_EAC_ROLES_AT);
     AccessRightAuthTerm rightsAT =
         (AccessRightAuthTerm) auth3.getAccessRights();
     assertTrue(
@@ -189,7 +189,7 @@ public class TestDatafields extends TestCase implements CVCTest {
             new byte[] {
               (byte) 0x01
             }); // This means SignatureTerminal / Signature
-    auth4.fixEnumTypes(CVCObjectIdentifiers.ID_EAC_ROLES_ST);
+    auth4.fixEnumTypes(CVCObjectIdentifierConstants.ID_EAC_ROLES_ST);
     assertEquals(AccessRightSignTermEnum.ACCESS_SIGN, auth4.getAccessRights());
     assertTrue(
         "role was not Signature Terminal",

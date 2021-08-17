@@ -20,7 +20,7 @@ import java.io.IOException;
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
  */
-public final class FieldFactory {
+public final class FieldFactory { // NOPMD: naming
 
     private FieldFactory() { }
 
@@ -68,6 +68,7 @@ public final class FieldFactory {
         break;
       default:
         fieldObject = new ByteField(tag, data);
+        break;
     }
     return fieldObject;
   }

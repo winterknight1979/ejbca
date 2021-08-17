@@ -56,7 +56,8 @@ public abstract class AbstractSequence extends CVCObject {
    * @throws ConstructionException if the supplied field is not allowed in this
    *     sequence, or the field already exists.
    */
-  void addSubfield(final CVCObject field) throws ConstructionException {
+  protected void addSubfield(final CVCObject field)
+          throws ConstructionException {
     addSubfield(field, false);
   }
 
@@ -70,7 +71,7 @@ public abstract class AbstractSequence extends CVCObject {
    * @throws ConstructionException if the supplied field is not allowed in this
    *     sequence, or already exists and override == false.
    */
-  void addSubfield(final CVCObject field, final boolean override)
+  protected void addSubfield(final CVCObject field, final boolean override)
       throws ConstructionException {
     if (field != null) {
       if (allowedFields.contains(field.getTag())) {
@@ -109,7 +110,8 @@ public abstract class AbstractSequence extends CVCObject {
    * @return Field
    * @throws NoSuchFieldException if the subfield hasn't been added
    */
-  CVCObject getSubfield(final CVCTagEnum fieldTag) throws NoSuchFieldException {
+  protected CVCObject getSubfield(final CVCTagEnum fieldTag)
+          throws NoSuchFieldException {
     final CVCObject subfield = subfields.get(fieldTag);
     if (subfield == null) {
       throw new NoSuchFieldException("Could not find subfield " + fieldTag);
@@ -124,7 +126,7 @@ public abstract class AbstractSequence extends CVCObject {
    * @param tag Tag
    * @return AbstractDataField or null if the field hasn't been added
    */
-  CVCObject getOptionalSubfield(final CVCTagEnum tag) {
+  protected CVCObject getOptionalSubfield(final CVCTagEnum tag) {
     return subfields.get(tag);
   }
 

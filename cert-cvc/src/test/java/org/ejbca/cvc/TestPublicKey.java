@@ -29,7 +29,7 @@ import org.bouncycastle.jce.ECPointUtil;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.encoders.Hex;
 import org.ejbca.cvc.example.FileHelper;
-import org.ejbca.cvc.util.StringConverter;
+import org.ejbca.cvc.util.StringConverterUtil;
 
 /**
  * Tests PublicKey classes.
@@ -108,7 +108,7 @@ public class TestPublicKey extends TestCase implements CVCTest {
 
     // Call CertificateGenerator
     CVCertificate cvc =
-        CertificateGenerator.createTestCertificate(
+        CertificateGeneratorHelper.createTestCertificate(
             publicKey1,
             keyPair.getPrivate(),
             caRef,
@@ -153,7 +153,7 @@ public class TestPublicKey extends TestCase implements CVCTest {
     ECPoint point = new ECPoint(affineX, affineY);
     byte[] data = PublicKeyEC.encodePoint(point, null);
     assertEquals(
-        "Encoded ECPoint", expectedByteStr, StringConverter.byteToHex(data));
+       "Encoded ECPoint", expectedByteStr, StringConverterUtil.byteToHex(data));
 
     // Test decoding of a ECPoint
     ECPoint decodedPoint =
@@ -171,7 +171,7 @@ public class TestPublicKey extends TestCase implements CVCTest {
     affineY = new BigInteger(y, 16);
     point = new ECPoint(affineX, affineY);
     data = PublicKeyEC.encodePoint(point, null);
-    String result = StringConverter.byteToHex(data);
+    String result = StringConverterUtil.byteToHex(data);
     assertEquals("Encoded ECPoint", expectedByteStr, result);
 
     // Test with a point with an affineX that is one byte shorted than the
@@ -183,7 +183,7 @@ public class TestPublicKey extends TestCase implements CVCTest {
     affineY = new BigInteger(y, 16);
     point = new ECPoint(affineX, affineY);
     data = PublicKeyEC.encodePoint(point, null);
-    result = StringConverter.byteToHex(data);
+    result = StringConverterUtil.byteToHex(data);
     assertEquals("Encoded ECPoint", expectedByteStr, result);
 
     // Create key with BouncyCastle (v1.36 supports key lengths 192, 239 and
@@ -204,7 +204,7 @@ public class TestPublicKey extends TestCase implements CVCTest {
     data =
         PublicKeyEC.encodePoint(
             ecKey.getParams().getGenerator(), ecKey.getParams().getCurve());
-    result = StringConverter.byteToHex(data);
+    result = StringConverterUtil.byteToHex(data);
     expectedByteStr =
         "04"
             + "0FFA963CDCA8816CCC33B8642BEDF905C3D358573D3F27FBBD3B3CB9AAAF"
@@ -246,7 +246,7 @@ public class TestPublicKey extends TestCase implements CVCTest {
     keyGen.initialize(256, new SecureRandom());
     KeyPair keyPair = keyGen.generateKeyPair();
     CVCertificate req =
-        CertificateGenerator.createRequest(
+        CertificateGeneratorHelper.createRequest(
             keyPair,
             "SHA256WITHECDSA",
             new HolderReferenceField("SE", "KLMNOPQ", "00001"));

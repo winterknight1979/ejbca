@@ -118,6 +118,7 @@ public final class CertificateParser {
             break;
           default:
             nestedTagIfAmbiguous = null;
+            break;
         }
         sequence.addSubfield(decode(din, null, nestedTagIfAmbiguous));
       }

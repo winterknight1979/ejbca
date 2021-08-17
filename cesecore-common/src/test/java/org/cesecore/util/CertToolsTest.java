@@ -92,7 +92,7 @@ import org.ejbca.cvc.CVCAuthenticatedRequest;
 import org.ejbca.cvc.CVCObject;
 import org.ejbca.cvc.CVCertificate;
 import org.ejbca.cvc.CardVerifiableCertificate;
-import org.ejbca.cvc.CertificateGenerator;
+import org.ejbca.cvc.CertificateGeneratorHelper;
 import org.ejbca.cvc.CertificateParser;
 import org.ejbca.cvc.HolderReferenceField;
 import org.junit.Before;
@@ -2158,7 +2158,7 @@ public class CertToolsTest {
     HolderReferenceField holderRef =
         new HolderReferenceField("SE", "HOLDERRE", "00000");
     CVCertificate cv =
-        CertificateGenerator.createTestCertificate(
+        CertificateGeneratorHelper.createTestCertificate(
             keyPair.getPublic(),
             keyPair.getPrivate(),
             caRef,
@@ -3156,7 +3156,7 @@ public class CertToolsTest {
             "C=SE,O=PrimeKey,CN=example.com", CeSecoreNameStyle.INSTANCE, true);
     checkNCException(cacert, invalidDN1, null, "ldapDnOrder true was accepted");
 
-    /** TODO: this causes BC 1.67 to throw a NPE.
+    /* TODO: this causes BC 1.67 to throw a NPE.
     X500Name invalidDN2 =
         CertTools.stringToBcX500Name(
             "C=SE,O=PrimeKey,CN=example.com",

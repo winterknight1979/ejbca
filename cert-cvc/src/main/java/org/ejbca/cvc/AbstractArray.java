@@ -51,7 +51,7 @@ public abstract class AbstractArray extends AbstractSequence {
    *     sequence.
    */
   @Override
-  void addSubfield(final CVCObject field) throws ConstructionException {
+  public void addSubfield(final CVCObject field) throws ConstructionException {
     if (field != null) {
       if (allowedField != field.getTag()) {
         throw new ConstructionException(

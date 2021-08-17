@@ -13,7 +13,7 @@
 package org.ejbca.cvc;
 
 import java.math.BigInteger;
-import org.ejbca.cvc.util.StringConverter;
+import org.ejbca.cvc.util.StringConverterUtil;
 
 /**
  * Generic field representing binary data (or Octet String).
@@ -109,6 +109,6 @@ public class ByteField extends AbstractDataField {
       }
       lenInfo = "[" + bitLength + "]  ";
     }
-    return lenInfo + StringConverter.byteToHex(data);
+    return lenInfo + StringConverterUtil.byteToHex(data);
   }
 }

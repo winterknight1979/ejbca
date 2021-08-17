@@ -98,7 +98,7 @@ public class TestCVCertificate extends TestCase implements CVCTest {
 
     // This will create a self-signed certificate
     CVCertificate cert =
-        CertificateGenerator.createTestCertificate(
+        CertificateGeneratorHelper.createTestCertificate(
             keyPair.getPublic(),
             keyPair.getPrivate(),
             caRef,
@@ -134,7 +134,7 @@ public class TestCVCertificate extends TestCase implements CVCTest {
     cal.add(Calendar.DAY_OF_MONTH, 3);
     Date dateTo = cal.getTime();
     CVCertificate isCert =
-        CertificateGenerator.createCertificate(
+        CertificateGeneratorHelper.createCertificate(
             isKeyPair.getPublic(),
             caKeyPair.getPrivate(),
             "SHA256WithRSA",
@@ -244,7 +244,7 @@ public class TestCVCertificate extends TestCase implements CVCTest {
     CVCertificate decodedCert;
 
     cert =
-        CertificateGenerator.createCertificate(
+        CertificateGeneratorHelper.createCertificate(
             keyPair.getPublic(),
             keyPair.getPrivate(),
             "SHA256WithRSA",
@@ -274,7 +274,7 @@ public class TestCVCertificate extends TestCase implements CVCTest {
     extensions.add(ext1);
     extensions.add(ext2);
     cert =
-        CertificateGenerator.createCertificate(
+        CertificateGeneratorHelper.createCertificate(
             keyPair.getPublic(),
             keyPair.getPrivate(),
             "SHA256WithRSA",
@@ -329,7 +329,7 @@ public class TestCVCertificate extends TestCase implements CVCTest {
             HR_COUNTRY_CODE, HR_HOLDER_MNEMONIC, HR_SEQUENCE_NO);
 
     // Call CertificateGenerator
-    return CertificateGenerator.createTestCertificate(
+    return CertificateGeneratorHelper.createTestCertificate(
         keyPair.getPublic(),
         keyPair.getPrivate(),
         caRef,

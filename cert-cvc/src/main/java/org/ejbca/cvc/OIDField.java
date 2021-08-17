@@ -94,7 +94,7 @@ public class OIDField extends AbstractDataField {
       System.arraycopy(derField, 2, encoding, 0, encoding.length);
       return encoding;
     } catch (IOException e) {
-      throw new RuntimeException(e.getMessage());
+      throw new RuntimeException(e.getMessage()); // NOPMD
     }
   }
 

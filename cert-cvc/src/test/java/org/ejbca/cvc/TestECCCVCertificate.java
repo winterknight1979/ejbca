@@ -136,7 +136,7 @@ public class TestECCCVCertificate extends TestCase implements CVCTest {
 
     // Detta blir ett self-signed certifikat
     CVCertificate cert =
-        CertificateGenerator.createTestCertificate(
+        CertificateGeneratorHelper.createTestCertificate(
             keyPair.getPublic(),
             keyPair.getPrivate(),
             caRef,
@@ -172,7 +172,7 @@ public class TestECCCVCertificate extends TestCase implements CVCTest {
     cal.add(Calendar.DAY_OF_MONTH, 3);
     Date dateTo = cal.getTime();
     CVCertificate isCert =
-        CertificateGenerator.createCertificate(
+        CertificateGeneratorHelper.createCertificate(
             isKeyPair.getPublic(),
             caKeyPair.getPrivate(),
             "SHA256WithECDSA",
@@ -260,7 +260,7 @@ public class TestECCCVCertificate extends TestCase implements CVCTest {
             HR_COUNTRY_CODE, HR_HOLDER_MNEMONIC, HR_SEQUENCE_NO);
 
     // Call method in CertificateGenerator
-    return CertificateGenerator.createTestCertificate(
+    return CertificateGeneratorHelper.createTestCertificate(
         keyPair.getPublic(),
         keyPair.getPrivate(),
         caRef,

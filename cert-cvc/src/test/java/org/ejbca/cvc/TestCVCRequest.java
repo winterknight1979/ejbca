@@ -157,7 +157,7 @@ public class TestCVCRequest extends TestCase implements CVCTest {
             HR_COUNTRY_CODE, HR_HOLDER_MNEMONIC, HR_SEQUENCE_NO);
 
     // Call CertificateGenerator
-    return CertificateGenerator.createRequest(
+    return CertificateGeneratorHelper.createRequest(
         keyPair, algName, caRef, holderRef);
   }
 
@@ -177,7 +177,7 @@ public class TestCVCRequest extends TestCase implements CVCTest {
             HR_COUNTRY_CODE, HR_HOLDER_MNEMONIC, HR_SEQUENCE_NO);
 
     // Call CertificateGenerator
-    return CertificateGenerator.createRequest(
+    return CertificateGeneratorHelper.createRequest(
         keyPair, algName, caRef, holderRef);
   }
 
@@ -195,7 +195,7 @@ public class TestCVCRequest extends TestCase implements CVCTest {
             HR_COUNTRY_CODE, HR_HOLDER_MNEMONIC, HR_SEQUENCE_NO);
 
     // Call CertificateGenerator
-    return CertificateGenerator.createRequest(
+    return CertificateGeneratorHelper.createRequest(
         keyPair, algName, caRef, holderRef);
   }
 
@@ -216,7 +216,7 @@ public class TestCVCRequest extends TestCase implements CVCTest {
       keyGen.initialize(1024, new SecureRandom());
       signKeys = keyGen.generateKeyPair();
     }
-    return CertificateGenerator.createAuthenticatedRequest(
+    return CertificateGeneratorHelper.createAuthenticatedRequest(
         certReq, signKeys, algName, caRef);
   }
 
@@ -237,7 +237,7 @@ public class TestCVCRequest extends TestCase implements CVCTest {
       keyGen.initialize(256, new SecureRandom());
       signKeys = keyGen.generateKeyPair();
     }
-    return CertificateGenerator.createAuthenticatedRequest(
+    return CertificateGeneratorHelper.createAuthenticatedRequest(
         certReq, signKeys, algName, caRef);
   }
 }

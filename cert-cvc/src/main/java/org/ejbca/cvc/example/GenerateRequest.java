@@ -21,7 +21,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.ejbca.cvc.CAReferenceField;
 import org.ejbca.cvc.CVCAuthenticatedRequest;
 import org.ejbca.cvc.CVCertificate;
-import org.ejbca.cvc.CertificateGenerator;
+import org.ejbca.cvc.CertificateGeneratorHelper;
 import org.ejbca.cvc.HolderReferenceField;
 
 /**
@@ -65,11 +65,12 @@ public final class GenerateRequest {
 
       // Call CertificateGenerator
       CVCertificate request =
-          CertificateGenerator.createRequest(keyPair, algorithmName, holderRef);
+          CertificateGeneratorHelper.createRequest(keyPair,
+                  algorithmName, holderRef);
       System.out.println(request.getAsText()); // NOPMD
 
       CVCAuthenticatedRequest authRequest =
-          CertificateGenerator.createAuthenticatedRequest(
+          CertificateGeneratorHelper.createAuthenticatedRequest(
               request, keyPair, algorithmName, previousHolderRef);
       System.out.println(authRequest.getAsText()); // NOPMD
 

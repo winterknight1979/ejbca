@@ -45,32 +45,36 @@ public final class AlgorithmUtil {
   // id-TA-ECDSA-SHA-512
 
   static {
-    algorithmMap.put("SHA1WITHRSA", CVCObjectIdentifiers.ID_TA_RSA_V1_5_SHA_1);
+    algorithmMap.put("SHA1WITHRSA",
+            CVCObjectIdentifierConstants.ID_TA_RSA_V1_5_SHA_1);
     algorithmMap.put(
-        "SHA256WITHRSA", CVCObjectIdentifiers.ID_TA_RSA_V1_5_SHA_256);
+        "SHA256WITHRSA", CVCObjectIdentifierConstants.ID_TA_RSA_V1_5_SHA_256);
     algorithmMap.put(
-        "SHA512WITHRSA", CVCObjectIdentifiers.ID_TA_RSA_V1_5_SHA_512);
+        "SHA512WITHRSA", CVCObjectIdentifierConstants.ID_TA_RSA_V1_5_SHA_512);
     algorithmMap.put(
-        "SHA1WITHRSAANDMGF1", CVCObjectIdentifiers.ID_TA_RSA_PSS_SHA_1);
+        "SHA1WITHRSAANDMGF1", CVCObjectIdentifierConstants.ID_TA_RSA_PSS_SHA_1);
     algorithmMap.put(
-        "SHA256WITHRSAANDMGF1", CVCObjectIdentifiers.ID_TA_RSA_PSS_SHA_256);
+        "SHA256WITHRSAANDMGF1",
+        CVCObjectIdentifierConstants.ID_TA_RSA_PSS_SHA_256);
     algorithmMap.put(
-        "SHA512WITHRSAANDMGF1", CVCObjectIdentifiers.ID_TA_RSA_PSS_SHA_512);
+        "SHA512WITHRSAANDMGF1",
+        CVCObjectIdentifierConstants.ID_TA_RSA_PSS_SHA_512);
     // Because CVC certificates does not use standard X9.62 signature encoding
     // we
     // have CVC variants of the ECDSA signature algorithms
     // skip SHA1WITHCVC-ECDSA etc since we have to convert the signature
     // manually to
     // support HSM providers
-    algorithmMap.put("SHA1WITHECDSA", CVCObjectIdentifiers.ID_TA_ECDSA_SHA_1);
+    algorithmMap.put("SHA1WITHECDSA",
+            CVCObjectIdentifierConstants.ID_TA_ECDSA_SHA_1);
     algorithmMap.put(
-        "SHA224WITHECDSA", CVCObjectIdentifiers.ID_TA_ECDSA_SHA_224);
+        "SHA224WITHECDSA", CVCObjectIdentifierConstants.ID_TA_ECDSA_SHA_224);
     algorithmMap.put(
-        "SHA256WITHECDSA", CVCObjectIdentifiers.ID_TA_ECDSA_SHA_256);
+        "SHA256WITHECDSA", CVCObjectIdentifierConstants.ID_TA_ECDSA_SHA_256);
     algorithmMap.put(
-        "SHA384WITHECDSA", CVCObjectIdentifiers.ID_TA_ECDSA_SHA_384);
+        "SHA384WITHECDSA", CVCObjectIdentifierConstants.ID_TA_ECDSA_SHA_384);
     algorithmMap.put(
-        "SHA512WITHECDSA", CVCObjectIdentifiers.ID_TA_ECDSA_SHA_512);
+        "SHA512WITHECDSA", CVCObjectIdentifierConstants.ID_TA_ECDSA_SHA_512);
   }
 
   static {

@@ -38,7 +38,8 @@ public class CVCAuthorizationTemplate extends AbstractSequence {
   }
 
   @Override
-  void addSubfield(final CVCObject field) throws ConstructionException {
+  protected void addSubfield(final CVCObject field)
+          throws ConstructionException {
     super.addSubfield(field);
     // Determine OID and change role/rights enums to the right type
     if (field instanceof AuthorizationField) {
@@ -124,13 +125,13 @@ public class CVCAuthorizationTemplate extends AbstractSequence {
       final AuthorizationRole role, final AccessRights rights) {
     if (role instanceof AuthorizationRoleEnum
         && rights instanceof AccessRightEnum) {
-      return CVCObjectIdentifiers.ID_EAC_PASSPORT;
+      return CVCObjectIdentifierConstants.ID_EAC_PASSPORT;
     } else if (role instanceof AuthorizationRoleAuthTermEnum
         && rights instanceof AccessRightAuthTerm) {
-      return CVCObjectIdentifiers.ID_EAC_ROLES_AT;
+      return CVCObjectIdentifierConstants.ID_EAC_ROLES_AT;
     } else if (role instanceof AuthorizationRoleSignTermEnum
         && rights instanceof AccessRightSignTermEnum) {
-      return CVCObjectIdentifiers.ID_EAC_ROLES_ST;
+      return CVCObjectIdentifierConstants.ID_EAC_ROLES_ST;
     } else {
       throw new IllegalArgumentException(
           "Unsupported roles/rights type (or mismatch). Got role of type "

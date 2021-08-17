@@ -22,7 +22,7 @@ import org.ejbca.cvc.AuthorizationRoleEnum;
 import org.ejbca.cvc.CAReferenceField;
 import org.ejbca.cvc.CVCObject;
 import org.ejbca.cvc.CVCertificate;
-import org.ejbca.cvc.CertificateGenerator;
+import org.ejbca.cvc.CertificateGeneratorHelper;
 import org.ejbca.cvc.CertificateParser;
 import org.ejbca.cvc.HolderReferenceField;
 
@@ -60,7 +60,7 @@ public final class GenerateCert {
 
       // Use the simpler method CertificateGenerator for this test purpose
       final CVCertificate cvc =
-          CertificateGenerator.createTestCertificate(
+          CertificateGeneratorHelper.createTestCertificate(
               keyPair.getPublic(),
               keyPair.getPrivate(),
               caRef,

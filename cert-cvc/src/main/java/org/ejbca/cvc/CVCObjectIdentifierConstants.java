@@ -18,7 +18,7 @@ package org.ejbca.cvc;
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
  */
-public final class CVCObjectIdentifiers {
+public final class CVCObjectIdentifierConstants {
 
   //    From BSI Technical Guideline TR-03111:
   //    bsi-de OBJECT IDENTIFIER ::= {
@@ -88,5 +88,5 @@ public final class CVCObjectIdentifiers {
   public static final OIDField ID_EAC_ROLES_ST =
       new OIDField(BSI_DE + ".3.1.2.3");
 
-  private CVCObjectIdentifiers() { }
+  private CVCObjectIdentifierConstants() { }
 }

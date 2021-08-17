@@ -33,7 +33,7 @@ import org.ejbca.cvc.exception.ConstructionException;
  */
 public class PublicKeyEC extends CVCPublicKey implements ECPublicKey {
 
-  static final long serialVersionUID = 1L; // TODO: Fix better value
+  private static final long serialVersionUID = 1L; // TODO: Fix better value
 
   /** Byte value indicating the start of an uncompressed Point data array. */
   public static final byte UNCOMPRESSED_POINT_TAG = 0x04;
@@ -96,7 +96,7 @@ public class PublicKeyEC extends CVCPublicKey implements ECPublicKey {
     addSubfield(oid);
 
     ECParameterSpec ecParameterSpec = pubKeyEC.getParams();
-    boolean addAllParams = (authRole == null || authRole.isCVCA());
+    boolean addAllParams = authRole == null || authRole.isCVCA();
     if (addAllParams) {
       ECField ecField = ecParameterSpec.getCurve().getField();
       if (ecField instanceof ECFieldFp) {
@@ -176,7 +176,7 @@ public class PublicKeyEC extends CVCPublicKey implements ECPublicKey {
       if (ecParameterSpec != null) {
         AbstractSequence parent = getParent();
         if (parent != null
-            && (parent.getTag() == CVCTagEnum.CERTIFICATE_BODY)) {
+            && parent.getTag() == CVCTagEnum.CERTIFICATE_BODY) {
           try {
             CVCObject cvcObj =
                 ((CVCertificateBody) parent)
@@ -192,10 +192,9 @@ public class PublicKeyEC extends CVCPublicKey implements ECPublicKey {
               AuthorizationField authField =
                   ((CVCAuthorizationTemplate) cvcObj).getAuthorizationField();
               addAllParams =
-                  (authField != null && authField.getAuthRole().isCVCA());
+                  authField != null && authField.getAuthRole().isCVCA();
             }
-          } catch (NoSuchFieldException e) {
-            // Nothing to do...
+          } catch (NoSuchFieldException e) { // NOPMD: Nothing to do...
           }
         } else if (parent == null) {
           // This could be useful during development - enables DER-encoding of

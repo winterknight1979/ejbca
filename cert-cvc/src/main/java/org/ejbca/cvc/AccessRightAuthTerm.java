@@ -13,7 +13,7 @@
 package org.ejbca.cvc;
 
 import java.io.Serializable;
-import org.ejbca.cvc.util.StringConverter;
+import org.ejbca.cvc.util.StringConverterUtil;
 
 /**
  * Represents Access Rights for Inspection Systems. Use with OID
@@ -193,6 +193,15 @@ public class AccessRightAuthTerm implements AccessRights, Serializable {
       return "R-DG" + (flag - BIT_READ_DG1 + 1);
     }
     // Special functions
+    return flagSwitch(flag);
+  }
+
+/**
+ * @param flag flag
+ * @return val
+ * @throws IllegalStateException fail
+ */
+private static String flagSwitch(final int flag) throws IllegalStateException {
     switch (flag) {
       case BIT_INSTALL_QUALIFIED_CERT:
         return "Install Qualified Certificate";
@@ -213,10 +222,10 @@ public class AccessRightAuthTerm implements AccessRights, Serializable {
       default:
         throw new IllegalStateException();
     }
-  }
+}
 
   @Override
   public String name() {
-    return "ACCESS_RIGHT_AT_" + StringConverter.byteToHex(bytes);
+    return "ACCESS_RIGHT_AT_" + StringConverterUtil.byteToHex(bytes);
   }
 }

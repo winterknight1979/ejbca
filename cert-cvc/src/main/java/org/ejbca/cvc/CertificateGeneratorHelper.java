@@ -33,10 +33,10 @@ import org.ejbca.cvc.util.BCECUtil;
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
  */
-public final class CertificateGenerator {
+public final class CertificateGeneratorHelper {
 
   // Only static methods...
-  private CertificateGenerator() { }
+  private CertificateGeneratorHelper() { }
 
   /**
    * Generates a CVCertificate for testing with the following characteristics: -
@@ -151,7 +151,7 @@ public final class CertificateGenerator {
    * @throws SignatureException fail
    * @throws ConstructionException fail
    */
-  public static CVCertificate createCertificate(
+  public static CVCertificate createCertificate(// NOPMD: params
       final PublicKey publicKey,
       final PrivateKey signerKey,
       final String algorithmName,
@@ -200,7 +200,7 @@ public final class CertificateGenerator {
  * @throws InvalidKeyException fail
  * @throws SignatureException fail
  * @throws ConstructionException fail */
-  public static CVCertificate createCertificate(
+  public static CVCertificate createCertificate(// NOPMD: Params
       final PublicKey publicKey,
       final PrivateKey signerKey,
       final String algorithmName,
@@ -249,7 +249,7 @@ public final class CertificateGenerator {
  * @throws SignatureException fail
  * @throws ConstructionException fail
    */
-  public static CVCertificate createCertificate(
+  public static CVCertificate createCertificate(// NOPMD: Params
       final PublicKey publicKey,
       final PrivateKey signerKey,
       final String algorithmName,
@@ -339,7 +339,8 @@ public final class CertificateGenerator {
    *     @throws ConstructionException fail
    *     @throws SignatureException fail
    *     @throws InvalidKeyException fail
-   * @see CertificateGenerator#createRequest(KeyPair, String, CAReferenceField,
+   * @see CertificateGeneratorHelper#createRequest(KeyPair,
+   * String, CAReferenceField,
    *     HolderReferenceField, Collection, String)
    */
   public static CVCertificate createRequest(
@@ -356,7 +357,8 @@ public final class CertificateGenerator {
    * Generates a CVC-request without an outer signature using BouncyCastle as
    * signature provider, taking Certificate Authority Reference as argument.
    *
-   * @see CertificateGenerator#createRequest(KeyPair, String, CAReferenceField,
+   * @see CertificateGeneratorHelper#createRequest(KeyPair, String,
+   * CAReferenceField,
    *     HolderReferenceField, Collection, String)
    *     @param keyPair pair
    *     @param algorithmName name

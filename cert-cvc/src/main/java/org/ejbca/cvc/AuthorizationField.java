@@ -12,7 +12,7 @@
  *************************************************************************/
 package org.ejbca.cvc;
 
-import org.ejbca.cvc.util.StringConverter;
+import org.ejbca.cvc.util.StringConverterUtil;
 
 /**
  * Represents field 'Roles and access rights' i CVC.
@@ -139,7 +139,8 @@ public class AuthorizationField extends AbstractDataField {
 
   @Override
   protected String valueAsText() {
-    return StringConverter.byteToHex(getEncoded()) + ": " + role + "/" + rights;
+    return StringConverterUtil.byteToHex(
+            getEncoded()) + ": " + role + "/" + rights;
   }
 
   /** Translates a byte to AuthorizationRole.
@@ -152,11 +153,11 @@ public class AuthorizationField extends AbstractDataField {
     byte testVal = (byte) (b & mask);
 
     AuthorizationRole[] values;
-    if (CVCObjectIdentifiers.ID_EAC_PASSPORT.equals(oid)) {
+    if (CVCObjectIdentifierConstants.ID_EAC_PASSPORT.equals(oid)) {
       values = AuthorizationRoleEnum.values();
-    } else if (CVCObjectIdentifiers.ID_EAC_ROLES_ST.equals(oid)) {
+    } else if (CVCObjectIdentifierConstants.ID_EAC_ROLES_ST.equals(oid)) {
       values = AuthorizationRoleSignTermEnum.values();
-    } else if (CVCObjectIdentifiers.ID_EAC_ROLES_AT.equals(oid)) {
+    } else if (CVCObjectIdentifierConstants.ID_EAC_ROLES_AT.equals(oid)) {
       values = AuthorizationRoleAuthTermEnum.values();
     } else {
       return new AuthorizationRoleRawValue(b);
@@ -179,7 +180,7 @@ public class AuthorizationField extends AbstractDataField {
   private static AccessRights getRightsFromBytes(
       final OIDField oid, final byte[] data) {
     final int mask = 0x03;
-    if (CVCObjectIdentifiers.ID_EAC_PASSPORT.equals(oid)) {
+    if (CVCObjectIdentifierConstants.ID_EAC_PASSPORT.equals(oid)) {
       if (data.length != 1) {
         throw new IllegalArgumentException(
             "byte array length must be 1, was " + data.length);
@@ -193,7 +194,7 @@ public class AuthorizationField extends AbstractDataField {
         }
       }
       return foundRight;
-    } else if (CVCObjectIdentifiers.ID_EAC_ROLES_ST.equals(oid)) {
+    } else if (CVCObjectIdentifierConstants.ID_EAC_ROLES_ST.equals(oid)) {
       if (data.length != 1) {
         throw new IllegalArgumentException(
             "byte array length must be 1, was " + data.length);
@@ -209,7 +210,7 @@ public class AuthorizationField extends AbstractDataField {
       return foundRight;
     }
     final int len = 5;
-    if (CVCObjectIdentifiers.ID_EAC_ROLES_AT.equals(oid)) {
+    if (CVCObjectIdentifierConstants.ID_EAC_ROLES_AT.equals(oid)) {
       if (data.length != len) {
         throw new IllegalArgumentException(
             "byte array length must be 5, was " + data.length);
@@ -225,7 +226,7 @@ public class AuthorizationField extends AbstractDataField {
    * necessary when deserializing from binary data.
    * @param oid OID
    */
-  void fixEnumTypes(final OIDField oid) {
+  protected void fixEnumTypes(final OIDField oid) {
     role = getRoleFromByte(oid, role.getValue());
     rights = getRightsFromBytes(oid, rights.getEncoded());
   }

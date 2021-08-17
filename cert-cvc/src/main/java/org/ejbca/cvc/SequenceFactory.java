@@ -19,7 +19,7 @@ package org.ejbca.cvc;
  * @author Keijo Kurkinen, Swedish National Police Board
  * @version $Id$
  */
-public final class SequenceFactory {
+public final class SequenceFactory { // NOPMD: naming
 
     private SequenceFactory() { }
   /**

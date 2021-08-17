@@ -76,7 +76,7 @@ public class TestNonEacCVC extends TestCase implements CVCTest {
             car, cvcPublicKey, chr, chat, new Date(), new Date());
 
     CVCertificate cvCertificate =
-        CertificateGenerator.createCertificate(
+        CertificateGeneratorHelper.createCertificate(
             keyPair.getPrivate(),
             algorithm,
             cvcBody,
