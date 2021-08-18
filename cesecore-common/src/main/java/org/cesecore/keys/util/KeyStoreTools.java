@@ -434,7 +434,7 @@ public class KeyStoreTools {
         && keySpec.startsWith(AlgorithmConstants.KEYSPECPREFIX_ECGOST3410)) {
       generateGOST3410(keySpec, keyEntryName);
     } else if (AlgorithmTools.isDstu4145Enabled()
-        && keySpec.startsWith(CesecoreConfigurationHelper.getOidDstu4145() + ".")) {
+    && keySpec.startsWith(CesecoreConfigurationHelper.getOidDstu4145() + ".")) {
       generateDSTU4145(keySpec, keyEntryName);
     } else {
 

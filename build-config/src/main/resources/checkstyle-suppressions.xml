@@ -28,7 +28,7 @@
 	<suppress checks="ParameterNumberCheck" files="CvcPlugin.java"
 		lines="115" />
 	<suppress checks="ParameterNumberCheck"
-		files="CertificateValidity.java" lines="188" />
+		files="CertificateValidity.java" lines="189" />
 	<suppress checks="MethodLengthCheck"
 		files="CertificateValidity.java" lines="188" />
 	<suppress checks="MagicNumberCheck"
@@ -73,7 +73,7 @@
 	<suppress checks="MagicNumberCheck" files="DnComponents.java"
 		lines="647-654" />	<!-- splitting fields -->
 	<suppress checks="LineLengthCheck"
-		files="CesecoreConfiguration.java" lines="626-634" /> <!-- URL in comment, not caught by config -->
+		files="CesecoreConfigurationHelper.java" lines="626-634" /> <!-- URL in comment, not caught by config -->
 	<suppress checks="ParameterNumberCheck"
 		files="InternalKeyBindingFactory.java" lines="89" />
 	<suppress checks="UnusedImportsCheck"

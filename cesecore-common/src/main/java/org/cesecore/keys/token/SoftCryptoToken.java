@@ -107,7 +107,7 @@ public class SoftCryptoToken extends BaseCryptoToken {
     if ((autoPwd == null) && (properties.getProperty(NODEFAULTPWD) == null)) {
       final String keystorepass =
           StringTools.passwordDecryption(
-              CesecoreConfigurationHelper.getCaKeyStorePass(), "ca.keystorepass");
+            CesecoreConfigurationHelper.getCaKeyStorePass(), "ca.keystorepass");
       // Test it first, don't set an incorrect password as autoactivate password
       boolean okPwd =
           checkSoftKeystorePassword(keystorepass.toCharArray(), cryptoTokenId);
@@ -231,8 +231,8 @@ public class SoftCryptoToken extends BaseCryptoToken {
     try {
       if (authCode == null || authCode.length == 0) {
         final String defaultpass =
-            StringTools.passwordDecryption(
-                CesecoreConfigurationHelper.getCaKeyStorePass(), "ca.keystorepass");
+          StringTools.passwordDecryption(
+            CesecoreConfigurationHelper.getCaKeyStorePass(), "ca.keystorepass");
         loadKeyStore(keystoreData, defaultpass.toCharArray());
       } else {
         loadKeyStore(keystoreData, authCode);

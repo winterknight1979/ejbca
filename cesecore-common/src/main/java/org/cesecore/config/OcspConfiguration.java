@@ -265,7 +265,7 @@ public final class OcspConfiguration {
   public static int getRestrictSignaturesByMethod() {
     if ("signer"
         .equalsIgnoreCase(
-            ConfigurationHolderUtil.getString("ocsp.restrictsignaturesbymethod"))) {
+        ConfigurationHolderUtil.getString("ocsp.restrictsignaturesbymethod"))) {
       return RESTRICTONSIGNER;
     }
     return RESTRICTONISSUER;
@@ -311,7 +311,7 @@ public final class OcspConfiguration {
   @Deprecated
   public static int getResponderIdType() {
     if ("name"
-        .equalsIgnoreCase(ConfigurationHolderUtil.getString(RESPONDER_ID_TYPE))) {
+      .equalsIgnoreCase(ConfigurationHolderUtil.getString(RESPONDER_ID_TYPE))) {
       return RESPONDERIDTYPE_NAME;
     }
     return RESPONDERIDTYPE_KEYHASH;
@@ -341,7 +341,7 @@ public final class OcspConfiguration {
    *     unsigned "Unauthorized" response.
    */
   public static boolean getNonExistingIsUnauthorized() {
-    String value = ConfigurationHolderUtil.getString(NON_EXISTING_IS_UNAUTHORIZED);
+ String value = ConfigurationHolderUtil.getString(NON_EXISTING_IS_UNAUTHORIZED);
     return "true".equalsIgnoreCase(value) || "yes".equalsIgnoreCase(value);
   }
 
@@ -412,7 +412,8 @@ public final class OcspConfiguration {
    */
   @Deprecated
   public static String getDefaultResponderId() {
-    final String ret = ConfigurationHolderUtil.getExpandedString(DEFAULT_RESPONDER);
+    final String ret = ConfigurationHolderUtil.
+            getExpandedString(DEFAULT_RESPONDER);
     if (ret != null) {
       return CertTools.stringToBCDNString(ret);
     }
@@ -490,7 +491,7 @@ public final class OcspConfiguration {
   /** @return true if UnidFnr is enabled in ocsp.properties */
   public static boolean isUnidEnabled() {
     if (ConfigurationHolderUtil.getString("unidfnr.enabled") != null
-        && ConfigurationHolderUtil.getString("unidfnr.enabled").equals("true")) {
+       && ConfigurationHolderUtil.getString("unidfnr.enabled").equals("true")) {
       return true;
     }
     return false;
@@ -805,7 +806,8 @@ public final class OcspConfiguration {
   @Deprecated // Remove this method once upgrading VAs to EJBCA 6 has been
               // dropped
   public static String getKeyPassword() {
-    final String value = ConfigurationHolderUtil.getString("ocsp.keys.keyPassword");
+    final String value = ConfigurationHolderUtil.
+            getString("ocsp.keys.keyPassword");
     if (value != null) {
       return value;
     }

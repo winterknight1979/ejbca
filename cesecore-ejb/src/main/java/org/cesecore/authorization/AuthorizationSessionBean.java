@@ -119,7 +119,8 @@ public class AuthorizationSessionBean
   @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
   public void timeOut(final Timer timer) {
     authorizationSession.refreshAuthorizationCache();
-    final long interval = CesecoreConfigurationHelper.getCacheAuthorizationTime();
+    final long interval =
+            CesecoreConfigurationHelper.getCacheAuthorizationTime();
     if (interval > 0) {
       timerService.createSingleActionTimer(
           interval, new TimerConfig("AuthorizationSessionTimer", false));

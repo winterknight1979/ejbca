@@ -1051,12 +1051,12 @@ public class CAInterfaceBean implements Serializable {
             && AlgorithmConstants.KEYALGORITHM_ECGOST3410.equals(
                 caSignKeyAlgo)) {
           caSignKeySpec =
-              CesecoreConfigurationHelper.getExtraAlgSubAlgName("gost3410", "B");
+             CesecoreConfigurationHelper.getExtraAlgSubAlgName("gost3410", "B");
           extendedServiceSignatureKeySpec = caSignKeySpec;
         } else if (AlgorithmTools.isDstu4145Enabled()
             && AlgorithmConstants.KEYALGORITHM_DSTU4145.equals(caSignKeyAlgo)) {
           caSignKeySpec =
-              CesecoreConfigurationHelper.getExtraAlgSubAlgName("dstu4145", "233");
+           CesecoreConfigurationHelper.getExtraAlgSubAlgName("dstu4145", "233");
           extendedServiceSignatureKeySpec = caSignKeySpec;
         }
         cryptoTokenManagementSession.createKeyPair(
@@ -1394,8 +1394,8 @@ public class CAInterfaceBean implements Serializable {
 
         final int caSerialNumberOctetSize =
             (caSerialNumberOctetSizeString != null)
-                ? Integer.parseInt(caSerialNumberOctetSizeString)
-                : CesecoreConfigurationHelper.getSerialNumberOctetSizeForNewCa();
+               ? Integer.parseInt(caSerialNumberOctetSizeString)
+               : CesecoreConfigurationHelper.getSerialNumberOctetSizeForNewCa();
 
         if (crlPeriod != 0 && !illegaldnoraltname) {
           if (buttonCreateCa) {
@@ -1968,8 +1968,8 @@ public class CAInterfaceBean implements Serializable {
 
         final int caSerialNumberOctetSize =
             (caSerialNumberOctetSizeString != null)
-                ? Integer.parseInt(caSerialNumberOctetSizeString)
-                : CesecoreConfigurationHelper.getSerialNumberOctetSizeForNewCa();
+               ? Integer.parseInt(caSerialNumberOctetSizeString)
+               : CesecoreConfigurationHelper.getSerialNumberOctetSizeForNewCa();
 
         // No need to add the HardTokenEncrypt or Keyrecovery extended service
         // here, because they are only "updated" in EditCA, and there
@@ -2382,7 +2382,7 @@ public class CAInterfaceBean implements Serializable {
     }
 
     for (String alg : CesecoreConfigurationHelper.getExtraAlgs()) {
-      for (String subalg : CesecoreConfigurationHelper.getExtraAlgSubAlgs(alg)) {
+     for (String subalg : CesecoreConfigurationHelper.getExtraAlgSubAlgs(alg)) {
         final String title =
             CesecoreConfigurationHelper.getExtraAlgSubAlgTitle(alg, subalg);
         final String name =

@@ -1545,8 +1545,8 @@ public final class KeyTools {
         AlgorithmTools.isGost3410Enabled()
             && AlgorithmConstants.KEYALGORITHM_ECGOST3410.equals(keyAlg);
     final boolean isDstu4145 =
-        AlgorithmTools.isDstu4145Enabled()
-            && keyAlg.startsWith(CesecoreConfigurationHelper.getOidDstu4145() + ".");
+      AlgorithmTools.isDstu4145Enabled()
+       && keyAlg.startsWith(CesecoreConfigurationHelper.getOidDstu4145() + ".");
     if (isEcdsa || isGost3410 || isDstu4145) {
       // We allow key lengths of 0, because that means that implicitlyCA is
       // used.
@@ -1607,7 +1607,7 @@ public final class KeyTools {
       return AlgorithmConstants.KEYALGORITHM_ECGOST3410;
     }
     if (AlgorithmTools.isDstu4145Enabled()
-        && keyspec.startsWith(CesecoreConfigurationHelper.getOidDstu4145() + ".")) {
+    && keyspec.startsWith(CesecoreConfigurationHelper.getOidDstu4145() + ".")) {
       return AlgorithmConstants.KEYALGORITHM_DSTU4145;
     }
     return AlgorithmConstants.KEYALGORITHM_ECDSA;

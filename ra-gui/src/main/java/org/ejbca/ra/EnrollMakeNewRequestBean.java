@@ -2153,14 +2153,14 @@ public class EnrollMakeNewRequestBean implements Serializable {
                                 ecNamedCurve))));
           }
         }
-        for (final String algName : CesecoreConfigurationHelper.getExtraAlgs()) {
+       for (final String algName : CesecoreConfigurationHelper.getExtraAlgs()) {
           if (availableKeyAlgorithms.contains(
               CesecoreConfigurationHelper.getExtraAlgTitle(algName))) {
             for (final String subAlg
                 : CesecoreConfigurationHelper.getExtraAlgSubAlgs(algName)) {
-              final String name =
-                  CesecoreConfigurationHelper.getExtraAlgSubAlgName(algName, subAlg);
-              final int bitLength =
+             final String name =
+             CesecoreConfigurationHelper.getExtraAlgSubAlgName(algName, subAlg);
+             final int bitLength =
                   AlgorithmTools.getNamedEcCurveBitLength(name);
               if (availableBitLengths.contains(Integer.valueOf(bitLength))) {
                 anavailableAlgorithmSelectItems.add(

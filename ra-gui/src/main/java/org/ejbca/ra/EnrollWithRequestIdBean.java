@@ -981,7 +981,7 @@ public class EnrollWithRequestIdBean implements Serializable {
           for (final String subAlg
               : CesecoreConfigurationHelper.getExtraAlgSubAlgs(algName)) {
             final String name =
-                CesecoreConfigurationHelper.getExtraAlgSubAlgName(algName, subAlg);
+             CesecoreConfigurationHelper.getExtraAlgSubAlgName(algName, subAlg);
             final int bitLength = AlgorithmTools.getNamedEcCurveBitLength(name);
             if (availableBitLengths.contains(Integer.valueOf(bitLength))) {
               availableAlgorithmSelectItems.add(

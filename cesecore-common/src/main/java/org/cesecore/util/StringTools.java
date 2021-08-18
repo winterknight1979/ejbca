@@ -133,9 +133,9 @@ public final class StringTools {
     }
 
     /** Used to reset the value so we can JUnit test the class. */
-    public static void reset() {
-      instance = new CharSet(CesecoreConfigurationHelper.getForbiddenCharacters());
-    }
+  public static void reset() {
+   instance = new CharSet(CesecoreConfigurationHelper.getForbiddenCharacters());
+   }
   }
 
   /** Characters that are not allowed in XSS compatible strings. */
@@ -847,7 +847,7 @@ public final class StringTools {
           IllegalBlockSizeException, BadPaddingException,
           InvalidKeySpecException {
     char[] p =
-        ConfigurationHolderUtil.getString("password.encryption.key").toCharArray();
+     ConfigurationHolderUtil.getString("password.encryption.key").toCharArray();
     return pbeEncryptStringWithSha256Aes192(in, p);
   }
 
@@ -936,7 +936,7 @@ public final class StringTools {
       throws InvalidKeyException, IllegalBlockSizeException,
           BadPaddingException, InvalidKeySpecException {
     char[] p =
-        ConfigurationHolderUtil.getString("password.encryption.key").toCharArray();
+     ConfigurationHolderUtil.getString("password.encryption.key").toCharArray();
     return pbeDecryptStringWithSha256Aes192(in, p);
   }
 
@@ -1032,8 +1032,8 @@ public final class StringTools {
       try {
         final String tmp =
             pbeDecryptStringWithSha256Aes192(
-                in,
-                ConfigurationHolderUtil.getDefaultValue("password.encryption.key")
+              in,
+              ConfigurationHolderUtil.getDefaultValue("password.encryption.key")
                     .toCharArray());
         LOG.warn(
             "Using encrypted "

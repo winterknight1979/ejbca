@@ -95,8 +95,8 @@ public class CertificateValidity {
   private static long defaultValidityOffset;
 
   static {
-    final String value = 
-    		CesecoreConfigurationHelper.getCertificateValidityOffset();
+    final String value =
+            CesecoreConfigurationHelper.getCertificateValidityOffset();
     try {
       defaultValidityOffset =
           SimpleTime.getSecondsFormat().parseMillis(value);

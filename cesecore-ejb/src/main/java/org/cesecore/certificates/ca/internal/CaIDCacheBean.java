@@ -109,7 +109,8 @@ public class CaIDCacheBean {
     if (LOG.isTraceEnabled()) {
       LOG.trace(">updateCache");
     }
-    final long cacheTime = CesecoreConfigurationHelper.getCacheCaTimeInCaSession();
+    final long cacheTime =
+            CesecoreConfigurationHelper.getCacheCaTimeInCaSession();
     final long now = System.currentTimeMillis();
     // Check before acquiring lock. Update cache if we force cache update or
     // cache is disabled in config (cacheTime = 0) or cache expired

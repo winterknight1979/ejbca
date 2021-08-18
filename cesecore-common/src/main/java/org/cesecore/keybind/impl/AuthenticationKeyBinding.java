@@ -70,7 +70,7 @@ public class AuthenticationKeyBinding extends InternalKeyBindingBase {
     final String value =
         (String) getProperty(PROPERTY_PROTOCOL_AND_CIPHER_SUITE).getValue();
     final String[] values =
-        value.split(CesecoreConfigurationHelper.AVAILABLE_CIPHER_SUITES_SPLIT_CHAR);
+    value.split(CesecoreConfigurationHelper.AVAILABLE_CIPHER_SUITES_SPLIT_CHAR);
     if (LOG.isDebugEnabled() && pos == 0) {
       LOG.debug(
           "Configured cipher suite for this AuthenticationKeyBinding: "

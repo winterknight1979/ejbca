@@ -2723,7 +2723,7 @@ public class X509CATest {
       return CesecoreConfigurationHelper.getExtraAlgSubAlgName("gost3410", "B");
     } else if (algName.equals(
         AlgorithmConstants.SIGALG_GOST3411_WITH_DSTU4145)) {
-      return CesecoreConfigurationHelper.getExtraAlgSubAlgName("dstu4145", "233");
+    return CesecoreConfigurationHelper.getExtraAlgSubAlgName("dstu4145", "233");
     } else if (algName.equals(AlgorithmConstants.SIGALG_SHA224_WITH_ECDSA)) {
       return "brainpoolp224r1";
     } else if (algName.equalsIgnoreCase(

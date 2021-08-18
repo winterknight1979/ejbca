@@ -98,7 +98,8 @@ public class ConfigurationHolderTest {
     assertEquals("en", val);
     // A little reflection magic just to avoid dumping a test value in
     // defaultvalues.properties file.
-    Field field = ConfigurationHolderUtil.class.getDeclaredField("defaultValues");
+    Field field
+        = ConfigurationHolderUtil.class.getDeclaredField("defaultValues");
     field.setAccessible(true);
     CompositeConfiguration defaultValues =
         (CompositeConfiguration) field.get(null);

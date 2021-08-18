@@ -1505,7 +1505,7 @@ public class CryptoTokenMBean extends BaseManagedBean implements Serializable {
       }
     }
     for (String alg : CesecoreConfigurationHelper.getExtraAlgs()) {
-      for (String subalg : CesecoreConfigurationHelper.getExtraAlgSubAlgs(alg)) {
+     for (String subalg : CesecoreConfigurationHelper.getExtraAlgSubAlgs(alg)) {
         final String title =
             CesecoreConfigurationHelper.getExtraAlgSubAlgTitle(alg, subalg);
         final String name =

@@ -141,7 +141,8 @@ public class StringToolsTest {
 
   private static void forbiddenTest(
       final String forbidden, final String input, final String output) {
-    ConfigurationHolderUtil.instance().setProperty(FORBIDDEN_CHARS_KEY, forbidden);
+    ConfigurationHolderUtil.instance().setProperty(
+            FORBIDDEN_CHARS_KEY, forbidden);
     StringTools.CharSet.reset();
     final String stripped = StringTools.strip(input);
     if (input.equals(output)) {

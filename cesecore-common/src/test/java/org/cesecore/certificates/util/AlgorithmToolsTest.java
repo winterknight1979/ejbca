@@ -1011,7 +1011,7 @@ public class AlgorithmToolsTest {
     assumeTrue(AlgorithmTools.isDstu4145Enabled());
     KeyPair keyPair =
         KeyTools.genKeys(
-            CesecoreConfigurationHelper.getExtraAlgSubAlgName("dstu4145", "233"),
+           CesecoreConfigurationHelper.getExtraAlgSubAlgName("dstu4145", "233"),
             AlgorithmConstants.KEYALGORITHM_DSTU4145);
     Certificate gost3411withgost3410 =
         CertTools.genSelfCert(

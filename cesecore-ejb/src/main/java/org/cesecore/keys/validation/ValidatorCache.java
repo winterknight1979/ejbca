@@ -35,7 +35,7 @@ public enum ValidatorCache implements CommonCache<Validator> {
         @Override
         protected long getCacheTime() {
           long time =
-              Math.max(CesecoreConfigurationHelper.getCacheKeyValidatorTime(), -1);
+           Math.max(CesecoreConfigurationHelper.getCacheKeyValidatorTime(), -1);
           return time;
         }
 

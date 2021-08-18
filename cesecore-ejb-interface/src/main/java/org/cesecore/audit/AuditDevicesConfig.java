@@ -190,7 +190,7 @@ public final class AuditDevicesConfig {
    * @return boolean
    */
   private static boolean checkNoDuplicateProperties(final String name) {
-    final String[] arr = ConfigurationHolderUtil.instance().getStringArray(name);
+   final String[] arr = ConfigurationHolderUtil.instance().getStringArray(name);
     if (arr != null && arr.length > 1) {
       LOG.error(
           "Duplicate property definitions of \""
