@@ -33,7 +33,14 @@ import org.apache.log4j.Logger;
  */
 public abstract class CommonCacheBase<T> implements CommonCache<T> {
 
-  private class CacheEntry {
+    /** Logger. */
+    private final Logger log = Logger.getLogger(CommonCacheBase.class);
+    /** Cache. */
+    private Map<Integer, CacheEntry> cache = new HashMap<Integer, CacheEntry>();
+    /** Names. */
+    private Map<String, Integer> nameToIdMap = new HashMap<String, Integer>();
+
+    private class CacheEntry {
       /** Last update. */
     private long lastUpdate;
     /** digest. */
@@ -55,12 +62,7 @@ public abstract class CommonCacheBase<T> implements CommonCache<T> {
     }
   }
 
-  /** Logger. */
-  private final Logger log = Logger.getLogger(CommonCacheBase.class);
-  /** Cache. */
-  private Map<Integer, CacheEntry> cache = new HashMap<Integer, CacheEntry>();
-  /** Names. */
-  private Map<String, Integer> nameToIdMap = new HashMap<String, Integer>();
+
 
   /** @return how long to cache objects in milliseconds. */
   protected abstract long getCacheTime();

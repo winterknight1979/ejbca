@@ -46,7 +46,9 @@ public class AuthenticationKeyBinding extends InternalKeyBindingBase {
   public static final String PROPERTY_PROTOCOL_AND_CIPHER_SUITE =
       "protocolAndCipherSuite";
 
-  {
+  /** Constructor. */
+  public AuthenticationKeyBinding() {
+    super();
     final String[] cipherSuitesSubset =
         CesecoreConfigurationHelper.getAvailableCipherSuites();
     addProperty(
@@ -127,20 +129,10 @@ public class AuthenticationKeyBinding extends InternalKeyBindingBase {
     }
     try {
       final X509Certificate x509Certificate = (X509Certificate) certificate;
-      if (LOG.isDebugEnabled()) {
-        LOG.debug(
-            "SubjectDN: "
-                + CertTools.getSubjectDN(x509Certificate)
-                + " IssuerDN: "
-                + CertTools.getIssuerDN(x509Certificate));
-      }
+      logDebug(x509Certificate);
       final boolean[] ku = x509Certificate.getKeyUsage();
       if (ku != null) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Key usages: " + Arrays.toString(ku));
-          LOG.debug("Key usage (digitalSignature): " + ku[0]);
-          LOG.debug("Key usage (keyEncipherment): " + ku[2]);
-        }
+        logKu(ku);
       } else {
         LOG.debug("No Key Usage to verify.");
         return false;
@@ -180,4 +172,28 @@ public class AuthenticationKeyBinding extends InternalKeyBindingBase {
     }
     return true;
   }
+
+/**
+ * @param x509Certificate cert
+ */
+private static void logDebug(final X509Certificate x509Certificate) {
+    if (LOG.isDebugEnabled()) {
+        LOG.debug(
+            "SubjectDN: "
+                + CertTools.getSubjectDN(x509Certificate)
+                + " IssuerDN: "
+                + CertTools.getIssuerDN(x509Certificate));
+      }
+}
+
+/**
+ * @param ku usage
+ */
+private static void logKu(final boolean[] ku) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Key usages: " + Arrays.toString(ku));
+      LOG.debug("Key usage (digitalSignature): " + ku[0]);
+      LOG.debug("Key usage (keyEncipherment): " + ku[2]);
+    }
+}
 }

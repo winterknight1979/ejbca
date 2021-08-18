@@ -31,7 +31,7 @@ import org.cesecore.util.CertTools;
  *
  * @version $Id: OcspConfiguration.java 28629 2018-04-04 11:32:55Z henriks $
  */
-public final class OcspConfiguration {
+public final class OcspConfiguration { // NOPMD
 
 
 /** Logger. */
@@ -124,6 +124,12 @@ public final class OcspConfiguration {
   /** Algorithms. */
   private static Set<String> acceptedSignatureAlgorithms = new HashSet<>();
 
+  /** 1 year in seconds. */
+  private static final long DEFAULT_RETENTION = 365L * 24 * 3600;
+  /** 30s. */
+  private static final int HTTP_TIMEOUT = 30;
+  /** milliseconds. */
+  private static final long MS_PER_S = 1000L;
 
   private OcspConfiguration() { }
 
@@ -490,11 +496,8 @@ public final class OcspConfiguration {
 
   /** @return true if UnidFnr is enabled in ocsp.properties */
   public static boolean isUnidEnabled() {
-    if (ConfigurationHolderUtil.getString("unidfnr.enabled") != null
-       && ConfigurationHolderUtil.getString("unidfnr.enabled").equals("true")) {
-      return true;
-    }
-    return false;
+    return ConfigurationHolderUtil.getString("unidfnr.enabled") != null
+       && ConfigurationHolderUtil.getString("unidfnr.enabled").equals("true");
   }
 
   /** @return When true, an audit log will be created. */
@@ -615,9 +618,6 @@ public final class OcspConfiguration {
     return value;
   }
 
-  /** 1 year in seconds. */
-  private static final long DEFAULT_RETENTION = 365L * 24 * 3600;
-
   /**
    * @param certProfileId profile ID
    * @return The default number of milliseconds a response is valid, or 0 to
@@ -627,12 +627,12 @@ public final class OcspConfiguration {
     long value = 0;
     Configuration config = ConfigurationHolderUtil.instance();
     String key = "ocsp." + certProfileId + ".untilNextUpdate";
-    if ((certProfileId == CertificateProfileConstants.CERTPROFILE_NO_PROFILE)
-        || (!config.containsKey(key))) {
+    if (certProfileId == CertificateProfileConstants.CERTPROFILE_NO_PROFILE
+        || !config.containsKey(key)) {
       key = UNTIL_NEXT_UPDATE;
     }
     try {
-      value = (config.getLong(key, value) * MS_PER_S);
+      value = config.getLong(key, value) * MS_PER_S;
     } catch (ConversionException e) {
       LOG.warn(
           "\"ocsp.untilNextUpdate\" is not a decimal integer. Using default"
@@ -667,12 +667,12 @@ public final class OcspConfiguration {
     long value = 0;
     Configuration config = ConfigurationHolderUtil.instance();
     String key = "ocsp." + certProfileId + ".revoked.untilNextUpdate";
-    if ((certProfileId == CertificateProfileConstants.CERTPROFILE_NO_PROFILE)
-        || (!config.containsKey(key))) {
+    if (certProfileId == CertificateProfileConstants.CERTPROFILE_NO_PROFILE
+        || !config.containsKey(key)) {
       key = REVOKED_UNTIL_NEXT_UPDATE;
     }
     try {
-      value = (config.getLong(key, value) * MS_PER_S);
+      value = config.getLong(key, value) * MS_PER_S;
     } catch (ConversionException e) {
       LOG.warn(
           "\"ocsp.revoked.untilNextUpdate\" is not a decimal integer. Using"
@@ -709,12 +709,12 @@ public final class OcspConfiguration {
     long value = HTTP_TIMEOUT;
     Configuration config = ConfigurationHolderUtil.instance();
     String key = "ocsp." + certProfileId + ".maxAge";
-    if ((certProfileId == CertificateProfileConstants.CERTPROFILE_NO_PROFILE)
-        || (!config.containsKey(key))) {
+    if (certProfileId == CertificateProfileConstants.CERTPROFILE_NO_PROFILE
+        || !config.containsKey(key)) {
       key = MAX_AGE;
     }
     try {
-      value = (config.getLong(key, value) * MS_PER_S);
+      value = config.getLong(key, value) * MS_PER_S;
     } catch (ConversionException e) {
       // Convert default value to milliseconds
       value = value * MS_PER_S;
@@ -749,12 +749,12 @@ public final class OcspConfiguration {
     long value = HTTP_TIMEOUT;
     Configuration config = ConfigurationHolderUtil.instance();
     String key = "ocsp." + certProfileId + ".revoked.maxAge";
-    if ((certProfileId == CertificateProfileConstants.CERTPROFILE_NO_PROFILE)
-        || (!config.containsKey(key))) {
+    if (certProfileId == CertificateProfileConstants.CERTPROFILE_NO_PROFILE
+        || !config.containsKey(key)) {
       key = REVOKED_MAX_AGE;
     }
     try {
-      value = (config.getLong(key, value) * MS_PER_S);
+      value = config.getLong(key, value) * MS_PER_S;
     } catch (ConversionException e) {
       // Convert default value to milliseconds
       value = value * MS_PER_S;
@@ -765,9 +765,6 @@ public final class OcspConfiguration {
     }
     return value;
   }
-
-  /** 30s. */
-  private static final int HTTP_TIMEOUT = 30;
 
   /**
    * @param certificateProfileId Profile ID
@@ -918,12 +915,9 @@ public final class OcspConfiguration {
     final String s =
         ConfigurationHolderUtil.getString(
             "ocsp.activation.doNotStorePasswordsInMemory");
-    if (s == null
+    return !(s == null
         || s.toLowerCase().indexOf("false") >= 0
-        || s.toLowerCase().indexOf("no") >= 0) {
-      return false;
-    }
-    return true;
+        || s.toLowerCase().indexOf("no") >= 0);
   }
 
   /**
@@ -951,6 +945,4 @@ public final class OcspConfiguration {
     return MS_PER_S * (long) timeInSeconds;
   }
 
-  /** milliseconds. */
-  private static final long MS_PER_S = 1000L;
 }

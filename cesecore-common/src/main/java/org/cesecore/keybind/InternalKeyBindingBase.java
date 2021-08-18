@@ -74,6 +74,17 @@ public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap
   /** Algo. */
   private String signatureAlgorithm;
 
+  /** Format. */
+  private static final SimpleDateFormat DATE_FORMAT_MS =
+      new SimpleDateFormat("yyyyMMddHHmmssSSS");
+  /** Format. */
+  private static final Pattern DATE_FORMAT_PATTERN =
+      Pattern.compile("_\\d{8}\\d{6}$");
+  /** Format. */
+  private static final Pattern DATE_FORMAT_PATTERN_MS =
+      Pattern.compile("_\\d{8}\\d{9}$");
+
+
   /**
    * Map.
    */
@@ -237,16 +248,6 @@ public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap
     setKeyPairAlias(getNextKeyPairAlias());
     setNextKeyPairAlias(null);
   }
-
-  /** Format. */
-  private static final SimpleDateFormat DATE_FORMAT_MS =
-      new SimpleDateFormat("yyyyMMddHHmmssSSS");
-  /** Format. */
-  private static final Pattern DATE_FORMAT_PATTERN =
-      Pattern.compile("_\\d{8}\\d{6}$");
-  /** Format. */
-  private static final Pattern DATE_FORMAT_PATTERN_MS =
-      Pattern.compile("_\\d{8}\\d{9}$");
 
   /**
    * Replace existing postfix or generate add a new one (using current time with

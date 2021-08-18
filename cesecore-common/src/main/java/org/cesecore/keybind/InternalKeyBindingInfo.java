@@ -18,6 +18,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.naming.OperationNotSupportedException;
+
+import org.cesecore.CesecoreRuntimeException;
 import org.cesecore.config.AvailableExtendedKeyUsagesConfiguration;
 import org.cesecore.util.ui.DynamicUiProperty;
 
@@ -89,12 +91,12 @@ public class InternalKeyBindingInfo implements InternalKeyBinding {
       final int aCryptoTokenId,
       final String aKeyPairAlias,
       final LinkedHashMap<Object, Object> dataMapToLoad) {
-    throw new RuntimeException(new OperationNotSupportedException());
+    throw new CesecoreRuntimeException(new OperationNotSupportedException());
   }
 
   @Override
   public LinkedHashMap<Object, Object> getDataMapToPersist() {
-    throw new RuntimeException(new OperationNotSupportedException());
+    throw new CesecoreRuntimeException(new OperationNotSupportedException());
   }
 
   @Override
@@ -109,18 +111,18 @@ public class InternalKeyBindingInfo implements InternalKeyBinding {
 
   @Override
   public void setNextKeyPairAlias(final String aNextKeyPairAlias) {
-    throw new RuntimeException(new OperationNotSupportedException());
+    throw new CesecoreRuntimeException(new OperationNotSupportedException());
   }
 
   @Override
   public void updateCertificateIdAndCurrentKeyAlias(
           final String aCertificateId) {
-    throw new RuntimeException(new OperationNotSupportedException());
+    throw new CesecoreRuntimeException(new OperationNotSupportedException());
   }
 
   @Override
   public void generateNextKeyPairAlias() {
-    throw new RuntimeException(new OperationNotSupportedException());
+    throw new CesecoreRuntimeException(new OperationNotSupportedException());
   }
 
   @Override
@@ -128,7 +130,7 @@ public class InternalKeyBindingInfo implements InternalKeyBinding {
       final Certificate certificate,
       final AvailableExtendedKeyUsagesConfiguration ekuConfig)
       throws CertificateImportException {
-    throw new RuntimeException(new OperationNotSupportedException());
+    throw new CesecoreRuntimeException(new OperationNotSupportedException());
   }
 
   @Override
@@ -143,7 +145,7 @@ public class InternalKeyBindingInfo implements InternalKeyBinding {
 
   @Override
   public void setName(final String aName) {
-    throw new RuntimeException(new OperationNotSupportedException());
+    throw new CesecoreRuntimeException(new OperationNotSupportedException());
   }
 
   @Override
@@ -153,7 +155,7 @@ public class InternalKeyBindingInfo implements InternalKeyBinding {
 
   @Override
   public void setStatus(final InternalKeyBindingStatus aStatus) {
-    throw new RuntimeException(new OperationNotSupportedException());
+    throw new CesecoreRuntimeException(new OperationNotSupportedException());
   }
 
   @Override
@@ -164,7 +166,7 @@ public class InternalKeyBindingInfo implements InternalKeyBinding {
   @Override
   public void setOperationalStatus(
       final InternalKeyBindingOperationalStatus opStatus) {
-    throw new RuntimeException(new OperationNotSupportedException());
+    throw new CesecoreRuntimeException(new OperationNotSupportedException());
   }
 
   @Override
@@ -174,7 +176,7 @@ public class InternalKeyBindingInfo implements InternalKeyBinding {
 
   @Override
   public void setCertificateId(final String aCertificateId) {
-    throw new RuntimeException(new OperationNotSupportedException());
+    throw new CesecoreRuntimeException(new OperationNotSupportedException());
   }
 
   @Override
@@ -184,7 +186,7 @@ public class InternalKeyBindingInfo implements InternalKeyBinding {
 
   @Override
   public void setCryptoTokenId(final int aCryptoTokenId) {
-    throw new RuntimeException(new OperationNotSupportedException());
+    throw new CesecoreRuntimeException(new OperationNotSupportedException());
   }
 
   @Override
@@ -194,7 +196,7 @@ public class InternalKeyBindingInfo implements InternalKeyBinding {
 
   @Override
   public void setKeyPairAlias(final String aKeyPairAlias) {
-    throw new RuntimeException(new OperationNotSupportedException());
+    throw new CesecoreRuntimeException(new OperationNotSupportedException());
   }
 
   @Override
@@ -206,7 +208,7 @@ public class InternalKeyBindingInfo implements InternalKeyBinding {
   @Override
   public void setProperty(
           final String aName, final Serializable value) {
-    throw new RuntimeException(new OperationNotSupportedException());
+    throw new CesecoreRuntimeException(new OperationNotSupportedException());
   }
 
   @Override
@@ -223,7 +225,7 @@ public class InternalKeyBindingInfo implements InternalKeyBinding {
   @Override
   public void setTrustedCertificateReferences(
       final List<InternalKeyBindingTrustEntry> aTrustedCertificateReferences) {
-    throw new RuntimeException(new OperationNotSupportedException());
+    throw new CesecoreRuntimeException(new OperationNotSupportedException());
   }
 
   @Override
@@ -233,7 +235,7 @@ public class InternalKeyBindingInfo implements InternalKeyBinding {
 
   @Override
   public void setSignatureAlgorithm(final String aSignatureAlgorithm) {
-    throw new RuntimeException(new OperationNotSupportedException());
+    throw new CesecoreRuntimeException(new OperationNotSupportedException());
   }
 
   @Override
@@ -243,6 +245,6 @@ public class InternalKeyBindingInfo implements InternalKeyBinding {
 
   @Override
   public void setOcspExtensions(final List<String> aOcspExtensions) {
-    throw new RuntimeException(new OperationNotSupportedException());
+    throw new CesecoreRuntimeException(new OperationNotSupportedException());
   }
 }

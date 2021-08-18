@@ -127,7 +127,7 @@
 	<suppress checks="ParameterNumberCheck"
 		files="SimpleTimeTest.java" lines="165" />
 	<suppress checks="MethodLengthCheck"
-		files="StringToolsTest.java" lines="643" />
+		files="StringToolsTest.java" lines="644" />
 	<suppress checks="MethodLengthCheck"
 		files="RsaKeyValidatorTest.java" lines="425" />
 	<suppress checks="MethodLengthCheck"

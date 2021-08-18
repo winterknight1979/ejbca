@@ -38,9 +38,6 @@ public class GlobalCesecoreConfigurationCache implements ConfigurationCache {
    */
   private volatile long lastupdatetime = -1;
 
-  /** Default constructor. */
-  public GlobalCesecoreConfigurationCache() { }
-
   @Override
   public String getConfigId() {
     return GlobalCesecoreConfiguration.CESECORE_CONFIGURATION_ID;
@@ -58,13 +55,10 @@ public class GlobalCesecoreConfigurationCache implements ConfigurationCache {
 
   @Override
   public boolean needsUpdate() {
-    if (globalconfigurationCache != null
+    return !(globalconfigurationCache != null
         && lastupdatetime
                 + CesecoreConfigurationHelper.getCacheGlobalConfigurationTime()
-            > System.currentTimeMillis()) {
-      return false;
-    }
-    return true;
+            > System.currentTimeMillis());
   }
 
   @Override
