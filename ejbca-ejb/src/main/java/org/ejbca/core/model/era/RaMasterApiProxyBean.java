@@ -96,7 +96,7 @@ import org.cesecore.certificates.util.AlgorithmTools;
 import org.cesecore.config.RaStyleInfo;
 import org.cesecore.configuration.GlobalConfigurationSessionLocal;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.roles.AccessRulesHelper;
 import org.cesecore.roles.Role;
 import org.cesecore.roles.RoleExistsException;
@@ -1475,7 +1475,7 @@ public class RaMasterApiProxyBean implements RaMasterApiProxyBeanLocal {
               storedEndEntity
                   .getExtendedInformation()
                   .getKeyStoreAlgorithmSubType();
-          kp = KeyTools.genKeys(keyspec, keyalg);
+          kp = KeyUtil.genKeys(keyspec, keyalg);
           // requestCertForEndEntity verifies the password and performs the
           // finishUser operation
           cert =
@@ -1566,14 +1566,14 @@ public class RaMasterApiProxyBean implements RaMasterApiProxyBeanLocal {
         if (storedEndEntity.getTokenType()
             == EndEntityConstants.TOKEN_SOFT_JKS) {
           ks =
-              KeyTools.createJKS(
+              KeyUtil.createJKS(
                   alias,
                   kp.getPrivate(),
                   endEntity.getPassword(),
                   cert,
                   cachain);
         } else {
-          ks = KeyTools.createP12(alias, kp.getPrivate(), cert, cachain);
+          ks = KeyUtil.createP12(alias, kp.getPrivate(), cert, cachain);
         }
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
           ks.store(baos, endEntity.getPassword().toCharArray());

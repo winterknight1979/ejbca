@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.util.AlgorithmConstants;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CryptoProviderTools;
 import org.junit.After;
 import org.junit.Before;
@@ -67,7 +67,7 @@ public class EccKeyValidatorTest {
 
     // Test ECC key validation OK with an allowed curve.
     KeyPair keys =
-        KeyTools.genKeys("secp256r1", AlgorithmConstants.KEYALGORITHM_ECDSA);
+        KeyUtil.genKeys("secp256r1", AlgorithmConstants.KEYALGORITHM_ECDSA);
     EccKeyValidator keyValidator =
         (EccKeyValidator)
             ValidatorTestUtil.createKeyValidator(
@@ -116,7 +116,7 @@ public class EccKeyValidatorTest {
     LOG.trace(">testPublicKeyValidation()");
     // Test ECC key validation OK with an allowed curve.
     KeyPair keys =
-        KeyTools.genKeys("secp256r1", AlgorithmConstants.KEYALGORITHM_EC);
+        KeyUtil.genKeys("secp256r1", AlgorithmConstants.KEYALGORITHM_EC);
     EccKeyValidator keyValidator =
         (EccKeyValidator)
             ValidatorTestUtil.createKeyValidator(

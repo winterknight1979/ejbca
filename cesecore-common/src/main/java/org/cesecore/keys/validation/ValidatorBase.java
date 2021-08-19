@@ -137,9 +137,6 @@ public abstract class ValidatorBase extends ProfileBase
     if (null == data.get(DESCRIPTION)) {
       setDescription(StringUtils.EMPTY);
     }
-    if (null == data.get(CERTIFICATE_PROFILE_IDS)) {
-      setCertificateProfileIds(new ArrayList<Integer>());
-    }
     if (null == data.get(FAILED_ACTION)) {
       setFailedAction(
           KeyValidationFailedActions.ABORT_CERTIFICATE_ISSUANCE.getIndex());
@@ -148,11 +145,21 @@ public abstract class ValidatorBase extends ProfileBase
       setNotApplicableAction(
           KeyValidationFailedActions.ABORT_CERTIFICATE_ISSUANCE.getIndex());
     }
+    setIds();
+  }
+
+/**
+ *
+ */
+private void setIds() {
+    if (null == data.get(CERTIFICATE_PROFILE_IDS)) {
+        setCertificateProfileIds(new ArrayList<Integer>());
+      }
     // Added in v2
     if (null == data.get(ALL_CERTIFICATE_PROFILE_IDS)) {
       setAllCertificateProfileIds(true);
     }
-  }
+}
 
   @Override
   public List<Integer> getApplicablePhases() {
@@ -171,7 +178,8 @@ public abstract class ValidatorBase extends ProfileBase
 
   @Override
   public void setKeyValidatorSettingsTemplate(
-      final KeyValidatorSettingsTemplate template) { }
+      final KeyValidatorSettingsTemplate template) {  // NOPMD: no-op
+  }
 
   @Override
   public Integer getSettingsTemplate() {
@@ -329,10 +337,12 @@ public abstract class ValidatorBase extends ProfileBase
   }
 
   @Override
-  protected void saveTransientObjects() { }
+  protected void saveTransientObjects() { // NOPMD: no-op
+  }
 
   @Override
-  protected void loadTransientObjects() { }
+  protected void loadTransientObjects() { // NOPMD: no-op
+  }
 
   @Override
   public UpgradeableDataHashMap getUpgradableHashmap() {

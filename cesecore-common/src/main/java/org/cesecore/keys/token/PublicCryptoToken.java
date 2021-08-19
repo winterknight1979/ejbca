@@ -33,7 +33,8 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import org.apache.log4j.Logger;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.CesecoreException;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.CryptoProviderTools;
 
@@ -66,20 +67,20 @@ public class PublicCryptoToken implements CryptoToken {
     if (data == null || data.length < 1) {
       final String msg = "No data for public key in token with id: " + this.id;
       LOG.error(msg);
-      throw new Exception(msg);
+      throw new CesecoreException(msg);
     }
     CryptoProviderTools.installBCProviderIfNotAvailable();
     this.pk = getPublicKey(data);
     if (this.pk == null) {
       final String msg = "Not possible to initiate public key id: " + this.id;
       LOG.error(msg);
-      throw new Exception(msg);
+      throw new CesecoreException(msg);
     }
   }
 
   private static PublicKey getPublicKey(final byte[] data) {
     try {
-      PublicKey ret = KeyTools.getPublicKeyFromBytes(data);
+      PublicKey ret = KeyUtil.getPublicKeyFromBytes(data);
       if (ret != null) {
         return ret;
       }
@@ -120,7 +121,7 @@ public class PublicCryptoToken implements CryptoToken {
   @Override
   public boolean isAliasUsed(final String alias) {
     try {
-      return (getPublicKey(alias) != null);
+      return getPublicKey(alias) != null;
     } catch (CryptoTokenOfflineException e) {
       // This will never happen
       return false;

@@ -154,7 +154,7 @@ import org.cesecore.keys.token.CryptoToken;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
 import org.cesecore.keys.token.IllegalCryptoTokenException;
 import org.cesecore.keys.token.NullCryptoToken;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.keys.validation.IssuancePhase;
 import org.cesecore.keys.validation.ValidationException;
 import org.cesecore.util.CeSecoreNameStyle;
@@ -3369,7 +3369,7 @@ private void updateUsePrintable() {
       // Creating the KeyId may just throw an exception, we will log this but
       // store the cert and ignore the error
       final PublicKey pk = cryptoToken.getPublicKey(alias);
-      byte[] keyId = KeyTools.createSubjectKeyId(pk).getKeyIdentifier();
+      byte[] keyId = KeyUtil.createSubjectKeyId(pk).getKeyIdentifier();
       edGen.addRecipientInfoGenerator(
           new JceKeyTransRecipientInfoGenerator(keyId, pk));
       JceCMSContentEncryptorBuilder jceCMSContentEncryptorBuilder =
@@ -3481,7 +3481,7 @@ private void updateUsePrintable() {
     CMSEnvelopedData ed;
     final String keyAlias = getCAToken().getAliasFromPurpose(keyPurpose);
     final PublicKey pk = cryptoToken.getPublicKey(keyAlias);
-    byte[] keyId = KeyTools.createSubjectKeyId(pk).getKeyIdentifier();
+    byte[] keyId = KeyUtil.createSubjectKeyId(pk).getKeyIdentifier();
     edGen.addRecipientInfoGenerator(
         new JceKeyTransRecipientInfoGenerator(keyId, pk));
     JceCMSContentEncryptorBuilder jceCMSContentEncryptorBuilder =

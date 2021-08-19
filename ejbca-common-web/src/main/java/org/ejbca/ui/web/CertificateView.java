@@ -40,7 +40,7 @@ import org.cesecore.certificates.util.DNFieldExtractor;
 import org.cesecore.certificates.util.cert.QCStatementExtension;
 import org.cesecore.certificates.util.cert.SubjectDirAttrExtension;
 import org.cesecore.config.AvailableExtendedKeyUsagesConfiguration;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.ValidityDate;
 import org.ejbca.cvc.CVCertificateBody;
@@ -374,7 +374,7 @@ public class CertificateView implements Serializable {
       return AlgorithmTools.getKeySpecification(certificate.getPublicKey());
     } else {
       return ""
-          + KeyTools.getKeyLength(certificate.getPublicKey())
+          + KeyUtil.getKeyLength(certificate.getPublicKey())
           + " "
           + localizedBitsText;
     }
@@ -387,7 +387,7 @@ public class CertificateView implements Serializable {
     if (certificate == null) {
       return UNKNOWN;
     }
-    int len = KeyTools.getKeyLength(certificate.getPublicKey());
+    int len = KeyUtil.getKeyLength(certificate.getPublicKey());
     return len > 0 ? "" + len : null;
   }
 

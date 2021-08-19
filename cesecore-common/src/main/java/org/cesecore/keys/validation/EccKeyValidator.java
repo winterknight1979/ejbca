@@ -180,7 +180,8 @@ public class EccKeyValidator extends KeyValidatorBase {
           "Set configuration template for ECC key validator settings option: "
               + INTRES.getLocalizedMessage(template.getLabel()));
     }
-    if (KeyValidatorSettingsTemplate.USE_CUSTOM_SETTINGS.equals(template)) {
+    if (KeyValidatorSettingsTemplate.USE_CUSTOM_SETTINGS
+            .equals(template)) { // NOPMD
       // NOOP: In the validation method, the key specification is matched
       // against the certificate profile.
     } else if (KeyValidatorSettingsTemplate.USE_CAB_FORUM_SETTINGS.equals(
@@ -188,10 +189,10 @@ public class EccKeyValidator extends KeyValidatorBase {
       setCABForumBaseLineRequirements142Settings();
       setUseFullPublicKeyValidationRoutine(true);
     } else if (KeyValidatorSettingsTemplate.USE_CERTIFICATE_PROFILE_SETTINGS
-        .equals(template)) {
+        .equals(template)) { // NOPMD
       // NOOP: In the validation method, the key specification is matched
       // against the certificate profile.
-    } else {
+    } else { // NOPMD
       // NOOP
     }
   }
@@ -274,44 +275,10 @@ public class EccKeyValidator extends KeyValidatorBase {
       final PublicKey publicKey, final CertificateProfile certificateProfile)
       throws ValidatorNotApplicableException, ValidationException {
     List<String> messages = new ArrayList<String>();
-    if (LOG.isDebugEnabled()) {
-      LOG.debug(
-          "Validating public key with algorithm "
-              + publicKey.getAlgorithm()
-              + ", format "
-              + publicKey.getFormat()
-              + ", implementation "
-              + publicKey.getClass().getName());
-    }
-    if (!(AlgorithmConstants.KEYALGORITHM_ECDSA.equals(publicKey.getAlgorithm())
-            || AlgorithmConstants.KEYALGORITHM_EC.equals(
-                publicKey.getAlgorithm()))
-        || !(publicKey instanceof ECPublicKey)) {
-      final String message =
-          "Invalid: Public key is not ECC algorithm or could not be parsed: "
-              + publicKey.getAlgorithm()
-              + ", format "
-              + publicKey.getFormat();
-      messages.add(message);
-      throw new ValidatorNotApplicableException(message);
-    }
+    logDebugMessage(publicKey);
+    assertIsECC(publicKey, messages);
     final ECPublicKey bcEcPublicKey = (ECPublicKey) publicKey;
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("ECC Key algorithm " + bcEcPublicKey.getAlgorithm());
-      LOG.debug("ECC format " + bcEcPublicKey.getFormat());
-      LOG.debug("ECC affine X " + bcEcPublicKey.getW().getAffineX());
-      LOG.debug("ECC affine Y " + bcEcPublicKey.getW().getAffineY());
-      LOG.debug("ECC co factor " + bcEcPublicKey.getParams().getCofactor());
-      LOG.debug("ECC order " + bcEcPublicKey.getParams().getOrder());
-      LOG.debug("ECC generator " + bcEcPublicKey.getParams().getGenerator());
-      LOG.debug(
-          "ECC curve seed " + bcEcPublicKey.getParams().getCurve().getSeed());
-      LOG.debug("ECC curve A " + bcEcPublicKey.getParams().getCurve().getA());
-      LOG.debug("ECC curve B " + bcEcPublicKey.getParams().getCurve().getB());
-      LOG.debug(
-          "ECC curve field size "
-              + bcEcPublicKey.getParams().getCurve().getField().getFieldSize());
-    }
+    logParams(bcEcPublicKey);
 
     final List<String> availableEcCurves;
     final int settingsOption = getSettingsTemplate();
@@ -350,7 +317,64 @@ public class EccKeyValidator extends KeyValidatorBase {
     }
 
     if (isUseFullPublicKeyValidationRoutine()) {
-      if (LOG.isDebugEnabled()) {
+      validateQ(messages, bcEcPublicKey);
+    }
+    // FSM_TRANS:5.15, "FIPS 186-3/SP 800-89 ASSURANCES CHECK", "CONDITIONAL
+    // TEST", "FIPS 186-3/SP 800-89 Assurances test successful"
+    // --- End BC code
+
+    if (LOG.isDebugEnabled()) {
+      for (String message : messages) {
+        LOG.debug(message);
+      }
+    }
+    return messages;
+  }
+
+/**
+ * @param publicKey key
+ */
+private void logDebugMessage(final PublicKey publicKey) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
+          "Validating public key with algorithm "
+              + publicKey.getAlgorithm()
+              + ", format "
+              + publicKey.getFormat()
+              + ", implementation "
+              + publicKey.getClass().getName());
+    }
+}
+
+/**
+ * @param bcEcPublicKey key
+ */
+private void logParams(final ECPublicKey bcEcPublicKey) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("ECC Key algorithm " + bcEcPublicKey.getAlgorithm());
+      LOG.debug("ECC format " + bcEcPublicKey.getFormat());
+      LOG.debug("ECC affine X " + bcEcPublicKey.getW().getAffineX());
+      LOG.debug("ECC affine Y " + bcEcPublicKey.getW().getAffineY());
+      LOG.debug("ECC co factor " + bcEcPublicKey.getParams().getCofactor());
+      LOG.debug("ECC order " + bcEcPublicKey.getParams().getOrder());
+      LOG.debug("ECC generator " + bcEcPublicKey.getParams().getGenerator());
+      LOG.debug(
+          "ECC curve seed " + bcEcPublicKey.getParams().getCurve().getSeed());
+      LOG.debug("ECC curve A " + bcEcPublicKey.getParams().getCurve().getA());
+      LOG.debug("ECC curve B " + bcEcPublicKey.getParams().getCurve().getB());
+      LOG.debug(
+          "ECC curve field size "
+              + bcEcPublicKey.getParams().getCurve().getField().getFieldSize());
+    }
+}
+
+/**
+ * @param messages messages
+ * @param bcEcPublicKey key
+ */
+private void validateQ(final List<String> messages, 
+		final ECPublicKey bcEcPublicKey) {
+    if (LOG.isDebugEnabled()) {
         LOG.debug("Performing full EC public key validation.");
       }
       // The FullPublicKeyValidationRoutine test is copied from
@@ -401,18 +425,28 @@ public class EccKeyValidator extends KeyValidatorBase {
       } else {
         LOG.trace("EC point not on curve test passed");
       }
-    }
-    // FSM_TRANS:5.15, "FIPS 186-3/SP 800-89 ASSURANCES CHECK", "CONDITIONAL
-    // TEST", "FIPS 186-3/SP 800-89 Assurances test successful"
-    // --- End BC code
+}
 
-    if (LOG.isDebugEnabled()) {
-      for (String message : messages) {
-        LOG.debug(message);
-      }
+/**
+ * @param publicKey key
+ * @param messages messages
+ * @throws ValidatorNotApplicableException fail
+ */
+private void assertIsECC(final PublicKey publicKey, final List<String> messages)
+        throws ValidatorNotApplicableException {
+    if (!(AlgorithmConstants.KEYALGORITHM_ECDSA.equals(publicKey.getAlgorithm())
+            || AlgorithmConstants.KEYALGORITHM_EC.equals(
+                publicKey.getAlgorithm()))
+        || !(publicKey instanceof ECPublicKey)) {
+      final String message =
+          "Invalid: Public key is not ECC algorithm or could not be parsed: "
+              + publicKey.getAlgorithm()
+              + ", format "
+              + publicKey.getFormat();
+      messages.add(message);
+      throw new ValidatorNotApplicableException(message);
     }
-    return messages;
-  }
+}
 
   /**
    * Sets the CA/B Forum requirements chapter 6.1.6 for ECC public keys.

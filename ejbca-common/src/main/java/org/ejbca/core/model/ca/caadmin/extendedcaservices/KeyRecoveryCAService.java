@@ -32,7 +32,7 @@ import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypeConsta
 import org.cesecore.certificates.ca.extendedservices.IllegalExtendedCAServiceRequestException;
 import org.cesecore.certificates.certificate.certextensions.AvailableCustomCertificateExtensionsConfiguration;
 import org.cesecore.keys.token.CryptoToken;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.Base64;
 import org.cesecore.util.CryptoProviderTools;
 import org.ejbca.core.model.InternalEjbcaResources;
@@ -157,7 +157,7 @@ public class KeyRecoveryCAService extends ExtendedCAService
           keyId =
               new String(
                   Base64.encode(
-                      KeyTools.createSubjectKeyId(
+                      KeyUtil.createSubjectKeyId(
                               cryptoToken.getPublicKey(keyAlias))
                           .getKeyIdentifier(),
                       false));
@@ -246,7 +246,7 @@ public class KeyRecoveryCAService extends ExtendedCAService
             keyId =
                 new String(
                     Base64.encode(
-                        KeyTools.createSubjectKeyId(
+                        KeyUtil.createSubjectKeyId(
                                 cryptoToken.getPublicKey(keyAlias))
                             .getKeyIdentifier(),
                         false));

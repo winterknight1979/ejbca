@@ -38,7 +38,7 @@ import org.cesecore.authorization.user.AccessUserAspect;
 import org.cesecore.authorization.user.AccessUserAspectData;
 import org.cesecore.authorization.user.matchvalues.X500PrincipalAccessMatchValue;
 import org.cesecore.certificates.util.AlgorithmConstants;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.CryptoProviderTools;
 import org.easymock.EasyMock;
@@ -86,7 +86,7 @@ public class X509CertificateAuthenticationTokenTest {
           InvalidAlgorithmParameterException, InvalidKeyException,
           SignatureException, IllegalStateException, OperatorCreationException,
           CertificateException, IOException {
-    keys = KeyTools.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
+    keys = KeyUtil.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
     certificate =
         CertTools.genSelfCert(
             "C=Test,O=Test,CN=Test,DC=Test,L=Test,SN=Test,ST=Test,OU=Test,"

@@ -82,7 +82,7 @@ import org.cesecore.keys.token.CryptoToken;
 import org.cesecore.keys.token.CryptoTokenManagementSessionLocal;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
 import org.cesecore.keys.token.KeyRenewalFailedException;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.provider.X509TrustManagerAcceptAll;
 import org.ejbca.core.protocol.ws.client.gen.CertificateResponse;
@@ -546,10 +546,10 @@ public class OcspKeyRenewalSessionBean
       // Both certPublicKey and nextPublicKey is obtained using
       // KeyTools.getPublicKeyFromBytes, which uses the BC provider
       final PublicKey certPublicKey =
-          KeyTools.getPublicKeyFromBytes(
+          KeyUtil.getPublicKeyFromBytes(
               certificate.getPublicKey().getEncoded());
       final PublicKey nextPublicKey =
-          KeyTools.getPublicKeyFromBytes(publicKeyBytes);
+          KeyUtil.getPublicKeyFromBytes(publicKeyBytes);
       if (nextPublicKey.equals(certPublicKey)) {
         signedCertificate = certificate;
         break;

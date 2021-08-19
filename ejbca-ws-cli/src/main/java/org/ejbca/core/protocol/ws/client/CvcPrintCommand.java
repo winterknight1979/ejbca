@@ -19,7 +19,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.util.Collection;
 import org.cesecore.certificates.certificate.request.RequestMessageUtils;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.CryptoProviderTools;
 import org.cesecore.util.FileTools;
@@ -96,7 +96,7 @@ public class CvcPrintCommand extends EJBCAWSRABaseCommand
           CVCObject parsedCvcaObject = getCVCObject(cvcacert);
           CVCertificate cvca = (CVCertificate) parsedCvcaObject;
           pk =
-              KeyTools.getECPublicKeyWithParams(
+              KeyUtil.getECPublicKeyWithParams(
                   pk, cvca.getCertificateBody().getPublicKey());
         }
         try {

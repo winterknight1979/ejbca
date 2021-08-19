@@ -85,7 +85,7 @@ import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.certificates.util.cert.CrlExtensions;
 import org.cesecore.certificates.util.cert.QCStatementExtension;
 import org.cesecore.certificates.util.cert.SubjectDirAttrExtension;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.ejbca.cvc.AuthorizationRoleEnum;
 import org.ejbca.cvc.CAReferenceField;
 import org.ejbca.cvc.CVCAuthenticatedRequest;
@@ -2153,7 +2153,7 @@ public class CertToolsTest {
     }
 
     // IS cert
-    KeyPair keyPair = KeyTools.genKeys("prime192v1", "ECDSA");
+    KeyPair keyPair = KeyUtil.genKeys("prime192v1", "ECDSA");
     CAReferenceField caRef = new CAReferenceField("SE", "CAREF001", "00000");
     HolderReferenceField holderRef =
         new HolderReferenceField("SE", "HOLDERRE", "00000");
@@ -2175,7 +2175,7 @@ public class CertToolsTest {
    */
   @Test
   public void test21GenSelfCert() throws Exception {
-    KeyPair kp = KeyTools.genKeys("1024", "RSA");
+    KeyPair kp = KeyUtil.genKeys("1024", "RSA");
     Certificate cert =
         CertTools.genSelfCertForPurpose(
             "CN=foo1",
@@ -2265,7 +2265,7 @@ public class CertToolsTest {
    */
   @Test
   public void test23GenSelfCertDSA() throws Exception {
-    KeyPair kp = KeyTools.genKeys("1024", "DSA");
+    KeyPair kp = KeyUtil.genKeys("1024", "DSA");
     Certificate cert =
         CertTools.genSelfCertForPurpose(
             "CN=foo1",
@@ -3115,7 +3115,7 @@ public class CertToolsTest {
     extensions.add(new Extension(Extension.nameConstraints, false, extdata));
 
     final KeyPair testkeys =
-        KeyTools.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
+        KeyUtil.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
     X509Certificate cacert =
         CertTools.genSelfCertForPurpose(
             "C=SE,CN=Test Name Constraints CA",

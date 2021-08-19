@@ -17,7 +17,7 @@ import static org.junit.Assert.assertEquals;
 import java.security.KeyPair;
 import java.security.cert.X509Certificate;
 import org.cesecore.certificates.util.AlgorithmConstants;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.CryptoProviderTools;
 import org.junit.BeforeClass;
@@ -40,7 +40,7 @@ public class HashIDTest {
    */
   @Test
   public void testSubjectDn() throws Exception {
-    KeyPair keys = KeyTools.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
+    KeyPair keys = KeyUtil.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
     final String subjectDn = "CN=HashIDTest,O=Test,C=SE";
     X509Certificate testCertificate =
         CertTools.genSelfCert(

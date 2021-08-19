@@ -58,7 +58,7 @@ import org.cesecore.keys.token.CryptoTokenOfflineException;
 import org.cesecore.keys.token.PKCS11CryptoToken;
 import org.cesecore.keys.token.SoftCryptoToken;
 import org.cesecore.keys.token.p11.exception.NoSuchSlotException;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.CryptoProviderTools;
 import org.cesecore.util.EjbRemoteHelper;
@@ -531,7 +531,7 @@ public class CaInitCommand extends BaseCaAdminCommand {
       }
     }
 
-    if (KeyTools.isUsingExportableCryptography()) {
+    if (KeyUtil.isUsingExportableCryptography()) {
       getLogger().warn("WARNING!");
       getLogger().warn("WARNING: Using exportable strength crypto!");
       getLogger().warn("WARNING!");

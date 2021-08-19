@@ -19,7 +19,7 @@ import java.security.PublicKey;
 import java.util.Random;
 import org.apache.log4j.Logger;
 import org.bouncycastle.util.encoders.Base64;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 
 /**
  * Represents a Certificate Transparency log.
@@ -92,7 +92,7 @@ public final class CTLogInfo implements Serializable {
 
   private void ensureParsed() {
     if (publicKey == null) {
-      publicKey = KeyTools.getPublicKeyFromBytes(publicKeyBytes);
+      publicKey = KeyUtil.getPublicKeyFromBytes(publicKeyBytes);
       if (publicKey == null) {
         throw new IllegalStateException("Failed to parse key");
       }

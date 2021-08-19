@@ -49,7 +49,7 @@ import org.cesecore.certificates.endentity.EndEntityType;
 import org.cesecore.certificates.endentity.EndEntityTypes;
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.certificates.util.cert.CrlExtensions;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.CryptoProviderTools;
 import org.cesecore.util.EJBTools;
@@ -214,7 +214,7 @@ public class CaImportCRLCommand extends BaseCaAdminCommand {
             final Date time =
                 new Date(); // time from which certificate is valid
             final KeyPair keyPair =
-                KeyTools.genKeys("2048", AlgorithmConstants.KEYALGORITHM_RSA);
+                KeyUtil.genKeys("2048", AlgorithmConstants.KEYALGORITHM_RSA);
 
             final SubjectPublicKeyInfo pkinfo =
                 SubjectPublicKeyInfo.getInstance(

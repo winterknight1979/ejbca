@@ -18,7 +18,7 @@ import org.apache.log4j.Logger;
 import org.apache.myfaces.custom.fileupload.UploadedFile;
 import org.cesecore.certificates.certificatetransparency.CTLogInfo;
 import org.cesecore.certificates.certificatetransparency.CtLogManager;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 
 /**
  * This class is used to manage CT logs in EJBCA's system configuration. It adds
@@ -265,7 +265,7 @@ public class SystemConfigurationCtLogManager extends CtLogManager {
     }
     try {
       byte[] uploadedFileBytes = upload.getBytes();
-      return KeyTools.getBytesFromPublicKeyFile(uploadedFileBytes);
+      return KeyUtil.getBytesFromPublicKeyFile(uploadedFileBytes);
     } catch (final IOException e) {
       LOG.info("Could not parse the public key file.", e);
       systemConfigurationHelper.addErrorMessage(

@@ -54,7 +54,7 @@ import org.cesecore.certificates.endentity.EndEntityTypes;
 import org.cesecore.certificates.endentity.ExtendedInformation;
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.certificates.util.AlgorithmTools;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.StringTools;
 import org.ejbca.config.CmpConfiguration;
@@ -1007,7 +1007,7 @@ public class CrmfMessageHandler extends BaseCmpMessageHandler
           LOG.debug("Generating server generated keypair RSA " + sizes[0]);
         }
         keys =
-            KeyTools.genKeys(
+            KeyUtil.genKeys(
                 String.valueOf(sizes[0]), AlgorithmConstants.KEYALGORITHM_RSA);
       } else if (AlgorithmConstants.KEYALGORITHM_ECDSA.equals(algs.get(0))) {
         if (curves.size() > 1) {
@@ -1020,7 +1020,7 @@ public class CrmfMessageHandler extends BaseCmpMessageHandler
           throw new InvalidKeyException(msg);
         }
         keys =
-            KeyTools.genKeys(
+            KeyUtil.genKeys(
                 curves.get(0), AlgorithmConstants.KEYALGORITHM_ECDSA);
 
       } else {

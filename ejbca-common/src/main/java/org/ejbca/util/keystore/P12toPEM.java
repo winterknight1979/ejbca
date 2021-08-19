@@ -32,7 +32,7 @@ import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 import org.apache.log4j.Logger;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.Base64;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.CryptoProviderTools;
@@ -192,7 +192,7 @@ public class P12toPEM {
     if (serverPrivKey != null) {
       privKeyEncoded = serverPrivKey.getEncoded();
     }
-    Certificate[] chain = KeyTools.getCertChain(ks, (String) o);
+    Certificate[] chain = KeyUtil.getCertChain(ks, (String) o);
     if (log.isDebugEnabled()) {
       log.debug(
           "Loaded certificate chain with length "

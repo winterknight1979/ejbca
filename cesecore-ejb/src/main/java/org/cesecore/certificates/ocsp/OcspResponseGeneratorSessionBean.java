@@ -164,7 +164,7 @@ import org.cesecore.keys.token.CryptoTokenSessionLocal;
 import org.cesecore.keys.token.PKCS11CryptoToken;
 import org.cesecore.keys.token.SoftCryptoToken;
 import org.cesecore.keys.token.p11.Pkcs11SlotLabelType;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CeSecoreNameStyle;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.log.ProbableErrorHandler;
@@ -3320,7 +3320,7 @@ public class OcspResponseGeneratorSessionBean
             try {
               final String providerName =
                   ocspSigningCacheEntry.getSignatureProviderName();
-              KeyTools.testKey(
+              KeyUtil.testKey(
                   privateKey,
                   ocspSigningCertificate.getPublicKey(),
                   providerName);

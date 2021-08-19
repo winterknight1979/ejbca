@@ -74,7 +74,7 @@ import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cms.CMSSignedGenerator;
 import org.bouncycastle.jce.X509KeyUsage;
 import org.bouncycastle.operator.OperatorCreationException;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.Base64;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.CryptoProviderTools;
@@ -207,7 +207,7 @@ public class CrmfRequestMessageTest {
   private PKIMessage createPKIMessage(
       final String issuerDN, final String subjectDN)
       throws InvalidAlgorithmParameterException, IOException {
-    KeyPair keys = KeyTools.genKeys("1024", "RSA");
+    KeyPair keys = KeyUtil.genKeys("1024", "RSA");
     ASN1EncodableVector optionalValidityV = new ASN1EncodableVector();
     org.bouncycastle.asn1.x509.Time nb =
         new org.bouncycastle.asn1.x509.Time(
@@ -413,7 +413,7 @@ public class CrmfRequestMessageTest {
                 msg.getMessage(), pubKey));
         // Verify that our verification routine does not give positive result
         // for any other keys
-        KeyPair keys = KeyTools.genKeys("512", "RSA");
+        KeyPair keys = KeyUtil.genKeys("512", "RSA");
         assertFalse(
             CmpMessageHelper.verifyCertBasedPKIProtection(
                 msg.getMessage(), keys.getPublic()));
@@ -427,7 +427,7 @@ public class CrmfRequestMessageTest {
       try {
         ASN1Primitive derObject = in.readObject();
         PKIMessage myPKIMessage = PKIMessage.getInstance(derObject);
-        KeyPair keys = KeyTools.genKeys("512", "RSA");
+        KeyPair keys = KeyUtil.genKeys("512", "RSA");
         X509Certificate signCert =
             CertTools.genSelfCert(
                 "CN=CMP Sign Test",

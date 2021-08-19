@@ -37,7 +37,7 @@ import org.bouncycastle.asn1.x509.ExtensionsGenerator;
 import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.Base64;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.CryptoProviderTools;
@@ -62,7 +62,7 @@ public class RequestMessageTest {
       throws NoSuchAlgorithmException, NoSuchProviderException,
           InvalidAlgorithmParameterException {
     CryptoProviderTools.installBCProviderIfNotAvailable();
-    keyPair = KeyTools.genKeys("512", null, "RSA");
+    keyPair = KeyUtil.genKeys("512", null, "RSA");
   }
 
   /**
@@ -97,7 +97,7 @@ public class RequestMessageTest {
 
     // Check public key
     PublicKey pk = msg.getRequestPublicKey();
-    KeyTools.testKey(keyPair.getPrivate(), pk, "BC");
+    KeyUtil.testKey(keyPair.getPrivate(), pk, "BC");
     PKCS10RequestMessage msgempty = new PKCS10RequestMessage();
     assertNull(msgempty.getRequestPublicKey());
 
@@ -105,7 +105,7 @@ public class RequestMessageTest {
     assertTrue(msg.verify());
     assertTrue(msg.verify(pk));
     try {
-      KeyPair otherkeys = KeyTools.genKeys("512", "RSA");
+      KeyPair otherkeys = KeyUtil.genKeys("512", "RSA");
       assertFalse(msg.verify(otherkeys.getPublic()));
     } catch (InvalidAlgorithmParameterException e) {
       assertTrue("Should not throw", false);

@@ -27,7 +27,7 @@ import org.bouncycastle.jcajce.provider.asymmetric.rsa.BCRSAPublicKey;
 import org.cesecore.certificates.certificateprofile.CertificateProfile;
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.certificates.util.AlgorithmTools;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.keys.validation.KeyValidatorBase;
 import org.cesecore.keys.validation.ValidationException;
 import org.cesecore.profiles.Profile;
@@ -176,7 +176,7 @@ public class PublicKeyBlacklistKeyValidator extends KeyValidatorBase {
       final PublicKey publicKey, final CertificateProfile certificateProfile)
       throws ValidationException {
     List<String> messages = new ArrayList<String>();
-    final int keyLength = KeyTools.getKeyLength(publicKey);
+    final int keyLength = KeyUtil.getKeyLength(publicKey);
     final String keyAlgorithm =
         publicKey.getAlgorithm(); // AlgorithmTools.getKeyAlgorithm(publicKey);
     if (LOG.isDebugEnabled()) {

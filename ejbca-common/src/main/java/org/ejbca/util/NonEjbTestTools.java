@@ -28,7 +28,7 @@ import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.cesecore.certificates.util.AlgorithmConstants;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
 
 /**
@@ -59,7 +59,7 @@ public final class NonEjbTestTools {
           InvalidAlgorithmParameterException, IOException,
           OperatorCreationException {
     // Generate keys
-    KeyPair keys = KeyTools.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
+    KeyPair keys = KeyUtil.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
 
     // Create challenge password attribute for PKCS10
     // Attributes { ATTRIBUTE:IOSet } ::= SET OF Attribute{{ IOSet }}

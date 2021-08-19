@@ -152,7 +152,7 @@ public final class SignWithWorkingAlgorithm {
                 "Signature algorithm '%s' working for provider '%s'.",
                 trySignAlgorithm, this.provider));
         this.signAlgorithm = trySignAlgorithm;
-        return true;
+        return true; // NOPMD
       }
       LOG.info(
           String.format(

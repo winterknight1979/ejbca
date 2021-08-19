@@ -71,7 +71,7 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.cesecore.certificates.endentity.EndEntityType;
 import org.cesecore.certificates.util.AlgorithmTools;
 import org.cesecore.keys.token.CryptoToken;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.Base64;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.CryptoProviderTools;
@@ -265,7 +265,7 @@ public class CmsCAService extends ExtendedCAService
       final KeyStore keystore = KeyStore.getInstance("PKCS12", "BC");
       keystore.load(null, null);
       final KeyPair cmskeys =
-          KeyTools.genKeys(theInfo.getKeySpec(), theInfo.getKeyAlgorithm());
+          KeyUtil.genKeys(theInfo.getKeySpec(), theInfo.getKeyAlgorithm());
       // A simple hard coded certificate profile that works for the CMS CA
       // service
       final CertificateProfile certProfile =

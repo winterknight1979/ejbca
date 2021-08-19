@@ -116,7 +116,7 @@ import org.cesecore.config.RaStyleInfo;
 import org.cesecore.configuration.GlobalConfigurationSessionLocal;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
 import org.cesecore.keys.token.CryptoTokenSessionLocal;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.keys.validation.DnsNameValidator;
 import org.cesecore.keys.validation.KeyValidatorSessionLocal;
 import org.cesecore.keys.validation.Validator;
@@ -2550,7 +2550,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     if (endEntity.getTokenType() == EndEntityConstants.TOKEN_SOFT_PEM) {
       try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
         outputStream.write(
-            KeyTools.getSinglePemFromKeyStore(
+            KeyUtil.getSinglePemFromKeyStore(
                 keyStore, endEntity.getPassword().toCharArray()));
         return outputStream.toByteArray();
       } catch (IOException
@@ -4077,7 +4077,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     if (endEntity.getTokenType() == EndEntityConstants.TOKEN_SOFT_PEM) {
       try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
         outputStream.write(
-            KeyTools.getSinglePemFromKeyStore(
+            KeyUtil.getSinglePemFromKeyStore(
                 keyStore, endEntity.getPassword().toCharArray()));
         return outputStream.toByteArray();
       } catch (IOException

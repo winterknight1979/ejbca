@@ -43,7 +43,7 @@ import org.cesecore.certificates.util.DNFieldExtractor;
 import org.cesecore.certificates.util.DnComponents;
 import org.cesecore.internal.InternalResources;
 import org.cesecore.internal.UpgradeableDataHashMap;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.ValidityDate;
 
@@ -3926,7 +3926,7 @@ private void removeMandatory() {
    */
   public void verifyKey(final PublicKey publicKey) throws IllegalKeyException {
     final String keyAlgorithm = AlgorithmTools.getKeyAlgorithm(publicKey);
-    final int keyLength = KeyTools.getKeyLength(publicKey);
+    final int keyLength = KeyUtil.getKeyLength(publicKey);
     if (LOG.isDebugEnabled()) {
       LOG.debug("KeyAlgorithm: " + keyAlgorithm + " KeyLength: " + keyLength);
     }

@@ -55,7 +55,7 @@ import org.cesecore.keys.token.PKCS11CryptoToken;
 import org.cesecore.keys.token.SoftCryptoToken;
 import org.cesecore.keys.token.p11.Pkcs11SlotLabel;
 import org.cesecore.keys.token.p11.Pkcs11SlotLabelType;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.StringTools;
 import org.ejbca.config.WebConfiguration;
 import org.ejbca.ui.web.admin.BaseManagedBean;
@@ -593,8 +593,8 @@ public class CryptoTokenMBean extends BaseManagedBean implements Serializable {
           templateString.split(
               "[" + CryptoToken.KEYPLACEHOLDERS_INNER_SEPARATOR + "]");
       alias = pieces[0];
-      keyAlgorithm = KeyTools.keyspecToKeyalg(pieces[1]);
-      rawKeySpec = KeyTools.shortenKeySpec(pieces[1]);
+      keyAlgorithm = KeyUtil.keyspecToKeyalg(pieces[1]);
+      rawKeySpec = KeyUtil.shortenKeySpec(pieces[1]);
       if (AlgorithmConstants.KEYALGORITHM_ECDSA.equals(keyAlgorithm)) {
         keySpecification = getEcKeySpecAliases(rawKeySpec);
       } else {
@@ -1696,7 +1696,7 @@ public class CryptoTokenMBean extends BaseManagedBean implements Serializable {
     final KeyPairGuiInfo keyPairGuiInfo = keyPairGuiList.getRowData();
     final String alias = keyPairGuiInfo.getAlias();
     final String keyspec =
-        KeyTools.keyalgspecToKeyspec(
+        KeyUtil.keyalgspecToKeyspec(
             keyPairGuiInfo.getKeyAlgorithm(), keyPairGuiInfo.getRawKeySpec());
     try {
       cryptoTokenManagementSession.createKeyPairFromTemplate(

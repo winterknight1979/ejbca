@@ -30,7 +30,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.Base64;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.CryptoProviderTools;
@@ -229,7 +229,7 @@ public class JKStoPEM {
     }
 
     // Certificate chain[] = ks.getCertificateChain((String) o);
-    Certificate[] chain = KeyTools.getCertChain(ks, (String) o);
+    Certificate[] chain = KeyUtil.getCertChain(ks, (String) o);
 
     X509Certificate userX509Certificate = (X509Certificate) chain[0];
 

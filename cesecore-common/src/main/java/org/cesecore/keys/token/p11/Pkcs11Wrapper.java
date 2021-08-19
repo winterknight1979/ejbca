@@ -56,17 +56,7 @@ public final class Pkcs11Wrapper {
   private final long[] slotList;
 
   private Pkcs11Wrapper(final String fileName) {
-    final Class<? extends Object> p11Class;
-    try {
-      p11Class = Class.forName("sun.security.pkcs11.wrapper.PKCS11");
-    } catch (ClassNotFoundException e) {
-      String msg =
-          "Class sun.security.pkcs11.wrapper.PKCS11 was not found locally,"
-              + " could not wrap.";
-      LOG.error(msg, e);
-      throw new IllegalStateException(msg, e);
-    }
-
+    final Class<? extends Object> p11Class = loadClass();
     try {
       this.getSlotListMethod =
           p11Class.getDeclaredMethod(
@@ -127,38 +117,7 @@ public final class Pkcs11Wrapper {
       LOG.error(msg, e);
       throw new IllegalStateException(msg, e);
     }
-    final Method getInstanceMethod;
-    try {
-      getInstanceMethod =
-          p11Class.getDeclaredMethod(
-              "getInstance",
-              new Class[] {
-                String.class,
-                String.class,
-                Class.forName(
-                    "sun.security.pkcs11.wrapper.CK_C_INITIALIZE_ARGS"),
-                boolean.class
-              });
-    } catch (NoSuchMethodException e) {
-      String msg =
-          "Method getInstance was not found in class"
-              + " sun.security.pkcs11.wrapper.PKCS11.CK_C_INITIALIZE_ARGS,"
-              + " this may be due to a change in the underlying library.";
-      LOG.error(msg, e);
-      throw new IllegalStateException(msg, e);
-    } catch (SecurityException e) {
-      String msg =
-          "Access was denied to method"
-              + " sun.security.pkcs11.wrapper.CK_C_INITIALIZE_ARGS.getInstance";
-      LOG.error(msg, e);
-      throw new IllegalStateException(msg, e);
-    } catch (ClassNotFoundException e) {
-      String msg =
-          "Class sun.security.pkcs11.wrapper.CK_C_INITIALIZE_ARGS was not"
-              + " found locally, could not wrap.";
-      LOG.error(msg, e);
-      throw new IllegalStateException(msg, e);
-    }
+    final Method getInstanceMethod = loadInstanceMethod(p11Class);
     try {
       this.p11 =
           getInstanceMethod.invoke(
@@ -194,10 +153,77 @@ public final class Pkcs11Wrapper {
     }
     this.labelMap = new HashMap<Long, char[]>();
     this.slotList = cGetSlotList();
+    loadLabelMap();
+  }
+
+/**
+ * load.
+ */
+private void loadLabelMap() {
     for (long id : this.slotList) {
       this.labelMap.put(Long.valueOf(id), getTokenLabelLocal(id));
     }
-  }
+}
+
+/**
+ * @param p11Class Class
+ * @return Method
+ * @throws IllegalStateException fail
+ */
+private Method loadInstanceMethod(final Class<? extends Object> p11Class)
+        throws IllegalStateException {
+    final Method getInstanceMethod;
+    try {
+      getInstanceMethod =
+          p11Class.getDeclaredMethod(
+              "getInstance",
+              new Class[] {
+                String.class,
+                String.class,
+                Class.forName(
+                    "sun.security.pkcs11.wrapper.CK_C_INITIALIZE_ARGS"),
+                boolean.class
+              });
+    } catch (NoSuchMethodException e) {
+      String msg =
+          "Method getInstance was not found in class"
+              + " sun.security.pkcs11.wrapper.PKCS11.CK_C_INITIALIZE_ARGS,"
+              + " this may be due to a change in the underlying library.";
+      LOG.error(msg, e);
+      throw new IllegalStateException(msg, e);
+    } catch (SecurityException e) {
+      String msg =
+          "Access was denied to method"
+              + " sun.security.pkcs11.wrapper.CK_C_INITIALIZE_ARGS.getInstance";
+      LOG.error(msg, e);
+      throw new IllegalStateException(msg, e);
+    } catch (ClassNotFoundException e) {
+      String msg =
+          "Class sun.security.pkcs11.wrapper.CK_C_INITIALIZE_ARGS was not"
+              + " found locally, could not wrap.";
+      LOG.error(msg, e);
+      throw new IllegalStateException(msg, e);
+    }
+    return getInstanceMethod;
+}
+
+/**
+ * @return Class
+ * @throws IllegalStateException Fail
+ */
+private Class<? extends Object> loadClass() throws IllegalStateException {
+    final Class<? extends Object> p11Class;
+    try {
+      p11Class = Class.forName("sun.security.pkcs11.wrapper.PKCS11");
+    } catch (ClassNotFoundException e) {
+      String msg =
+          "Class sun.security.pkcs11.wrapper.PKCS11 was not found locally,"
+              + " could not wrap.";
+      LOG.error(msg, e);
+      throw new IllegalStateException(msg, e);
+    }
+    return p11Class;
+}
 
   /**
    * Get an instance of the class.

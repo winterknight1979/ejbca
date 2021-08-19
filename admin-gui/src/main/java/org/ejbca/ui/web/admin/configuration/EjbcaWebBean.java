@@ -73,7 +73,7 @@ import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLoc
 import org.cesecore.certificates.util.DNFieldExtractor;
 import org.cesecore.config.AvailableExtendedKeyUsagesConfiguration;
 import org.cesecore.configuration.GlobalConfigurationSessionLocal;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.roles.management.RoleSessionLocal;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.StringTools;
@@ -1565,7 +1565,7 @@ public class EjbcaWebBean implements Serializable {
    * @return true if key strength is limited
    */
   public boolean isUsingExportableCryptography() {
-    return KeyTools.isUsingExportableCryptography();
+    return KeyUtil.isUsingExportableCryptography();
   }
 
   /**

@@ -245,36 +245,7 @@ public class ExternalCommandCertificateValidator
     boolean broken = false;
     if (CollectionUtils.isNotEmpty(out)) {
       try {
-        if (isLogStandardOut()) {
-          String stdOutput = null;
-          for (String str : out) {
-            if (str.startsWith(ExternalProcessTools.STDOUT_PREFIX)) {
-              if (stdOutput == null) {
-                stdOutput = str;
-              } else {
-                stdOutput += "\n" + str;
-              }
-            }
-          }
-          if (stdOutput != null) {
-            LOG.info("External command logged to STDOUT: " + stdOutput);
-          }
-        }
-        String errOutput = null;
-        if (isLogErrorOut()) {
-          for (String str : out) {
-            if (str.startsWith(ExternalProcessTools.ERROUT_PREFIX)) {
-              if (errOutput == null) {
-                errOutput = str;
-              } else {
-                errOutput += "\n" + str;
-              }
-            }
-          }
-          if (errOutput != null) {
-            LOG.info("External command logged to ERROUT: " + errOutput);
-          }
-        }
+        String errOutput = getErrorStream(out);
         final int exitCode =
             Integer.parseInt(
                 out.get(0)
@@ -311,6 +282,44 @@ public class ExternalCommandCertificateValidator
     }
     return messages;
   }
+
+/**
+ * @param out Out
+ * @return Error
+ */
+private String getErrorStream(final List<String> out) {
+    if (isLogStandardOut()) {
+      String stdOutput = null;
+      for (String str : out) {
+        if (str.startsWith(ExternalProcessTools.STDOUT_PREFIX)) {
+          if (stdOutput == null) {
+            stdOutput = str;
+          } else {
+            stdOutput += "\n" + str;
+          }
+        }
+      }
+      if (stdOutput != null) {
+        LOG.info("External command logged to STDOUT: " + stdOutput);
+      }
+    }
+    String errOutput = null;
+    if (isLogErrorOut()) {
+      for (String str : out) {
+        if (str.startsWith(ExternalProcessTools.ERROUT_PREFIX)) {
+          if (errOutput == null) {
+            errOutput = str;
+          } else {
+            errOutput += "\n" + str;
+          }
+        }
+      }
+      if (errOutput != null) {
+        LOG.info("External command logged to ERROUT: " + errOutput);
+      }
+    }
+    return errOutput;
+}
 
   @Override
   public String getLabel() {

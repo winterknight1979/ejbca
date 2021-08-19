@@ -36,6 +36,7 @@ import java.util.Vector;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.crypto.SecretKey;
 import org.apache.log4j.Logger;
+import org.cesecore.CesecoreError;
 
 /**
  * Wrapper of a Java KeyStore to speed up key operations by caching key
@@ -146,7 +147,7 @@ public class CachingKeyStoreWrapper {
         this.isTrusted = true;
         return;
       }
-      throw new Error("It should not be possible to reach this point!");
+      throw new CesecoreError("It should not be possible to reach this point!");
     }
 
     public Entry getEntry() {

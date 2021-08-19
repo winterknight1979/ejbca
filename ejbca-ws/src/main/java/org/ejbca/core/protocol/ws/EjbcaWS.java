@@ -96,7 +96,7 @@ import org.cesecore.keybind.CertificateImportException;
 import org.cesecore.keys.token.CryptoTokenAuthenticationFailedException;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
 import org.cesecore.keys.token.p11.exception.NoSuchSlotException;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.roles.RoleNotFoundException;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.EJBTools;
@@ -2259,7 +2259,7 @@ public class EjbcaWS implements IEjbcaWS {
                   null);
             }
             KeyPair keys =
-                KeyTools.genKeys(next.getKeyspec(), next.getKeyalg());
+                KeyUtil.genKeys(next.getKeyspec(), next.getKeyalg());
             userData.setCertificateProfileId(certificateProfileId);
             userData.setCAId(cAInfo.getCAId());
             userData.setPassword(password);
@@ -2303,7 +2303,7 @@ public class EjbcaWS implements IEjbcaWS {
               alias = userData.getUsername();
             }
             java.security.KeyStore pkcs12 =
-                KeyTools.createP12(alias, keys.getPrivate(), cert, chain);
+                KeyUtil.createP12(alias, keys.getPrivate(), cert, chain);
 
             retval.add(
                 new TokenCertificateResponseWS(

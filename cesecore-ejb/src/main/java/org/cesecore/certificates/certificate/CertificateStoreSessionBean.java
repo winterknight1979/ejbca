@@ -71,7 +71,7 @@ import org.cesecore.config.OcspConfiguration;
 import org.cesecore.configuration.GlobalConfigurationSessionLocal;
 import org.cesecore.internal.InternalResources;
 import org.cesecore.jndi.JndiConstants;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.Base64;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.EJBTools;
@@ -428,7 +428,7 @@ public class CertificateStoreSessionBean
                 // We found a root CA certificate, hopefully ?
                 PublicKey pkwithparams =
                     cacert.getCertificate(this.entityManager).getPublicKey();
-                ret = KeyTools.getECPublicKeyWithParams(pubk, pkwithparams);
+                ret = KeyUtil.getECPublicKeyWithParams(pubk, pkwithparams);
               }
             }
           }

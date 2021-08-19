@@ -72,7 +72,7 @@ import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.certificates.util.AlgorithmTools;
 import org.cesecore.certificates.util.DnComponents;
 import org.cesecore.config.CesecoreConfigurationHelper;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CeSecoreNameStyle;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.PrintableStringNameStyle;
@@ -1634,12 +1634,12 @@ public class EnrollMakeNewRequestBean implements Serializable {
       certificateRequest = csrValue;
 
       PublicKey publicKey = jcaPKCS10CertificationRequest.getPublicKey();
-      publicKeyModulus = KeyTools.getKeyModulus(publicKey);
+      publicKeyModulus = KeyUtil.getKeyModulus(publicKey);
 
-      publicKeyExponent = KeyTools.getKeyPublicExponent(publicKey);
-      sha256Fingerprint = KeyTools.getSha256Fingerprint(certificateRequest);
+      publicKeyExponent = KeyUtil.getKeyPublicExponent(publicKey);
+      sha256Fingerprint = KeyUtil.getSha256Fingerprint(certificateRequest);
       signature =
-          KeyTools.getCertificateRequestSignature(
+          KeyUtil.getCertificateRequestSignature(
               jcaPKCS10CertificationRequest);
 
     } catch (InvalidKeyException | NoSuchAlgorithmException e) {

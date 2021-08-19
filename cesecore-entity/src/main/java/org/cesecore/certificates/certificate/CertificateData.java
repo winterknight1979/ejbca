@@ -33,7 +33,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.crl.RevokedCertInfo;
 import org.cesecore.dbprotection.ProtectionStringBuilder;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.Base64;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.StringTools;
@@ -265,7 +265,7 @@ public class CertificateData extends BaseCertificateData
         keyId =
             new String(
                 Base64.encode(
-                    KeyTools.createSubjectKeyId(pubk).getKeyIdentifier(),
+                    KeyUtil.createSubjectKeyId(pubk).getKeyIdentifier(),
                     false));
       } catch (Exception e) {
         LOG.warn(

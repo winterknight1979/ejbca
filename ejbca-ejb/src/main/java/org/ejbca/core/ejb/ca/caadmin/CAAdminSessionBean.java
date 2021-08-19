@@ -150,7 +150,7 @@ import org.cesecore.keys.token.NullCryptoToken;
 import org.cesecore.keys.token.PKCS11CryptoToken;
 import org.cesecore.keys.token.SoftCryptoToken;
 import org.cesecore.keys.token.p11.exception.NoSuchSlotException;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.keys.validation.KeyValidatorSessionLocal;
 import org.cesecore.keys.validation.Validator;
 import org.cesecore.roles.management.RoleSessionLocal;
@@ -1799,7 +1799,7 @@ public class CAAdminSessionBean
                     "Enriching DV public key with EC parameters from CVCA");
                 Certificate cvcacert = reqchain.iterator().next();
                 caCertPublicKey =
-                    KeyTools.getECPublicKeyWithParams(
+                    KeyUtil.getECPublicKeyWithParams(
                         caCertPublicKey, cvcacert.getPublicKey());
               }
             } catch (InvalidKeySpecException e) {
@@ -1923,7 +1923,7 @@ public class CAAdminSessionBean
 
   /**
    * Verifies that the next signing key of the given CA is working. This is
-   * checked with {@link KeyTools#testKey}.
+   * checked with {@link KeyUtil#testKey}.
    *
    * @param authenticationToken Admin performing the test.
    * @param ca CA to test the key of.
@@ -1954,17 +1954,17 @@ public class CAAdminSessionBean
               "SubjectKeyId for CA cert public key: "
                   + new String(
                       Hex.encode(
-                          KeyTools.createSubjectKeyId(caCertPublicKey)
+                          KeyUtil.createSubjectKeyId(caCertPublicKey)
                               .getKeyIdentifier())));
           LOG.debug(
               "SubjectKeyId for CA next public key: "
                   + new String(
                       Hex.encode(
-                          KeyTools.createSubjectKeyId(
+                          KeyUtil.createSubjectKeyId(
                                   cryptoToken.getPublicKey(nextKeyAlias))
                               .getKeyIdentifier())));
         }
-        KeyTools.testKey(
+        KeyUtil.testKey(
             cryptoToken.getPrivateKey(nextKeyAlias),
             caCertPublicKey,
             cryptoToken.getSignProviderName());
@@ -1975,7 +1975,7 @@ public class CAAdminSessionBean
       // Since we don't specified the nextSignKey, we will just try the current
       // or next CA sign key
       try {
-        KeyTools.testKey(
+        KeyUtil.testKey(
             cryptoToken.getPrivateKey(
                 catoken.getAliasFromPurpose(
                     CATokenConstants.CAKEYPURPOSE_CERTSIGN)),
@@ -1995,7 +1995,7 @@ public class CAAdminSessionBean
           }
         }
         try {
-          KeyTools.testKey(
+          KeyUtil.testKey(
               cryptoToken.getPrivateKey(
                   catoken.getAliasFromPurpose(
                       CATokenConstants.CAKEYPURPOSE_CERTSIGN_NEXT)),
@@ -2044,17 +2044,17 @@ public class CAAdminSessionBean
               "SubjectKeyId for CA cert public key: "
                   + new String(
                       Hex.encode(
-                          KeyTools.createSubjectKeyId(caCertPublicKey)
+                          KeyUtil.createSubjectKeyId(caCertPublicKey)
                               .getKeyIdentifier())));
           LOG.debug(
               "SubjectKeyId for CA next public key: "
                   + new String(
                       Hex.encode(
-                          KeyTools.createSubjectKeyId(
+                          KeyUtil.createSubjectKeyId(
                                   cryptoToken.getPublicKey(nextKeyAlias))
                               .getKeyIdentifier())));
         }
-        KeyTools.testKey(
+        KeyUtil.testKey(
             cryptoToken.getPrivateKey(nextKeyAlias),
             caCertPublicKey,
             cryptoToken.getSignProviderName());
@@ -2068,7 +2068,7 @@ public class CAAdminSessionBean
       // Since we don't specified the nextSignKey, we will just try the current
       // or next CA sign key
       try {
-        KeyTools.testKey(
+        KeyUtil.testKey(
             cryptoToken.getPrivateKey(
                 catoken.getAliasFromPurpose(
                     CATokenConstants.CAKEYPURPOSE_CERTSIGN)),
@@ -2086,7 +2086,7 @@ public class CAAdminSessionBean
           LOG.debug("Error: ", e1);
         }
         try {
-          KeyTools.testKey(
+          KeyUtil.testKey(
               cryptoToken.getPrivateKey(
                   catoken.getAliasFromPurpose(
                       CATokenConstants.CAKEYPURPOSE_CERTSIGN_NEXT)),
@@ -3630,7 +3630,7 @@ public class CAAdminSessionBean
             "Alias \"" + privateSignatureKeyAlias + "\" not found.");
       }
       Certificate[] signatureCertChain =
-          KeyTools.getCertChain(keystore, privateSignatureKeyAlias);
+          KeyUtil.getCertChain(keystore, privateSignatureKeyAlias);
       if (signatureCertChain.length < 1) {
         String msg =
             "Cannot load certificate chain with alias "
@@ -3659,7 +3659,7 @@ public class CAAdminSessionBean
               "Alias \"" + privateEncryptionKeyAlias + "\" not found.");
         }
         Certificate[] encryptionCertChain =
-            KeyTools.getCertChain(keystore, privateEncryptionKeyAlias);
+            KeyUtil.getCertChain(keystore, privateEncryptionKeyAlias);
         if (encryptionCertChain.length < 1) {
           String msg =
               "Cannot load certificate chain with alias "
@@ -3840,7 +3840,7 @@ public class CAAdminSessionBean
             "Alias \"" + privateSignatureKeyAlias + "\" not found.");
       }
       Certificate[] signatureCertChain =
-          KeyTools.getCertChain(keystore, privateSignatureKeyAlias);
+          KeyUtil.getCertChain(keystore, privateSignatureKeyAlias);
       if (signatureCertChain.length < 1) {
         String msg =
             "Cannot load certificate chain with alias "
@@ -3866,7 +3866,7 @@ public class CAAdminSessionBean
               "Alias \"" + privateEncryptionKeyAlias + "\" not found.");
         }
         Certificate[] encryptionCertChain =
-            KeyTools.getCertChain(keystore, privateEncryptionKeyAlias);
+            KeyUtil.getCertChain(keystore, privateEncryptionKeyAlias);
         if (encryptionCertChain.length < 1) {
           String msg =
               "Cannot load certificate chain with alias "
@@ -4129,7 +4129,7 @@ public class CAAdminSessionBean
       final String enckeyspec = "2048";
       KeyPair enckeys = null;
       if (publicEncryptionKey == null || privateEncryptionKey == null) {
-        enckeys = KeyTools.genKeys(enckeyspec, keyAlg);
+        enckeys = KeyUtil.genKeys(enckeyspec, keyAlg);
       } else {
         enckeys = new KeyPair(publicEncryptionKey, privateEncryptionKey);
       }

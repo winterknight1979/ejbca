@@ -104,7 +104,7 @@ public class SoftCryptoToken extends BaseCryptoToken {
     // If we don't have an auto activation password set, we try to use the
     // default one if it works to load the keystore with it
     String autoPwd = BaseCryptoToken.getAutoActivatePin(properties);
-    if ((autoPwd == null) && (properties.getProperty(NODEFAULTPWD) == null)) {
+    if (autoPwd == null && properties.getProperty(NODEFAULTPWD) == null) {
       final String keystorepass =
           StringTools.passwordDecryption(
             CesecoreConfigurationHelper.getCaKeyStorePass(), "ca.keystorepass");
@@ -287,7 +287,7 @@ public class SoftCryptoToken extends BaseCryptoToken {
   }
 
   /** Store. */
-  void storeKeyStore() {
+  protected void storeKeyStore() {
     // Store keystore at data first so we can activate again
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     try {
@@ -331,7 +331,7 @@ public class SoftCryptoToken extends BaseCryptoToken {
         KeyStore keystore =
             KeyStore.getInstance("PKCS12", BouncyCastleProvider.PROVIDER_NAME);
         keystore.load(
-            new java.io.ByteArrayInputStream(keystoreData), authenticationCode);
+            new ByteArrayInputStream(keystoreData), authenticationCode);
       }
       return true;
     } catch (Exception e) {

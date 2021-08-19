@@ -55,7 +55,7 @@ import org.cesecore.certificates.util.AlgorithmTools;
 import org.cesecore.internal.InternalResources;
 import org.cesecore.jndi.JndiConstants;
 import org.cesecore.keys.token.p11.exception.NoSuchSlotException;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.keys.util.PublicKeyWrapper;
 import org.cesecore.util.CryptoProviderTools;
 import org.cesecore.util.StringTools;
@@ -925,7 +925,7 @@ public class CryptoTokenManagementSessionBean
       final String subjectKeyId =
           new String(
               Hex.encode(
-                  KeyTools.createSubjectKeyId(publicKey).getKeyIdentifier()));
+                  KeyUtil.createSubjectKeyId(publicKey).getKeyIdentifier()));
       ret.add(
           new KeyPairInfo(alias, keyAlgorithm, keySpecification, subjectKeyId));
     }
@@ -954,7 +954,7 @@ public class CryptoTokenManagementSessionBean
     final String subjectKeyId =
         new String(
             Hex.encode(
-                KeyTools.createSubjectKeyId(publicKey).getKeyIdentifier()));
+                KeyUtil.createSubjectKeyId(publicKey).getKeyIdentifier()));
     return new KeyPairInfo(alias, keyAlgorithm, keySpecification, subjectKeyId);
   }
 
@@ -1074,7 +1074,7 @@ public class CryptoTokenManagementSessionBean
       keySpecification = keySpecificationParam;
     }
     // Check if keySpec is valid
-    KeyTools.checkValidKeyLength(keySpecification);
+    KeyUtil.checkValidKeyLength(keySpecification);
     // Audit log before generation. If the token is an HSM the merge will not
     // make a difference.
     final Map<String, Object> details = new LinkedHashMap<String, Object>();
@@ -1130,7 +1130,7 @@ public class CryptoTokenManagementSessionBean
     } else {
       keySpecification = AlgorithmTools.getKeySpecification(publicKey);
     }
-    KeyTools.checkValidKeyLength(keySpecification);
+    KeyUtil.checkValidKeyLength(keySpecification);
     final Map<String, Object> details = new LinkedHashMap<String, Object>();
     details.put("msg", "Generated new keypair in CryptoToken " + cryptoTokenId);
     details.put("keyAlias", newAlias);

@@ -35,7 +35,7 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.config.GlobalCesecoreConfiguration;
 import org.cesecore.configuration.GlobalConfigurationSessionRemote;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.CryptoProviderTools;
 import org.cesecore.util.EJBTools;
@@ -428,10 +428,10 @@ public class BatchMakeP12Command extends EjbcaCliUserCommandBase {
 
     if (createJKS) {
       ks =
-          KeyTools.createJKS(
+          KeyUtil.createJKS(
               alias, rsaKeys.getPrivate(), password, cert, cachain);
     } else {
-      ks = KeyTools.createP12(alias, rsaKeys.getPrivate(), cert, cachain);
+      ks = KeyUtil.createP12(alias, rsaKeys.getPrivate(), cert, cachain);
     }
 
     storeKeyStore(ks, username, password, createJKS, createPEM);
@@ -495,7 +495,7 @@ public class BatchMakeP12Command extends EjbcaCliUserCommandBase {
       }
     } else {
       rsaKeys =
-          KeyTools.genKeys(getProps().getKeySpec(), getProps().getKeyAlg());
+          KeyUtil.genKeys(getProps().getKeySpec(), getProps().getKeyAlg());
     }
     // Get certificate for user and create keystore
     if (rsaKeys != null) {

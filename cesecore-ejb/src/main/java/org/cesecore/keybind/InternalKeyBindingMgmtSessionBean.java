@@ -89,7 +89,7 @@ import org.cesecore.keys.token.CryptoToken;
 import org.cesecore.keys.token.CryptoTokenManagementSessionLocal;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
 import org.cesecore.keys.token.KeyPairInfo;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.ui.DynamicUiProperty;
 
@@ -1062,7 +1062,7 @@ public class InternalKeyBindingMgmtSessionBean
       }
       if (nextPublicKey != null) {
         final byte[] subjectKeyId =
-            KeyTools.createSubjectKeyId(nextPublicKey).getKeyIdentifier();
+            KeyUtil.createSubjectKeyId(nextPublicKey).getKeyIdentifier();
         final Certificate certificate =
             certificateStoreSession.findMostRecentlyUpdatedActiveCertificate(
                 subjectKeyId);
@@ -1124,7 +1124,7 @@ public class InternalKeyBindingMgmtSessionBean
       }
       if (currentPublicKey != null) {
         final byte[] subjectKeyId =
-            KeyTools.createSubjectKeyId(currentPublicKey).getKeyIdentifier();
+            KeyUtil.createSubjectKeyId(currentPublicKey).getKeyIdentifier();
         final Certificate certificate =
             certificateStoreSession.findMostRecentlyUpdatedActiveCertificate(
                 subjectKeyId);
@@ -1283,7 +1283,7 @@ public class InternalKeyBindingMgmtSessionBean
           "certificate.getPublicKey(): "
               + new String(
                   Hex.encode(
-                      KeyTools.createSubjectKeyId(certificate.getPublicKey())
+                      KeyUtil.createSubjectKeyId(certificate.getPublicKey())
                           .getKeyIdentifier())));
       LOG.debug("originalKeyPairAlias: " + originalKeyPairAlias);
     }
@@ -1301,14 +1301,14 @@ public class InternalKeyBindingMgmtSessionBean
                 + (currentPublicKey != null
                     ? new String(
                         Hex.encode(
-                            KeyTools.createSubjectKeyId(currentPublicKey)
+                            KeyUtil.createSubjectKeyId(currentPublicKey)
                                 .getKeyIdentifier()))
                     : "null"));
       }
       if (currentPublicKey != null
-          && KeyTools.createSubjectKeyId(currentPublicKey)
+          && KeyUtil.createSubjectKeyId(currentPublicKey)
               .equals(
-                  KeyTools.createSubjectKeyId(certificate.getPublicKey()))) {
+                  KeyUtil.createSubjectKeyId(certificate.getPublicKey()))) {
         // If current key matches current public key -> import + update
         // certificateId
         if (isCertificateAlreadyInDatabase(certificateId)) {
@@ -1341,14 +1341,14 @@ public class InternalKeyBindingMgmtSessionBean
                     + (nextPublicKey != null
                         ? new String(
                             Hex.encode(
-                                KeyTools.createSubjectKeyId(nextPublicKey)
+                                KeyUtil.createSubjectKeyId(nextPublicKey)
                                     .getKeyIdentifier()))
                         : "null"));
           }
           if (nextPublicKey != null
-              && KeyTools.createSubjectKeyId(nextPublicKey)
+              && KeyUtil.createSubjectKeyId(nextPublicKey)
                   .equals(
-                      KeyTools.createSubjectKeyId(
+                      KeyUtil.createSubjectKeyId(
                           certificate.getPublicKey()))) {
             // If current key matches next public key -> import and update
             // nextKey + certificateId

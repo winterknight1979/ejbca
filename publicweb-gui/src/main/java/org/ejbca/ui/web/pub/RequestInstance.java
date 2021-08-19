@@ -52,7 +52,7 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.configuration.GlobalConfigurationSession;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.Base64;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.FileTools;
@@ -1056,7 +1056,7 @@ public class RequestInstance {
       Enumeration<String> en = ks.aliases();
       String alias = en.nextElement();
       // Then get the certificates
-      Certificate[] certs = KeyTools.getCertChain(ks, alias);
+      Certificate[] certs = KeyUtil.getCertChain(ks, alias);
       // The first one (certs[0]) is the users cert and the last
       // one (certs [certs.lenght-1]) is the CA-cert
       X509Certificate x509cert = (X509Certificate) certs[0];
@@ -1186,7 +1186,7 @@ public class RequestInstance {
             + StringTools.stripFilename(ausername + ".pem")
             + "\"");
     out.getOutputStream()
-        .write(KeyTools.getSinglePemFromKeyStore(ks, kspassword.toCharArray()));
+        .write(KeyUtil.getSinglePemFromKeyStore(ks, kspassword.toCharArray()));
     out.flushBuffer();
   }
 }

@@ -89,7 +89,7 @@ import org.cesecore.jndi.JndiConstants;
 import org.cesecore.keys.token.CryptoToken;
 import org.cesecore.keys.token.CryptoTokenManagementSessionLocal;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.keys.validation.IssuancePhase;
 import org.cesecore.keys.validation.KeyValidatorSessionLocal;
 import org.cesecore.keys.validation.ValidationException;
@@ -1082,7 +1082,7 @@ public class CertificateCreateSessionBean
     final String username = endEntityInformation.getUsername();
     byte[] subjectKeyId = null;
     if (enforceUniquePublicKeys) {
-      subjectKeyId = KeyTools.createSubjectKeyId(publicKey).getKeyIdentifier();
+      subjectKeyId = KeyUtil.createSubjectKeyId(publicKey).getKeyIdentifier();
     }
     // boolean multipleCheckOk = false;
 

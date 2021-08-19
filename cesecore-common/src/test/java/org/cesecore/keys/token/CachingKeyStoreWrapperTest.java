@@ -22,7 +22,7 @@ import java.util.Enumeration;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.cesecore.keys.util.KeyStoreTools;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CryptoProviderTools;
 import org.junit.Assert;
 import org.junit.Test;
@@ -151,7 +151,7 @@ public class CachingKeyStoreWrapperTest {
     final Certificate certificate =
         cachingKeyStoreWrapper.getCertificate(alias);
     // Verify that key pair from the key store is usable
-    KeyTools.testKey(
+    KeyUtil.testKey(
         (PrivateKey) key,
         certificate.getPublicKey(),
         cachingKeyStoreWrapper.getProvider().getName());

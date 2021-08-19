@@ -15,6 +15,7 @@ package org.cesecore.keys.token.p11;
 import java.lang.reflect.Method;
 import java.security.Key;
 import org.apache.log4j.Logger;
+import org.cesecore.CesecoreError;
 import org.cesecore.keys.token.p11.exception.P11RuntimeException;
 
 /**
@@ -106,7 +107,7 @@ public final class PKCS11Utils {
                   "securityInfo",
                   new Class[] {String.class, Key.class, StringBuilder.class}));
     } catch (NoSuchMethodException e) {
-      throw new Error(
+      throw new CesecoreError(
           String.format(
               "Not compatible version of %s. Required methods not found.",
               className),

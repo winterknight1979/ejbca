@@ -16,6 +16,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.log4j.Logger;
+import org.cesecore.CesecoreRuntimeException;
 
 /**
  * This enum class represents the typing of a slot label. In PKCS#11 an HSM is
@@ -90,9 +91,11 @@ public enum Pkcs11SlotLabelType {
       } catch (InstantiationException
           | NoSuchMethodException
           | InvocationTargetException e) {
-        throw new RuntimeException("Could not instansiate " + aValidator, e);
+        throw new CesecoreRuntimeException(
+                "Could not instansiate " + aValidator, e);
       } catch (IllegalAccessException e) {
-        throw new RuntimeException("Could not instansiate " + aValidator, e);
+        throw new CesecoreRuntimeException(
+                "Could not instansiate " + aValidator, e);
       }
     }
   }

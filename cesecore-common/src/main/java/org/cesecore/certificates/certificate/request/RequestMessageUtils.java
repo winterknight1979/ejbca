@@ -36,7 +36,7 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.util.encoders.DecoderException;
 import org.cesecore.certificates.ca.SignRequestSignatureException;
 import org.cesecore.certificates.certificate.CertificateConstants;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.Base64;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.FileTools;
@@ -299,7 +299,7 @@ private static RequestMessage handlePublicKey(final String username,
                   + de.getMessage());
         }
       }
-      final PublicKey pubKey = KeyTools.getPublicKeyFromBytes(request);
+      final PublicKey pubKey = KeyUtil.getPublicKeyFromBytes(request);
       ret = new SimpleRequestMessage(pubKey, username, password);
     return ret;
 }

@@ -12,7 +12,7 @@
  *************************************************************************/
 package org.cesecore.keys.token.p11.exception;
 
-import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.keys.token.CryptoTokenOfflineException; // NOPMD: jdoc
 
 /**
  * Thrown to signify that a slot was not found. Differs from {@link

@@ -49,7 +49,7 @@ import org.cesecore.keys.token.CryptoToken;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
 import org.cesecore.keys.token.CryptoTokenSessionLocal;
 import org.cesecore.keys.util.KeyPairWrapper;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.Base64;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.EJBTools;
@@ -184,7 +184,7 @@ public class KeyRecoverySessionBean
       throws CryptoTokenOfflineException {
     return new String(
         Base64.encode(
-            KeyTools.createSubjectKeyId(cryptoToken.getPublicKey(keyAlias))
+            KeyUtil.createSubjectKeyId(cryptoToken.getPublicKey(keyAlias))
                 .getKeyIdentifier(),
             false),
         StandardCharsets.US_ASCII);

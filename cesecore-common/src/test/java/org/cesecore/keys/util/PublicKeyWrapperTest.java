@@ -40,7 +40,7 @@ public class PublicKeyWrapperTest {
   public static void beforeClass() throws InvalidAlgorithmParameterException {
     CryptoProviderTools.installBCProviderIfNotAvailable();
     testKey =
-        KeyTools.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA)
+        KeyUtil.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA)
             .getPublic();
   }
   /**

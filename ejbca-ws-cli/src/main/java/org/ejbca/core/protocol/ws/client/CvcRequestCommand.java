@@ -21,7 +21,7 @@ import java.security.PublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.List;
 import org.apache.commons.lang.RandomStringUtils;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.Base64;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.CryptoProviderTools;
@@ -138,7 +138,7 @@ public class CvcRequestCommand extends EJBCAWSRABaseCommand
           if (signatureAlg.contains("ECDSA")) {
             keytype = "ECDSA";
           }
-          KeyPair keyPair = KeyTools.genKeys(keySpec, keytype);
+          KeyPair keyPair = KeyUtil.genKeys(keySpec, keytype);
           String country = CertTools.getPartFromDN(dn, "C");
           String mnemonic = CertTools.getPartFromDN(dn, "CN");
           if (sequence.equalsIgnoreCase("null")) {
@@ -211,7 +211,7 @@ public class CvcRequestCommand extends EJBCAWSRABaseCommand
               getPrintStream()
                   .println("Verifying the request before sending it...");
               PublicKey pk =
-                  KeyTools.getECPublicKeyWithParams(
+                  KeyUtil.getECPublicKeyWithParams(
                       authCert.getCertificateBody().getPublicKey(), keySpec);
               authRequest.verify(pk);
             }

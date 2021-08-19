@@ -39,7 +39,7 @@ public class KeyPairWrapperTest {
   public void testGetKeyPair()
       throws InvalidAlgorithmParameterException, InvalidKeySpecException {
     KeyPair testKeys =
-        KeyTools.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
+        KeyUtil.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
     KeyPairWrapper testWrapper = new KeyPairWrapper(testKeys);
     assertEquals(
         "Decoded public key was not identical to encoded.",

@@ -17,7 +17,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.Properties;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.cesecore.keys.token.p11.exception.NoSuchSlotException;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CryptoProviderTools;
 import org.junit.Test;
 
@@ -120,7 +120,7 @@ public class SoftCryptoTokenTest extends CryptoTokenTestBase {
     }
     cryptoToken1.activate("bar123".toCharArray());
     cryptoToken1.generateKeyPair("1024", "foo");
-    KeyTools.testKey(
+    KeyUtil.testKey(
         cryptoToken1.getPrivateKey("foo"),
         cryptoToken1.getPublicKey("foo"),
         null);
@@ -129,14 +129,14 @@ public class SoftCryptoTokenTest extends CryptoTokenTestBase {
     final CryptoToken cryptoToken2 = createSoftToken(false);
     // Should work, auto-password
     cryptoToken2.generateKeyPair("1024", "foo");
-    KeyTools.testKey(
+    KeyUtil.testKey(
         cryptoToken2.getPrivateKey("foo"),
         cryptoToken2.getPublicKey("foo"),
         null);
     cryptoToken2.deactivate();
     // Should still work, auto-password
     cryptoToken2.generateKeyPair("1024", "foo");
-    KeyTools.testKey(
+    KeyUtil.testKey(
         cryptoToken2.getPrivateKey("foo"),
         cryptoToken2.getPublicKey("foo"),
         null);
@@ -144,7 +144,7 @@ public class SoftCryptoTokenTest extends CryptoTokenTestBase {
     cryptoToken2.activate("bar123".toCharArray());
     cryptoToken2.activate("foo123".toCharArray());
     cryptoToken2.generateKeyPair("1024", "foo");
-    KeyTools.testKey(
+    KeyUtil.testKey(
         cryptoToken2.getPrivateKey("foo"),
         cryptoToken2.getPublicKey("foo"),
         null);

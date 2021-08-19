@@ -54,7 +54,7 @@ import org.bouncycastle.jce.spec.ECNamedCurveSpec;
 import org.bouncycastle.math.ec.ECCurve;
 import org.cesecore.CesecoreRuntimeException;
 import org.cesecore.config.CesecoreConfigurationHelper;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.StringTools;
 import org.ejbca.cvc.AlgorithmUtil;
 import org.ejbca.cvc.CVCPublicKey;
@@ -69,7 +69,7 @@ import org.ejbca.cvc.OIDField;
  * added to EJBCA.
  *
  * @see AlgorithmConstants
- * @see KeyTools#getKeyLength
+ * @see KeyUtil#getKeyLength
  * @version $Id: AlgorithmTools.java 28555 2018-03-27 07:19:14Z tarmo_r_helmes $
  */
 public abstract class AlgorithmTools { // NOPMD: length
@@ -254,7 +254,7 @@ public abstract class AlgorithmTools { // NOPMD: length
       final ECNamedCurveParameterSpec parameterSpec =
           ECNamedCurveTable.getParameterSpec(ecNamedCurve);
       final int bitLength = parameterSpec.getN().bitLength();
-      KeyTools.checkValidKeyLength(
+      KeyUtil.checkValidKeyLength(
           AlgorithmConstants.KEYALGORITHM_ECDSA, bitLength);
       // Check if this exists under another alias
       boolean added = false;

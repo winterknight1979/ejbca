@@ -22,7 +22,7 @@ import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.util.encoders.Base64;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
 
 /**
@@ -147,7 +147,7 @@ public final class HashID {
   public static HashID getFromKeyID(final X509Certificate cert) {
     final HashID id =
         new HashID(
-            KeyTools.createSubjectKeyId(cert.getPublicKey())
+            KeyUtil.createSubjectKeyId(cert.getPublicKey())
                 .getKeyIdentifier());
     if (id.isOK) {
       if (LOG.isDebugEnabled()) {

@@ -42,7 +42,7 @@ import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
 import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.cesecore.certificates.endentity.ExtendedInformation;
 import org.cesecore.certificates.util.AlgorithmConstants;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.CryptoProviderTools;
 import org.cesecore.util.SimpleTime;
@@ -95,7 +95,7 @@ public class CertificateValidityTest {
     CryptoProviderTools.installBCProviderIfNotAvailable();
     // Everything from now on!
     now = new Date();
-    keyPair = KeyTools.genKeys("1024", "RSA");
+    keyPair = KeyUtil.genKeys("1024", "RSA");
     CertificateValidity.setTooLateExpireDate(
         new SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
             .parse("2036-01-19 03:14:08"));
@@ -610,7 +610,7 @@ public class CertificateValidityTest {
           NoSuchProviderException, OperatorCreationException,
           CertificateException, IOException, CAOfflineException,
           ParseException {
-    final KeyPair pair = KeyTools.genKeys("512", "RSA");
+    final KeyPair pair = KeyUtil.genKeys("512", "RSA");
     /// A certificate without private key usage period
     X509Certificate cert =
         CertTools.genSelfCertForPurpose(

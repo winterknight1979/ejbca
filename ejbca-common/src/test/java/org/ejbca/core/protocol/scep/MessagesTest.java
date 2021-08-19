@@ -27,7 +27,7 @@ import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.certificate.request.PKCS10RequestMessage;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.Base64;
 import org.cesecore.util.CryptoProviderTools;
 import org.junit.BeforeClass;
@@ -396,7 +396,7 @@ public class MessagesTest {
               + "' from keystore.");
     }
 
-    Certificate[] certchain = KeyTools.getCertChain(keyStore, privateKeyAlias);
+    Certificate[] certchain = KeyUtil.getCertChain(keyStore, privateKeyAlias);
     caCert = (X509Certificate) certchain[0];
     // log.debug(caCert.toString());
   }

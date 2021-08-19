@@ -54,7 +54,7 @@ import org.cesecore.configuration.GlobalConfigurationSessionLocal;
 import org.cesecore.jndi.JndiConstants;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
 import org.cesecore.keys.util.KeyStoreTools;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.keys.util.PublicKeyWrapper;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.EJBTools;
@@ -377,7 +377,7 @@ public class KeyStoreCreateSessionBean
         }
       }
       // generate new keys.
-      rsaKeys = KeyTools.genKeys(keyspec, keyalg);
+      rsaKeys = KeyUtil.genKeys(keyspec, keyalg);
     }
     X509Certificate cert = null;
     if ((reusecertificate) && (keyData != null)) {
@@ -494,13 +494,13 @@ public class KeyStoreCreateSessionBean
         LOG.debug("Generating JKS for user: " + username);
       }
       ks =
-          KeyTools.createJKS(
+          KeyUtil.createJKS(
               alias, rsaKeys.getPrivate(), password, cert, cachain);
     } else {
       if (LOG.isDebugEnabled()) {
         LOG.debug("Generating PKCS12 for user: " + username);
       }
-      ks = KeyTools.createP12(alias, rsaKeys.getPrivate(), cert, cachain);
+      ks = KeyUtil.createP12(alias, rsaKeys.getPrivate(), cert, cachain);
     }
     if (LOG.isTraceEnabled()) {
       LOG.trace("<generateOrKeyRecoverToken");

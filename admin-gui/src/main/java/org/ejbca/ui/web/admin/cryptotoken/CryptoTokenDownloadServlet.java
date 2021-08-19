@@ -25,7 +25,7 @@ import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.authorization.control.CryptoTokenRules;
 import org.cesecore.keys.token.CryptoTokenManagementSessionLocal;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CryptoProviderTools;
 import org.cesecore.util.StringTools;
 import org.ejbca.ui.web.admin.cainterface.BaseAdminServlet;
@@ -94,7 +94,7 @@ public class CryptoTokenDownloadServlet extends BaseAdminServlet {
           " attachment; filename=\""
               + StringTools.stripFilename(aliasParam + ".pem")
               + "\"");
-      response.getOutputStream().write(KeyTools.getAsPem(publicKey).getBytes());
+      response.getOutputStream().write(KeyUtil.getAsPem(publicKey).getBytes());
       response.flushBuffer();
     } catch (CryptoTokenOfflineException e) {
       throw new ServletException(e);

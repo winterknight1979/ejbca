@@ -761,11 +761,11 @@ public class KeyStoreTools {
                   + importKeyHash
                   + (chain.length == 1
                       ? ""
-                      : ("SHA1 of last public key in chain: "
+                      : "SHA1 of last public key in chain: "
                           + CertTools.getFingerprintAsString(
                               chain[chain.length - 1]
                                   .getPublicKey()
-                                  .getEncoded()))));
+                                  .getEncoded())));
         }
         if (hsmPublicKey.equals(importPublicKey)) {
           LOG.info("Found a matching public key for alias \"" + alias + "\".");

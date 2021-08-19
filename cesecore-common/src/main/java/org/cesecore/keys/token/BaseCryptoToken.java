@@ -41,7 +41,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.encoders.Hex;
 import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.internal.InternalResources;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.StringTools;
 
 /**
@@ -76,11 +76,6 @@ public abstract class BaseCryptoToken implements CryptoToken {
 
   /** The java KeyStore backing the Crypto Token. */
   protected transient CachingKeyStoreWrapper keyStore;
-
-  /** public constructor. */
-  public BaseCryptoToken() {
-    super();
-  }
 
   /**
    * @param keystore store
@@ -123,7 +118,7 @@ public abstract class BaseCryptoToken implements CryptoToken {
    * ignored and then rethrown at a later stage. Please fix.
    */
   protected void autoActivate() {
-    if ((this.mAuthCode != null) && (this.keyStore == null)) {
+    if (this.mAuthCode != null && this.keyStore == null) {
       try {
         if (LOG.isDebugEnabled()) {
           LOG.debug("Trying to autoactivate CryptoToken");
@@ -181,12 +176,12 @@ public abstract class BaseCryptoToken implements CryptoToken {
     if (LOG.isDebugEnabled()) {
       final ByteArrayOutputStream baos = new ByteArrayOutputStream();
       final PrintStream ps = new PrintStream(baos);
-      KeyTools.printPublicKeyInfo(publicKey, ps);
+      KeyUtil.printPublicKeyInfo(publicKey, ps);
       ps.flush();
       LOG.debug("Testing key of type " + baos.toString());
     }
     if (!permitExtractablePrivateKeyForTest()
-        && KeyTools.isPrivateKeyExtractable(privateKey)) {
+        && KeyUtil.isPrivateKeyExtractable(privateKey)) {
       String msg =
           INTRES.getLocalizedMessage(
               "token.extractablekey",
@@ -196,7 +191,7 @@ public abstract class BaseCryptoToken implements CryptoToken {
       }
       LOG.info(msg);
     }
-    KeyTools.testKey(privateKey, publicKey, getSignProviderName());
+    KeyUtil.testKey(privateKey, publicKey, getSignProviderName());
   }
 
   /**
@@ -530,7 +525,7 @@ public abstract class BaseCryptoToken implements CryptoToken {
         try {
           getKey(alias, false);
           aliasInUse = true;
-        } catch (CryptoTokenOfflineException e3) {
+        } catch (CryptoTokenOfflineException e3) { // NOPMD
         }
       }
     }
@@ -559,7 +554,7 @@ public abstract class BaseCryptoToken implements CryptoToken {
               getKeyStore()
                   .getKey(
                       alias,
-                      (mAuthCode != null && mAuthCode.length > 0)
+                      mAuthCode != null && mAuthCode.length > 0
                           ? mAuthCode
                           : null);
       if (privateK == null) {
@@ -658,7 +653,7 @@ public abstract class BaseCryptoToken implements CryptoToken {
           getKeyStore()
               .getKey(
                   alias,
-                  (mAuthCode != null && mAuthCode.length > 0)
+                  mAuthCode != null && mAuthCode.length > 0
                       ? mAuthCode
                       : null);
       if (key == null) {
@@ -734,8 +729,7 @@ public abstract class BaseCryptoToken implements CryptoToken {
     try {
       getKeyStore();
       ret = CryptoToken.STATUS_ACTIVE;
-    } catch (CryptoTokenOfflineException e) {
-      // NOPMD, ignore status is offline
+    } catch (CryptoTokenOfflineException e) { // NOPMD, ignore status is offline
     }
     return ret;
   }

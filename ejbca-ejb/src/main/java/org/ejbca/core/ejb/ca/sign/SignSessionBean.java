@@ -117,7 +117,7 @@ import org.cesecore.jndi.JndiConstants;
 import org.cesecore.keys.token.CryptoToken;
 import org.cesecore.keys.token.CryptoTokenManagementSessionLocal;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.keys.util.PublicKeyWrapper;
 import org.cesecore.util.Base64;
 import org.cesecore.util.CertTools;
@@ -1254,7 +1254,7 @@ public class SignSessionBean implements SignSessionLocal, SignSessionRemote {
               caCertificates.get(caCertificates.size() - 1);
           try {
             publicKey =
-                KeyTools.getECPublicKeyWithParams(
+                KeyUtil.getECPublicKeyWithParams(
                     publicKey, cvcaCertificate.getPublicKey());
           } catch (InvalidKeySpecException e) {
             String msg =

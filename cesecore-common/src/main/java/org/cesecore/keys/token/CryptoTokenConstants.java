@@ -18,8 +18,6 @@ package org.cesecore.keys.token;
  */
 public final class CryptoTokenConstants {
 
-  private CryptoTokenConstants() { }
-
   /** constants needed for soft crypto tokens. */
   protected static final String SIGNKEYSPEC = "SIGNKEYSPEC";
   /** Encrypt. */
@@ -30,4 +28,8 @@ public final class CryptoTokenConstants {
   protected static final String ENCKEYALGORITHM = "ENCKEYALGORITHM";
   /** Store. */
   protected static final String KEYSTORE = "KEYSTORE";
+
+
+  private CryptoTokenConstants() { }
+
 }
