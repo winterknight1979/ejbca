@@ -372,8 +372,8 @@ private void logParams(final ECPublicKey bcEcPublicKey) {
  * @param messages messages
  * @param bcEcPublicKey key
  */
-private void validateQ(final List<String> messages, 
-		final ECPublicKey bcEcPublicKey) {
+private void validateQ(final List<String> messages,
+        final ECPublicKey bcEcPublicKey) {
     if (LOG.isDebugEnabled()) {
         LOG.debug("Performing full EC public key validation.");
       }

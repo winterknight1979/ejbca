@@ -2079,7 +2079,7 @@ public class X509CATest {
         "Wrong DN order of issued certificate", desiredDN, name.toString());
   }
 
-  /** 
+  /**
    * Testing that DN override works.
    *
    * @throws Exception Fail

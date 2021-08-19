@@ -479,7 +479,7 @@ private DynamicUiActionCallback createDynamicUIActionCallback() {
               + INTRES.getLocalizedMessage(template.getLabel()));
     }
     if (KeyValidatorSettingsTemplate.USE_CUSTOM_SETTINGS
-    		.equals(template)) { // NOPMD
+            .equals(template)) { // NOPMD
       // NOOP
     } else if (KeyValidatorSettingsTemplate.USE_CAB_FORUM_SETTINGS.equals(
         template)) {
