@@ -160,7 +160,7 @@ public final class ExternalProcessTools {
    * @throws ExternalProcessException if the temporary file could not be written
    *     or the external process fails.
    */
-  public static List<String> launchExternalCommand(
+  public static List<String> launchExternalCommand(// NOPMD: length
       final String cmd,
       final byte[] bytes,
       final boolean failOnCode,
@@ -192,52 +192,13 @@ public final class ExternalProcessTools {
       } else {
         // Only works with PEM X.509 certificates at the time as used in
         // ExternalCommandCertificateValidator (not by CRL publishers).
-        final List<Certificate> certificates = new ArrayList<Certificate>();
-        certificates.add(
-            CertTools.getCertfromByteArray(bytes, Certificate.class));
-        final byte[] testPemBytes =
-            CertTools.getPemFromCertificateChain(certificates);
-        String pemString = new String(testPemBytes);
-        pemString =
-            pemString.substring(
-                pemString.indexOf(LINE_SEPARATOR) + 1, pemString.length());
-        pemString =
-            pemString.substring(
-                pemString.indexOf(LINE_SEPARATOR) + 1, pemString.length());
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Using certificates:\n" + pemString);
-        }
+        String pemString = getPemString(bytes);
         arguments.remove(arguments.indexOf(PLACE_HOLDER_CERTIFICATE));
 
-        if (SystemUtils.IS_OS_WINDOWS) {
-          // Broken. Command cannot be executed.
-          cmdTokens.set(0, "echo \"" + pemString + "\" | " + cmdTokens.get(0));
-          /*
-           * Hack needed for Windows, where Runtime.exec won't consistently
-           *  encapsulate arguments, leading to arguments
-           * containing spaces (such as Subject DNs) sometimes being parsed
-           * as multiple arguments. Bash, on the other hand,
-           * won't parse quote surrounded arguments.
-           */
-          qouteArguments(arguments);
-        } else {
-          cmdTokens.set(
-              0, "echo -n \"" + pemString + "\" | " + cmdTokens.get(0));
-        }
+        quoteCommandForOS(arguments, cmdTokens, pemString);
       }
-      List<String> cmdArray = new ArrayList<String>();
-      cmdArray.addAll(cmdTokens);
-      cmdArray.addAll(arguments);
-      if (!writeFileToDisk) {
-        cmdArray = buildShellCommand(StringUtils.join(cmdArray, " "));
-      }
-      if (LOG.isDebugEnabled()) {
-        LOG.debug(
-            "Process external command for "
-                + getPlatformString()
-                + ": "
-                + cmdArray);
-      }
+      List<String> cmdArray = buildCmdArray(arguments,
+              writeFileToDisk, cmdTokens);
       // Launch external process.
       final Process externalProcess =
           Runtime.getRuntime()
@@ -252,19 +213,13 @@ public final class ExternalProcessTools {
       final BufferedReader stdOut =
           new BufferedReader(
               new InputStreamReader(externalProcess.getInputStream()));
-      String line = null;
-      while ((line = stdOut.readLine())
-          != null) { // NOPMD: Required under win32 to avoid lock
-        if (logStdOut) {
-          result.add(STDOUT_PREFIX + line);
-        }
-      }
+      logStdOut(logStdOut, result, stdOut);
       String stdErrorOutput = null;
       // Check error code and the external applications output to STDERR.
       exitStatus = externalProcess.waitFor();
       result.add(0, EXIT_CODE_PREFIX + exitStatus);
-      if (((exitStatus != 0) && failOnCode)
-          || (stdError.ready() && failOnOutput)) {
+      if (exitStatus != 0 && failOnCode
+          || stdError.ready() && failOnOutput) {
         if (writeFileToDisk && file.exists()) {
           file.delete();
         }
@@ -308,14 +263,127 @@ public final class ExternalProcessTools {
           e,
           result);
     } finally {
-      if (writeFileToDisk && file != null && file.exists() && !file.delete()) {
+      deleteTempFile(writeFileToDisk, file, filename);
+    }
+    logResult(startTime, writeFileToDisk);
+    return result;
+  }
+
+/**
+ * @param arguments args
+ * @param writeFileToDisk bool
+ * @param cmdTokens tokens
+ * @return array
+ */
+private static List<String> buildCmdArray(final List<String> arguments,
+        final boolean writeFileToDisk,
+        final List<String> cmdTokens) {
+    List<String> cmdArray = new ArrayList<String>();
+      cmdArray.addAll(cmdTokens);
+      cmdArray.addAll(arguments);
+      if (!writeFileToDisk) {
+        cmdArray = buildShellCommand(StringUtils.join(cmdArray, " "));
+      }
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
+            "Process external command for "
+                + getPlatformString()
+                + ": "
+                + cmdArray);
+      }
+    return cmdArray;
+}
+
+/**
+ * @param bytes bytes
+ * @return PEM
+ * @throws CertificateParsingException fail
+ * @throws CertificateEncodingException fail
+ */
+private static String getPemString(final byte[] bytes)
+        throws CertificateParsingException, CertificateEncodingException {
+    final List<Certificate> certificates = new ArrayList<Certificate>();
+    certificates.add(
+        CertTools.getCertfromByteArray(bytes, Certificate.class));
+    final byte[] testPemBytes =
+        CertTools.getPemFromCertificateChain(certificates);
+    String pemString = new String(testPemBytes);
+    pemString =
+        pemString.substring(
+            pemString.indexOf(LINE_SEPARATOR) + 1, pemString.length());
+    pemString =
+        pemString.substring(
+            pemString.indexOf(LINE_SEPARATOR) + 1, pemString.length());
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Using certificates:\n" + pemString);
+    }
+    return pemString;
+}
+
+/**
+ * @param logStdOut stream
+ * @param result res
+ * @param stdOut Stdout
+ * @throws IOException fail
+ */
+private static void logStdOut(final boolean logStdOut,
+        final List<String> result, final BufferedReader stdOut)
+        throws IOException {
+    String line = null;
+      while ((line = stdOut.readLine())
+          != null) { // NOPMD: Required under win32 to avoid lock
+        if (logStdOut) {
+          result.add(STDOUT_PREFIX + line);
+        }
+      }
+}
+
+/**
+ * @param arguments args
+ * @param cmdTokens tokens
+ * @param pemString PEM
+ */
+private static void quoteCommandForOS(final List<String> arguments,
+        final List<String> cmdTokens, final String pemString) {
+    if (SystemUtils.IS_OS_WINDOWS) {
+      // Broken. Command cannot be executed.
+      cmdTokens.set(0, "echo \"" + pemString + "\" | " + cmdTokens.get(0));
+      /*
+       * Hack needed for Windows, where Runtime.exec won't consistently
+       *  encapsulate arguments, leading to arguments
+       * containing spaces (such as Subject DNs) sometimes being parsed
+       * as multiple arguments. Bash, on the other hand,
+       * won't parse quote surrounded arguments.
+       */
+      qouteArguments(arguments);
+    } else {
+      cmdTokens.set(
+          0, "echo -n \"" + pemString + "\" | " + cmdTokens.get(0));
+    }
+}
+
+/**
+ * @param writeFileToDisk bool
+ * @param file file
+ * @param filename name
+ */
+private static void deleteTempFile(final boolean writeFileToDisk,
+        final File file, final String filename) {
+    if (writeFileToDisk && file != null && file.exists() && !file.delete()) {
         // Remove temporary file or schedule for delete if delete fails.
         file.deleteOnExit();
         LOG.info(
             INTRES.getLocalizedMessage(
                 "process.errordeletetempfile", filename));
       }
-    }
+}
+
+/**
+ * @param startTime time
+ * @param writeFileToDisk bool
+ */
+private static void logResult(final long startTime,
+        final boolean writeFileToDisk) {
     if (LOG.isTraceEnabled()) {
       LOG.trace(
           "Time spent to execute external command (writeFileToDisk="
@@ -324,8 +392,7 @@ public final class ExternalProcessTools {
               + (System.currentTimeMillis() - startTime)
               + "ms.");
     }
-    return result;
-  }
+}
 
   /**
    * @return platform.
@@ -371,8 +438,7 @@ public final class ExternalProcessTools {
       } catch (IOException e) {
         try {
           file.delete();
-        } catch (Exception e1) {
-          // NOOP
+        } catch (Exception e1) { // NOPMD: NOOP
         }
         final String msg = INTRES.getLocalizedMessage("process.errortempfile");
         LOG.error(msg, e);

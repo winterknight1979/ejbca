@@ -11,7 +11,7 @@ import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authorization.control.StandardRules;
 import org.cesecore.certificates.ca.CAInfo;
 import org.cesecore.certificates.ca.CaSessionLocal;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionLocal;
 import org.ejbca.ui.web.RequestHelper;
 import org.ejbca.ui.web.admin.cainterface.exception.AdminWebAuthenticationException;
@@ -105,7 +105,7 @@ public class CAExportServlet extends BaseAdminServlet {
       res.setHeader(
           "Content-Disposition",
           "attachment;filename=\""
-              + StringTools.stripFilename(caname + "." + ext)
+              + StringUtil.stripFilename(caname + "." + ext)
               + "\"");
       res.getOutputStream().write(keystorebytes);
     } catch (Exception e) {

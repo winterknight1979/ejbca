@@ -21,7 +21,7 @@ import java.util.Collection;
 import org.cesecore.certificates.certificate.request.RequestMessageUtils;
 import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.cesecore.util.FileTools;
 import org.ejbca.cvc.CVCAuthenticatedRequest;
 import org.ejbca.cvc.CVCObject;
@@ -64,7 +64,7 @@ public class CvcPrintCommand extends EJBCAWSRABaseCommand
         usage();
         System.exit(-1); // NOPMD, this is not a JEE app
       }
-      CryptoProviderTools.installBCProvider();
+      CryptoProviderUtil.installBCProvider();
       String filename = args[1];
       getPrintStream().println("Printing CV Certificate: " + filename);
       // Read file to a buffer and use the toString functions in the cvc-lib

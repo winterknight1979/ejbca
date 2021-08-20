@@ -19,7 +19,7 @@ import java.security.cert.X509Certificate;
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -33,7 +33,7 @@ public class HashIDTest {
     /** Setup. */
   @BeforeClass
   public static void beforeClass() {
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
   }
   /**
    * @throws Exception Fail

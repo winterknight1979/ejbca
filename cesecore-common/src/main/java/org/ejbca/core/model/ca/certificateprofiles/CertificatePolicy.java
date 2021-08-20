@@ -121,8 +121,8 @@ public class CertificatePolicy implements Serializable, Cloneable {
 
   /** @see java.lang.Object#equals(java.lang.Object) */
   @Override
-  public boolean equals(final Object obj) {
-    if ((obj == null) || !(obj instanceof CertificatePolicy)) {
+  public boolean equals(final Object obj) { // NOPMD
+    if (obj == null || !(obj instanceof CertificatePolicy)) {
       return false;
     }
     final CertificatePolicy policy = (CertificatePolicy) obj;

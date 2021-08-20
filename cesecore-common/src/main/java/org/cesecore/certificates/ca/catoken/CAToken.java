@@ -28,7 +28,7 @@ import org.cesecore.internal.InternalResources;
 import org.cesecore.internal.UpgradeableDataHashMap;
 import org.cesecore.keys.token.CryptoToken;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 
 /**
  * The CAToken is keeps references to the CA's key aliases and the CryptoToken
@@ -490,7 +490,7 @@ private PrivateKey getPrivateKey(final CryptoToken cryptoToken,
   public int getKeySequenceFormat() {
     Object seqF = data.get(SEQUENCE_FORMAT);
     if (seqF == null) {
-      seqF = Integer.valueOf(StringTools.KEY_SEQUENCE_FORMAT_NUMERIC);
+      seqF = Integer.valueOf(StringUtil.KEY_SEQUENCE_FORMAT_NUMERIC);
     }
     return (Integer) seqF;
   }
@@ -542,9 +542,9 @@ private PrivateKey getPrivateKey(final CryptoToken cryptoToken,
       if (data.get(CAToken.SEQUENCE_FORMAT) == null) { // v7
         LOG.info(
             "Adding new sequence format to CA Token data: "
-                + StringTools.KEY_SEQUENCE_FORMAT_NUMERIC);
+                + StringUtil.KEY_SEQUENCE_FORMAT_NUMERIC);
         data.put(
-            CAToken.SEQUENCE_FORMAT, StringTools.KEY_SEQUENCE_FORMAT_NUMERIC);
+            CAToken.SEQUENCE_FORMAT, StringUtil.KEY_SEQUENCE_FORMAT_NUMERIC);
       }
       if (data.get(CAToken.SEQUENCE) == null) { // v7
         LOG.info(
@@ -629,7 +629,7 @@ private PrivateKey getPrivateKey(final CryptoToken cryptoToken,
     // Generate a new key sequence
     final String currentKeySequence = getKeySequence();
     final String newKeySequence =
-        StringTools.incrementKeySequence(
+        StringUtil.incrementKeySequence(
             getKeySequenceFormat(), currentKeySequence);
     if (LOG.isDebugEnabled()) {
       LOG.debug(
@@ -711,7 +711,7 @@ private PrivateKey getPrivateKey(final CryptoToken cryptoToken,
       // If we did not have a next key sequence before this activation we
       // generate one and push back the current.
       final String newKeySequence =
-          StringTools.incrementKeySequence(
+          StringUtil.incrementKeySequence(
               getKeySequenceFormat(), currentKeySequence);
       caTokenProperties.setProperty(
           CATokenConstants.PREVIOUS_SEQUENCE_PROPERTY, currentKeySequence);

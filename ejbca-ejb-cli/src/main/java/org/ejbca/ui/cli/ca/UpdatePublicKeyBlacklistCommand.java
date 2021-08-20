@@ -26,7 +26,7 @@ import org.apache.log4j.Logger;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.certificates.util.AlgorithmTools;
 import org.cesecore.keys.util.KeyUtil;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.cesecore.util.EjbRemoteHelper;
 import org.cesecore.util.FileTools;
 import org.ejbca.core.ejb.ca.validation.BlacklistDoesntExistsException;
@@ -150,7 +150,7 @@ public class UpdatePublicKeyBlacklistCommand extends BaseCaAdminCommand {
   public CommandResult execute(final ParameterContainer parameters) {
     LOG.trace(">execute()");
 
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
 
     try {
       final String command = parameters.get(COMMAND_KEY);

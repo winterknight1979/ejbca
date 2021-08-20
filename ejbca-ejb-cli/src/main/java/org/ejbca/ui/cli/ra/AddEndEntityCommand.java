@@ -32,7 +32,7 @@ import org.cesecore.certificates.endentity.EndEntityType;
 import org.cesecore.certificates.endentity.EndEntityTypes;
 import org.cesecore.configuration.GlobalConfigurationSessionRemote;
 import org.cesecore.util.EjbRemoteHelper;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.config.GlobalConfiguration;
 import org.ejbca.core.ejb.hardtoken.HardTokenSessionRemote;
 import org.ejbca.core.ejb.ra.EndEntityExistsException;
@@ -604,12 +604,12 @@ public class AddEndEntityCommand extends BaseRaCommand {
       getLogger().info("Enter password: ");
       getLogger().info("");
       authenticationCode =
-          StringTools.passwordDecryption(
+          StringUtil.passwordDecryption(
               String.valueOf(System.console().readPassword()),
               "End Entity Password");
     } else {
       authenticationCode =
-          StringTools.passwordDecryption(
+          StringUtil.passwordDecryption(
               commandLineArgument, "End Entity Password");
     }
     return authenticationCode;

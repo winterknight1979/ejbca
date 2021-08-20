@@ -31,7 +31,7 @@ import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
 import org.cesecore.certificates.certificateprofile.CertificateProfileExistsException;
 import org.cesecore.certificates.certificateprofile.CertificateProfileSessionRemote;
 import org.cesecore.certificates.endentity.EndEntityConstants;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.cesecore.util.EjbRemoteHelper;
 import org.cesecore.util.FileTools;
 import org.cesecore.util.SecureXMLDecoder;
@@ -111,7 +111,7 @@ public class CaImportProfilesCommand extends BaseCaAdminCommand {
       }
       caid = ca.getCAId();
     }
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
     // Mapping used to translate certificate profile ids when importing end
     // entity profiles. Used when the profile id of a cert profile changes
     // and we need to change the mapping from the ee profile to cert profiles

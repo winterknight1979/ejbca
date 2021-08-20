@@ -50,7 +50,7 @@ public class Base64GetHashMap extends LinkedHashMap {
     }
     if (o instanceof String) {
       String s = (String) o;
-      return StringTools.getBase64String(s);
+      return StringUtil.getBase64String(s);
     }
     return o;
   }

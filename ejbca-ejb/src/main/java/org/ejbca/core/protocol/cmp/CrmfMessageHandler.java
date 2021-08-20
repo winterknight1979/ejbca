@@ -56,7 +56,7 @@ import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.certificates.util.AlgorithmTools;
 import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.config.CmpConfiguration;
 import org.ejbca.core.EjbcaException;
 import org.ejbca.core.ejb.EjbBridgeSessionLocal;
@@ -583,7 +583,7 @@ public class CrmfMessageHandler extends BaseCmpMessageHandler
         LOG.debug("Creating username from base dn: " + dnname.toString());
       }
       final String username =
-          StringTools.stripUsername(gen.generateUsername(dnname.toString()));
+          StringUtil.stripUsername(gen.generateUsername(dnname.toString()));
       final String pwd;
       if (StringUtils.equals(
           authenticationModule.getName(),

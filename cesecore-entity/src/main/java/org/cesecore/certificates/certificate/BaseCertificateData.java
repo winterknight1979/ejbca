@@ -23,7 +23,7 @@ import org.apache.log4j.Logger;
 import org.cesecore.certificates.crl.RevokedCertInfo;
 import org.cesecore.certificates.endentity.EndEntityConstants;
 import org.cesecore.dbprotection.ProtectedData;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
 
 /**
@@ -381,7 +381,7 @@ public abstract class BaseCertificateData extends ProtectedData {
         return null;
       }
       return CertTools.getCertfromByteArray(
-          Base64.decode(certEncoded.getBytes()), Certificate.class);
+          Base64Util.decode(certEncoded.getBytes()), Certificate.class);
     } catch (CertificateException ce) {
       LOG.error("Can't decode certificate.", ce);
       return null;
@@ -415,7 +415,7 @@ public abstract class BaseCertificateData extends ProtectedData {
         return null;
       }
       return CertTools.getCertfromByteArray(
-          Base64.decode(certEncoded.getBytes()), Certificate.class);
+          Base64Util.decode(certEncoded.getBytes()), Certificate.class);
     } catch (CertificateException ce) {
       LOG.error("Can't decode " + getClassName() + ".", ce);
       return null;

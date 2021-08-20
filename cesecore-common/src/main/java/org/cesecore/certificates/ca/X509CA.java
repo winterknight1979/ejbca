@@ -161,7 +161,7 @@ import org.cesecore.util.CeSecoreNameStyle;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.PrintableStringNameStyle;
 import org.cesecore.util.SimpleTime;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 
 /**
  * X509CA is a implementation of a CA and holds data specific for Certificate
@@ -2419,7 +2419,7 @@ private X500Name getSubjectDn(final CertificateProfile certProfile,
       if (certProfile.getAllowDNOverrideByEndEntityInformation()
           && ei != null
           && ei.getRawSubjectDn() != null) {
-        final String stripped = StringTools.strip(ei.getRawSubjectDn());
+        final String stripped = StringUtil.strip(ei.getRawSubjectDn());
         final String escapedPluses = CertTools.handleUnescapedPlus(stripped);
         final String emptiesRemoved =
             DNFieldsUtil.removeAllEmpties(escapedPluses);
@@ -2458,7 +2458,7 @@ private X500Name getSubjectDn(final CertificateProfile certProfile,
       }
     }
     // Make sure the DN does not contain dangerous characters
-    if (!StringTools.hasStripChars(subjectDNName.toString()).isEmpty()) {
+    if (!StringUtil.hasStripChars(subjectDNName.toString()).isEmpty()) {
       if (LOG.isTraceEnabled()) {
         LOG.trace("DN with illegal name: " + subjectDNName);
       }
@@ -2518,7 +2518,7 @@ private String getSigAlg(final CertificateProfile certProfile)
       sigAlg = certProfile.getSignatureAlgorithm();
     }
     // Check that the signature algorithm is one of the allowed ones
-    if (!StringTools.containsCaseInsensitive(
+    if (!StringUtil.containsCaseInsensitive(
         AlgorithmConstants.AVAILABLE_SIGALGS, sigAlg)) {
       final String msg =
           INTRES.getLocalizedMessage(
@@ -3118,7 +3118,7 @@ private void setCrlExts(final boolean isDeltaCRL,
     // Multiple CDPs are separated with the ';' sign
     ArrayList<DistributionPoint> result = new ArrayList<>();
     for (final String uri
-        : StringTools.splitURIs(StringUtils.defaultString(distPoints))) {
+        : StringUtil.splitURIs(StringUtils.defaultString(distPoints))) {
       GeneralName gn =
           new GeneralName(
               GeneralName.uniformResourceIdentifier, new DERIA5String(uri));

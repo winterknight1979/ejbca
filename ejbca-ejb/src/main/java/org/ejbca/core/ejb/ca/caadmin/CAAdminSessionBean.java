@@ -154,12 +154,12 @@ import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.keys.validation.KeyValidatorSessionLocal;
 import org.cesecore.keys.validation.Validator;
 import org.cesecore.roles.management.RoleSessionLocal;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
-import org.cesecore.util.EJBTools;
-import org.cesecore.util.StringTools;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.CryptoProviderUtil;
+import org.cesecore.util.EJBUtil;
+import org.cesecore.util.StringUtil;
+import org.cesecore.util.ValidityDateUtil;
 import org.cesecore.util.ui.DynamicUiProperty;
 import org.ejbca.config.CmpConfiguration;
 import org.ejbca.config.EjbcaConfiguration;
@@ -276,7 +276,7 @@ public class CAAdminSessionBean
   /** Init. */
   @PostConstruct
   public void postConstruct() {
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
     // We lookup the reference to our-self in PostConstruct, since we cannot
     // inject this.
     // We can not inject ourself, JBoss will not start then therefore we use
@@ -312,8 +312,8 @@ public class CAAdminSessionBean
       try {
         caAdminSession.initializeAndUpgradeCA(caData.getCaId());
         final String expires =
-            ValidityDate.formatAsISO8601ServerTZ(
-                caData.getExpireTime(), ValidityDate.TIMEZONE_SERVER);
+            ValidityDateUtil.formatAsISO8601ServerTZ(
+                caData.getExpireTime(), ValidityDateUtil.TIMEZONE_SERVER);
         LOG.info(
             "Initialized CA: "
                 + String.format("%-" + maxNameLenght + "s", caName)
@@ -2318,7 +2318,7 @@ public class CAAdminSessionBean
                     .getCertificationRequest();
             extInfo.setCustomData(
                 ExtendedInformationFields.CUSTOM_PKCS10,
-                new String(Base64.encode(pkcs10.getEncoded())));
+                new String(Base64Util.encode(pkcs10.getEncoded())));
             cadata.setExtendedInformation(extInfo);
           }
           CertificateProfile certprofile =
@@ -2492,7 +2492,7 @@ public class CAAdminSessionBean
       throws AuthorizationDeniedException, CAExistsException,
           IllegalCryptoTokenException, CertificateImportException {
     List<Certificate> certificates =
-        EJBTools.unwrapCertCollection(wrappedCerts);
+        EJBUtil.unwrapCertCollection(wrappedCerts);
     // Re-order if needed and validate chain
     if (certificates.size() != 1) {
       // In the case there is a chain, we require a full chain leading up to a
@@ -2613,7 +2613,7 @@ public class CAAdminSessionBean
       throws CADoesntExistsException, AuthorizationDeniedException,
           CertificateImportException {
     List<Certificate> certificates =
-        EJBTools.unwrapCertCollection(wrappedCerts);
+        EJBUtil.unwrapCertCollection(wrappedCerts);
     // Re-order if needed and validate chain
     if (certificates.size() != 1) {
       // In the case there is a chain, we require a full chain leading up to a
@@ -2712,10 +2712,10 @@ public class CAAdminSessionBean
     if (LOG.isDebugEnabled()) {
       LOG.debug(
           "Current valid from: "
-              + ValidityDate.formatAsISO8601(
+              + ValidityDateUtil.formatAsISO8601(
                   oldValidFrom, TimeZone.getDefault())
               + " Import valid from: "
-              + ValidityDate.formatAsISO8601(
+              + ValidityDateUtil.formatAsISO8601(
                   newValidFrom, TimeZone.getDefault()));
     }
     if (newValidFrom != null
@@ -3977,7 +3977,7 @@ public class CAAdminSessionBean
           AuthorizationDeniedException, CAExistsException, CAOfflineException {
     // Transform into token
     int caId =
-        StringTools.strip(CertTools.getSubjectDN(signatureCertChain[0]))
+        StringUtil.strip(CertTools.getSubjectDN(signatureCertChain[0]))
             .hashCode(); // caid
     CAToken catoken = null;
     try {
@@ -4206,8 +4206,8 @@ public class CAAdminSessionBean
       catoken.setKeySequence(sequence);
       LOG.debug(
           "Setting default sequence format "
-              + StringTools.KEY_SEQUENCE_FORMAT_NUMERIC);
-      catoken.setKeySequenceFormat(StringTools.KEY_SEQUENCE_FORMAT_NUMERIC);
+              + StringUtil.KEY_SEQUENCE_FORMAT_NUMERIC);
+      catoken.setKeySequenceFormat(StringUtil.KEY_SEQUENCE_FORMAT_NUMERIC);
       catoken.setSignatureAlgorithm(signatureAlgorithm);
       catoken.setEncryptionAlgorithm(encryptionAlgorithm);
       return catoken;
@@ -4243,7 +4243,7 @@ public class CAAdminSessionBean
           AuthorizationDeniedException, CAExistsException, CAOfflineException,
           NoSuchSlotException {
     Certificate cacert = signatureCertChain[0];
-    int caId = StringTools.strip(CertTools.getSubjectDN(cacert)).hashCode();
+    int caId = StringUtil.strip(CertTools.getSubjectDN(cacert)).hashCode();
     Properties caTokenProperties =
         CAToken.getPropertiesFromString(catokenproperties);
     // Create the CryptoToken
@@ -4281,8 +4281,8 @@ public class CAAdminSessionBean
     catoken.setKeySequence(sequence);
     LOG.debug(
         "Setting default sequence format "
-            + StringTools.KEY_SEQUENCE_FORMAT_NUMERIC);
-    catoken.setKeySequenceFormat(StringTools.KEY_SEQUENCE_FORMAT_NUMERIC);
+            + StringUtil.KEY_SEQUENCE_FORMAT_NUMERIC);
+    catoken.setKeySequenceFormat(StringUtil.KEY_SEQUENCE_FORMAT_NUMERIC);
     catoken.setSignatureAlgorithm(signatureAlgorithm);
     // Encryption keys must be RSA still
     String encryptionAlgorithm =

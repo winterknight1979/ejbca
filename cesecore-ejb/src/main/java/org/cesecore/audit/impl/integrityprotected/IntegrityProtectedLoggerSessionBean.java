@@ -26,7 +26,7 @@ import org.cesecore.audit.enums.ServiceType;
 import org.cesecore.audit.log.AuditRecordStorageException;
 import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.time.TrustedTime;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.cesecore.util.QueryResultWrapper;
 
 /**
@@ -55,7 +55,7 @@ public class IntegrityProtectedLoggerSessionBean
   /** Setup. */
   @PostConstruct
   public void postConstruct() {
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
   }
 
   /**

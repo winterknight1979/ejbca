@@ -17,7 +17,7 @@ import org.apache.log4j.Logger;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.certificates.certificateprofile.CertificateProfile;
 import org.cesecore.certificates.certificateprofile.CertificateProfileSessionRemote;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.cesecore.util.EjbRemoteHelper;
 import org.ejbca.ui.cli.FieldEditor;
 import org.ejbca.ui.cli.FieldNotFoundException;
@@ -104,7 +104,7 @@ public class CaEditCertificateProfileCommand extends BaseCaAdminCommand {
 
     FieldEditor fieldEditor = new FieldEditor(LOG);
 
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
 
     boolean listOnly = parameters.get(LISTFIELDS_KEY) != null;
     boolean getOnly = parameters.get(GETVALUE_KEY) != null;

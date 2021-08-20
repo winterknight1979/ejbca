@@ -113,8 +113,8 @@ import org.cesecore.keys.token.p11.exception.NoSuchSlotException;
 import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CeSecoreNameStyle;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.CryptoProviderUtil;
+import org.cesecore.util.StringUtil;
 import org.junit.Test;
 
 /**
@@ -134,7 +134,7 @@ public class X509CATest {
 
   /** Constructor. */
   public X509CATest() {
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
   }
 
   /**
@@ -681,7 +681,7 @@ public class X509CATest {
         AlgorithmConstants.SIGALG_SHA256_WITH_RSA,
         caToken1.getEncryptionAlgorithm());
     assertEquals(
-        StringTools.KEY_SEQUENCE_FORMAT_NUMERIC,
+        StringUtil.KEY_SEQUENCE_FORMAT_NUMERIC,
         caToken1.getKeySequenceFormat());
 
     final CAInfo cainfo2 = ca2.getCAInfo();
@@ -693,7 +693,7 @@ public class X509CATest {
         AlgorithmConstants.SIGALG_SHA256_WITH_RSA,
         caToken2.getEncryptionAlgorithm());
     assertEquals(
-        StringTools.KEY_SEQUENCE_FORMAT_NUMERIC,
+        StringUtil.KEY_SEQUENCE_FORMAT_NUMERIC,
         caToken2.getKeySequenceFormat());
   }
 
@@ -2610,7 +2610,7 @@ public class X509CATest {
     // Set key sequence so that next sequence will be 00001 (this is the default
     // though so not really needed here)
     caToken.setKeySequence(CAToken.DEFAULT_KEYSEQUENCE);
-    caToken.setKeySequenceFormat(StringTools.KEY_SEQUENCE_FORMAT_NUMERIC);
+    caToken.setKeySequenceFormat(StringUtil.KEY_SEQUENCE_FORMAT_NUMERIC);
     caToken.setSignatureAlgorithm(sigAlg);
     caToken.setEncryptionAlgorithm(AlgorithmConstants.SIGALG_SHA256_WITH_RSA);
     // No extended services

@@ -20,7 +20,7 @@ import org.cesecore.certificates.ca.CADoesntExistsException;
 import org.cesecore.certificates.ca.CAExistsException;
 import org.cesecore.certificates.ca.CAInfo;
 import org.cesecore.certificates.ca.CaSessionRemote;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.cesecore.util.EjbRemoteHelper;
 import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionRemote;
 import org.ejbca.ui.cli.FieldEditor;
@@ -84,7 +84,7 @@ public class CaEditCaCommand extends BaseCaAdminCommand {
   @Override
   public CommandResult execute(final ParameterContainer parameters) {
     FieldEditor fieldEditor = new FieldEditor(LOG);
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
     final String name = parameters.get(CA_NAME_KEY);
     final String field = parameters.get(FIELD_KEY);
     final String value = parameters.get(VALUE_KEY);

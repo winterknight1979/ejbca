@@ -28,7 +28,7 @@ import org.cesecore.certificates.certificateprofile.CertificatePolicy;
 import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.SimpleTime;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 
 /**
  * Holds non-sensitive information about a X509CA.
@@ -297,7 +297,7 @@ public class X509CAInfo extends CAInfo { // NOPMD: class length
       final boolean aacceptRevocationNonExistingEntry,
       final String acmpRaAuthSecret,
       final boolean keepExpiredCertsOnCRL) {
-    this.subjectdn = CertTools.stringToBCDNString(StringTools.strip(subjectDn));
+    this.subjectdn = CertTools.stringToBCDNString(StringUtil.strip(subjectDn));
     this.caid = CertTools.stringToBCDNString(this.subjectdn).hashCode();
     this.name = name;
     this.status = status;

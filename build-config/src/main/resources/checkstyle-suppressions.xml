@@ -153,12 +153,12 @@
 	<suppress checks="ParameterNumberCheck"
 		files="CertificateCreateSessionBean.java" lines="414" />
 	<suppress checks="MagicNumberCheck"
-		files="CertificateCreateSessionBean.java" lines="569" /> <!-- This is actually setting final -->
+		files="CertificateCreateSessionBean.java" lines="570" /> <!-- This is actually setting final -->
 	<suppress checks="MagicNumberCheck"
 		files="CertificateDataSessionBean.java" lines="155-183,516-545" /> <!-- Array indices -->
 	<suppress checks="ParameterNumberCheck"
 		files="CertificateStoreSessionBean.java"
-		lines="164,194,226,293,2293,2377" />
+		lines="164,194,226,293,2295,2379" />
 	<suppress checks="ParameterNumberCheck"
 		files="CrlStoreSessionBean.java" lines="69" />
 	<suppress checks="MethodLengthCheck"
@@ -274,11 +274,11 @@
 	<suppress checks="MagicNumberCheck"
 		files="ExtendedInformation.java" lines="322,384" /> <!-- Version numbers -->
 	<suppress checks="MagicNumberCheck"
-		files="EndEntityProfile.java" lines="203-236,2770-2974" /> <!-- Constant map, version numbers -->
+		files="EndEntityProfile.java" lines="203-236,2770-2976" /> <!-- Constant map, version numbers -->
 	<suppress checks="MethodLengthCheck"
-		files="EndEntityProfile.java" lines="412,2100,2737,2516" />
+		files="EndEntityProfile.java" lines="412,2102,2739,2518" />
 	<suppress checks="ParameterNumberCheck"
-		files="EndEntityProfile.java" lines="1981,2100" />
+		files="EndEntityProfile.java" lines="1983,2102" />
 	<suppress checks="ParameterNumberCheck"
 		files="UserDataVO.java" lines="120,171" />
 	<suppress checks="MagicNumberCheck"

@@ -23,7 +23,7 @@ import org.cesecore.authentication.AuthenticationFailedException;
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authorization.access.AuthorizationCacheReload;
 import org.cesecore.authorization.access.AuthorizationCacheReloadListener;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.ValidityDateUtil;
 
 /**
  * Cache of the authorization granted to different AuthenticationTokens.
@@ -231,7 +231,7 @@ public enum AuthorizationCache {
                     "Removed entry for key '"
                             + key
                             + "' since it was last seen "
-                            + ValidityDate.formatAsUTC(entry.timeOfLastUse)
+                            + ValidityDateUtil.formatAsUTC(entry.timeOfLastUse)
                             + ".");
         }
       }

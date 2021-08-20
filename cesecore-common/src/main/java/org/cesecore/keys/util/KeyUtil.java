@@ -102,9 +102,9 @@ import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.certificates.util.AlgorithmTools;
 import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.internal.InternalResources;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.ejbca.cvc.PublicKeyEC;
 
 /**
@@ -1101,7 +1101,7 @@ private static void storeUserCert(final String alias, final PrivateKey privKey,
       buffer.write(NL);
       buffer.write(BEGIN_PRIVATE_KEY);
       buffer.write(NL);
-      final byte[] privKey = Base64.encode(privKeyEncoded);
+      final byte[] privKey = Base64Util.encode(privKeyEncoded);
       buffer.write(privKey);
       buffer.write(NL);
       buffer.write(END_PRIVATE_KEY);
@@ -1118,7 +1118,7 @@ private static void storeUserCert(final String alias, final PrivateKey privKey,
       buffer.write(NL);
       buffer.write(BEGIN_CERTIFICATE);
       buffer.write(NL);
-      final byte[] userCertB64 = Base64.encode(output);
+      final byte[] userCertB64 = Base64Util.encode(output);
       buffer.write(userCertB64);
       buffer.write(NL);
       buffer.write(END_CERTIFICATE);
@@ -1145,7 +1145,7 @@ private static void storeUserCert(final String alias, final PrivateKey privKey,
         final byte[] tmpOutput = tmpX509Cert.getEncoded();
         buffer.write(BEGIN_CERTIFICATE);
         buffer.write(NL);
-        final byte[] tmpCACertB64 = Base64.encode(tmpOutput);
+        final byte[] tmpCACertB64 = Base64Util.encode(tmpOutput);
         buffer.write(tmpCACertB64);
         buffer.write(NL);
         buffer.write(END_CERTIFICATE);
@@ -1375,7 +1375,7 @@ private static void logSelfSigned(final String privateKeyAlias,
    * @return true if key strength is limited
    */
   public static boolean isUsingExportableCryptography() {
-    return CryptoProviderTools.isUsingExportableCryptography();
+    return CryptoProviderUtil.isUsingExportableCryptography();
   }
 
   /**
@@ -1839,7 +1839,7 @@ private static void logSelfSigned(final String privateKeyAlias,
 
     final String base64 = pem.substring(start + beginMarker.length(), end);
     try {
-      return Base64.decode(base64.getBytes("ASCII"));
+      return Base64Util.decode(base64.getBytes("ASCII"));
     } catch (UnsupportedEncodingException e) {
       LOG.debug(String.format("Invalid byte in PEM data: %s", e.getMessage()));
       return null;

@@ -20,7 +20,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import org.apache.commons.lang.StringUtils;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.cesecore.util.FileTools;
 import org.ejbca.core.protocol.ws.client.gen.EjbcaException_Exception;
 import org.ejbca.core.protocol.ws.common.IEjbcaWS;
@@ -107,7 +107,7 @@ public class CustomLogCommand extends EJBCAWSRABaseCommand
       getPrintStream().println("Username: " + username);
       getPrintStream().println("Certificate file: " + certfile);
 
-      CryptoProviderTools.installBCProvider();
+      CryptoProviderUtil.installBCProvider();
 
       Certificate incert = null;
       org.ejbca.core.protocol.ws.client.gen.Certificate logcert = null;

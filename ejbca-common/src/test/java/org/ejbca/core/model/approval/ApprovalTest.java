@@ -29,9 +29,9 @@ import javax.ejb.EJBException;
 import org.apache.log4j.Logger;
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authentication.tokens.X509CertificateAuthenticationToken;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -47,7 +47,7 @@ public class ApprovalTest {
 
   /** cert. */
   private static byte[] testcertenc =
-      Base64.decode(
+      Base64Util.decode(
           ("MIIDATCCAmqgAwIBAgIIczEoghAwc3EwDQYJKoZIhvcNAQEFBQAwLzEPMA0GA1UE"
            + "AxMGVGVzdENBMQ8wDQYDVQQKEwZBbmFUb20xCzAJBgNVBAYTAlNFMB4XDTAzMDky"
            + "NDA2NDgwNFoXDTA1MDkyMzA2NTgwNFowMzEQMA4GA1UEAxMHcDEydGVzdDESMBAG"
@@ -72,7 +72,7 @@ public class ApprovalTest {
    */
   @BeforeClass
   public static void beforeClass() throws Exception {
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
   }
   /**
    * Test.
@@ -103,7 +103,7 @@ public class ApprovalTest {
       oos.writeObject(approval);
     }
     oos.flush();
-    String result = new String(Base64.encode(baos.toByteArray(), false));
+    String result = new String(Base64Util.encode(baos.toByteArray(), false));
 
     Collection<Approval> readapprovals = getApprovals(result);
     assertTrue(readapprovals.size() == 1);
@@ -134,7 +134,7 @@ public class ApprovalTest {
     try {
       ObjectInputStream ois =
           new ObjectInputStream(
-              new ByteArrayInputStream(Base64.decode(stringdata.getBytes())));
+            new ByteArrayInputStream(Base64Util.decode(stringdata.getBytes())));
       int size = ois.readInt();
       for (int i = 0; i < size; i++) {
         Approval next = (Approval) ois.readObject();

@@ -41,7 +41,7 @@ import org.cesecore.certificates.util.DNFieldExtractor;
 import org.cesecore.internal.UpgradeableDataHashMap;
 import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.junit.Test;
 
 /**
@@ -836,7 +836,7 @@ public class CertificateProfileTest {
   @Test
   public void testInvalidKeySpecs() throws InvalidAlgorithmParameterException {
     // Install BC for key generation (if needed)
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
     final KeyPair keyPairRsa =
         KeyUtil.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
     assertEquals(

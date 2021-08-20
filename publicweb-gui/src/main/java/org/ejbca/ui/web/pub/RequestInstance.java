@@ -53,10 +53,10 @@ import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.configuration.GlobalConfigurationSession;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
 import org.cesecore.keys.util.KeyUtil;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.FileTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.config.GlobalConfiguration;
 import org.ejbca.config.WebConfiguration;
 import org.ejbca.core.EjbcaException;
@@ -622,7 +622,7 @@ public class RequestInstance {
             pkcs10req = getParameter("pkcs10file");
             if (StringUtils.isNotEmpty(pkcs10req)) {
               // The uploaded file has been converted to a base64 encoded string
-              reqBytes = Base64.decode(pkcs10req.getBytes());
+              reqBytes = Base64Util.decode(pkcs10req.getBytes());
             }
           } else {
             reqBytes = pkcs10req.getBytes(); // The pasted request
@@ -665,7 +665,7 @@ public class RequestInstance {
             req = getParameter("cvcreqfile");
             if (StringUtils.isNotEmpty(req)) {
               // The uploaded file has been converted to a base64 encoded string
-              reqBytes = Base64.decode(req.getBytes());
+              reqBytes = Base64Util.decode(req.getBytes());
             }
           } else {
             reqBytes = req.getBytes(); // The pasted request
@@ -680,7 +680,7 @@ public class RequestInstance {
                     signSession, reqBytes, username, password);
             CVCertificate cvccert =
                 (CVCertificate)
-                    CertificateParser.parseCVCObject(Base64.decode(b64cert));
+                  CertificateParser.parseCVCObject(Base64Util.decode(b64cert));
             String filename = "";
             CAReferenceField carf =
                 cvccert.getCertificateBody().getAuthorityReference();
@@ -705,7 +705,7 @@ public class RequestInstance {
             }
             if (resulttype == CertificateResponseType.BINARY_CERTIFICATE) {
               RequestHelper.sendBinaryBytes(
-                  Base64.decode(b64cert),
+                  Base64Util.decode(b64cert),
                   response,
                   "application/octet-stream",
                   filename + ".cvcert");
@@ -920,7 +920,7 @@ public class RequestInstance {
         } else {
           InputStream is = item.getInputStream();
           byte[] bytes = FileTools.readInputStreamtoBuffer(is);
-          params.put(item.getFieldName(), new String(Base64.encode(bytes)));
+          params.put(item.getFieldName(), new String(Base64Util.encode(bytes)));
         }
       }
     } else {
@@ -1120,7 +1120,7 @@ public class RequestInstance {
     out.setContentType("application/x-msdos-program");
     out.setHeader(
         "Content-disposition",
-        "filename=\"" + StringTools.stripFilename(filename) + "\"");
+        "filename=\"" + StringUtil.stripFilename(filename) + "\"");
     out.setContentLength((int) fin.length());
     OutputStream os = out.getOutputStream();
     final int len = 4096;
@@ -1147,7 +1147,7 @@ public class RequestInstance {
     out.setContentType("application/x-pkcs12");
     out.setHeader(
         "Content-disposition",
-        "filename=\"" + StringTools.stripFilename(ausername + ".p12") + "\"");
+        "filename=\"" + StringUtil.stripFilename(ausername + ".p12") + "\"");
     out.setContentLength(buffer.size());
     buffer.writeTo(out.getOutputStream());
     out.flushBuffer();
@@ -1166,7 +1166,7 @@ public class RequestInstance {
     out.setContentType("application/octet-stream");
     out.setHeader(
         "Content-disposition",
-        "filename=\"" + StringTools.stripFilename(ausername + ".jks") + "\"");
+        "filename=\"" + StringUtil.stripFilename(ausername + ".jks") + "\"");
     out.setContentLength(buffer.size());
     buffer.writeTo(out.getOutputStream());
     out.flushBuffer();
@@ -1183,7 +1183,7 @@ public class RequestInstance {
     out.setHeader(
         "Content-disposition",
         " attachment; filename=\""
-            + StringTools.stripFilename(ausername + ".pem")
+            + StringUtil.stripFilename(ausername + ".pem")
             + "\"");
     out.getOutputStream()
         .write(KeyUtil.getSinglePemFromKeyStore(ks, kspassword.toCharArray()));

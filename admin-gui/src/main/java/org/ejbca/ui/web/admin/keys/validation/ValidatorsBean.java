@@ -36,7 +36,7 @@ import org.cesecore.keys.validation.KeyValidatorExistsException;
 import org.cesecore.keys.validation.KeyValidatorSessionLocal;
 import org.cesecore.keys.validation.RsaKeyValidator;
 import org.cesecore.keys.validation.Validator;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.config.GlobalConfiguration;
 import org.ejbca.core.model.authorization.AccessRulesConstants;
 import org.ejbca.ui.web.admin.BaseManagedBean;
@@ -120,7 +120,7 @@ public class ValidatorsBean extends BaseManagedBean {
    */
   public void setValidatorName(final String oname) {
     String name = oname.trim();
-    if (StringTools.checkFieldForLegalChars(name)) {
+    if (StringUtil.checkFieldForLegalChars(name)) {
       addErrorMessage("ONLYCHARACTERS");
     } else {
       this.validatorName = name;

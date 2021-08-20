@@ -38,8 +38,8 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.cesecore.certificates.endentity.EndEntityType;
 import org.cesecore.certificates.endentity.EndEntityTypes;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.CryptoProviderUtil;
+import org.cesecore.util.StringUtil;
 import org.ejbca.core.ejb.ca.sign.SignSessionLocal;
 import org.ejbca.core.ejb.ra.EndEntityAccessSession;
 import org.ejbca.core.ejb.ra.EndEntityAccessSessionLocal;
@@ -110,7 +110,7 @@ public class DemoCertReqServlet extends HttpServlet {
   public void init(final ServletConfig config) throws ServletException {
     super.init(config);
     try {
-      CryptoProviderTools.installBCProvider(); // Install BouncyCastle provider
+      CryptoProviderUtil.installBCProvider(); // Install BouncyCastle provider
     } catch (Exception e) {
       throw new ServletException(e);
     }
@@ -180,7 +180,7 @@ public class DemoCertReqServlet extends HttpServlet {
     }
     username = username + "(" + (new Date()).toString() + ")";
     // Strip dangerous chars
-    username = StringTools.stripUsername(username);
+    username = StringUtil.stripUsername(username);
     // need null check here?
     // Before doing anything else, check if the user name is unique and ok.
     boolean check = checkUsername(admin, username, endEntityAccessSession);

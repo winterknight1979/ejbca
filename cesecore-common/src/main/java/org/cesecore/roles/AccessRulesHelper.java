@@ -149,7 +149,7 @@ public abstract class AccessRulesHelper {
           if (state.booleanValue() == currentState.booleanValue()) {
             // A short path already provides this rule
             accessRules.remove(resourceWithTrailingSlash);
-          } else {
+          } else { // NOPMD
             // The rule is needed, since it reverts a short paths state
           }
           break;

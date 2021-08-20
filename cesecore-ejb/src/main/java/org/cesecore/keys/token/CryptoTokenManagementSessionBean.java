@@ -57,8 +57,8 @@ import org.cesecore.jndi.JndiConstants;
 import org.cesecore.keys.token.p11.exception.NoSuchSlotException;
 import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.keys.util.PublicKeyWrapper;
-import org.cesecore.util.CryptoProviderTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.CryptoProviderUtil;
+import org.cesecore.util.StringUtil;
 
 /**
  * @see CryptoTokenManagementSession
@@ -800,7 +800,7 @@ public class CryptoTokenManagementSessionBean
     if (SoftCryptoToken.class
         .getName()
         .equals(cryptoToken.getClass().getName())) {
-      CryptoProviderTools.installBCProviderIfNotAvailable();
+      CryptoProviderUtil.installBCProviderIfNotAvailable();
       final KeyStore keystore;
       try {
         keystore = KeyStore.getInstance("PKCS12", "BC");
@@ -1424,14 +1424,14 @@ public class CryptoTokenManagementSessionBean
         details.put("autoActivation", "added");
         details.put(
             "autoActivationPinProtection",
-            StringTools.getEncryptVersionFromString(newValue));
+            StringUtil.getEncryptVersionFromString(newValue));
       } else if (oldValue != null && newValue == null) {
         details.put("autoActivation", "removed");
       } else if (!oldValue.equals(newValue)) {
         details.put("autoActivation", "pin changed");
         details.put(
             "autoActivationPinProtection",
-            StringTools.getEncryptVersionFromString(newValue));
+            StringUtil.getEncryptVersionFromString(newValue));
       }
     } else {
       if (oldValue == null && newValue == null) {

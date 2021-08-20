@@ -30,7 +30,7 @@ import org.cesecore.authentication.AuthenticationFailedException;
 import org.cesecore.authorization.user.AccessUserAspectData;
 import org.cesecore.profiles.ProfileBase;
 import org.cesecore.roles.RoleInformation;
-import org.cesecore.util.ProfileID;
+import org.cesecore.util.ProfileIDUtil;
 import org.cesecore.util.ui.DynamicUiProperty;
 import org.cesecore.util.ui.MultiLineString;
 import org.ejbca.config.EjbcaConfiguration;
@@ -409,7 +409,7 @@ public abstract class ApprovalProfileBase extends ProfileBase
   public ApprovalStep addStepFirst() {
     int identifier;
     do {
-      identifier = ProfileID.getRandomIdNumber();
+      identifier = ProfileIDUtil.getRandomIdNumber();
     } while (getSteps().containsKey(identifier));
     ApprovalStep newStep = new ApprovalStep(identifier);
     addStep(newStep);
@@ -430,7 +430,7 @@ public abstract class ApprovalProfileBase extends ProfileBase
   public ApprovalStep addStepLast() {
     int identifier;
     do {
-      identifier = ProfileID.getRandomIdNumber();
+      identifier = ProfileIDUtil.getRandomIdNumber();
     } while (getSteps().containsKey(identifier));
     ApprovalStep newStep = new ApprovalStep(identifier);
     addStep(newStep);

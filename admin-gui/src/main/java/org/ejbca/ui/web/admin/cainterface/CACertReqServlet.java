@@ -26,9 +26,9 @@ import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authorization.control.StandardRules;
 import org.cesecore.certificates.certificate.request.PKCS10RequestMessage;
 import org.cesecore.certificates.certificate.request.RequestMessageUtils;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.core.ejb.ca.sign.SignSessionLocal;
 import org.ejbca.core.model.InternalEjbcaResources;
 import org.ejbca.cvc.CVCAuthenticatedRequest;
@@ -195,7 +195,7 @@ public class CACertReqServlet extends BaseAdminServlet {
             begin = CertTools.BEGIN_CERTIFICATE_WITH_NL;
             end = CertTools.END_CERTIFICATE_WITH_NL;
           }
-          byte[] b64certreq = Base64.encode(request);
+          byte[] b64certreq = Base64Util.encode(request);
           String out = begin;
           out += new String(b64certreq);
           out += end;
@@ -217,7 +217,7 @@ public class CACertReqServlet extends BaseAdminServlet {
         res.setHeader(
             "Content-disposition",
             "attachment; filename=\""
-                + StringTools.stripFilename(filename)
+                + StringUtil.stripFilename(filename)
                 + "\"");
         res.setContentType("application/octet-stream");
         res.setContentLength(length);
@@ -238,7 +238,7 @@ public class CACertReqServlet extends BaseAdminServlet {
       try {
         Certificate cert = cabean.getProcessedCertificate();
         if (!StringUtils.equals(format, "binary")) {
-          byte[] b64cert = Base64.encode(cert.getEncoded());
+          byte[] b64cert = Base64Util.encode(cert.getEncoded());
           RequestHelper.sendNewB64Cert(
               b64cert,
               res,
@@ -262,7 +262,7 @@ public class CACertReqServlet extends BaseAdminServlet {
         X509Certificate cert =
             (X509Certificate) cabean.getProcessedCertificate();
         byte[] pkcs7 = signSession.createPKCS7(admin, cert, true);
-        byte[] b64cert = Base64.encode(pkcs7);
+        byte[] b64cert = Base64Util.encode(pkcs7);
         RequestHelper.sendNewB64Cert(
             b64cert,
             res,
@@ -284,7 +284,7 @@ public class CACertReqServlet extends BaseAdminServlet {
         final byte[] rawCert = cabean.getLinkCertificate(caId);
         if (rawCert != null) {
           if (!"binary".equals(format)) {
-            final byte[] b64cert = Base64.encode(rawCert);
+            final byte[] b64cert = Base64Util.encode(rawCert);
             RequestHelper.sendNewB64Cert(
                 b64cert,
                 res,

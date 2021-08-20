@@ -32,7 +32,7 @@ import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
 import org.cesecore.certificates.certificateprofile.CertificateProfileSessionRemote;
 import org.cesecore.certificates.crl.RevocationReasons;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.cesecore.util.EjbRemoteHelper;
 import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionRemote;
 import org.ejbca.core.model.authorization.AccessRulesConstants;
@@ -182,7 +182,7 @@ public class CaImportCertDirCommand extends BaseCaAdminCommand {
   public CommandResult execute(final ParameterContainer parameters) {
     LOG.trace(">execute()");
 
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
 
     // Parse arguments into more coder friendly variable names and validate
     // switches

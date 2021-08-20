@@ -108,7 +108,7 @@ public class CertToolsTest {
   private static Logger log = Logger.getLogger(CertToolsTest.class);
   /** CERT. */
   private static byte[] testcert =
-      Base64.decode(
+      Base64Util.decode(
           ("MIIDATCCAmqgAwIBAgIIczEoghAwc3EwDQYJKoZIhvcNAQEFBQAwLzEPMA0GA1UE"
            + "AxMGVGVzdENBMQ8wDQYDVQQKEwZBbmFUb20xCzAJBgNVBAYTAlNFMB4XDTAzMDky"
            + "NDA2NDgwNFoXDTA1MDkyMzA2NTgwNFowMzEQMA4GA1UEAxMHcDEydGVzdDESMBAG"
@@ -129,7 +129,7 @@ public class CertToolsTest {
               .getBytes());
   /** CERT. */
   private static byte[] guidcert =
-      Base64.decode(
+      Base64Util.decode(
           ("MIIC+zCCAmSgAwIBAgIIBW0F4eGmH0YwDQYJKoZIhvcNAQEFBQAwMTERMA8GA1UE"
            + "AxMIQWRtaW5DQTExDzANBgNVBAoTBkFuYVRvbTELMAkGA1UEBhMCU0UwHhcNMDQw"
            + "OTE2MTc1NzQ1WhcNMDYwOTE2MTgwNzQ1WjAyMRQwEgYKCZImiZPyLGQBARMEZ3Vp"
@@ -149,7 +149,7 @@ public class CertToolsTest {
               .getBytes());
   /** CERT. */
   private static byte[] altNameCert =
-      Base64.decode(
+      Base64Util.decode(
           ("MIIDDzCCAfegAwIBAgIIPiL0klmu1uIwDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE"
            + "AxMIQWRtaW5DQTExFTATBgNVBAoTDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw"
            + "HhcNMDUwODAyMTAxOTQ5WhcNMDcwODAyMTAyOTQ5WjAsMQwwCgYDVQQDEwNmb28x"
@@ -170,7 +170,7 @@ public class CertToolsTest {
               .getBytes());
   /** CERT. */
   private static byte[] altNameCertWithDirectoryName =
-      Base64.decode(
+      Base64Util.decode(
           ("MIIFkjCCBPugAwIBAgIIBzGqGNsLMqwwDQYJKoZIhvcNAQEFBQAwWTEYMBYGA1UEAw"
               + "wPU1VCX0NBX1dJTkRPV1MzMQ8wDQYDVQQLEwZQS0lHVkExHzAdBgNVBAoTF"
               + "kdlbmVyYWxpdGF0IFZhbGVuY2lhbmExCzAJBgNVBAYTAkVTMB4XDTA2MDQy"
@@ -207,7 +207,7 @@ public class CertToolsTest {
               .getBytes());
   /** CERT. */
   private static byte[] altNameCertWithXmppAddr =
-      Base64.decode(
+      Base64Util.decode(
           ("MIIFRTCCBC2gAwIBAgIQH4vuCeSeadpH3oWlr9q7wTANBgkqhkiG9w0BAQsFADA1"
            + "MRYwFAYDVQQDDA1NYW5hZ2VtZW50IENBMQ4wDAYDVQQKDAVQSy1ETTELMAkGA1UE"
            + "BhMCQUUwHhcNMTcxMjAxMTI0MTQ5WhcNMTgxMjAxMTI0MTQ5WjAVMRMwEQYDVQQD"
@@ -240,7 +240,7 @@ public class CertToolsTest {
               .getBytes());
   /** CERT. */
   private static byte[] altNameCertWithSpecialCharacters =
-      Base64.decode(
+      Base64Util.decode(
           ("MIIElDCCA3ygAwIBAgIIPQiMRNUtIDwwDQYJKoZIhvcNAQELBQAwNzEVMBMGA1UE"
            + "AwwMTWFuYWdlbWVudENBMREwDwYDVQQKDAhEZXYgQ0EgMTELMAkGA1UEBhMCU0Uw"
            + "HhcNMTcwOTEyMDk0ODI2WhcNMTkwOTEyMDk0ODI2WjCB3zEtMCsGCysGAQQBgjc8"
@@ -270,7 +270,7 @@ public class CertToolsTest {
 
   /** The reference certificate from RFC3739. */
   private static byte[] qcRefCert =
-      Base64.decode(
+      Base64Util.decode(
           ("MIIDEDCCAnmgAwIBAgIESZYC0jANBgkqhkiG9w0BAQUFADBIMQswCQYDVQQGEwJE"
            + "RTE5MDcGA1UECgwwR01EIC0gRm9yc2NodW5nc3plbnRydW0gSW5mb3JtYXRpb25z"
            + "dGVjaG5payBHbWJIMB4XDTA0MDIwMTEwMDAwMFoXDTA4MDIwMTEwMDAwMFowZTEL"
@@ -291,7 +291,7 @@ public class CertToolsTest {
               .getBytes());
   /** CERT. */
   private static byte[] qcPrimeCert =
-      Base64.decode(
+      Base64Util.decode(
           ("MIIDMDCCAhigAwIBAgIIUDIxBvlO2qcwDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE"
            + "AxMIQWRtaW5DQTExFTATBgNVBAoTDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw"
            + "HhcNMDYwMTIyMDgxNTU0WhcNMDgwMTIyMDgyNTU0WjAOMQwwCgYDVQQDEwNxYzIw"
@@ -313,7 +313,7 @@ public class CertToolsTest {
               .getBytes());
   /** CERT. */
   private static byte[] aiaCert =
-      Base64.decode(
+      Base64Util.decode(
           ("MIIDYDCCAkigAwIBAgIIFlJveCmyW4owDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE"
            + "AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw"
            + "HhcNMDgxMDIwMDkxOTM0WhcNMDkxMDIwMDkxOTM0WjA9MQwwCgYDVQQDDANhaWEx"
@@ -336,7 +336,7 @@ public class CertToolsTest {
               .getBytes());
   /** CERT. */
   private static byte[] subjDirAttrCert =
-      Base64.decode(
+      Base64Util.decode(
           ("MIIGmTCCBYGgAwIBAgIQGMYCpWmOBXXOL2ODrM8FHzANBgkqhkiG9w0BAQUFADBx"
            + "MQswCQYDVQQGEwJUUjEoMCYGA1UEChMfRWxla3Ryb25payBCaWxnaSBHdXZlbmxp"
            + "Z2kgQS5TLjE4MDYGA1UEAxMvZS1HdXZlbiBFbGVrdHJvbmlrIFNlcnRpZmlrYSBI"
@@ -376,7 +376,7 @@ public class CertToolsTest {
               .getBytes());
   /** CERT. */
   private static byte[] subjDirAttrCert2 =
-      Base64.decode(
+      Base64Util.decode(
           ("MIIEsjCCA5qgAwIBAgIIFsYK/Jx7XEEwDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE"
            + "AxMIQWRtaW5DQTExFTATBgNVBAoTDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw"
            + "HhcNMDYwNTMwMDcxNjU2WhcNMDgwNTI5MDcyNjU2WjA5MRkwFwYDVQQDExBUb21h"
@@ -406,7 +406,7 @@ public class CertToolsTest {
               .getBytes());
   /** CERT. */
   private static byte[] krb5principalcert =
-      Base64.decode(
+      Base64Util.decode(
           ("MIIDIzCCAgugAwIBAgIIdSCEXyq32cIwDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE"
            + "AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw"
            + "HhcNMDgxMDIzMTEyMzAzWhcNMTgwODE2MTQ1MzA2WjAqMQ0wCwYDVQQDDARrcmIx"
@@ -427,7 +427,7 @@ public class CertToolsTest {
               .getBytes());
   /** CERT. */
   private static byte[] certPoliciesCert =
-      Base64.decode(
+      Base64Util.decode(
           ("MIIEvTCCA6WgAwIBAgIIL0ff1huXgEkwDQYJKoZIhvcNAQELBQAwNTEWMBQGA1UE"
            + "AwwNTWFuYWdlbWVudCBDQTEOMAwGA1UECgwFUEstRE0xCzAJBgNVBAYTAkFFMB4X"
            + "DTE2MDkwMzEyMTMwMFoXDTE2MDkwNTEyMTMwMFowMjEQMA4GA1UEAwwHcG9saWN5"
@@ -488,7 +488,7 @@ public class CertToolsTest {
    * </pre>
    */
   private static byte[] permanentIdentifierCert =
-      Base64.decode(
+      Base64Util.decode(
           ("MIIDpjCCAo6gAwIBAgIIR+ghrp5GOgEwDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE"
            + "AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw"
            + "HhcNMTExMTI2MTkyMzU5WhcNMTMxMTI1MTkyMzU5WjAWMRQwEgYDVQQDDAtQZXJt"
@@ -512,7 +512,7 @@ public class CertToolsTest {
               .getBytes());
   /** CERT. */
   private static byte[] p10ReqWithAltNames =
-      Base64.decode(
+      Base64Util.decode(
           ("MIICtDCCAZwCAQAwNDELMAkGA1UEBhMCU0UxDDAKBgNVBAoTA1JQUzEXMBUGA1UE"
            + "AxMOMTAuMjUyLjI1NS4yMzcwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIB"
            + "AQC45+Dh1dO/qaZR2TLnWB44wmYXvBuZ5sGXotlLvuRR09DGlSyPrTG/OVg4xVZa"
@@ -531,7 +531,7 @@ public class CertToolsTest {
               .getBytes());
   /** CERT. */
   private static byte[] p10ReqWithAltNames2 =
-      Base64.decode(
+      Base64Util.decode(
           ("MIIBMzCB3gIBADAzMREwDwYDVQQDDAhzY2VwdGVzdDERMA8GA1UECgwIUHJpbWVL"
            + "ZXkxCzAJBgNVBAYTAlNFMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAIMasNAoxA9N"
            + "6UknbjigXz5tJWWydLoVSQFUxcJM8cR4Kfb2bRLh3RDqCVyJQ0XITFUnmIJFU9Z8"
@@ -542,7 +542,7 @@ public class CertToolsTest {
               .getBytes());
   /** CERT. */
   private static byte[] cvccert =
-      Base64.decode(
+      Base64Util.decode(
           ("fyGCAWF/ToHZXykBAEIKU0VSUFMxMDExMH9JgZUGCgQAfwAHAgICAQGBgYEAk4Aq"
            + "LqYXchIouF9yBv/2hFnf5N65hdpvQPUdfH1k2qnHAlOL5DYYlKCBh8YFCC2RZD+K"
            + "nJ99cHxh8oxh28U23Z/MqTOKv5tR8JIUUm3G3Hjj2erVVTEJ49MqLzsyVGfw4yCu"
@@ -554,7 +554,7 @@ public class CertToolsTest {
               .getBytes());
   /** CERT. */
   private static byte[] cvcreqrenew =
-      Base64.decode(
+      Base64Util.decode(
           ("Z4IBtn8hggFmf06CASZfKQEAQg5TRUlTQlBPT0wwMDAwNn9Jgf0GCgQAfwAHAgIC"
            + "AgKBHNfBNKomQ2aGKhgwJXXR14ewnwdXl9qJ9X7IwP+CHGil5iypzmwcKZgDpsFT"
            + "C1FOGCrYsAQqWcrSn0ODHCWA9jzP5EE4hwcTsakjaeM+ITXSZtuzcjhsQAuEOQQN"
@@ -568,7 +568,7 @@ public class CertToolsTest {
               .getBytes());
   /** CERT. */
   private static byte[] cvcreq =
-      Base64.decode(
+      Base64Util.decode(
           ("fyGCAWZ/ToIBJl8pAQBCDlNFSVNCUE9PTDAwMDA1f0mB/QYKBAB/AAcCAgICAoEc"
            + "18E0qiZDZoYqGDAlddHXh7CfB1eX2on1fsjA/4IcaKXmLKnObBwpmAOmwVMLUU4Y"
            + "KtiwBCpZytKfQ4McJYD2PM/kQTiHBxOxqSNp4z4hNdJm27NyOGxAC4Q5BA2QKa0s"
@@ -580,7 +580,7 @@ public class CertToolsTest {
               .getBytes());
   /** CERT. */
   private static byte[] cvccertchainroot =
-      Base64.decode(
+      Base64Util.decode(
           ("fyGCAmx/ToIBYl8pAQBCDlNFSFNNQ1ZDQTAwMDAxf0mCARUGCgQAfwAHAgICAQKB"
            + "ggEAyGju6NHTACB+pl2x27/VJVKuGBTgf98j3gQOyW5vDzXI7PkiwR1/ObPjFiuW"
            + "iBRH0WsPzHX7A3jysZr7IohLjy4oQMdP5z282/ZT4mBwlVu5pAEcHt2eHbpILwIJ"
@@ -598,7 +598,7 @@ public class CertToolsTest {
               .getBytes());
   /** CERT. */
   private static byte[] cvccertchainsub =
-      Base64.decode(
+      Base64Util.decode(
           ("fyGCAeV/ToHcXykBAEIOU0VIU01DVkNBMDAwMDF/SYGUBgoEAH8ABwICAgECgYGA"
            + "rdRouw7ksS6M5kw28YkWAD350vbDlnPCmqsKPfKiNvDxowviWDUTn9Ai3xpTIzGO"
            + "cl40DqxYPA2X4XO52+r5ZUazsVyyx6F6XwznHdjUpDff4QFyG74Vjq7DDrCCKOzH"
@@ -613,7 +613,7 @@ public class CertToolsTest {
               .getBytes());
   /** CERT. */
   private static byte[] x509certchainsubsub =
-      Base64.decode(
+      Base64Util.decode(
           ("MIICAzCCAWygAwIBAgIINrHHHchdmfMwDQYJKoZIhvcNAQEFBQAwEDEOMAwGA1UE"
            + "AwwFU3ViQ0EwHhcNMTAwNjA1MTIwNzMxWhcNMzAwNjA1MTIwNjUyWjATMREwDwYD"
            + "VQQDDAhTdWJTdWJDQTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAiySbgP2A"
@@ -628,7 +628,7 @@ public class CertToolsTest {
               .getBytes());
   /** CERT. */
   private static byte[] x509certchainsub =
-      Base64.decode(
+      Base64Util.decode(
           ("MIICATCCAWqgAwIBAgIIRzc+cItydm0wDQYJKoZIhvcNAQEFBQAwETEPMA0GA1UE"
            + "AwwGUm9vdENBMB4XDTEwMDYwNTEyMDcxMVoXDTMwMDYwNTEyMDY1MlowEDEOMAwG"
            + "A1UEAwwFU3ViQ0EwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMl3EN+V1M39"
@@ -644,7 +644,7 @@ public class CertToolsTest {
 
   /** CERT. */
   private static byte[] x509certchainroot =
-      Base64.decode(
+      Base64Util.decode(
           ("MIICAjCCAWugAwIBAgIIPXgH6TfNMlYwDQYJKoZIhvcNAQEFBQAwETEPMA0GA1UE"
            + "AwwGUm9vdENBMB4XDTEwMDYwNTEyMDY1MloXDTMwMDYwNTEyMDY1MlowETEPMA0G"
            + "A1UEAwwGUm9vdENBMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCK+F3eOoGI"
@@ -830,7 +830,7 @@ public class CertToolsTest {
 
   /** CRL. */
   private static byte[] testcrl =
-      Base64.decode(
+      Base64Util.decode(
           ("MIHGMHICAQEwDQYJKoZIhvcNAQELBQAwDzENMAsGA1UEAwwEVEVTVBcNMTEwMTMx"
            + "MTMzOTE3WhcNMTEwMTMxMTMzOTE3WqAvMC0wHwYDVR0jBBgwFoAUt39s38+I8fP0"
            + "diUs8Y8TYtCar8gwCgYDVR0UBAMCAQEwDQYJKoZIhvcNAQELBQADQQBcr4CF0sy3"
@@ -840,7 +840,7 @@ public class CertToolsTest {
 
   /** CRL. */
   private static byte[] testdeltacrl =
-      Base64.decode(
+      Base64Util.decode(
           ("MIHWMIGBAgEBMA0GCSqGSIb3DQEBCwUAMA8xDTALBgNVBAMMBFRFU1QXDTExMDEz"
            + "MTEzNDcxOFoXDTExMDEzMTEzNDcxOFqgPjA8MB8GA1UdIwQYMBaAFJ5BHYGqJr3K"
            + "j9IMQxmMP6ad8gDdMAoGA1UdFAQDAgEDMA0GA1UdGwEB/wQDAgECMA0GCSqGSIb3"
@@ -852,7 +852,7 @@ public class CertToolsTest {
    * CA.
    */
   private static byte[] chainRootCA =
-      Base64.decode(
+      Base64Util.decode(
           ("MIIFIzCCAwugAwIBAgIIDZIKPU4lBGQwDQYJKoZIhvcNAQELBQAwHzEQMA4GA1UE"
            + "AwwHM0dQUENBMjELMAkGA1UEBhMCU0UwHhcNMTcwNjE0MjIyODU0WhcNMzcwNjA5"
            + "MjIyODU0WjAfMRAwDgYDVQQDDAczR1BQQ0EyMQswCQYDVQQGEwJTRTCCAiIwDQYJ"
@@ -885,7 +885,7 @@ public class CertToolsTest {
 
   /** CA. */
   private static byte[] chainSubCA =
-      Base64.decode(
+      Base64Util.decode(
           ("MIIEJjCCAg6gAwIBAgIIHpPgIA6dEIcwDQYJKoZIhvcNAQELBQAwHzEQMA4GA1UE"
            + "AwwHM0dQUENBMjELMAkGA1UEBhMCU0UwHhcNMTcwNjE0MjIyOTMxWhcNMzYwNjA5"
            + "MjIyOTMxWjAiMRMwEQYDVQQDDAozR1BQU1VCQ0EyMQswCQYDVQQGEwJTRTCCASIw"
@@ -913,7 +913,7 @@ public class CertToolsTest {
 
   /** Chain. */
   private static byte[] chainUser =
-      Base64.decode(
+      Base64Util.decode(
           ("MIIDWjCCAkKgAwIBAgIIMWDq/ezmwr4wDQYJKoZIhvcNAQELBQAwIjETMBEGA1UE"
            + "AwwKM0dQUFNVQkNBMjELMAkGA1UEBhMCU0UwHhcNMTcwNjE2MTE0OTE5WhcNMzIw"
            + "NjEyMTE0OTE5WjBBMRswGQYKCZImiZPyLGQBAQwLdWlkdXNlcm5hbWUxFTATBgNV"
@@ -940,7 +940,7 @@ public class CertToolsTest {
    */
   @Before
   public void setUp() throws Exception {
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
   }
 
   /**
@@ -1120,18 +1120,18 @@ public class CertToolsTest {
     assertEquals(bcdn21, "CN=Foo\',OU=Foo\\, Dep,O=Foo\\, Inc,C=SE");
     // it is allowed to escape ,
     assertEquals(
-        StringTools.strip(bcdn21), "CN=Foo',OU=Foo\\, Dep,O=Foo\\, Inc,C=SE");
+        StringUtil.strip(bcdn21), "CN=Foo',OU=Foo\\, Dep,O=Foo\\, Inc,C=SE");
 
     String dn22 = "C=SE,O=Foo\\, Inc, OU=Foo, Dep, CN=Foo'";
     String bcdn22 = CertTools.stringToBCDNString(dn22);
     assertEquals(bcdn22, "CN=Foo',OU=Foo,O=Foo\\, Inc,C=SE");
-    assertEquals(StringTools.strip(bcdn22), "CN=Foo',OU=Foo,O=Foo\\, Inc,C=SE");
+    assertEquals(StringUtil.strip(bcdn22), "CN=Foo',OU=Foo,O=Foo\\, Inc,C=SE");
 
     String dn23 = "C=SE,O=Foo, OU=FooOU, CN=Foo, DN=qualf";
     String bcdn23 = CertTools.stringToBCDNString(dn23);
     assertEquals(bcdn23, "DN=qualf,CN=Foo,OU=FooOU,O=Foo,C=SE");
     assertEquals(
-        StringTools.strip(bcdn23), "DN=qualf,CN=Foo,OU=FooOU,O=Foo,C=SE");
+        StringUtil.strip(bcdn23), "DN=qualf,CN=Foo,OU=FooOU,O=Foo,C=SE");
 
     String dn24 =
         "telephonenumber=08555-666,businesscategory=Surf"
@@ -1641,7 +1641,7 @@ public class CertToolsTest {
     String bcdn21 = CertTools.stringToBCDNString(dn21);
     assertEquals("CN=Foo\',OU=Foo\\, Dep,O=Foo\\, Inc,C=SE", bcdn21);
     assertEquals(
-        "CN=Foo',OU=Foo\\, Dep,O=Foo\\, Inc,C=SE", StringTools.strip(bcdn21));
+        "CN=Foo',OU=Foo\\, Dep,O=Foo\\, Inc,C=SE", StringUtil.strip(bcdn21));
     log.trace("<test10TestMultipleReversed()");
   }
 
@@ -2378,7 +2378,7 @@ public class CertToolsTest {
   public void testIdOnSIM() throws Exception {
     String otherName =
         "krb5principal=foo/bar@P.SE, "
-            + RFC4683Tools.SUBJECTIDENTIFICATIONMETHOD
+            + RFC4683Util.SUBJECTIDENTIFICATIONMETHOD
         + "=2.16.840.1.101.3.4.2.1::"
         + "CB3AE7FBFFFD9C85A3FB234E51FFFD2190B1F8F161C0A2873B998EFAC067B03A:"
         + ":6D9E6264DDBD0FC997B9B40524247C8BC319D02A583F4B499DD3ECAF06C786DF,"
@@ -2388,7 +2388,7 @@ public class CertToolsTest {
     String ret = CertTools.getGeneralNameString(0, names[2].getName());
     assertEquals(names.length, 3);
     assertEquals(
-        RFC4683Tools.SUBJECTIDENTIFICATIONMETHOD
+        RFC4683Util.SUBJECTIDENTIFICATIONMETHOD
         + "=2.16.840.1.101.3.4.2.1:"
         + ":CB3AE7FBFFFD9C85A3FB234E51FFFD2190B1F8F161C0A2873B998EFAC067B03A:"
         + ":6D9E6264DDBD0FC997B9B40524247C8BC319D02A583F4B499DD3ECAF06C786DF",

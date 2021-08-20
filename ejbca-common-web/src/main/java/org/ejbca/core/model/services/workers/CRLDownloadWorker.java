@@ -32,7 +32,7 @@ import org.cesecore.certificates.crl.CrlStoreSessionLocal;
 import org.cesecore.certificates.util.cert.CrlExtensions;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.NetworkTools;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.ValidityDateUtil;
 import org.ejbca.core.ejb.crl.ImportCrlSessionLocal;
 import org.ejbca.core.model.services.BaseWorker;
 import org.ejbca.core.model.services.ServiceExecutionFailedException;
@@ -130,7 +130,7 @@ public class CRLDownloadWorker extends BaseWorker {
                 "Next full CRL update for CA '"
                     + caInfo.getName()
                     + "' will be "
-                    + ValidityDate.formatAsISO8601(
+                    + ValidityDateUtil.formatAsISO8601(
                         lastFullCrl.getNextUpdate(), null)
                     + ". Skipping download.");
             newestFullCrl = lastFullCrl;
@@ -172,7 +172,7 @@ public class CRLDownloadWorker extends BaseWorker {
                     "Next delta CRL update for CA '"
                         + caInfo.getName()
                         + "' will be "
-                        + ValidityDate.formatAsISO8601(
+                        + ValidityDateUtil.formatAsISO8601(
                             lastDeltaCrl.getNextUpdate(), null)
                         + ". Skipping download.");
               } else {

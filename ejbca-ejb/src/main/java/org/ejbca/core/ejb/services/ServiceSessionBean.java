@@ -56,7 +56,7 @@ import org.cesecore.certificates.crl.CrlStoreSessionLocal;
 import org.cesecore.configuration.GlobalConfigurationSessionLocal;
 import org.cesecore.jndi.JndiConstants;
 import org.cesecore.keys.token.CryptoTokenManagementSessionLocal;
-import org.cesecore.util.ProfileID;
+import org.cesecore.util.ProfileIDUtil;
 import org.ejbca.core.ejb.approval.ApprovalProfileSessionLocal;
 import org.ejbca.core.ejb.approval.ApprovalSessionLocal;
 import org.ejbca.core.ejb.audit.enums.EjbcaEventTypes;
@@ -512,8 +512,8 @@ public class ServiceSessionBean
   }
 
   private int findFreeServiceId() {
-    final ProfileID.DB db =
-        new ProfileID.DB() {
+    final ProfileIDUtil.DB db =
+        new ProfileIDUtil.DB() {
           @Override
           public boolean isFree(final int i) {
             return ServiceSessionBean.this.serviceDataSession.findById(
@@ -521,7 +521,7 @@ public class ServiceSessionBean
                 == null;
           }
         };
-    return ProfileID.getNotUsedID(db);
+    return ProfileIDUtil.getNotUsedID(db);
   }
 
   @TransactionAttribute(TransactionAttributeType.SUPPORTS)

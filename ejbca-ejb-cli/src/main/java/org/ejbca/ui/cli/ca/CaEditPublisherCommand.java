@@ -15,7 +15,7 @@ package org.ejbca.ui.cli.ca;
 
 import org.apache.log4j.Logger;
 import org.cesecore.authorization.AuthorizationDeniedException;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.cesecore.util.EjbRemoteHelper;
 import org.ejbca.core.ejb.ca.publisher.PublisherSessionRemote;
 import org.ejbca.core.model.ca.publisher.BasePublisher;
@@ -102,7 +102,7 @@ public class CaEditPublisherCommand extends BaseCaAdminCommand {
   @Override
   public CommandResult execute(final ParameterContainer parameters) {
     FieldEditor fieldEditor = new FieldEditor(LOG);
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
 
     boolean listOnly = parameters.get(LISTFIELDS_KEY) != null;
     boolean getOnly = parameters.get(GETVALUE_KEY) != null;

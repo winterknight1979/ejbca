@@ -37,7 +37,7 @@ import org.bouncycastle.util.encoders.DecoderException;
 import org.cesecore.certificates.ca.SignRequestSignatureException;
 import org.cesecore.certificates.certificate.CertificateConstants;
 import org.cesecore.keys.util.KeyUtil;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.FileTools;
 import org.ejbca.cvc.CVCAuthenticatedRequest;
@@ -150,7 +150,7 @@ public abstract class RequestMessageUtils {
           if (!str.contains(beginKey)) {
             // IE PKCS10 Base64 coded request
             try {
-              buffer = Base64.decode(b64Encoded);
+              buffer = Base64Util.decode(b64Encoded);
               if (buffer == null) {
                 throw new IOException("Base64 decode of buffer returns null");
               }
@@ -238,7 +238,7 @@ private static RequestMessage handleCVC(final String username,
         SignRequestSignatureException {
     RequestMessage ret;
     CVCObject parsedObject =
-          CertificateParser.parseCVCObject(Base64.decode(req.getBytes()));
+          CertificateParser.parseCVCObject(Base64Util.decode(req.getBytes()));
       // We will handle both the case if the request is an authenticated
       // request, i.e. with an outer signature
       // and when the request is missing the (optional) outer signature.
@@ -289,7 +289,7 @@ private static RequestMessage handlePublicKey(final String username,
                 CertTools.END_PUBLIC_KEY);
       } catch (IOException ex) {
         try {
-          request = Base64.decode(req.getBytes());
+          request = Base64Util.decode(req.getBytes());
           if (request == null) {
             throw new IOException("Base64 decode of buffer returns null");
           }
@@ -317,7 +317,7 @@ private static RequestMessage handleCRMF(final String username,
         final String password, final String req) throws IOException,
         IllegalStateException, SignRequestSignatureException {
     RequestMessage ret = null;
-    final byte[] certificateRequestMessages = Base64.decode(req.getBytes());
+    final byte[] certificateRequestMessages = Base64Util.decode(req.getBytes());
       final CertReqMsg certReqMsg =
           CertReqMsg.getInstance(
               ((ASN1Sequence)
@@ -473,7 +473,7 @@ private static RequestMessage handleSPKAC(final String username,
         if (LOG.isDebugEnabled()) {
           LOG.debug("Received NS request: " + new String(reqBytes));
         }
-        byte[] buffer = Base64.decode(reqBytes);
+        byte[] buffer = Base64Util.decode(reqBytes);
         if (buffer == null) {
           return null;
         }

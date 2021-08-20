@@ -18,7 +18,7 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
 import java.security.spec.InvalidKeySpecException;
 import org.cesecore.certificates.util.AlgorithmConstants;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -28,7 +28,7 @@ public class KeyPairWrapperTest {
 
   @BeforeClass
   public static void beforeClass() {
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
   }
   /**
    * Test.

@@ -46,7 +46,7 @@ import org.cesecore.roles.management.RoleSessionLocal;
 import org.cesecore.roles.member.RoleMember;
 import org.cesecore.roles.member.RoleMemberDataSessionLocal;
 import org.cesecore.roles.member.RoleMemberSessionLocal;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.ui.web.admin.BaseManagedBean;
 
 /**
@@ -475,7 +475,7 @@ public class RoleMembersBean extends BaseManagedBean implements Serializable {
       // (Check this here instead of using an f:validator
       // validatorId="legalCharsValidator" since we might need to do PRG later)
       Set<String> invalidCharacters =
-          StringTools.hasSqlStripChars(tokenMatchValue);
+          StringUtil.hasSqlStripChars(tokenMatchValue);
       if (!invalidCharacters.isEmpty()) {
         StringBuilder sb = new StringBuilder("");
         for (String error : invalidCharacters) {

@@ -21,6 +21,7 @@ import org.bouncycastle.asn1.DERPrintableString;
 import org.bouncycastle.asn1.DERUTF8String;
 import org.bouncycastle.asn1.x500.X500NameStyle;
 import org.bouncycastle.asn1.x500.style.IETFUtils;
+import org.cesecore.CesecoreRuntimeException;
 
 /**
  * Like CeSecoreNameStyle, but uses PrintableStrings to encode most attributes
@@ -53,7 +54,8 @@ public class PrintableStringNameStyle extends CeSecoreNameStyle {
       try {
         return IETFUtils.valueFromHexString(value, 1);
       } catch (IOException e) {
-        throw new RuntimeException("can't recode value for oid " + oid.getId());
+        throw new CesecoreRuntimeException(
+                "can't recode value for oid " + oid.getId());
       }
     } else if (value.length() != 0 && value.charAt(0) == '\\') {
       value = value.substring(1);

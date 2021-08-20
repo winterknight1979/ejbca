@@ -43,7 +43,7 @@ import org.cesecore.keybind.CertificateImportException;
 import org.cesecore.keybind.impl.OcspKeyBinding.ResponderIdType;
 import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -91,7 +91,7 @@ public class OcspKeyBindingTest {
  */
   @BeforeClass
   public static void beforeClass() throws Exception {
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
     ekuExtensionOnly =
         Arrays.asList(new Extension[] {getExtendedKeyUsageExtension()});
   }

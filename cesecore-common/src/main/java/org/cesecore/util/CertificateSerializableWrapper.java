@@ -32,7 +32,7 @@ import org.cesecore.certificates.certificate.CertificateWrapper;
  *
  * <p>This implementation shouldn't be used directly, and is package-internal.
  * You can create an instance of this class through {@link
- * org.cesecore.util.EJBTools}.
+ * org.cesecore.util.EJBUtil}.
  *
  * @version $Id: CertificateSerializableWrapper.java 23173 2016-04-12 14:54:52Z
  *     samuellb $
@@ -49,7 +49,7 @@ final class CertificateSerializableWrapper
 
   /**
    * Constructor is internal. Please use {@link
-   * org.cesecore.util.EJBTools#wrap(Certificate)} to create a wrapper.
+   * org.cesecore.util.EJBUtil#wrap(Certificate)} to create a wrapper.
    *
    * @param aCertificate Certificate, non-null.
    */

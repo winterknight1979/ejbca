@@ -20,7 +20,7 @@ import org.apache.log4j.Logger;
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.certificates.certificate.CertificateWrapper;
 import org.cesecore.certificates.endentity.ExtendedInformation;
-import org.cesecore.util.EJBTools;
+import org.cesecore.util.EJBUtil;
 
 /**
  * This is a class used for testing and example purposes. It is supposed to
@@ -99,12 +99,12 @@ public class DummyCustomPublisher implements ICustomPublisher, Serializable {
       throws PublisherException {
     log.debug(
         "DummyCustomPublisher, Storing Certificate for user: " + username);
-    this.certificate = EJBTools.wrap(incert);
+    this.certificate = EJBUtil.wrap(incert);
     return true;
   }
   /** @return cert */
   public Certificate getStoredCertificate() {
-    return EJBTools.unwrap(certificate);
+    return EJBUtil.unwrap(certificate);
   }
   /** @param admin token
    * @param incrl The DER coded CRL to be stored.

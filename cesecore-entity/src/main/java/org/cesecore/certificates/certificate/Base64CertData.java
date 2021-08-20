@@ -26,7 +26,7 @@ import javax.persistence.Transient;
 import org.apache.log4j.Logger;
 import org.cesecore.dbprotection.ProtectedData;
 import org.cesecore.dbprotection.ProtectionStringBuilder;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
 
 /**
@@ -68,7 +68,7 @@ public class Base64CertData extends ProtectedData implements Serializable {
   public Base64CertData(final Certificate incert) {
     // Extract all fields to store with the certificate.
     try {
-      setBase64Cert(new String(Base64.encode(incert.getEncoded())));
+      setBase64Cert(new String(Base64Util.encode(incert.getEncoded())));
       setFingerprint(CertTools.getFingerprintAsString(incert));
     } catch (CertificateEncodingException cee) {
       final String msg = "Can't extract DER encoded certificate information.";

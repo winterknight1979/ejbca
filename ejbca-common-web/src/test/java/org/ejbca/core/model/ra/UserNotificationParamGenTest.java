@@ -15,7 +15,7 @@ import org.cesecore.certificates.endentity.EndEntityConstants;
 import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.cesecore.certificates.endentity.EndEntityType;
 import org.cesecore.certificates.endentity.EndEntityTypes;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.ValidityDateUtil;
 import org.ejbca.core.model.SecConst;
 import org.junit.Test;
 
@@ -104,7 +104,7 @@ public class UserNotificationParamGenTest {
             + " adminalt@foo.se "
             + new BigInteger(certificateSerialNumber).toString(16).toUpperCase()
             + " "
-            + ValidityDate.formatAsISO8601(now, ValidityDate.TIMEZONE_SERVER)
+            + ValidityDateUtil.formatAsISO8601(now, ValidityDateUtil.TIMEZONE_SERVER)
             + " CN=foo,O=Org,C=SE "
             + " CN=The CA,O=Org,C=NO Revoked certificateHold 123",
         msg);

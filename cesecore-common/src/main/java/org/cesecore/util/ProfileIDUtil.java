@@ -14,20 +14,22 @@ package org.cesecore.util;
 
 import java.util.Random;
 import org.apache.log4j.Logger;
+import org.cesecore.CesecoreRuntimeException;
 
 /**
  * Used to get an ID not already existing in a DB.
  *
  * @version $Id: ProfileID.java 23749 2016-06-30 11:12:39Z mikekushner $
  */
-public final class ProfileID {
-    private ProfileID() { }
+public final class ProfileIDUtil {
   /** Logger. */
-    private static final Logger LOG = Logger.getLogger(ProfileID.class);
+    private static final Logger LOG = Logger.getLogger(ProfileIDUtil.class);
   /** Tandom. */
   private static final Random RANDOM = new Random();
   /** Minimum. */
   private static final int MIN = 1 << 16;
+
+  private ProfileIDUtil() { }
   /**
    * Callback that is used from caller to check if the generated id can be used,
    * or if we should generate a new one.
@@ -56,7 +58,7 @@ public final class ProfileID {
     }
     // this throw is indicating an implementation error of the DB class and
     // should never occur. If it does the code must be fixed.
-    throw new RuntimeException(
+    throw new CesecoreRuntimeException(
         "Impossible to find a spare ID in the database for the class: "
             + db.getClass().getCanonicalName());
   }

@@ -70,8 +70,8 @@ import org.cesecore.keys.token.CryptoTokenSessionLocal;
 import org.cesecore.keys.token.PKCS11CryptoToken;
 import org.cesecore.keys.token.p11.exception.NoSuchSlotException;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
-import org.cesecore.util.EJBTools;
+import org.cesecore.util.CryptoProviderUtil;
+import org.cesecore.util.EJBUtil;
 import org.cesecore.util.QueryResultWrapper;
 
 /**
@@ -118,7 +118,7 @@ public class CaSessionBean implements CaSessionLocal, CaSessionRemote {
   @PostConstruct
   public void postConstruct() {
     // Install BouncyCastle provider if not available
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
     // It is not possible to @EJB-inject our self on all application servers so
     // we need to do a lookup
     caSession = sessionContext.getBusinessObject(CaSessionLocal.class);
@@ -616,7 +616,7 @@ public class CaSessionBean implements CaSessionLocal, CaSessionRemote {
     }
     final List<CertificateWrapper> result = new ArrayList<>();
     if (info.getStatus() != CAConstants.CA_WAITING_CERTIFICATE_RESPONSE) {
-      result.addAll(EJBTools.wrapCertCollection(info.getCertificateChain()));
+      result.addAll(EJBUtil.wrapCertCollection(info.getCertificateChain()));
     }
     if (LOG.isDebugEnabled()) {
       LOG.debug(

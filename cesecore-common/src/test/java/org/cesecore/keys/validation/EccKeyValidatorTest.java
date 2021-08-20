@@ -22,7 +22,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.keys.util.KeyUtil;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,7 +44,7 @@ public class EccKeyValidatorTest {
   @Before
   public void setUp() throws Exception {
     LOG.trace(">setUp()");
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
     LOG.trace("<setUp()");
   }
   /**

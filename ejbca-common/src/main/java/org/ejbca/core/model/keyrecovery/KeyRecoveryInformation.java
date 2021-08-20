@@ -18,7 +18,7 @@ import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.cert.Certificate;
 import org.cesecore.keys.util.KeyPairWrapper;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 
 /**
  * This is a value class containing the data relating to key saved for recovery
@@ -63,7 +63,7 @@ public class KeyRecoveryInformation implements Serializable {
       final Certificate acertificate) {
     this.certificatesn = acertificatesn;
     this.issuerdn = anissuerdn;
-    this.username = StringTools.stripUsername(ausername);
+    this.username = StringUtil.stripUsername(ausername);
     this.markedasrecoverable = ismarkedasrecoverable;
     this.keypair = new KeyPairWrapper(akeypair);
     this.certificate = acertificate;
@@ -112,7 +112,7 @@ public class KeyRecoveryInformation implements Serializable {
    * @param ausername user
    */
   public void setUsername(final String ausername) {
-    this.username = StringTools.stripUsername(ausername);
+    this.username = StringUtil.stripUsername(ausername);
   }
 
   /**

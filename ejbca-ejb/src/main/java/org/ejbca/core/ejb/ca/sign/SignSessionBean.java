@@ -119,10 +119,10 @@ import org.cesecore.keys.token.CryptoTokenManagementSessionLocal;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
 import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.keys.util.PublicKeyWrapper;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
-import org.cesecore.util.EJBTools;
+import org.cesecore.util.CryptoProviderUtil;
+import org.cesecore.util.EJBUtil;
 import org.ejbca.config.GlobalConfiguration;
 import org.ejbca.core.EjbcaException;
 import org.ejbca.core.ejb.audit.enums.EjbcaEventTypes;
@@ -226,7 +226,7 @@ public class SignSessionBean implements SignSessionLocal, SignSessionRemote {
     }
     try {
       // Install BouncyCastle provider
-      CryptoProviderTools.installBCProviderIfNotAvailable();
+      CryptoProviderUtil.installBCProviderIfNotAvailable();
     } catch (Exception e) {
       LOG.debug("Caught exception in ejbCreate(): ", e);
       throw new EJBException(e);
@@ -878,7 +878,7 @@ public class SignSessionBean implements SignSessionLocal, SignSessionRemote {
               "User '" + username + "' is revoked.");
         }
         final CVCObject parsedObject =
-            CertificateParser.parseCVCObject(Base64.decode(cvcreq.getBytes()));
+         CertificateParser.parseCVCObject(Base64Util.decode(cvcreq.getBytes()));
         if (parsedObject instanceof CVCAuthenticatedRequest) {
           if (LOG.isDebugEnabled()) {
             LOG.debug(
@@ -907,7 +907,7 @@ public class SignSessionBean implements SignSessionLocal, SignSessionRemote {
           // according to the EU policy
           // This must be done whether it is signed by CVCA or a renewal request
           final Collection<Certificate> oldCertificates =
-              EJBTools.unwrapCertCollection(
+              EJBUtil.unwrapCertCollection(
                   certificateStoreSession.findCertificatesByUsername(username));
           if (oldCertificates != null) {
             if (LOG.isDebugEnabled()) {
@@ -942,7 +942,7 @@ public class SignSessionBean implements SignSessionLocal, SignSessionRemote {
                       + " it using user's old certificate.");
             }
             final Collection<Certificate> userCertificates =
-                EJBTools.unwrapCertCollection(
+                EJBUtil.unwrapCertCollection(
                     certificateStoreSession.findCertificatesByUsername(
                         username));
             // userCertificates contains certificates ordered with last expire
@@ -1182,7 +1182,7 @@ public class SignSessionBean implements SignSessionLocal, SignSessionRemote {
               CertificateHelper.RESPONSETYPE_CERTIFICATE, response);
       final byte[] b64cert = certificateResponse.getData();
       final CVCertificate certObject =
-          CertificateParser.parseCertificate(Base64.decode(b64cert));
+          CertificateParser.parseCertificate(Base64Util.decode(b64cert));
       final ArrayList<Certificate> result = new ArrayList<>();
       result.add(new CardVerifiableCertificate(certObject));
       // Get the certificate chain.
@@ -1192,7 +1192,7 @@ public class SignSessionBean implements SignSessionLocal, SignSessionRemote {
         result.addAll(getCertificateChain(caid));
       }
       LOG.trace("<cvcRequest");
-      return EJBTools.wrapCertCollection(result);
+      return EJBUtil.wrapCertCollection(result);
     } catch (NoSuchEndEntityException
         | ParseException
         | ConstructionException

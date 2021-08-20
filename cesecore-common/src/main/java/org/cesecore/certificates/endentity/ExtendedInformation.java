@@ -33,8 +33,8 @@ import org.cesecore.certificates.crl.RevokedCertInfo;
 import org.cesecore.internal.InternalResources;
 import org.cesecore.internal.UpgradeableDataHashMap;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.StringTools;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.StringUtil;
+import org.cesecore.util.ValidityDateUtil;
 
 /**
  * The model representation of Extended Information about a user. It's used for
@@ -453,7 +453,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap
       return null;
     }
     // It could/should B64 encoded to avoid XML baddies
-    return StringTools.getBase64String(value);
+    return StringUtil.getBase64String(value);
   }
 
   /**
@@ -597,7 +597,7 @@ private void doV4Upgrade() {
         if (!isEmptyOrRelative(oldStartTime)) {
           try {
             final String newStartTime =
-                ValidityDate.formatAsUTC(
+                ValidityDateUtil.formatAsUTC(
                     DateUtils.parseDateStrictly(oldStartTime, timePatterns));
             setCustomData(ExtendedInformation.CUSTOM_STARTTIME, newStartTime);
             if (LOG.isDebugEnabled()) {
@@ -625,7 +625,7 @@ private void doV4Upgrade() {
           // We use an absolute time format, so we need to upgrade
           try {
             final String newEndTime =
-                ValidityDate.formatAsUTC(
+                ValidityDateUtil.formatAsUTC(
                     DateUtils.parseDateStrictly(oldEndTime, timePatterns));
             setCustomData(ExtendedInformation.CUSTOM_ENDTIME, newEndTime);
             if (LOG.isDebugEnabled()) {

@@ -37,8 +37,8 @@ import org.cesecore.config.GlobalCesecoreConfiguration;
 import org.cesecore.configuration.GlobalConfigurationSessionRemote;
 import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
-import org.cesecore.util.EJBTools;
+import org.cesecore.util.CryptoProviderUtil;
+import org.cesecore.util.EJBUtil;
 import org.cesecore.util.EjbRemoteHelper;
 import org.ejbca.config.GlobalConfiguration;
 import org.ejbca.core.ejb.ca.auth.EndEntityAuthenticationSessionRemote;
@@ -159,7 +159,7 @@ public class BatchMakeP12Command extends EjbcaCliUserCommandBase {
             "Use '" + getMainCommand() + " --help' for additional options.");
       }
       // Bouncy Castle security provider
-      CryptoProviderTools.installBCProviderIfNotAvailable();
+      CryptoProviderUtil.installBCProviderIfNotAvailable();
       // Create subdirectory 'p12' if it does not exist
       File dir = new File(directory).getCanonicalFile();
       dir.mkdir();
@@ -412,9 +412,9 @@ public class BatchMakeP12Command extends EjbcaCliUserCommandBase {
           .getRemoteSession(KeyRecoverySessionRemote.class)
           .addKeyRecoveryData(
               getAuthenticationToken(),
-              EJBTools.wrap(cert),
+              EJBUtil.wrap(cert),
               username,
-              EJBTools.wrap(rsaKeys));
+              EJBUtil.wrap(rsaKeys));
     }
 
     // Use CN if as alias in the keystore, if CN is not present use username
@@ -645,7 +645,7 @@ public class BatchMakeP12Command extends EjbcaCliUserCommandBase {
     if (LOG.isTraceEnabled()) {
       LOG.trace(">createAllWithStatus: " + status);
     }
-    CryptoProviderTools
+    CryptoProviderUtil
         .installBCProviderIfNotAvailable(); // If this is invoked directly
     ArrayList<EndEntityInformation> result =
         new ArrayList<EndEntityInformation>();

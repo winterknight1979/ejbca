@@ -22,9 +22,9 @@ import javax.faces.validator.ValidatorException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.cesecore.util.SimpleTime;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.cesecore.util.TimeUnitFormat;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.ValidityDateUtil;
 import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
 
 /**
@@ -74,10 +74,10 @@ public class ValidityDateValidator implements Validator {
     if (allowNull && StringUtils.isEmpty(value)) {
       failed = false;
     } else {
-      if (StringTools.hasSqlStripChars(value).isEmpty()) {
+      if (StringUtil.hasSqlStripChars(value).isEmpty()) {
         // Parse ISO8601 date.
         try {
-          ValidityDate.parseAsIso8601(value);
+          ValidityDateUtil.parseAsIso8601(value);
           failed = false;
         } catch (ParseException e) {
           // NOOP

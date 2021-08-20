@@ -28,10 +28,10 @@ import org.cesecore.keys.util.KeyPairWrapper;
  * @see KeyPairWrapper
  * @version $Id: EJBTools.java 26210 2017-08-03 10:12:32Z samuellb $
  */
-public final class EJBTools {
+public final class EJBUtil {
 
   /** May not be instantiated. */
-  private EJBTools() { }
+  private EJBUtil() { }
 
   /**
    * Wraps a Certificate object in a CertificateWrapper, which can be sent over
@@ -68,7 +68,7 @@ public final class EJBTools {
    * @param certs List of certificates or null. The list may contain null
    *     values, which will simply be copied as null values.
    * @return List of wrapped certificates, or null if certs was null.
-   * @see EJBTools#wrap
+   * @see EJBUtil#wrap
    */
   public static List<CertificateWrapper> wrapCertCollection(
       final Collection<Certificate> certs) {
@@ -89,7 +89,7 @@ public final class EJBTools {
    * @param wrappedCerts List of wrapped certificates or null. The list may
    *     contain null values, which will simply be copied as null values.
    * @return List of certificate objects, or null if certs was null.
-   * @see EJBTools#unwrap
+   * @see EJBUtil#unwrap
    */
   public static List<Certificate> unwrapCertCollection(
       final Collection<CertificateWrapper> wrappedCerts) {

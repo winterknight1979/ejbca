@@ -32,7 +32,7 @@ import org.apache.log4j.Logger;
 import org.cesecore.certificates.crl.RevokedCertInfo;
 import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.util.QueryResultWrapper;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.ValidityDateUtil;
 import org.cesecore.util.ValueExtractor;
 
 /**
@@ -327,7 +327,7 @@ public class CertificateDataSessionBean extends BaseCertificateDataSessionBean
               + issuerDN
               + "', Last Base CRL Date: "
               + FastDateFormat.getInstance(
-                      ValidityDate.ISO8601_DATE_FORMAT,
+                      ValidityDateUtil.ISO8601_DATE_FORMAT,
                       TimeZone.getTimeZone("GMT"))
                   .format(lastbasecrldate));
     }

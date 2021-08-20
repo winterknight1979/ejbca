@@ -22,7 +22,7 @@ import java.io.ObjectOutputStream;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.PublicKey;
 import org.cesecore.certificates.util.AlgorithmConstants;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -38,7 +38,7 @@ public class PublicKeyWrapperTest {
  */
   @BeforeClass
   public static void beforeClass() throws InvalidAlgorithmParameterException {
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
     testKey =
         KeyUtil.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA)
             .getPublic();

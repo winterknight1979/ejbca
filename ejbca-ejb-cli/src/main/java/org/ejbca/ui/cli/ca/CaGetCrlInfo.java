@@ -21,7 +21,7 @@ import org.cesecore.certificates.ca.CaSessionRemote;
 import org.cesecore.certificates.crl.CRLInfo;
 import org.cesecore.certificates.crl.CrlStoreSessionRemote;
 import org.cesecore.util.EjbRemoteHelper;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.ValidityDateUtil;
 import org.ejbca.ui.cli.infrastructure.command.CommandResult;
 import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
 
@@ -71,9 +71,9 @@ public class CaGetCrlInfo extends BaseCaAdminCommand {
       if (crlInfo != null) {
         sb.append(" CRL# ").append(crlInfo.getLastCRLNumber());
         sb.append(" issued ")
-            .append(ValidityDate.formatAsUTC(crlInfo.getCreateDate()));
+            .append(ValidityDateUtil.formatAsUTC(crlInfo.getCreateDate()));
         sb.append(" expires ")
-            .append(ValidityDate.formatAsUTC(crlInfo.getExpireDate()));
+            .append(ValidityDateUtil.formatAsUTC(crlInfo.getExpireDate()));
       } else {
         sb.append(" NO_CRL_ISSUED");
       }
@@ -84,9 +84,9 @@ public class CaGetCrlInfo extends BaseCaAdminCommand {
       if (deltaCrlInfo != null) {
         sb.append(" DELTACRL# ").append(deltaCrlInfo.getLastCRLNumber());
         sb.append(" issued ")
-            .append(ValidityDate.formatAsUTC(deltaCrlInfo.getCreateDate()));
+            .append(ValidityDateUtil.formatAsUTC(deltaCrlInfo.getCreateDate()));
         sb.append(" expires ")
-            .append(ValidityDate.formatAsUTC(deltaCrlInfo.getExpireDate()));
+            .append(ValidityDateUtil.formatAsUTC(deltaCrlInfo.getExpireDate()));
       } else {
         sb.append(" NO_DELTACRL_ISSUED");
       }

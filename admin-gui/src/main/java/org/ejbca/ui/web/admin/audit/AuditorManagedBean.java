@@ -48,9 +48,9 @@ import org.cesecore.audit.impl.integrityprotected.AuditRecordData;
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.certificates.ca.CaSessionLocal;
-import org.cesecore.util.StringTools;
-import org.cesecore.util.ValidityDate;
-import org.cesecore.util.XmlSerializer;
+import org.cesecore.util.StringUtil;
+import org.cesecore.util.ValidityDateUtil;
+import org.cesecore.util.XmlSerializerUtil;
 import org.ejbca.core.ejb.audit.enums.EjbcaEventTypes;
 import org.ejbca.core.ejb.audit.enums.EjbcaModuleTypes;
 import org.ejbca.core.ejb.audit.enums.EjbcaServiceTypes;
@@ -516,8 +516,8 @@ public class AuditorManagedBean implements Serializable {
               conditionsOptionsNumber,
               null,
               Condition.EQUALS,
-              ValidityDate.formatAsISO8601(
-                  new Date(), ValidityDate.TIMEZONE_SERVER)));
+              ValidityDateUtil.formatAsISO8601(
+                  new Date(), ValidityDateUtil.TIMEZONE_SERVER)));
     } else if (AuditLogEntry.FIELD_ADDITIONAL_DETAILS.equals(conditionColumn)) {
       setConditionToAdd(
           new AuditSearchCondition(
@@ -664,7 +664,7 @@ public class AuditorManagedBean implements Serializable {
         try {
           conditionValue =
               Long.valueOf(
-                  ValidityDate.parseAsIso8601(conditionValue.toString())
+                  ValidityDateUtil.parseAsIso8601(conditionValue.toString())
                       .getTime());
         } catch (ParseException e) {
           LOG.debug(
@@ -1188,7 +1188,7 @@ public class AuditorManagedBean implements Serializable {
     response.setContentType(contentType);
     response.addHeader(
         "Content-Disposition",
-        "attachment; filename=\"" + StringTools.stripFilename(filename) + "\"");
+        "attachment; filename=\"" + StringUtil.stripFilename(filename) + "\"");
     final ServletOutputStream out = response.getOutputStream();
     response.setContentLength(b.length);
     out.write(b);
@@ -1245,9 +1245,9 @@ public class AuditorManagedBean implements Serializable {
         AuditLogEntry.FIELD_SEARCHABLE_DETAIL2,
         auditRecordData.getSearchDetail2());
     final Map<String, Object> additionalDetails =
-        XmlSerializer.decode(auditRecordData.getAdditionalDetails());
+        XmlSerializerUtil.decode(auditRecordData.getAdditionalDetails());
     final String additionalDetailsEncoded =
-        XmlSerializer.encodeWithoutBase64(additionalDetails);
+        XmlSerializerUtil.encodeWithoutBase64(additionalDetails);
     auditExporter.writeField(
         AuditLogEntry.FIELD_ADDITIONAL_DETAILS, additionalDetailsEncoded);
     auditExporter.writeField(

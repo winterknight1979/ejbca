@@ -28,9 +28,9 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.cesecore.certificates.util.AlgorithmConstants;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -54,7 +54,7 @@ public class RsaKeyValidatorTest {
   @BeforeClass
   public static void setClassUp() throws Exception {
     LOG.trace("setClassUp()");
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
     LOG.trace("setClassUp()");
   }
   /**
@@ -684,7 +684,7 @@ public class RsaKeyValidatorTest {
   }
 /** Cert. */
   private static byte[] noRocaCert =
-      Base64.decode(
+      Base64Util.decode(
           ("MIIEdDCCA1ygAwIBAgIIVjkVCQFZomowDQYJKoZIhvcNAQEFBQAwNTEWMBQGA1UE"
            + "AwwNTWFuYWdlbWVudCBDQTEOMAwGA1UECgwFUEstRE0xCzAJBgNVBAYTAkFFMB4X"
            + "DTE2MDkyMjE1MDgxM1oXDTE2MDkyNDE1MDgxM1owMDEOMAwGA1UEAwwFeG1wcDIx"
@@ -712,7 +712,7 @@ public class RsaKeyValidatorTest {
               .getBytes());
 /** Cert. */
   private static byte[] rocaCert =
-      Base64.decode(
+      Base64Util.decode(
           ("MIICpTCCAYwCCQC2u0PIfFaGMjANBgkqhkiG9w0BAQsFADAUMRIwEAYDVQQDDAls"
            + "b2NhbGhvc3QwHhcNMTcxMDE2MTkzODIxWhcNMTgxMDE2MTkzODIxWjAUMRIwEAYD"
            + "VQQDDAlsb2NhbGhvc3QwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQJZ"

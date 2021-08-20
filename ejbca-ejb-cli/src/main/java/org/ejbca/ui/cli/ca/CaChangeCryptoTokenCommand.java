@@ -26,7 +26,7 @@ import org.cesecore.certificates.ca.catoken.CAToken;
 import org.cesecore.certificates.ca.catoken.CATokenConstants;
 import org.cesecore.keys.token.CryptoTokenInfo;
 import org.cesecore.keys.token.CryptoTokenManagementSessionRemote;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.cesecore.util.EjbRemoteHelper;
 import org.ejbca.ui.cli.infrastructure.command.CommandResult;
 import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
@@ -108,7 +108,7 @@ public class CaChangeCryptoTokenCommand extends BaseCaAdminCommand {
   @Override
   public CommandResult execute(final ParameterContainer parameters) {
     LOG.trace(">execute()");
-    CryptoProviderTools.installBCProvider(); // need this for CVC certificate
+    CryptoProviderUtil.installBCProvider(); // need this for CVC certificate
     final String caName = parameters.get(CA_NAME_KEY);
     final String cryptoTokenName = parameters.get(CRYPTOTOKEN_NAME_KEY);
     final boolean force = parameters.containsKey(EXECUTE_KEY);

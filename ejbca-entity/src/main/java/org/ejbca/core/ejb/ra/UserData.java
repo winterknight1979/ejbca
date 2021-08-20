@@ -31,7 +31,7 @@ import org.cesecore.certificates.endentity.ExtendedInformation;
 import org.cesecore.dbprotection.ProtectedData;
 import org.cesecore.dbprotection.ProtectionStringBuilder;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.core.model.InternalEjbcaResources;
 import org.ejbca.util.crypto.BCrypt;
 import org.ejbca.util.crypto.CryptoTools;
@@ -198,7 +198,7 @@ public class UserData extends ProtectedData implements Serializable {
    * @param ausername user
    */
   public void setUsername(final String ausername) {
-    this.username = StringTools.stripUsername(ausername);
+    this.username = StringUtil.stripUsername(ausername);
   }
 
   /** @return the current Subject DN of the EE, never null */
@@ -637,7 +637,7 @@ public class UserData extends ProtectedData implements Serializable {
   public void setOpenPassword(final String password) {
     String apasswordHash = CryptoTools.makePasswordHash(password);
     setPasswordHash(apasswordHash);
-    setClearPassword(StringTools.obfuscate(password));
+    setClearPassword(StringUtil.obfuscate(password));
   }
 
   /**
@@ -647,7 +647,7 @@ public class UserData extends ProtectedData implements Serializable {
    */
   @Transient
   public String getOpenPassword() {
-    return StringTools.deobfuscateIf(clearPassword);
+    return StringUtil.deobfuscateIf(clearPassword);
   }
 
   /** @return which hashing algorithm was used for this UserData object */

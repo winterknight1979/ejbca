@@ -25,7 +25,7 @@ import org.apache.log4j.Logger;
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.certificates.ca.CADoesntExistsException;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
 import org.ejbca.core.ejb.ra.EndEntityManagementSession;
 import org.ejbca.core.model.approval.ApprovalDataText;
@@ -193,7 +193,8 @@ public class KeyRecoveryApprovalRequest extends ApprovalRequest {
     out.writeObject(username);
     out.writeBoolean(recoverNewestCert);
     try {
-      String certString = new String(Base64.encode(cert.getEncoded()), "UTF8");
+      String certString =
+              new String(Base64Util.encode(cert.getEncoded()), "UTF8");
       out.writeObject(certString);
     } catch (CertificateEncodingException e) {
       LOG.debug("Error serializing certificate", e);
@@ -212,8 +213,8 @@ public class KeyRecoveryApprovalRequest extends ApprovalRequest {
       String certString = (String) in.readObject();
       try {
         cert =
-            CertTools.getCertfromByteArray(
-                Base64.decode(certString.getBytes("UTF8")), Certificate.class);
+          CertTools.getCertfromByteArray(
+             Base64Util.decode(certString.getBytes("UTF8")), Certificate.class);
       } catch (CertificateException e) {
         LOG.debug("Error deserializing certificate", e);
         throw new IOException(e.getMessage());

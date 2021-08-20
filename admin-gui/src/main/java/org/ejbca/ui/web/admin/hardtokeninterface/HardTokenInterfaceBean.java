@@ -29,7 +29,7 @@ import org.cesecore.certificates.ca.CaSessionLocal;
 import org.cesecore.certificates.certificateprofile.CertificateProfileSession;
 import org.cesecore.roles.Role;
 import org.cesecore.roles.management.RoleSessionLocal;
-import org.cesecore.util.EJBTools;
+import org.cesecore.util.EJBUtil;
 import org.ejbca.core.ejb.hardtoken.HardTokenBatchJobSession;
 import org.ejbca.core.ejb.hardtoken.HardTokenSession;
 import org.ejbca.core.ejb.keyrecovery.KeyRecoverySession;
@@ -373,7 +373,7 @@ public class HardTokenInterfaceBean implements Serializable {
     for (final Certificate cert
         : hardtokensession.findCertificatesInHardToken(tokensn)) {
       final X509Certificate x509cert = (X509Certificate) cert;
-      if (keyrecoverysession.existsKeys(EJBTools.wrap(x509cert))) {
+      if (keyrecoverysession.existsKeys(EJBUtil.wrap(x509cert))) {
         keyRecCert = x509cert;
       }
     }
@@ -395,7 +395,7 @@ public class HardTokenInterfaceBean implements Serializable {
     for (final Certificate cert
         : hardtokensession.findCertificatesInHardToken(tokensn)) {
       final X509Certificate x509cert = (X509Certificate) cert;
-      if (keyrecoverysession.existsKeys(EJBTools.wrap(x509cert))) {
+      if (keyrecoverysession.existsKeys(EJBUtil.wrap(x509cert))) {
         rabean.markForRecovery(username, x509cert);
       }
     }

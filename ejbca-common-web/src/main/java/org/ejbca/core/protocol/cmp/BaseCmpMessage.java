@@ -24,7 +24,7 @@ import org.bouncycastle.asn1.ASN1OutputStream;
 import org.bouncycastle.asn1.cmp.PKIHeader;
 import org.bouncycastle.asn1.cmp.PKIMessage;
 import org.bouncycastle.asn1.x509.GeneralName;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 
 /**
  * Base class for CMP request messages.
@@ -85,7 +85,7 @@ public abstract class BaseCmpMessage implements Serializable {
     if (asn1OctetString != null) {
       final byte[] val = asn1OctetString.getOctets();
       if (val != null) {
-        return new String(Base64.encode(val));
+        return new String(Base64Util.encode(val));
       }
     }
     return null;

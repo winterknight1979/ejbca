@@ -28,7 +28,7 @@ import org.cesecore.certificates.util.dn.DNFieldsUtil;
 import org.cesecore.util.Base64GetHashMap;
 import org.cesecore.util.Base64PutHashMap;
 import org.cesecore.util.SecureXMLDecoder;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 
 /**
  * Holds admin data collected from UserData in the database. Strings are stored
@@ -236,14 +236,14 @@ public class EndEntityInformation implements Serializable {
    */
   public void setUsername(final String user) {
     this.username =
-        StringTools.putBase64String(StringTools.stripUsername(user));
+        StringUtil.putBase64String(StringUtil.stripUsername(user));
   }
 
   /**
    * @return User
    */
   public String getUsername() {
-    return StringTools.getBase64String(username);
+    return StringUtil.getBase64String(username);
   }
 
   /**
@@ -261,13 +261,13 @@ public class EndEntityInformation implements Serializable {
         DNFieldsUtil.removeEmpties(dn, removedAllEmpties, true);
     if (removedTrailingEmpties == null) {
       this.subjectDNClean =
-          StringTools.putBase64String(removedAllEmpties.toString());
+          StringUtil.putBase64String(removedAllEmpties.toString());
       this.subjectDN = this.subjectDNClean;
     } else {
       this.subjectDNClean =
-          StringTools.putBase64String(removedAllEmpties.toString());
+          StringUtil.putBase64String(removedAllEmpties.toString());
       this.subjectDN =
-          StringTools.putBase64String(removedTrailingEmpties.toString());
+          StringUtil.putBase64String(removedTrailingEmpties.toString());
     }
   }
 
@@ -282,7 +282,7 @@ public class EndEntityInformation implements Serializable {
    *     get without empty fields
    */
   public String getDN() {
-    return StringTools.getBase64String(subjectDN);
+    return StringUtil.getBase64String(subjectDN);
   }
 
   /**
@@ -303,49 +303,49 @@ public class EndEntityInformation implements Serializable {
    * @param aSubjectaltname Name
    */
   public void setSubjectAltName(final String aSubjectaltname) {
-    this.subjectAltName = StringTools.putBase64String(aSubjectaltname);
+    this.subjectAltName = StringUtil.putBase64String(aSubjectaltname);
   }
 
   /**
    * @return Name
    */
   public String getSubjectAltName() {
-    return StringTools.getBase64String(subjectAltName);
+    return StringUtil.getBase64String(subjectAltName);
   }
 
   /**
    * @param aEmail mail
    */
   public void setEmail(final String aEmail) {
-    this.subjectEmail = StringTools.putBase64String(aEmail);
+    this.subjectEmail = StringUtil.putBase64String(aEmail);
   }
 
   /**
    * @return Email
    */
   public String getEmail() {
-    return StringTools.getBase64String(subjectEmail);
+    return StringUtil.getBase64String(subjectEmail);
   }
 
   /**
    * @param aCardNumber Number
    */
   public void setCardNumber(final String aCardNumber) {
-    this.cardNumber = StringTools.putBase64String(aCardNumber);
+    this.cardNumber = StringUtil.putBase64String(aCardNumber);
   }
 
   /**
    * @return Number
    */
   public String getCardNumber() {
-    return StringTools.getBase64String(cardNumber);
+    return StringUtil.getBase64String(cardNumber);
   }
 
   /**
    * @param aPwd password
    */
   public void setPassword(final String aPwd) {
-    this.password = StringTools.putBase64String(aPwd);
+    this.password = StringUtil.putBase64String(aPwd);
   }
 
   /**
@@ -355,7 +355,7 @@ public class EndEntityInformation implements Serializable {
    * @return password
    */
   public String getPassword() {
-    return StringTools.getBase64String(password);
+    return StringUtil.getBase64String(password);
   }
 
   /**
@@ -652,7 +652,7 @@ public class EndEntityInformation implements Serializable {
       // the cleaning all over again
       return DNFieldsUtil.removeAllEmpties(getDN());
     } else {
-      return StringTools.getBase64String(subjectDNClean);
+      return StringUtil.getBase64String(subjectDNClean);
     }
   }
 

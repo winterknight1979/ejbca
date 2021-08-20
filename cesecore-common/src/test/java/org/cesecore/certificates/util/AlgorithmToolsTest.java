@@ -39,7 +39,7 @@ import org.bouncycastle.jce.ECGOST3410NamedCurveTable;
 import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.ejbca.cvc.AuthorizationRoleEnum;
 import org.ejbca.cvc.CAReferenceField;
 import org.ejbca.cvc.CardVerifiableCertificate;
@@ -62,7 +62,7 @@ public class AlgorithmToolsTest {
    */
   @Before
   public void setUp() throws Exception {
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
   }
   /**
    * Test.

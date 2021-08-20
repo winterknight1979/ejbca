@@ -18,7 +18,7 @@ import static org.junit.Assume.assumeTrue;
 import java.security.Provider;
 import org.cesecore.keys.token.PKCS11TestUtils;
 import org.cesecore.keys.token.p11.exception.NoSuchSlotException;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -39,7 +39,7 @@ public class Pkcs11SlotLabelTest {
   /** Setup. */
   @BeforeClass
   public static void beforeClass() {
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
   }
   /**
    * Test.

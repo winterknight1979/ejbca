@@ -26,7 +26,7 @@ import org.cesecore.certificates.certificatetransparency.GoogleCtPolicy;
 import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.config.ExternalScriptsConfiguration;
 import org.cesecore.configuration.ConfigurationBase;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 
 /**
  * This is a class containing global configuration parameters.
@@ -992,7 +992,7 @@ public class GlobalConfiguration extends ConfigurationBase
    */
   public void setAutoEnrollConnectionPwd(final String connectionPwd) {
     data.put(
-        AUTOENROLL_CONNECTIONPWD, StringTools.obfuscateIfNot(connectionPwd));
+        AUTOENROLL_CONNECTIONPWD, StringUtil.obfuscateIfNot(connectionPwd));
   }
 
   /**
@@ -1002,7 +1002,7 @@ public class GlobalConfiguration extends ConfigurationBase
     String ret = (String) data.get(AUTOENROLL_CONNECTIONPWD);
     return (ret == null
         ? AUTOENROLL_DEFAULT_CONNECTIONPWD
-        : StringTools.deobfuscateIf(ret));
+        : StringUtil.deobfuscateIf(ret));
   }
 
   /**

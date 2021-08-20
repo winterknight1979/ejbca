@@ -284,6 +284,7 @@ public final class SimpleTime {
         break;
       default:
         result = SimpleTime.getSecondsFormat();
+        break;
     }
     return result;
   }

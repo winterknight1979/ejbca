@@ -26,8 +26,8 @@ import org.cesecore.authorization.control.CryptoTokenRules;
 import org.cesecore.keys.token.CryptoTokenManagementSessionLocal;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
 import org.cesecore.keys.util.KeyUtil;
-import org.cesecore.util.CryptoProviderTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.CryptoProviderUtil;
+import org.cesecore.util.StringUtil;
 import org.ejbca.ui.web.admin.cainterface.BaseAdminServlet;
 import org.ejbca.ui.web.admin.cainterface.exception.AdminWebAuthenticationException;
 
@@ -51,7 +51,7 @@ public class CryptoTokenDownloadServlet extends BaseAdminServlet {
   @Override
   public void init(final ServletConfig config) throws ServletException {
     super.init(config);
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
   }
 
   /** Handles HTTP POST the same way HTTP GET is handled. */
@@ -92,7 +92,7 @@ public class CryptoTokenDownloadServlet extends BaseAdminServlet {
       response.setHeader(
           "Content-disposition",
           " attachment; filename=\""
-              + StringTools.stripFilename(aliasParam + ".pem")
+              + StringUtil.stripFilename(aliasParam + ".pem")
               + "\"");
       response.getOutputStream().write(KeyUtil.getAsPem(publicKey).getBytes());
       response.flushBuffer();

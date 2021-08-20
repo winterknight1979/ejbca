@@ -14,7 +14,7 @@
 package org.ejbca.core.protocol.ws.client;
 
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.ejbca.core.protocol.ws.client.gen.EjbcaException_Exception;
 import org.ejbca.ui.cli.ErrorAdminCommandException;
 import org.ejbca.ui.cli.IAdminCommand;
@@ -59,7 +59,7 @@ public class UpdateCaCertCommand extends EJBCAWSRABaseCommand
         System.exit(-1); // NOPMD, this is not a JEE app
       }
 
-      CryptoProviderTools.installBCProvider();
+      CryptoProviderUtil.installBCProvider();
 
       final String caname = args[ARG_CANAME];
       final String file = args[ARG_CACHAIN];

@@ -464,7 +464,7 @@ public class Base64Test {
   @Before
   public void setUp() throws Exception {
     LOG.trace(">setUp()");
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
     LOG.trace("<setUp()");
   }
   /**
@@ -474,26 +474,26 @@ public class Base64Test {
   @Test
   public void testBase64Small() throws Exception {
     // Testcert is on long line of base 64 encoded stuff
-    byte[] certBytes = Base64.decode(TESTCERT_ONELINE.getBytes());
+    byte[] certBytes = Base64Util.decode(TESTCERT_ONELINE.getBytes());
     assertNotNull(certBytes);
     // This should be a cert
     Certificate cert =
         CertTools.getCertfromByteArray(certBytes, Certificate.class);
     assertNotNull(cert);
     // Base64 encode it again
-    byte[] encBytes = Base64.encode(cert.getEncoded(), false);
+    byte[] encBytes = Base64Util.encode(cert.getEncoded(), false);
     assertEquals(new String(encBytes), TESTCERT_ONELINE);
     // Testcert_crlf has \n after each line
-    certBytes = Base64.decode(TESTCERT_CRLF.getBytes());
+    certBytes = Base64Util.decode(TESTCERT_CRLF.getBytes());
     assertNotNull(certBytes);
     // This should be a cert
     cert = CertTools.getCertfromByteArray(certBytes, Certificate.class);
     assertNotNull(cert);
     // Base64 encode it again
-    encBytes = Base64.encode(cert.getEncoded(), true);
+    encBytes = Base64Util.encode(cert.getEncoded(), true);
     assertEquals(new String(encBytes), TESTCERT_CRLF);
     // This is the same method as above
-    encBytes = Base64.encode(cert.getEncoded());
+    encBytes = Base64Util.encode(cert.getEncoded());
     assertEquals(new String(encBytes), TESTCERT_CRLF);
   }
   /**
@@ -503,9 +503,9 @@ public class Base64Test {
   @Test
   public void testBase64Long() throws Exception {
     // This one has spaces in it
-    byte[] bytes = Base64.decode(LONG_MSG);
+    byte[] bytes = Base64Util.decode(LONG_MSG);
     assertNotNull(bytes);
-    byte[] encBytes = Base64.encode(bytes, false);
+    byte[] encBytes = Base64Util.encode(bytes, false);
     String str1 = new String(encBytes);
     String str2 = new String(LONG_MSG);
     // Should not be same, str2 has blanks in it
@@ -519,7 +519,7 @@ public class Base64Test {
    */
   @Test(expected = DecoderException.class)
   public void testIncorrectPadding1() {
-    Base64.decode("DAxFSkJDQSBTYW".getBytes(Charset.forName("UTF-8")));
+    Base64Util.decode("DAxFSkJDQSBTYW".getBytes(Charset.forName("UTF-8")));
   }
 
   /**
@@ -527,6 +527,6 @@ public class Base64Test {
    */
   @Test(expected = DecoderException.class)
   public void testIncorrectPadding2() {
-    Base64.decode("DAxFSkJDQSBTYW=".getBytes(Charset.forName("UTF-8")));
+    Base64Util.decode("DAxFSkJDQSBTYW=".getBytes(Charset.forName("UTF-8")));
   }
 }

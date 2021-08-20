@@ -30,7 +30,7 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -69,7 +69,7 @@ public class ClientX509TrustManagerTest {
      * @throws Throwable fail*/
   @BeforeClass
   public static void beforeClass() throws Throwable {
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
   }
 
   /**

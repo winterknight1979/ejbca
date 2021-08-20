@@ -22,9 +22,9 @@ import java.io.ByteArrayOutputStream;
  *
  * @version $Id: Base64.java 25733 2017-04-23 20:14:32Z joseromero $
  */
-public final class Base64 {
+public final class Base64Util {
 
-  private Base64() { } // Not for instantiation
+  private Base64Util() { } // Not for instantiation
 
   /**
    * encode the input data producing a base 64 encoded byte array with the

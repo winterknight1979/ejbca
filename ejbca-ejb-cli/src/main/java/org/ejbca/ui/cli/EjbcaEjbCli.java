@@ -13,7 +13,7 @@
 
 package org.ejbca.ui.cli;
 
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.ejbca.ui.cli.infrastructure.command.CommandResult;
 import org.ejbca.ui.cli.infrastructure.library.CommandLibrary;
 
@@ -33,7 +33,7 @@ public final class EjbcaEjbCli {
     if (args.length == 0 || !CommandLibrary.INSTANCE.doesCommandExist(args)) {
       CommandLibrary.INSTANCE.listRootCommands();
     } else {
-      CryptoProviderTools.installBCProvider();
+      CryptoProviderUtil.installBCProvider();
       CommandResult result =
           CommandLibrary.INSTANCE.findAndExecuteCommandFromParameters(args);
       if (result != CommandResult.SUCCESS) {

@@ -52,9 +52,9 @@ import org.cesecore.certificates.certificate.CertificateStatus;
 import org.cesecore.certificates.certificate.CertificateStoreSessionLocal;
 import org.cesecore.certificates.crl.CrlStoreSessionLocal;
 import org.cesecore.configuration.GlobalConfigurationSessionLocal;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.config.GlobalConfiguration;
 import org.ejbca.core.ejb.ca.sign.SignSessionLocal;
 import org.ejbca.cvc.CardVerifiableCertificate;
@@ -256,13 +256,13 @@ public class CertDistServlet extends HttpServlet {
           res.setHeader(
               "Content-disposition",
               "attachment; filename=\""
-                  + StringTools.stripFilename(filename)
+                  + StringUtil.stripFilename(filename)
                   + "\"");
         }
         res.setContentType("application/x-x509-crl");
         if (StringUtils.equals(format, "PEM")) {
           RequestHelper.sendNewB64File(
-              Base64.encode(crl, true),
+              Base64Util.encode(crl, true),
               res,
               filename,
               RequestHelper.BEGIN_CRL_WITH_NL,
@@ -571,7 +571,7 @@ public class CertDistServlet extends HttpServlet {
             res.setHeader(
                 "Content-disposition",
                 "attachment; filename=\""
-                    + StringTools.stripFilename(filename)
+                    + StringUtil.stripFilename(filename)
                     + ".p7c\"");
           } else {
             String ending = ".crt";
@@ -581,7 +581,7 @@ public class CertDistServlet extends HttpServlet {
             res.setHeader(
                 "Content-disposition",
                 "attachment; filename=\""
-                    + StringTools.stripFilename(filename + ending)
+                    + StringUtil.stripFilename(filename + ending)
                     + "\"");
           }
           res.setContentType("application/octet-stream");
@@ -589,7 +589,7 @@ public class CertDistServlet extends HttpServlet {
           res.getOutputStream().write(enccert);
           LOG.debug("Sent CA cert to IE client, len=" + enccert.length + ".");
         } else if (command.equalsIgnoreCase(COMMAND_CACERT)) {
-          byte[] b64cert = Base64.encode(enccert);
+          byte[] b64cert = Base64Util.encode(enccert);
           String out;
           if (pkcs7) {
             out = "-----BEGIN PKCS7-----\n";
@@ -607,7 +607,7 @@ public class CertDistServlet extends HttpServlet {
           res.setHeader(
               "Content-disposition",
               "attachment; filename=\""
-                  + StringTools.stripFilename(filename)
+                  + StringUtil.stripFilename(filename)
                   + ".pem\"");
           res.setContentType("application/octet-stream");
           res.setContentLength(out.length());
@@ -785,13 +785,13 @@ public class CertDistServlet extends HttpServlet {
       res.setHeader(
           "Content-disposition",
           "attachment; filename=\""
-              + StringTools.stripFilename(filename)
+              + StringUtil.stripFilename(filename)
               + "\"");
       res.setContentType("application/octet-stream");
     }
     if (StringUtils.equals(format, "PEM")) {
       RequestHelper.sendNewB64File(
-          Base64.encode(cert, true),
+          Base64Util.encode(cert, true),
           res,
           filename,
           CertTools.BEGIN_CERTIFICATE_WITH_NL,
@@ -803,7 +803,7 @@ public class CertDistServlet extends HttpServlet {
                 CertTools.convertCertificateChainToX509Chain(
                     getFullChainOfCertificate(certcert)));
         RequestHelper.sendNewB64File(
-            Base64.encode(pkcs7, true),
+            Base64Util.encode(pkcs7, true),
             res,
             filename,
             RequestHelper.BEGIN_PKCS7_WITH_NL,
@@ -918,7 +918,7 @@ public class CertDistServlet extends HttpServlet {
       res.setHeader(
           "Content-disposition",
           "attachment; filename=\""
-              + StringTools.stripFilename(filename)
+              + StringUtil.stripFilename(filename)
               + "\"");
       res.setContentType("application/octet-stream");
       res.setContentLength(outbytes.length);

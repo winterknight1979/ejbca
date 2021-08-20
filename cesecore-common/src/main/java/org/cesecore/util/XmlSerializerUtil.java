@@ -21,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.apache.log4j.Logger;
+import org.cesecore.CesecoreRuntimeException;
 
 /**
  * This is a helper classed that handles the serialization to and
@@ -30,11 +31,12 @@ import org.apache.log4j.Logger;
  *
  * @version $Id: XmlSerializer.java 34163 2020-01-02 15:00:17Z samuellb $
  */
-public final class XmlSerializer {
+public final class XmlSerializerUtil {
 
-    private XmlSerializer() { }
     /** Logger. */
-  private static final Logger LOG = Logger.getLogger(XmlSerializer.class);
+  private static final Logger LOG = Logger.getLogger(XmlSerializerUtil.class);
+
+  private XmlSerializerUtil() { }
 
   /**
    * @param input Input
@@ -85,7 +87,7 @@ public final class XmlSerializer {
         ret = baos.toString("UTF8");
       } catch (UnsupportedEncodingException e) {
         // Fatal. No point in handling the lack of UTF-8
-        throw new RuntimeException(e);
+        throw new CesecoreRuntimeException(e);
       }
     }
     return ret;

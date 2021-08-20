@@ -45,11 +45,11 @@ import org.cesecore.certificates.endentity.EndEntityType;
 import org.cesecore.certificates.endentity.EndEntityTypes;
 import org.cesecore.certificates.util.DnComponents;
 import org.cesecore.configuration.GlobalConfigurationSessionLocal;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
-import org.cesecore.util.EJBTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.CryptoProviderUtil;
+import org.cesecore.util.EJBUtil;
+import org.cesecore.util.StringUtil;
 import org.ejbca.config.GlobalConfiguration;
 import org.ejbca.core.ejb.ca.sign.SignSessionLocal;
 import org.ejbca.core.ejb.ra.EndEntityManagementSessionLocal;
@@ -97,7 +97,7 @@ public class AutoEnrollServlet extends HttpServlet {
     super.init(config);
     try {
       // Install BouncyCastle provider
-      CryptoProviderTools.installBCProvider();
+      CryptoProviderUtil.installBCProvider();
     } catch (Exception e) {
       throw new ServletException(e);
     }
@@ -176,7 +176,7 @@ public class AutoEnrollServlet extends HttpServlet {
       // as X-Remote-User"
       String remoteUser = request.getHeader("X-Remote-User");
       String usernameShort =
-          StringTools.stripUsername(
+          StringUtil.stripUsername(
                   remoteUser.substring(0, remoteUser.indexOf("@")))
               .replaceAll("/", "");
       if (remoteUser == null
@@ -202,7 +202,8 @@ public class AutoEnrollServlet extends HttpServlet {
       } else {
         // Default command "request"
       }
-      req = new MSPKCS10RequestMessage(Base64.decode(requestData.getBytes()));
+      req = new MSPKCS10RequestMessage(
+              Base64Util.decode(requestData.getBytes()));
       certificateTemplate = req.getMSRequestInfoTemplateName();
       int templateIndex = MSCertTools.getTemplateIndex(certificateTemplate);
       /* TODO: Lookup requesting entity in AD here to verify that only
@@ -323,7 +324,7 @@ public class AutoEnrollServlet extends HttpServlet {
                 resp.getResponseMessage(), X509Certificate.class);
         result = signSession.createPKCS7(internalAdmin, cert, true);
         debugInfo +=
-            "Resulting cert: " + new String(Base64.encode(result, true)) + "\n";
+        "Resulting cert: " + new String(Base64Util.encode(result, true)) + "\n";
       } catch (Exception e) {
         LOG.error("Noooo!!! ", e);
         response.getOutputStream().println("An error has occurred.");
@@ -337,7 +338,7 @@ public class AutoEnrollServlet extends HttpServlet {
         // Output the certificate
         ServletOutputStream os = response.getOutputStream();
         os.print(RequestHelper.BEGIN_PKCS7_WITH_NL);
-        os.print(new String(Base64.encode(result, true)));
+        os.print(new String(Base64Util.encode(result, true)));
         os.print(RequestHelper.END_PKCS7_WITH_NL);
         response.flushBuffer();
         LOG.info("Sent cert to client");
@@ -374,7 +375,7 @@ public class AutoEnrollServlet extends HttpServlet {
       return "NO_SUCH_USER";
     }
     Collection<Certificate> certificates =
-        EJBTools.unwrapCertCollection(
+        EJBUtil.unwrapCertCollection(
             certificateStoreSession.findCertificatesByUsername(username));
     Iterator<Certificate> iter = certificates.iterator();
     if (!iter.hasNext()) {

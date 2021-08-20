@@ -57,9 +57,9 @@ import org.cesecore.certificates.certificate.request.RequestMessageUtils;
 import org.cesecore.certificates.certificate.request.ResponseMessage;
 import org.cesecore.certificates.certificate.request.ResponseStatus;
 import org.cesecore.certificates.certificate.request.X509ResponseMessage;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.core.EjbcaException;
 import org.ejbca.core.ejb.ca.sign.SignSessionLocal;
 import org.ejbca.cvc.CAReferenceField;
@@ -192,7 +192,7 @@ public class RequestHelper {
               + " check the token and the token middleware.");
     }
 
-    byte[] buffer = Base64.decode(reqBytes);
+    byte[] buffer = Base64Util.decode(reqBytes);
 
     if (buffer == null) {
       return null;
@@ -317,7 +317,7 @@ public class RequestHelper {
             resp.getResponseMessage(), X509Certificate.class);
     switch (resulttype) {
       case ENCODED_CERTIFICATE:
-        encoded = Base64.encode(cert.getEncoded(), doSplitLines);
+        encoded = Base64Util.encode(cert.getEncoded(), doSplitLines);
         break;
       case ENCODED_CERTIFICATE_CHAIN:
         CAInfo caInfo =
@@ -329,7 +329,7 @@ public class RequestHelper {
         break;
       case ENCODED_PKCS7:
         encoded =
-            Base64.encode(
+            Base64Util.encode(
                 signsession.createPKCS7(administrator, cert, true),
                 doSplitLines);
         break;
@@ -498,7 +498,7 @@ public class RequestHelper {
       debug.print("<h4>Generated certificate:</h4>");
       debug.printInsertLineBreaks(cert.toString().getBytes());
     }
-    return Base64.encode(result);
+    return Base64Util.encode(result);
   } // cvcCertRequest
 
   /**
@@ -624,7 +624,7 @@ public class RequestHelper {
     out.getOutputStream().write(certs);
     if (log.isDebugEnabled()) {
       log.debug("Sent reply to NS client");
-      log.debug(new String(Base64.encode(certs)));
+      log.debug(new String(Base64Util.encode(certs)));
     }
     log.trace("<nsCertRequest");
   } // sendNewCertToNSClient
@@ -660,7 +660,7 @@ public class RequestHelper {
     out.setContentType("application/octet-stream");
     out.setHeader(
         "Content-disposition",
-        "filename=\"" + StringTools.stripFilename(filename) + "\"");
+        "filename=\"" + StringUtil.stripFilename(filename) + "\"");
 
     out.setContentLength(b64cert.length + beginKey.length() + endKey.length());
 
@@ -734,7 +734,7 @@ public class RequestHelper {
       ServletUtils.removeCacheHeaders(out);
       out.setHeader(
           "Content-disposition",
-          "filename=\"" + StringTools.stripFilename(filename) + "\"");
+          "filename=\"" + StringUtil.stripFilename(filename) + "\"");
     }
 
     // Set content-type to general file
@@ -766,7 +766,7 @@ public class RequestHelper {
       final String contentType,
       final String filename)
       throws IOException {
-    final byte[] b64bytes = Base64.encode(bytes);
+    final byte[] b64bytes = Base64Util.encode(bytes);
 
     out.setHeader("Content-Transfer-Encoding", "base64");
     sendBinaryBytes(b64bytes, out, contentType, filename);

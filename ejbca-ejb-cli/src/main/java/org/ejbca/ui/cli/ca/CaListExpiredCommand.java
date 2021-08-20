@@ -20,8 +20,8 @@ import java.util.Date;
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.certificate.CertificateStoreSessionRemote;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
-import org.cesecore.util.EJBTools;
+import org.cesecore.util.CryptoProviderUtil;
+import org.cesecore.util.EJBUtil;
 import org.cesecore.util.EjbRemoteHelper;
 import org.ejbca.cvc.CardVerifiableCertificate;
 import org.ejbca.ui.cli.infrastructure.command.CommandResult;
@@ -69,7 +69,7 @@ public class CaListExpiredCommand extends EjbcaCommandBase {
 
   @Override
   public CommandResult execute(final ParameterContainer parameters) {
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
     long days;
     try {
       days = Long.parseLong(parameters.get(DAYS_KEY));
@@ -118,7 +118,7 @@ public class CaListExpiredCommand extends EjbcaCommandBase {
     try {
       getLogger().debug("Looking for cert with expireDate=" + findDate);
       Collection<Certificate> certs =
-          EJBTools.unwrapCertCollection(
+          EJBUtil.unwrapCertCollection(
               EjbRemoteHelper.INSTANCE
                   .getRemoteSession(CertificateStoreSessionRemote.class)
                   .findCertificatesByExpireTimeWithLimit(findDate));

@@ -102,7 +102,7 @@ import org.cesecore.roles.Role;
 import org.cesecore.roles.RoleExistsException;
 import org.cesecore.roles.member.RoleMember;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.EJBTools;
+import org.cesecore.util.EJBUtil;
 import org.ejbca.config.GlobalConfiguration;
 import org.ejbca.core.EjbcaException;
 import org.ejbca.core.ejb.ca.publisher.PublisherQueueSessionLocal;
@@ -1494,9 +1494,9 @@ public class RaMasterApiProxyBean implements RaMasterApiProxyBeanLocal {
           }
           if (!localNodeKeyRecoverySession.addKeyRecoveryDataInternal(
               authenticationToken,
-              EJBTools.wrap(cert),
+              EJBUtil.wrap(cert),
               username,
-              EJBTools.wrap(kp),
+              EJBUtil.wrap(kp),
               cryptoTokenId,
               keyAlias)) {
             // Should never happen. An exception stack trace is error-logged in
@@ -2321,7 +2321,7 @@ public class RaMasterApiProxyBean implements RaMasterApiProxyBeanLocal {
         return authorized
             && storedEndEntity.getStatus()
                 != EndEntityConstants.STATUS_KEYRECOVERY
-            && localNodeKeyRecoverySession.existsKeys(EJBTools.wrap(cert));
+            && localNodeKeyRecoverySession.existsKeys(EJBUtil.wrap(cert));
       }
       return false;
     }

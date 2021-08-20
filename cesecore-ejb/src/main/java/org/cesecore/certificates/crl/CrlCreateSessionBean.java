@@ -40,7 +40,7 @@ import org.cesecore.keys.token.CryptoToken;
 import org.cesecore.keys.token.CryptoTokenManagementSessionLocal;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 
 /**
  * Business class for CRL actions, i.e. running CRLs.
@@ -73,7 +73,7 @@ public class CrlCreateSessionBean
   @PostConstruct
   public void postConstruct() {
     // Install BouncyCastle provider if not available
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
   }
 
   @Override

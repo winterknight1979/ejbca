@@ -36,7 +36,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.cesecore.CesecoreException;
 import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 
 /**
  * Just to be used for encryption (not decryption) and verifying (not signing)
@@ -69,7 +69,7 @@ public class PublicCryptoToken implements CryptoToken {
       LOG.error(msg);
       throw new CesecoreException(msg);
     }
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
     this.pk = getPublicKey(data);
     if (this.pk == null) {
       final String msg = "Not possible to initiate public key id: " + this.id;

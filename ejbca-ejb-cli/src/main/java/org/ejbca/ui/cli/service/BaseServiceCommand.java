@@ -15,7 +15,7 @@ package org.ejbca.ui.cli.service;
 
 import org.apache.log4j.Logger;
 import org.cesecore.authentication.tokens.AuthenticationToken;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.cesecore.util.EjbRemoteHelper;
 import org.ejbca.core.ejb.services.ServiceSessionRemote;
 import org.ejbca.ui.cli.infrastructure.command.CommandResult;
@@ -54,7 +54,7 @@ public abstract class BaseServiceCommand extends EjbcaCliUserCommandBase {
 
   @Override
   public final CommandResult execute(final ParameterContainer parameters) {
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
     int serviceId = 0;
     if (acceptsServiceName()) {
       final ServiceSessionRemote serviceSession =

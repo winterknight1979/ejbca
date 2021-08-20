@@ -18,7 +18,7 @@ import java.util.Properties;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.cesecore.keys.token.p11.exception.NoSuchSlotException;
 import org.cesecore.keys.util.KeyUtil;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.junit.Test;
 
 /**
@@ -30,7 +30,7 @@ import org.junit.Test;
 public class SoftCryptoTokenTest extends CryptoTokenTestBase {
 /** constructor. */
   public SoftCryptoTokenTest() {
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
   }
   /**
    * Test.

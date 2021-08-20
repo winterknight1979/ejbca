@@ -30,7 +30,7 @@ import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypeConsta
 import org.cesecore.certificates.ca.extendedservices.IllegalExtendedCAServiceRequestException;
 import org.cesecore.certificates.certificate.certextensions.AvailableCustomCertificateExtensionsConfiguration;
 import org.cesecore.keys.token.CryptoToken;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.ejbca.core.model.InternalEjbcaResources;
 
 /**
@@ -60,7 +60,7 @@ public class HardTokenEncryptCAService extends ExtendedCAService
     super(serviceinfo);
     log.debug(
         "HardTokenEncryptCAService : constructor " + serviceinfo.getStatus());
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
     data = new LinkedHashMap<Object, Object>();
     data.put(
         ExtendedCAServiceInfo.IMPLEMENTATIONCLASS, this.getClass().getName());
@@ -77,7 +77,7 @@ public class HardTokenEncryptCAService extends ExtendedCAService
    */
   public HardTokenEncryptCAService(final HashMap<?, ?> data) {
     super(data);
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
     loadData(data);
   }
 

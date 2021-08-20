@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 
 /**
  * Class containing logic for a whitelist of scripts allowed to be executed by
@@ -60,7 +60,7 @@ public class ExternalScriptsWhitelist {
   public static ExternalScriptsWhitelist fromText(
       final String text, final boolean isEnabled) {
     final List<File> scripts = new ArrayList<>();
-    final String[] lines = StringTools.splitByNewlines(text);
+    final String[] lines = StringUtil.splitByNewlines(text);
     for (int i = 0; i < lines.length; i++) {
       final String path = lines[i].trim();
       if (path.startsWith("#") || StringUtils.isBlank(path)) {

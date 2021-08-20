@@ -36,7 +36,7 @@ import org.cesecore.audit.log.AuditRecordStorageException;
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.keys.token.CryptoToken;
 import org.cesecore.time.TrustedTime;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.ValidityDateUtil;
 import org.cesecore.util.query.QueryCriteria;
 
 /**
@@ -142,8 +142,8 @@ public class Log4jDevice implements AuditLogDevice {
     final StringBuilder sb = new StringBuilder(1024);
     if (trustedTime != null) {
       sb.append(
-          ValidityDate.formatAsISO8601(
-              trustedTime.getTime(), ValidityDate.TIMEZONE_SERVER));
+          ValidityDateUtil.formatAsISO8601(
+              trustedTime.getTime(), ValidityDateUtil.TIMEZONE_SERVER));
     }
     appendIfNotNull(sb, event.getEventType());
     appendIfNotNull(sb, event.getEventStatus());

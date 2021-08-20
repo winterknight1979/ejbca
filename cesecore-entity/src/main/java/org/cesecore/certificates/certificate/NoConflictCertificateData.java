@@ -25,7 +25,7 @@ import javax.persistence.Transient;
 import org.apache.log4j.Logger;
 import org.cesecore.dbprotection.ProtectionStringBuilder;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 
 /**
  * Representation of a revoked throw-away certificate and related information.
@@ -384,7 +384,7 @@ public class NoConflictCertificateData extends BaseCertificateData
 
   @Override
   public void setUsername(final String aUsername) {
-    this.username = StringTools.stripUsername(aUsername);
+    this.username = StringUtil.stripUsername(aUsername);
   }
 
   @Override

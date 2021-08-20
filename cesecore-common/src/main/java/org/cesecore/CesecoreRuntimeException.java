@@ -24,5 +24,11 @@ public class CesecoreRuntimeException extends RuntimeException {
     public CesecoreRuntimeException(final String msg, final Throwable cause) {
         super(msg, cause);
     }
+    /**
+     * @param msg msg
+     */
+    public CesecoreRuntimeException(final String msg) {
+        super(msg);
+    }
 
 }

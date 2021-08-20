@@ -33,7 +33,7 @@ import org.cesecore.authorization.user.AccessMatchType;
 import org.cesecore.authorization.user.AccessUserAspect;
 import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.jndi.JndiConstants;
-import org.cesecore.util.ProfileID;
+import org.cesecore.util.ProfileIDUtil;
 
 /**
  * @see RoleMemberDataSessionLocal
@@ -85,8 +85,8 @@ public class RoleMemberDataSessionBean
   }
 
   private int findFreePrimaryKey() {
-    final ProfileID.DB db =
-        new ProfileID.DB() {
+    final ProfileIDUtil.DB db =
+        new ProfileIDUtil.DB() {
           @Override
           public boolean isFree(final int i) {
             // 0 is a protected ID for RoleMemberData. Use only positive values,
@@ -94,7 +94,7 @@ public class RoleMemberDataSessionBean
             return find(i) == null && i > 0;
           }
         };
-    return ProfileID.getNotUsedID(db);
+    return ProfileIDUtil.getNotUsedID(db);
   }
 
   @TransactionAttribute(TransactionAttributeType.SUPPORTS)

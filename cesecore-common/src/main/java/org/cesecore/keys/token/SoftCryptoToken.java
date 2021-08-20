@@ -38,8 +38,8 @@ import org.bouncycastle.util.encoders.Hex;
 import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.internal.InternalResources;
 import org.cesecore.keys.util.KeyStoreTools;
-import org.cesecore.util.CryptoProviderTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.CryptoProviderUtil;
+import org.cesecore.util.StringUtil;
 
 /**
  * Handles maintenance of the soft devices producing signatures and handling the
@@ -106,7 +106,7 @@ public class SoftCryptoToken extends BaseCryptoToken {
     String autoPwd = BaseCryptoToken.getAutoActivatePin(properties);
     if (autoPwd == null && properties.getProperty(NODEFAULTPWD) == null) {
       final String keystorepass =
-          StringTools.passwordDecryption(
+          StringUtil.passwordDecryption(
             CesecoreConfigurationHelper.getCaKeyStorePass(), "ca.keystorepass");
       // Test it first, don't set an incorrect password as autoactivate password
       boolean okPwd =
@@ -231,7 +231,7 @@ public class SoftCryptoToken extends BaseCryptoToken {
     try {
       if (authCode == null || authCode.length == 0) {
         final String defaultpass =
-          StringTools.passwordDecryption(
+          StringUtil.passwordDecryption(
             CesecoreConfigurationHelper.getCaKeyStorePass(), "ca.keystorepass");
         loadKeyStore(keystoreData, defaultpass.toCharArray());
       } else {
@@ -261,7 +261,7 @@ public class SoftCryptoToken extends BaseCryptoToken {
   private KeyStore loadKeyStore(final byte[] ksdata, final char[] keystorepass)
       throws NoSuchAlgorithmException, CertificateException, IOException,
           KeyStoreException, NoSuchProviderException {
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
     KeyStore keystore =
         KeyStore.getInstance("PKCS12", BouncyCastleProvider.PROVIDER_NAME);
     if (LOG.isDebugEnabled()) {

@@ -42,9 +42,9 @@ import org.cesecore.config.ConfigurationHolderUtil;
 import org.cesecore.config.OcspConfiguration;
 import org.cesecore.configuration.GlobalConfigurationSessionLocal;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.GUIDGenerator;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.config.AvailableProtocolsConfiguration;
 import org.ejbca.config.AvailableProtocolsConfiguration.AvailableProtocols;
 import org.ejbca.core.ejb.ocsp.OcspKeyRenewalSessionLocal;
@@ -286,7 +286,7 @@ public class OCSPServlet extends HttpServlet {
       throws ServletException {
     final String remoteAddress = request.getRemoteAddr();
     final String xForwardedFor =
-        StringTools.getCleanXForwardedFor(request.getHeader("X-Forwarded-For"));
+        StringUtil.getCleanXForwardedFor(request.getHeader("X-Forwarded-For"));
     final StringBuffer requestUrl = request.getRequestURL();
     final int localTransactionId =
         TransactionCounter.INSTANCE.getTransactionNumber();
@@ -643,7 +643,7 @@ public class OCSPServlet extends HttpServlet {
             }
           }
           try {
-            ret = Base64.decode(decodedRequest.getBytes());
+            ret = Base64Util.decode(decodedRequest.getBytes());
           } catch (Exception e) {
             String msg = INTRES.getLocalizedMessage("ocsp.badurlenc");
             LOG.info(msg);

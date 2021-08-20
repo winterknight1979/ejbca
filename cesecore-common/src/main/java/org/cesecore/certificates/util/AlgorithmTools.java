@@ -55,7 +55,7 @@ import org.bouncycastle.math.ec.ECCurve;
 import org.cesecore.CesecoreRuntimeException;
 import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.keys.util.KeyUtil;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.cvc.AlgorithmUtil;
 import org.ejbca.cvc.CVCPublicKey;
 import org.ejbca.cvc.CardVerifiableCertificate;
@@ -215,7 +215,7 @@ public abstract class AlgorithmTools { // NOPMD: length
     Arrays.sort(keys);
     for (final String name : keys) {
       result.put(
-          name, StringTools.getAsStringWithSeparator(" / ", map.get(name)));
+          name, StringUtil.getAsStringWithSeparator(" / ", map.get(name)));
     }
     return result;
   }
@@ -1104,7 +1104,7 @@ private static String handleUnknownName(final Certificate cert,
         : getNamedEcCurvesMap(false).entrySet()) {
       final String lowerCaseCanonicalName = name.getKey().toLowerCase();
       final List<String> lowerCaseAliases =
-          StringTools.toLowerCase(name.getValue());
+          StringUtil.toLowerCase(name.getValue());
       if (StringUtils.equals(lowerCaseAlias, lowerCaseCanonicalName)
           || lowerCaseAliases.contains(lowerCaseAlias)) {
         final List<String> aliases = new ArrayList<String>(name.getValue());

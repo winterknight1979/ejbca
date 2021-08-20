@@ -72,10 +72,10 @@ import org.cesecore.configuration.GlobalConfigurationSessionLocal;
 import org.cesecore.internal.InternalResources;
 import org.cesecore.jndi.JndiConstants;
 import org.cesecore.keys.util.KeyUtil;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.EJBTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.EJBUtil;
+import org.cesecore.util.StringUtil;
 import org.cesecore.util.ValueExtractor;
 import org.ejbca.cvc.PublicKeyEC;
 
@@ -203,7 +203,7 @@ public class CertificateStoreSessionBean
       final String tag,
       final long updateTime)
       throws AuthorizationDeniedException {
-    Certificate incert = EJBTools.unwrap(wrappedCert);
+    Certificate incert = EJBUtil.unwrap(wrappedCert);
     // Check that user is authorized to the CA that issued this certificate
     int caid = CertTools.getIssuerDN(incert).hashCode();
     authorizedToCA(admin, caid);
@@ -463,7 +463,7 @@ public class CertificateStoreSessionBean
     } else {
       try {
         certificateData.setBase64Cert(
-            new String(Base64.encode(certificate.getEncoded())));
+            new String(Base64Util.encode(certificate.getEncoded())));
       } catch (CertificateEncodingException e) {
         LOG.error(
             "Failed to encode certificate for fingerprint " + fingerprint, e);
@@ -505,7 +505,7 @@ public class CertificateStoreSessionBean
     // This method was only used from CertificateDataTest and it didn't care
     // about the expireDate, so it will only select fingerprints now.
     return certificateDataSession.findFingerprintsByIssuerDN(
-        CertTools.stringToBCDNString(StringTools.strip(issuerdn)));
+        CertTools.stringToBCDNString(StringUtil.strip(issuerdn)));
   }
 
   @Override
@@ -515,7 +515,7 @@ public class CertificateStoreSessionBean
       LOG.trace(">listRevokedCertInfo()");
     }
     return certificateDataSession.getRevokedCertInfos(
-        CertTools.stringToBCDNString(StringTools.strip(issuerdn)),
+        CertTools.stringToBCDNString(StringUtil.strip(issuerdn)),
         lastbasecrldate);
   }
 
@@ -558,9 +558,9 @@ public class CertificateStoreSessionBean
       final String subjectDN, final String issuerDN, final boolean onlyActive) {
     // First make a DN in our well-known format
     final String dn =
-        CertTools.stringToBCDNString(StringTools.strip(subjectDN));
+        CertTools.stringToBCDNString(StringUtil.strip(subjectDN));
     final String issuerdn =
-        CertTools.stringToBCDNString(StringTools.strip(issuerDN));
+        CertTools.stringToBCDNString(StringUtil.strip(issuerDN));
     if (LOG.isDebugEnabled()) {
       LOG.debug("Looking for cert with (transformed)DN: " + dn);
     }
@@ -610,9 +610,9 @@ public class CertificateStoreSessionBean
     }
     // First make a DN in our well-known format
     final String transformedIssuerDN =
-        CertTools.stringToBCDNString(StringTools.strip(issuerDN));
+        CertTools.stringToBCDNString(StringUtil.strip(issuerDN));
     final String transformedSubjectDN =
-        CertTools.stringToBCDNString(StringTools.strip(subjectDN));
+        CertTools.stringToBCDNString(StringUtil.strip(subjectDN));
     if (LOG.isDebugEnabled()) {
       LOG.debug(
           "Looking for user with a certificate with issuer DN(transformed) '"
@@ -645,8 +645,9 @@ public class CertificateStoreSessionBean
     }
     // First make a DN in our well-known format
     final String transformedIssuerDN =
-        CertTools.stringToBCDNString(StringTools.strip(issuerDN));
-    final String sSubjectKeyId = new String(Base64.encode(subjectKeyId, false));
+        CertTools.stringToBCDNString(StringUtil.strip(issuerDN));
+    final String sSubjectKeyId =
+            new String(Base64Util.encode(subjectKeyId, false));
     if (LOG.isDebugEnabled()) {
       LOG.debug(
           "Looking for user with a certificate with issuer DN(transformed) '"
@@ -706,10 +707,11 @@ public class CertificateStoreSessionBean
     }
     // First make a DN in our well-known format
     final String transformedIssuerDN =
-        CertTools.stringToBCDNString(StringTools.strip(issuerDN));
-    final String sSubjectKeyId = new String(Base64.encode(subjectKeyId, false));
+        CertTools.stringToBCDNString(StringUtil.strip(issuerDN));
+    final String sSubjectKeyId =
+            new String(Base64Util.encode(subjectKeyId, false));
     final String transformedSubjectDN =
-        CertTools.stringToBCDNString(StringTools.strip(subjectDN));
+        CertTools.stringToBCDNString(StringUtil.strip(subjectDN));
     if (LOG.isDebugEnabled()) {
       LOG.debug(
           "Looking for user with a certificate with issuer DN(transformed) '"
@@ -762,7 +764,7 @@ public class CertificateStoreSessionBean
       final String subjectDN) {
     // First make a DN in our well-known format
     final String dn =
-        CertTools.stringToBCDNString(StringTools.strip(subjectDN));
+        CertTools.stringToBCDNString(StringUtil.strip(subjectDN));
     if (LOG.isDebugEnabled()) {
       LOG.debug("Looking for cert with (transformed) DN: " + dn);
     }
@@ -899,7 +901,7 @@ public class CertificateStoreSessionBean
     if (LOG.isTraceEnabled()) {
       LOG.trace("<findCertificatesByExpireTimeWithLimit(), time=" + expireTime);
     }
-    return EJBTools.wrapCertCollection(ret);
+    return EJBUtil.wrapCertCollection(ret);
   }
 
   @Override
@@ -1122,7 +1124,7 @@ public class CertificateStoreSessionBean
                 + " a.serialNumber=:serialNumber");
     // First make a DN in our well-known format
     query.setParameter(
-        "issuerDN", CertTools.stringToBCDNString(StringTools.strip(issuerDN)));
+        "issuerDN", CertTools.stringToBCDNString(StringUtil.strip(issuerDN)));
     query.setParameter("serialNumber", serno.toString());
     final boolean ret = query.getResultList().size() > 0;
     if (LOG.isTraceEnabled()) {
@@ -1148,7 +1150,7 @@ public class CertificateStoreSessionBean
               + serno.toString(16));
     }
     // First make a DN in our well-known format
-    String dn = CertTools.stringToBCDNString(StringTools.strip(issuerDN));
+    String dn = CertTools.stringToBCDNString(StringUtil.strip(issuerDN));
     if (LOG.isDebugEnabled()) {
       LOG.debug("Looking for cert with (transformed)DN: " + dn);
     }
@@ -1188,7 +1190,7 @@ public class CertificateStoreSessionBean
   public CertificateDataWrapper getCertificateDataByIssuerAndSerno(
       final String issuerDN, final BigInteger serno) {
     // First make a DN in our well-known format
-    final String dn = CertTools.stringToBCDNString(StringTools.strip(issuerDN));
+    final String dn = CertTools.stringToBCDNString(StringUtil.strip(issuerDN));
     final List<CertificateData> certs =
         certificateDataSession.findByIssuerDNSerialNumber(dn, serno.toString());
     if (LOG.isDebugEnabled()) {
@@ -1391,7 +1393,7 @@ public class CertificateStoreSessionBean
     if (LOG.isTraceEnabled()) {
       LOG.trace("<findCertificatesByUsername(), username=" + username);
     }
-    return EJBTools.wrapCertCollection(ret);
+    return EJBUtil.wrapCertCollection(ret);
   }
 
   @Override
@@ -1495,7 +1497,7 @@ public class CertificateStoreSessionBean
       LOG.trace(">findCertificateByFingerprintRemote()");
     }
     final CertificateWrapper ret =
-        EJBTools.wrap(findCertificateByFingerprint(fingerprint));
+        EJBUtil.wrap(findCertificateByFingerprint(fingerprint));
     if (LOG.isTraceEnabled()) {
       LOG.trace("<findCertificateByFingerprintRemote()");
     }
@@ -1511,7 +1513,7 @@ public class CertificateStoreSessionBean
             "SELECT a FROM CertificateData a WHERE"
                 + " a.subjectKeyId=:subjectKeyId");
     query.setParameter(
-        "subjectKeyId", new String(Base64.encode(subjectKeyId, false)));
+        "subjectKeyId", new String(Base64Util.encode(subjectKeyId, false)));
 
     Collection<Certificate> result = new ArrayList<>();
     for (CertificateData certificateData
@@ -1557,7 +1559,7 @@ public class CertificateStoreSessionBean
     if (LOG.isTraceEnabled()) {
       LOG.trace("<findCertificatesByType()");
     }
-    return EJBTools.wrapCertCollection(ret);
+    return EJBUtil.wrapCertCollection(ret);
   }
 
   @Override
@@ -2087,7 +2089,7 @@ public class CertificateStoreSessionBean
       final byte[] subjectKeyId) {
     Certificate certificate = null;
     final String subjectKeyIdString =
-        new String(Base64.encode(subjectKeyId, false));
+        new String(Base64Util.encode(subjectKeyId, false));
     LOG.debug("Searching for subjectKeyIdString " + subjectKeyIdString);
     final Query query =
         this.entityManager.createQuery(
@@ -2476,7 +2478,7 @@ public class CertificateStoreSessionBean
   public void reloadCaCertificateCache() {
     LOG.info("Reloading CA certificate cache.");
     Collection<Certificate> certs =
-        EJBTools.unwrapCertCollection(
+        EJBUtil.unwrapCertCollection(
             certificateStoreSession.findCertificatesByType(
                 CertificateConstants.CERTTYPE_SUBCA
                     + CertificateConstants.CERTTYPE_ROOTCA,

@@ -56,9 +56,9 @@ import org.bouncycastle.util.Arrays;
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.certificates.util.AlgorithmTools;
 import org.cesecore.config.CesecoreConfigurationHelper;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.ejbca.cvc.AuthorizationRoleEnum;
 import org.ejbca.cvc.CAReferenceField;
 import org.ejbca.cvc.CVCPublicKey;
@@ -80,7 +80,7 @@ public class KeyToolsTest {
 
   /** Key. */
   private static final byte[] KS3 =
-      Base64.decode(
+      Base64Util.decode(
           ("MIACAQMwgAYJKoZIhvcNAQcBoIAkgASCAyYwgDCABgkqhkiG9w0BBwGggCSABIID"
            + "DjCCAwowggMGBgsqhkiG9w0BDAoBAqCCAqkwggKlMCcGCiqGSIb3DQEMAQMwGQQU"
            + "/h0pQXq7ZVjYWlDvzEwwmiJ8O8oCAWQEggJ4MZ12+kTVGd1w7SP4ZWlq0bCc4MsJ"
@@ -148,7 +148,7 @@ public class KeyToolsTest {
               .getBytes());
 /** Key. */
   private static final byte[] KEYS_1024_BIT =
-      Base64.decode(
+      Base64Util.decode(
           ("MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBAKA5rNhYbPuVcArT"
            + "mkthfrW2tX1Z7SkCD01sDYrkiwOcodFmS1cSyz8eHM51iwHA7CW0WFvfUjomBT5y"
            + "gRQfIsf5M5DUtYcKM1hmGKSPzvmF4nYv+3UBUesCvBXVRN/wFZ44SZZ3CVvpQUYb"
@@ -167,7 +167,7 @@ public class KeyToolsTest {
 
   /** self signed cert done with above private key. */
   private static final byte[] CERT_BYTES =
-      Base64.decode(
+      Base64Util.decode(
           ("MIICNzCCAaCgAwIBAgIIIOqiVwJHz+8wDQYJKoZIhvcNAQEFBQAwKzENMAsGA1UE"
            + "AxMEVGVzdDENMAsGA1UEChMEVGVzdDELMAkGA1UEBhMCU0UwHhcNMDQwNTA4MDkx"
            + "ODMwWhcNMDUwNTA4MDkyODMwWjArMQ0wCwYDVQQDEwRUZXN0MQ0wCwYDVQQKEwRU"
@@ -191,7 +191,7 @@ public class KeyToolsTest {
   @BeforeClass
   public static void beforeClass() throws Exception {
     // Install BouncyCastle provider
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
   }
   /**
    * Test.
@@ -236,7 +236,7 @@ public class KeyToolsTest {
     KeyPair keys = KeyUtil.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
     assertNotNull("keys must not be null", keys);
     String b64private =
-        new String(Base64.encode(keys.getPrivate().getEncoded()));
+        new String(Base64Util.encode(keys.getPrivate().getEncoded()));
     assertNotNull("b64private must not be null", b64private);
     // log.debug(b64private);
     X509Certificate cert =
@@ -249,7 +249,7 @@ public class KeyToolsTest {
             AlgorithmConstants.SIGALG_SHA1_WITH_RSA,
             true);
     assertNotNull("cert must not be null", cert);
-    String b64cert = new String(Base64.encode(cert.getEncoded()));
+    String b64cert = new String(Base64Util.encode(cert.getEncoded()));
     assertNotNull("b64cert cannot be null", b64cert);
     // log.debug(b64cert);
     KeyUtil.testKey(
@@ -358,7 +358,7 @@ public class KeyToolsTest {
 
     assertNotNull("keys must not be null", keys);
     String b64private =
-        new String(Base64.encode(keys.getPrivate().getEncoded()));
+        new String(Base64Util.encode(keys.getPrivate().getEncoded()));
     assertNotNull("b64private must not be null", b64private);
     // log.debug(b64private);
     X509Certificate cert =
@@ -372,7 +372,7 @@ public class KeyToolsTest {
             true);
     // log.debug(cert);
     assertNotNull("cert must not be null", cert);
-    String b64cert = new String(Base64.encode(cert.getEncoded()));
+    String b64cert = new String(Base64Util.encode(cert.getEncoded()));
     assertNotNull("b64cert cannot be null", b64cert);
     // log.debug(b64cert);
     KeyUtil.testKey(
@@ -423,7 +423,7 @@ public class KeyToolsTest {
         KeyUtil.genKeys("secp384r1", AlgorithmConstants.KEYALGORITHM_ECDSA);
     assertNotNull("keys must not be null", keys);
     String b64private =
-        new String(Base64.encode(keys.getPrivate().getEncoded()));
+        new String(Base64Util.encode(keys.getPrivate().getEncoded()));
     assertNotNull("b64private must not be null", b64private);
     // log.debug(b64private);
     X509Certificate cert =
@@ -437,7 +437,7 @@ public class KeyToolsTest {
             true);
     // log.debug(cert);
     assertNotNull("cert must not be null", cert);
-    String b64cert = new String(Base64.encode(cert.getEncoded()));
+    String b64cert = new String(Base64Util.encode(cert.getEncoded()));
     assertNotNull("b64cert cannot be null", b64cert);
     // log.info(b64cert);
     KeyUtil.testKey(
@@ -455,7 +455,7 @@ public class KeyToolsTest {
         KeyUtil.genKeys("implicitlyCA", AlgorithmConstants.KEYALGORITHM_ECDSA);
     assertNotNull("keys must not be null", keys);
     String b64private =
-        new String(Base64.encode(keys.getPrivate().getEncoded()));
+        new String(Base64Util.encode(keys.getPrivate().getEncoded()));
     assertNotNull("b64private must not be null", b64private);
     // log.debug(b64private);
     X509Certificate cert =
@@ -469,7 +469,7 @@ public class KeyToolsTest {
             true);
     // log.debug(cert);
     assertNotNull("cert must not be null", cert);
-    String b64cert = new String(Base64.encode(cert.getEncoded()));
+    String b64cert = new String(Base64Util.encode(cert.getEncoded()));
     assertNotNull("b64cert cannot be null", b64cert);
     // log.info(b64cert);
     KeyUtil.testKey(
@@ -505,7 +505,7 @@ public class KeyToolsTest {
     assertEquals(
         "Length must be 512", 512, KeyUtil.getKeyLength(keys.getPublic()));
     String b64private =
-        new String(Base64.encode(keys.getPrivate().getEncoded()));
+        new String(Base64Util.encode(keys.getPrivate().getEncoded()));
     assertNotNull("b64private must not be null", b64private);
     // log.debug(b64private);
     X509Certificate cert =
@@ -518,7 +518,7 @@ public class KeyToolsTest {
             AlgorithmConstants.SIGALG_SHA1_WITH_DSA,
             true);
     assertNotNull("cert must not be null", cert);
-    String b64cert = new String(Base64.encode(cert.getEncoded()));
+    String b64cert = new String(Base64Util.encode(cert.getEncoded()));
     assertNotNull("b64cert cannot be null", b64cert);
     // log.debug(b64cert);
     KeyUtil.testKey(

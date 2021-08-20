@@ -35,7 +35,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -63,7 +63,7 @@ public class EkuPKIXCertPathCheckerTest {
    */
   @BeforeClass
   public static void beforeClass() throws InvalidAlgorithmParameterException {
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
     keyPair = KeyUtil.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
   }
   /** Config. */

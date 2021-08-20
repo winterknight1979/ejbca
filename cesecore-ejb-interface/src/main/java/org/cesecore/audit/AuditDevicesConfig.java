@@ -30,7 +30,7 @@ import org.apache.log4j.Logger;
 import org.cesecore.audit.audit.AuditExporter;
 import org.cesecore.audit.impl.AuditExporterDummy;
 import org.cesecore.config.ConfigurationHolderUtil;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.ValidityDateUtil;
 
 /**
  * Parses configuration related to the log devices.
@@ -272,7 +272,7 @@ public final class AuditDevicesConfig {
     final String file =
         "cesecore-"
             + FastDateFormat.getInstance(
-                    EXPORTFILE_DATE_FORMAT, ValidityDate.TIMEZONE_UTC)
+                    EXPORTFILE_DATE_FORMAT, ValidityDateUtil.TIMEZONE_UTC)
                 .format(exportDate)
             + ".log";
     File ret = new File(dir, file);

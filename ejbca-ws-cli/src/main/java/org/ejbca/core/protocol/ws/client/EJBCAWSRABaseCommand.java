@@ -20,7 +20,7 @@ import javax.xml.namespace.QName;
 import org.cesecore.keys.token.p11.P11Slot;
 import org.cesecore.keys.token.p11.P11SlotUser;
 import org.cesecore.keys.token.p11.Pkcs11SlotLabelType;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.cesecore.util.provider.TLSProvider;
 import org.ejbca.core.protocol.ws.client.gen.EjbcaWS;
 import org.ejbca.core.protocol.ws.client.gen.EjbcaWSService;
@@ -118,7 +118,7 @@ public abstract class EJBCAWSRABaseCommand implements P11SlotUser {
         // Try in parent directory
         props.load(new FileInputStream("../ejbcawsracli.properties"));
       }
-      CryptoProviderTools.installBCProvider();
+      CryptoProviderUtil.installBCProvider();
       final String sharedLibraryPath =
           props.getProperty("ejbcawsracli.p11.sharedlibrary");
       final String trustStorePath =

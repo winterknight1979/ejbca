@@ -56,7 +56,7 @@ import org.cesecore.keys.token.SoftCryptoToken;
 import org.cesecore.keys.token.p11.Pkcs11SlotLabel;
 import org.cesecore.keys.token.p11.Pkcs11SlotLabelType;
 import org.cesecore.keys.util.KeyUtil;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.config.WebConfiguration;
 import org.ejbca.ui.web.admin.BaseManagedBean;
 import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
@@ -1496,7 +1496,7 @@ public class CryptoTokenMBean extends BaseManagedBean implements Serializable {
                 name,
                 AlgorithmConstants.KEYALGORITHM_ECDSA
                     + " "
-                    + StringTools.getAsStringWithSeparator(
+                    + StringUtil.getAsStringWithSeparator(
                         " / ", namedEcCurvesMap.get(name))));
       }
     } catch (AuthorizationDeniedException e) {

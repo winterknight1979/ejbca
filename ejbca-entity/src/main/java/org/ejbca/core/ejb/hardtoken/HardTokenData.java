@@ -29,8 +29,8 @@ import javax.persistence.Transient;
 import org.apache.log4j.Logger;
 import org.cesecore.dbprotection.ProtectedData;
 import org.cesecore.dbprotection.ProtectionStringBuilder;
-import org.cesecore.util.Base64;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.Base64Util;
+import org.cesecore.util.StringUtil;
 
 /**
  * Representation of a hard token.
@@ -126,7 +126,7 @@ public class HardTokenData extends ProtectedData implements Serializable {
    * @param ausername user
    */
   public void setUsername(final String ausername) {
-    this.username = StringTools.stripUsername(ausername);
+    this.username = StringUtil.stripUsername(ausername);
   }
 
   /**
@@ -311,7 +311,7 @@ public class HardTokenData extends ProtectedData implements Serializable {
           (byte[])
               thedata.get(
                   org.ejbca.core.ejb.hardtoken.HardTokenData.ENCRYPTEDDATA);
-      dataStr = new String(Base64.encode(encdata, false));
+      dataStr = new String(Base64Util.encode(encdata, false));
     } else {
       dataStr = getData().toString();
     }

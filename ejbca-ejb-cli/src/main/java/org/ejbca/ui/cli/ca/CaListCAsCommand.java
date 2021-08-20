@@ -21,7 +21,7 @@ import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.certificates.ca.CAInfo;
 import org.cesecore.certificates.ca.CaSessionRemote;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.cesecore.util.EjbRemoteHelper;
 import org.ejbca.ui.cli.infrastructure.command.CommandResult;
 import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
@@ -44,7 +44,7 @@ public class CaListCAsCommand extends BaseCaAdminCommand {
   @Override
   public CommandResult execute(final ParameterContainer parameters) {
 
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
     Collection<Integer> caids =
         EjbRemoteHelper.INSTANCE
             .getRemoteSession(CaSessionRemote.class)

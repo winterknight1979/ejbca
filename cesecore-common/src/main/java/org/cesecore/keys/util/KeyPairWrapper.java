@@ -27,7 +27,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 /**
  * Wrapper class for serializing KeyPair objects.
  *
- * @see org.cesecore.util.EJBTools
+ * @see org.cesecore.util.EJBUtil
  * @version $Id: KeyPairWrapper.java 26210 2017-08-03 10:12:32Z samuellb $
  */
 public class KeyPairWrapper implements Serializable {

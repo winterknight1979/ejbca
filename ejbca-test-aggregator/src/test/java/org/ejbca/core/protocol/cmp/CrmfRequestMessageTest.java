@@ -75,9 +75,9 @@ import org.bouncycastle.cms.CMSSignedGenerator;
 import org.bouncycastle.jce.X509KeyUsage;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.cesecore.keys.util.KeyUtil;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.ejbca.config.CmpConfiguration;
 import org.ejbca.core.model.ra.UsernameGenerator;
 import org.ejbca.core.model.ra.UsernameGeneratorParams;
@@ -99,7 +99,7 @@ public class CrmfRequestMessageTest {
      */
   @Before
   public void setUp() throws Exception {
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
   }
 
   /**
@@ -153,7 +153,7 @@ public class CrmfRequestMessageTest {
   public void testCrmfRequestUsernameGeneratorFromDN()
       throws IOException, ClassNotFoundException, NoSuchAlgorithmException,
           NoSuchProviderException, InvalidAlgorithmParameterException {
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
 
        PKIMessage myPKIMessage =
           createPKIMessage(
@@ -774,7 +774,7 @@ public class CrmfRequestMessageTest {
 
   /** Data. */
   private static byte[] bluexir =
-      Base64.decode(
+      Base64Util.decode(
       ("MIICIjCB1AIBAqQCMACkVjBUMQswCQYDVQQGEwJOTDEbMBkGA1UEChMSQS5FLlQu"
            + "IEV1cm9wZSBCLlYuMRQwEgYDVQQLEwtEZXZlbG9wbWVudDESMBAGA1UEAxMJVGVz"
            + "dCBDQSAxoT4wPAYJKoZIhvZ9B0INMC8EEAK/H7Do+55N724Kdvxm7NcwCQYFKw4D"
@@ -794,7 +794,7 @@ public class CrmfRequestMessageTest {
    * POP (no POPOSigningKey) and signature protection.
    */
   private static byte[] huaweiir =
-      Base64.decode(
+      Base64Util.decode(
 ("MIIRmTCB8gIBAqRuMGwxCzAJBgNVBAYTAkNOMQ8wDQYDVQQKEwZIdWF3ZWkxJjAkBgNVBAsTHVdp"
 + "cmVsZXNzIE5ldHdvcmsgUHJvZHVjdCBMaW5lMSQwIgYDVQQDExsyMTAzMDUzMzYxMDAwMDAwMDAx"
 + "MiBlTm9kZUKkVDBSMQswCQYDVQQGEwJjbjELMAkGA1UECBMCc2gxCzAJBgNVBAcTAnFjMQswCQYD"
@@ -882,7 +882,7 @@ public class CrmfRequestMessageTest {
    * POP (no POPOSigningKey) and signature protection.
    */
   private static byte[] huaweicertconf =
-      Base64.decode(
+      Base64Util.decode(
  ("MIIBrTCB/gIBAqRuMGwxCzAJBgNVBAYTAkNOMQ8wDQYDVQQKEwZIdWF3ZWkxJjAkBgNVBAsTHVdp"
 + "cmVsZXNzIE5ldHdvcmsgUHJvZHVjdCBMaW5lMSQwIgYDVQQDExsyMTAzMDUzMzYxMDAwMDAwMDAx"
 + "MiBlTm9kZUKkVDBSMQswCQYDVQQGEwJjbjELMAkGA1UECBMCc2gxCzAJBgNVBAcTAnFjMQswCQYD"
@@ -959,7 +959,7 @@ public class CrmfRequestMessageTest {
    * RAVerified POP and PBE protection.
    */
   private static byte[] bc146rapopir =
-      Base64.decode(
+      Base64Util.decode(
           ("MIIBcjCBowIBAqQRMA8xDTALBgNVBAMMBHVzZXKkFTATMREwDwYDVQQDDAhBZG1pbk"
               + "NBMaARGA8yMDExMDUzMDA5MjUxMlqhQDA+BgkqhkiG9n0HQg0wMQQU5CQjY"
               + "qE1xefkRkpUs+gnZvbik88wBwYFKw4DAhoCAgPoMAwGCCsGAQUFCAECBQCi"
@@ -976,7 +976,7 @@ public class CrmfRequestMessageTest {
    * POPOSigningKey POP and signature protection.
    */
    private static byte[] bc146sigpopir =
-      Base64.decode(
+      Base64Util.decode(
           ("MIICNzByAgECpBEwDzENMAsGA1UEAwwEdXNlcqQVMBMxETAPBgNVBAMMCEFkbWluQ0"
               + "ExoBEYDzIwMTEwNTMwMTQxNTQ2WqEPMA0GCSqGSIb3DQEBBQUAogcEBUtle"
               + "UlkpAoECBJ7Wyn/3xaopQoECBJ7Wyn/3xaooIIBejCCAXYwggFyMIGlAgF7"
@@ -997,7 +997,7 @@ public class CrmfRequestMessageTest {
    * RAVerified POP and PBE protection.
    */
   private static byte[] bc147rapopir =
-  Base64.decode(
+  Base64Util.decode(
       ("MIIBcjCBowIBAqQRMA8xDTALBgNVBAMMBHVzZXKkFTATMREwDwYDVQQDDAhBZG1pbk"
               + "NBMaARGA8yMDExMDYwNzA3MTkzMlqhQDA+BgkqhkiG9n0HQg0wMQQUuntpS"
               + "byZ6c92+PuwG/hPugOq/C4wBwYFKw4DAhoCAgPoMAwGCCsGAQUFCAECBQCi"
@@ -1013,7 +1013,7 @@ public class CrmfRequestMessageTest {
    * POPOSigningKey POP and signature protection.
    */
   private static byte[] bc147sigpopir =
-      Base64.decode(
+      Base64Util.decode(
       ("MIIBvzByAgECpBEwDzENMAsGA1UEAwwEdXNlcqQVMBMxETAPBgNVBAMMCEFkbWluQ0"
               + "ExoBEYDzIwMTEwNjA3MDcxOTMyWqEPMA0GCSqGSIb3DQEBBQUAogcEBUtle"
               + "UlkpAoECD/NF6DQJZrspQoECD/NF6DQJZrsoIIBAjCB/zCB/DCBpQIBezCB"
@@ -1032,7 +1032,7 @@ public class CrmfRequestMessageTest {
    * POP and PBE protection.
    */
   private static byte[] novosecrapopir =
-      Base64.decode(
+      Base64Util.decode(
       ("MIICwjCCAQ8CAQKkVzBVMSYwJAYDVQQDDB1hYmMxMjNycnktNDM3MTkzOTU0MzkxMz"
               + "YzOTg4MTEeMBwGA1UECgwVUHJpbWVLZXkgU29sdXRpb25zIEFCMQswCQYDV"
               + "QQGEwJTRaQ5MDcxETAPBgNVBAMMCEFkbWluQ0ExMRUwEwYDVQQKDAxFSkJ"
@@ -1056,7 +1056,7 @@ public class CrmfRequestMessageTest {
    * POP (no POPOSigningKey) and signature protection.
    */
   private static byte[] novosecsigpopir =
-      Base64.decode(
+      Base64Util.decode(
           ("MIIEUDCB4AIBAqRWMFQxJTAjBgNVBAMMHGFiYzEyM3JyeTI5NDI4MTI4MDE5ODA2Njg"
          + "4NTMxHjAcBgNVBAoMFVByaW1lS2V5IFNvbHV0aW9ucyBBQjELMAkGA1UEBhMCU0WkO"
          + "TA3MREwDwYDVQQDDAhBZG1pbkNBMTEVMBMGA1UECgwMRUpCQ0EgU2FtcGxlMQswCQY"

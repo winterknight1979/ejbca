@@ -19,7 +19,7 @@ import org.cesecore.keys.token.CryptoToken;
 import org.cesecore.keys.token.PKCS11CryptoTokenTest;
 import org.cesecore.keys.token.PKCS11TestUtils;
 import org.cesecore.keys.token.p11.exception.NoSuchSlotException;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -32,7 +32,7 @@ import org.junit.Test;
 public class PKCS11CATokenTest extends CATokenTestBase {
   /** Constrictor. */
   public PKCS11CATokenTest() {
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
   }
 
   /** Setup. */

@@ -42,7 +42,7 @@ import org.bouncycastle.util.encoders.Hex;
 import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.internal.InternalResources;
 import org.cesecore.keys.util.KeyUtil;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 
 /**
  * Base class for crypto tokens handling things that are common for all crypto
@@ -334,7 +334,7 @@ public abstract class BaseCryptoToken implements CryptoToken {
     final String pin =
         aProperties.getProperty(CryptoToken.AUTOACTIVATE_PIN_PROPERTY);
     if (pin != null) {
-      return StringTools.passwordDecryption(pin, "autoactivation pin");
+      return StringUtil.passwordDecryption(pin, "autoactivation pin");
     }
     if (LOG.isDebugEnabled()) {
       LOG.debug("Not using autoactivation pin");
@@ -365,7 +365,7 @@ public abstract class BaseCryptoToken implements CryptoToken {
       String authcode = pin;
       if (encrypt) {
         try {
-          authcode = StringTools.pbeEncryptStringWithSha256Aes192(pin);
+          authcode = StringUtil.pbeEncryptStringWithSha256Aes192(pin);
         } catch (Exception e) {
           LOG.error(INTRES.getLocalizedMessage("token.nopinencrypt"), e);
           authcode = pin;

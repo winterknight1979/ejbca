@@ -24,7 +24,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.keys.util.KeyUtil;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.ejbca.core.ejb.ca.validation.BlacklistData;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -48,7 +48,7 @@ public class PublicKeyBlacklistKeyValidatorTest {
   @BeforeClass
   public static void setClassUp() throws Exception {
     LOG.trace("setClassUp()");
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
     LOG.trace("setClassUp()");
   }
   /**

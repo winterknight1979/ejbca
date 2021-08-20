@@ -17,7 +17,7 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import org.apache.log4j.Logger;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.ejbca.core.model.InternalEjbcaResources;
 
 /**
@@ -63,7 +63,7 @@ public final class TcpReceivedMessage {
           "Got data of length "
               + command.length
               + ": "
-              + new String(Base64.encode(command)));
+              + new String(Base64Util.encode(command)));
     }
     final int cmpMessageStartOffset = 7;
     if (command.length <= cmpMessageStartOffset) {

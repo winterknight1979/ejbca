@@ -43,7 +43,7 @@ import org.cesecore.certificates.certificateprofile.CertificateProfileSessionRem
 import org.cesecore.certificates.crl.CrlStoreSessionRemote;
 import org.cesecore.keys.token.CryptoTokenInfo;
 import org.cesecore.keys.token.CryptoTokenManagementSessionRemote;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.EjbRemoteHelper;
 import org.ejbca.core.ejb.authorization.AuthorizationSystemSessionRemote;
@@ -162,7 +162,7 @@ public abstract class BaseCaAdminCommand extends EjbcaCliUserCommandBase {
 
     FileOutputStream os1 = new FileOutputStream(reqfile);
     os1.write("-----BEGIN CERTIFICATE REQUEST-----\n".getBytes());
-    os1.write(Base64.encode(bOut.toByteArray()));
+    os1.write(Base64Util.encode(bOut.toByteArray()));
     os1.write("\n-----END CERTIFICATE REQUEST-----\n".getBytes());
     os1.close();
     LOG.info("CertificationRequest '" + reqfile + "' generated successfully.");

@@ -29,7 +29,7 @@ import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.certificates.ca.CADoesntExistsException;
 import org.cesecore.certificates.ca.CAInfo;
 import org.cesecore.certificates.certificate.CertificateDataWrapper;
-import org.cesecore.util.EJBTools;
+import org.cesecore.util.EJBUtil;
 import org.ejbca.core.ejb.ra.NoSuchEndEntityException;
 import org.ejbca.core.model.approval.ApprovalException;
 import org.ejbca.core.model.approval.WaitingForApprovalException;
@@ -137,7 +137,7 @@ public class RaViewCertBean implements Serializable {
                   raAuthenticationBean.getAuthenticationToken(),
                   araCertificateDetails.getUsername(),
                   araCertificateDetails.getPassword(),
-                  EJBTools.wrap(araCertificateDetails.getCertificate()),
+                  EJBUtil.wrap(araCertificateDetails.getCertificate()),
                   false);
           return ret;
         }

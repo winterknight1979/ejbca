@@ -40,7 +40,7 @@ import org.cesecore.certificates.ca.CAInfo;
 import org.cesecore.certificates.certificate.CertificateDataWrapper;
 import org.cesecore.certificates.endentity.EndEntityConstants;
 import org.cesecore.certificates.endentity.EndEntityInformation;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.ValidityDateUtil;
 import org.ejbca.core.ejb.ra.NoSuchEndEntityException;
 import org.ejbca.core.model.approval.ApprovalException;
 import org.ejbca.core.model.approval.WaitingForApprovalException;
@@ -760,7 +760,7 @@ public class RaSearchEesBean implements Serializable {
     if (value == defaultValue) {
       return stagedValue;
     }
-    return ValidityDate.formatAsISO8601ServerTZ(value, TimeZone.getDefault());
+    return ValidityDateUtil.formatAsISO8601ServerTZ(value, TimeZone.getDefault());
   }
   /**
    * @param input Input
@@ -773,7 +773,7 @@ public class RaSearchEesBean implements Serializable {
     markCurrentComponentAsValid(true);
     if (!input.trim().isEmpty()) {
       try {
-        return ValidityDate.parseAsIso8601(input).getTime();
+        return ValidityDateUtil.parseAsIso8601(input).getTime();
       } catch (ParseException e) {
         markCurrentComponentAsValid(false);
         raLocaleBean.addMessageWarn("search_ees_page_warn_invaliddate");

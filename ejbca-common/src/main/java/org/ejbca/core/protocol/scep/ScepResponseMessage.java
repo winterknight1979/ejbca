@@ -61,7 +61,7 @@ import org.cesecore.certificates.certificate.request.FailInfo;
 import org.cesecore.certificates.certificate.request.RequestMessage;
 import org.cesecore.certificates.certificate.request.ResponseStatus;
 import org.cesecore.certificates.util.AlgorithmTools;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
 
 /**
@@ -401,7 +401,7 @@ public class ScepResponseMessage implements CertificateResponseMessage {
         log.debug("Added senderNonce: " + senderNonce);
         value =
             new DERSet(
-                new DEROctetString(Base64.decode(senderNonce.getBytes())));
+                new DEROctetString(Base64Util.decode(senderNonce.getBytes())));
         attr = new Attribute(oid, value);
         attributes.put(attr.getAttrType(), attr);
       }
@@ -412,7 +412,7 @@ public class ScepResponseMessage implements CertificateResponseMessage {
         log.debug("Added recipientNonce: " + recipientNonce);
         value =
             new DERSet(
-                new DEROctetString(Base64.decode(recipientNonce.getBytes())));
+              new DEROctetString(Base64Util.decode(recipientNonce.getBytes())));
         attr = new Attribute(oid, value);
         attributes.put(attr.getAttrType(), attr);
       }

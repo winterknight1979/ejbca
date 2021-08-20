@@ -135,7 +135,8 @@ public abstract class ProfileBase extends UpgradeableDataHashMap
   }
 
   @Override
-  public void upgrade() { }
+  public void upgrade() { // NOPMD: no-op
+  }
 
   /**
    * @param key key

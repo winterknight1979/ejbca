@@ -64,7 +64,7 @@ import org.cesecore.jndi.JndiConstants;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.CompressedCollection;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.ejbca.core.ejb.ca.publisher.PublisherSessionLocal;
 
 /**
@@ -121,7 +121,7 @@ public class PublishingCrlSessionBean
     publishingCrlSession =
         sessionContext.getBusinessObject(PublishingCrlSessionLocal.class);
     // Install BouncyCastle provider if not available
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
   }
 
   @Override

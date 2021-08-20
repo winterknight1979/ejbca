@@ -26,9 +26,9 @@ import java.security.cert.X509Certificate;
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authentication.tokens.PublicAccessAuthenticationToken;
 import org.cesecore.authentication.tokens.X509CertificateAuthenticationToken;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.ejbca.core.model.approval.approvalrequests.ViewHardTokenDataApprovalRequest;
 import org.ejbca.core.model.approval.profile.AccumulativeApprovalProfile;
 import org.junit.BeforeClass;
@@ -42,7 +42,7 @@ public class ApprovalRequestTest {
 
     /** Param. */
   private static byte[] testcertenc =
-      Base64.decode(
+      Base64Util.decode(
           ("MIIDATCCAmqgAwIBAgIIczEoghAwc3EwDQYJKoZIhvcNAQEFBQAwLzEPMA0GA1UE"
        + "AxMGVGVzdENBMQ8wDQYDVQQKEwZBbmFUb20xCzAJBgNVBAYTAlNFMB4XDTAzMDky"
        + "NDA2NDgwNFoXDTA1MDkyMzA2NTgwNFowMzEQMA4GA1UEAxMHcDEydGVzdDESMBAG"
@@ -64,7 +64,7 @@ public class ApprovalRequestTest {
 
     /** Param. */
   private static byte[] testcertenc2 =
-      Base64.decode(
+      Base64Util.decode(
   ("MIIDTTCCAjWgAwIBAgIIboZwZjMm33EwDQYJKoZIhvcNAQELBQAwNzEVMBMGA1UE"
        + "AwwMTWFuYWdlbWVudENBMREwDwYDVQQKDAhEZXYgQ0EgMTELMAkGA1UEBhMCU0Uw"
        + "HhcNMTUwNDE5MTk0OTUzWhcNMTcwNDE4MTk0OTUzWjAVMRMwEQYDVQQDDApTdXBl"
@@ -107,7 +107,7 @@ public class ApprovalRequestTest {
     ObjectOutputStream oos = new ObjectOutputStream(baos);
     oos.writeObject(ar);
     oos.flush();
-    String result = new String(Base64.encode(baos.toByteArray(), false));
+    String result = new String(Base64Util.encode(baos.toByteArray(), false));
 
     ApprovalRequest readrequest = getApprovalRequest(result);
     assertTrue(
@@ -137,7 +137,7 @@ public class ApprovalRequestTest {
     try {
       ois =
           new ObjectInputStream(
-              new ByteArrayInputStream(Base64.decode(data.getBytes())));
+              new ByteArrayInputStream(Base64Util.decode(data.getBytes())));
       retval = (ApprovalRequest) ois.readObject();
     } finally {
       if (ois != null) {
@@ -287,6 +287,6 @@ public class ApprovalRequestTest {
    */
   @BeforeClass
   public static void beforeClass() throws Exception {
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
   }
 }

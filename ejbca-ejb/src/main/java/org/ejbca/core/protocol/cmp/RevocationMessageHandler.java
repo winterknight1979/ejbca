@@ -48,7 +48,7 @@ import org.cesecore.certificates.util.AlgorithmTools;
 import org.cesecore.keys.token.CryptoToken;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
 import org.cesecore.keys.token.CryptoTokenSessionLocal;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
 import org.ejbca.config.CmpConfiguration;
 import org.ejbca.core.ejb.EjbBridgeSessionLocal;
@@ -313,7 +313,7 @@ public class RevocationMessageHandler extends BaseCmpMessageHandler
     final CmpRevokeResponseMessage rresp = new CmpRevokeResponseMessage();
     rresp.setRecipientNonce(msg.getSenderNonce());
     rresp.setSenderNonce(
-        new String(Base64.encode(CmpMessageHelper.createSenderNonce())));
+        new String(Base64Util.encode(CmpMessageHelper.createSenderNonce())));
     // The revocation message may have had an empty recipient, in which case we
     // got the recipient from the CMP configuration (see above)
     if (StringUtils.isEmpty(msg.getRecipient().getName().toString())) {

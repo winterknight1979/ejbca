@@ -20,7 +20,7 @@ import java.security.Security;
 import java.util.Properties;
 import org.cesecore.keys.token.p11.Pkcs11SlotLabelType;
 import org.cesecore.keys.token.p11.exception.NoSuchSlotException;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -39,7 +39,7 @@ public class PKCS11CryptoTokenTest extends CryptoTokenTestBase {
     /** Setup. */
   @BeforeClass
   public static void beforeClass() {
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
   }
 
   /** setup. */

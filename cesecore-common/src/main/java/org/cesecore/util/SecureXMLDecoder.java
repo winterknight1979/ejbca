@@ -219,7 +219,7 @@ public class SecureXMLDecoder implements AutoCloseable {
    * @throws IOException On not valid XMLEncoder XML
    * @throws NoValueException If no value could be parsed
    */
-  private Object readValue(final boolean disallowTextAfterElement)
+  private Object readValue(final boolean disallowTextAfterElement) // NOPMD
       throws XmlPullParserException, IOException {
     final String tag = parser.getName();
     final String id = parser.getAttributeValue(null, "id");
@@ -251,18 +251,7 @@ public class SecureXMLDecoder implements AutoCloseable {
         value = Boolean.valueOf(readText());
         break;
       case "char":
-        final String charCode = parser.getAttributeValue(null, "code");
-        final String charValue = readText();
-        if (charCode != null) {
-          value = (char) Integer.parseInt(charCode.substring(1));
-        } else if (charValue.length() == 1) {
-          value = charValue.charAt(0);
-        } else {
-          throw new IOException(
-              errorMessage(
-                  "Invalid length of <char> value, and no \"code\" attribute"
-                      + " present."));
-        }
+        value = getValueFromChar();
         break;
       case "byte":
         value = Byte.valueOf(readText());
@@ -287,19 +276,7 @@ public class SecureXMLDecoder implements AutoCloseable {
         parser.nextTag();
         break;
       case "class":
-        try {
-          // Only allow classes from our own hierarchy
-          final String className = readText();
-          if (!(className.startsWith("org.ejbca.")
-              || className.startsWith("org.cesecore.")
-              || className.startsWith("org.signserver."))) {
-            throw new IOException(
-                "Unauthorized class was decoded from XML: " + className);
-          }
-          value = Class.forName(className);
-        } catch (ClassNotFoundException e) {
-          throw new IOException("Unknown class was sent with import.", e);
-        }
+        value = getValueFromClass();
         break;
       case "object":
         final String className = parser.getAttributeValue(null, "class");
@@ -316,16 +293,7 @@ public class SecureXMLDecoder implements AutoCloseable {
         // appropriate parse method.
         switch (className) {
           case "java.util.ArrayList":
-
-              List<Object> list;
-              if (isIntValue()) {
-                int capacity = Integer.valueOf(readText());
-                list = new ArrayList<>(capacity);
-                parser.nextTag();
-              } else {
-                list = new ArrayList<>();
-              }
-              value = parseCollection(list);
+              value = getValueFromArrayList();
               break;
 
           case "java.util.LinkedList":
@@ -392,27 +360,7 @@ public class SecureXMLDecoder implements AutoCloseable {
           case "org.signserver.common.AuthorizedClient":
           case "org.cesecore.util.SecureXMLDecoderTest$MockEnum":
           case "org.cesecore.util.SecureXMLDecoderTest$MockObject":
-            try {
-              // EJBCA, SignServer and test classes, so not available in
-              // CESeCore.
-              // In the long run we should make the whitelisted class names
-              // configurable, e.g. by subclassing (ECA-4916)
-              value =
-                  parseObject(
-                      Class.forName(className).getConstructor().newInstance());
-            } catch (InstantiationException
-                | IllegalAccessException
-                | ClassNotFoundException
-                | InvocationTargetException
-                | NoSuchMethodException e) {
-              throw new IOException(
-                  errorMessage(
-                      "Deserialization of class '"
-                          + className
-                          + "' failed: "
-                          + e.getMessage()),
-                  e);
-            }
+            value = getValueFromNamedClass(className);
             break;
           case "java.util.Collections":
             value = parseSpecialCollection(method);
@@ -428,49 +376,7 @@ public class SecureXMLDecoder implements AutoCloseable {
             value = parseMap(new Properties());
             break;
           case "java.lang.Enum":
-            parser.getName();
-            String enumType = readString();
-            if (!enumType.startsWith("org.cesecore.")
-                && !enumType.startsWith("org.ejbca.")
-                && !enumType.startsWith("org.signserver.")) {
-              throw new IOException(
-                  errorMessage(
-                      "Instantation of enum type \""
-                          + enumType
-                          + "\" not allowed"));
-            }
-            parser.nextTag();
-            parser.getName();
-            String valueName = readString();
-            if (valueName.endsWith("INSTANCE")) {
-              throw new IOException(
-                  errorMessage(
-                      "Not allowed to use singleton \""
-                          + valueName
-                          + "\" from enum type \""
-                          + enumType
-                          + "\""));
-            }
-            try {
-              Enum<?> enumValue =
-                  Enum.valueOf(
-                      Class.forName(enumType).asSubclass(Enum.class),
-                      valueName);
-              value = enumValue;
-            } catch (ClassNotFoundException e) {
-              throw new IOException(
-                  errorMessage("Enum class \"" + enumType + "\" was not found"),
-                  e);
-            } catch (IllegalArgumentException e) {
-              throw new IOException(
-                  errorMessage(
-                      "Invalid enum value \""
-                          + valueName
-                          + "\" for enum type \""
-                          + enumType
-                          + "\""),
-                  e);
-            }
+            value = getEnumValue();
             method = null;
             parser.nextTag();
             break;
@@ -517,6 +423,163 @@ public class SecureXMLDecoder implements AutoCloseable {
     }
     return value;
   }
+
+/**
+ * @param className Name
+ * @return Value
+ * @throws XmlPullParserException Fail
+ * @throws IOException Fail
+ * @throws IllegalArgumentException Fail
+ * @throws SecurityException Fail
+ */
+private Object getValueFromNamedClass(final String className)
+        throws XmlPullParserException, IOException,
+        IllegalArgumentException, SecurityException {
+    final Object value;
+    try {
+      // EJBCA, SignServer and test classes, so not available in
+      // CESeCore.
+      // In the long run we should make the whitelisted class names
+      // configurable, e.g. by subclassing (ECA-4916)
+      value =
+          parseObject(
+              Class.forName(className).getConstructor().newInstance());
+    } catch (InstantiationException
+        | IllegalAccessException
+        | ClassNotFoundException
+        | InvocationTargetException
+        | NoSuchMethodException e) {
+      throw new IOException(
+          errorMessage(
+              "Deserialization of class '"
+                  + className
+                  + "' failed: "
+                  + e.getMessage()),
+          e);
+    }
+    return value;
+}
+
+/**
+ * @return value
+ * @throws XmlPullParserException fail
+ * @throws NumberFormatException fail
+ * @throws IOException fail
+ */
+private Object getValueFromArrayList()
+        throws XmlPullParserException, NumberFormatException, IOException {
+    final Object value;
+    List<Object> list;
+      if (isIntValue()) {
+        int capacity = Integer.valueOf(readText());
+        list = new ArrayList<>(capacity);
+        parser.nextTag();
+      } else {
+        list = new ArrayList<>();
+      }
+      value = parseCollection(list);
+    return value;
+}
+
+/**
+ * @return Value
+ * @throws XmlPullParserException fail
+ * @throws IOException fail
+ * @throws NumberFormatException fail
+ */
+private Object getValueFromChar()
+        throws XmlPullParserException, IOException, NumberFormatException {
+    final Object value;
+    final String charCode = parser.getAttributeValue(null, "code");
+    final String charValue = readText();
+    if (charCode != null) {
+      value = (char) Integer.parseInt(charCode.substring(1));
+    } else if (charValue.length() == 1) {
+      value = charValue.charAt(0);
+    } else {
+      throw new IOException(
+          errorMessage(
+              "Invalid length of <char> value, and no \"code\" attribute"
+                  + " present."));
+    }
+    return value;
+}
+
+/**
+ * @return value
+ * @throws XmlPullParserException fail
+ * @throws IOException fail
+ */
+private Object getValueFromClass() throws XmlPullParserException, IOException {
+    final Object value;
+    try {
+      // Only allow classes from our own hierarchy
+      final String className = readText();
+      if (!(className.startsWith("org.ejbca.")
+          || className.startsWith("org.cesecore.")
+          || className.startsWith("org.signserver."))) {
+        throw new IOException(
+            "Unauthorized class was decoded from XML: " + className);
+      }
+      value = Class.forName(className);
+    } catch (ClassNotFoundException e) {
+      throw new IOException("Unknown class was sent with import.", e);
+    }
+    return value;
+}
+
+/**
+ * @return value
+ * @throws XmlPullParserException fail
+ * @throws IOException fail
+ */
+private Object getEnumValue() throws XmlPullParserException, IOException {
+    final Object value;
+    parser.getName();
+    String enumType = readString();
+    if (!enumType.startsWith("org.cesecore.")
+        && !enumType.startsWith("org.ejbca.")
+        && !enumType.startsWith("org.signserver.")) {
+      throw new IOException(
+          errorMessage(
+              "Instantation of enum type \""
+                  + enumType
+                  + "\" not allowed"));
+    }
+    parser.nextTag();
+    parser.getName();
+    String valueName = readString();
+    if (valueName.endsWith("INSTANCE")) {
+      throw new IOException(
+          errorMessage(
+              "Not allowed to use singleton \""
+                  + valueName
+                  + "\" from enum type \""
+                  + enumType
+                  + "\""));
+    }
+    try {
+      Enum<?> enumValue =
+          Enum.valueOf(
+              Class.forName(enumType).asSubclass(Enum.class),
+              valueName);
+      value = enumValue;
+    } catch (ClassNotFoundException e) {
+      throw new IOException(
+          errorMessage("Enum class \"" + enumType + "\" was not found"),
+          e);
+    } catch (IllegalArgumentException e) {
+      throw new IOException(
+          errorMessage(
+              "Invalid enum value \""
+                  + valueName
+                  + "\" for enum type \""
+                  + enumType
+                  + "\""),
+          e);
+    }
+    return value;
+}
 
   private void storeObjectById(final String id, final Object value) {
     if (id != null && value != null) {
@@ -653,6 +716,7 @@ public class SecureXMLDecoder implements AutoCloseable {
           // OK security-wise
           elemClass =
               Class.forName(className, false, getClass().getClassLoader());
+          break;
       }
 
       final int length = Integer.parseInt(lengthStr);
@@ -673,10 +737,7 @@ public class SecureXMLDecoder implements AutoCloseable {
         }
 
         final String indexStr = parser.getAttributeValue(null, "index");
-        if (indexStr == null) {
-          throw new IOException(
-              errorMessage("Missing index attribute on <void> tag."));
-        }
+        handleNullIndex(indexStr);
         parser.nextTag();
 
         // Read value
@@ -700,6 +761,17 @@ public class SecureXMLDecoder implements AutoCloseable {
           errorMessage("Bad length or index \"" + lengthStr + "\"."));
     }
   }
+
+/**
+ * @param indexStr Index
+ * @throws IOException fail
+ */
+private void handleNullIndex(final String indexStr) throws IOException {
+    if (indexStr == null) {
+      throw new IOException(
+          errorMessage("Missing index attribute on <void> tag."));
+    }
+}
 
   /**
    * Reads a method call start tag, e.g. &lt;void method="add"&gt;. The data
@@ -900,8 +972,7 @@ public class SecureXMLDecoder implements AutoCloseable {
                         + ClassUtils.getShortClassName(value, "null")),
                 e);
           }
-        } catch (NoValueException e) {
-          // Ignore
+        } catch (NoValueException e) {// NOPMD Ignore
         }
       } else {
         // Empty = call getter and store by ID

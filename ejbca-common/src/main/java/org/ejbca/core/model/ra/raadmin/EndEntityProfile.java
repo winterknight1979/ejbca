@@ -43,9 +43,9 @@ import org.cesecore.certificates.endentity.ExtendedInformation;
 import org.cesecore.certificates.util.DNFieldExtractor;
 import org.cesecore.certificates.util.DnComponents;
 import org.cesecore.internal.UpgradeableDataHashMap;
-import org.cesecore.util.Base64;
-import org.cesecore.util.StringTools;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.Base64Util;
+import org.cesecore.util.StringUtil;
+import org.cesecore.util.ValidityDateUtil;
 import org.ejbca.core.model.InternalEjbcaResources;
 import org.ejbca.core.model.SecConst;
 import org.ejbca.core.model.ra.ExtendedInformationFields;
@@ -1889,14 +1889,16 @@ public class EndEntityProfile extends UpgradeableDataHashMap
     if (StringUtils.isBlank(value)) {
       return null;
     }
-    return new String(Base64.decode(value.getBytes(StandardCharsets.US_ASCII)));
+    return new String(Base64Util.decode(
+            value.getBytes(StandardCharsets.US_ASCII)));
   }
 
   /**
    * @param sVGData data
    */
   public void setPrinterSVGData(final String sVGData) {
-    data.put(PRINTINGSVGDATA, new String(Base64.encode(sVGData.getBytes())));
+    data.put(PRINTINGSVGDATA, new String(
+            Base64Util.encode(sVGData.getBytes())));
   }
 
   /**
@@ -2450,9 +2452,9 @@ public class EndEntityProfile extends UpgradeableDataHashMap
                 + " "
                 + endTime
                 + " "
-                + ValidityDate.formatAsUTC(startTimeDate)
+                + ValidityDateUtil.formatAsUTC(startTimeDate)
                 + " "
-                + ValidityDate.formatAsUTC(endTimeDate));
+                + ValidityDateUtil.formatAsUTC(endTimeDate));
       }
     }
     // Check number of allowed requests
@@ -2977,7 +2979,7 @@ public class EndEntityProfile extends UpgradeableDataHashMap
         if (!isEmptyOrRelative(oldStartTime)) {
           try {
             final String newStartTime =
-                ValidityDate.formatAsUTC(
+                ValidityDateUtil.formatAsUTC(
                     DateUtils.parseDateStrictly(oldStartTime, timePatterns));
             setValue(STARTTIME, 0, newStartTime);
             if (LOG.isDebugEnabled()) {
@@ -3004,7 +3006,7 @@ public class EndEntityProfile extends UpgradeableDataHashMap
           // We use an absolute time format, so we need to upgrade
           try {
             final String newEndTime =
-                ValidityDate.formatAsUTC(
+                ValidityDateUtil.formatAsUTC(
                     DateUtils.parseDateStrictly(oldEndTime, timePatterns));
             setValue(ENDTIME, 0, newEndTime);
             if (LOG.isDebugEnabled()) {
@@ -3158,7 +3160,7 @@ public class EndEntityProfile extends UpgradeableDataHashMap
 
   private void checkForIllegalChars(final String str)
       throws EndEntityProfileValidationException {
-    Set<String> invalidCharacters = StringTools.hasSqlStripChars(str);
+    Set<String> invalidCharacters = StringUtil.hasSqlStripChars(str);
     if (!invalidCharacters.isEmpty()) {
       StringBuilder sb = new StringBuilder("");
       for (String error : invalidCharacters) {

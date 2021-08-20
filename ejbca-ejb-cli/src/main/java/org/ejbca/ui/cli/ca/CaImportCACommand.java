@@ -35,7 +35,7 @@ import org.cesecore.keys.token.CryptoTokenOfflineException;
 import org.cesecore.keys.token.IllegalCryptoTokenException;
 import org.cesecore.keys.token.p11.exception.NoSuchSlotException;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.cesecore.util.EjbRemoteHelper;
 import org.cesecore.util.FileTools;
 import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionRemote;
@@ -183,7 +183,7 @@ public class CaImportCACommand extends BaseCaAdminCommand {
 
   @Override
   public CommandResult execute(final ParameterContainer parameters) {
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
     String caName = parameters.get(CA_NAME_KEY);
     boolean importHardToken = parameters.get(HARD_SWITCH_KEY) != null;
     if (!importHardToken) {

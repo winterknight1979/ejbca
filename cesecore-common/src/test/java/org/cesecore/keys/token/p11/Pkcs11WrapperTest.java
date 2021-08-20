@@ -19,7 +19,7 @@ import static org.junit.Assume.assumeTrue;
 import java.io.File;
 import org.apache.log4j.Logger;
 import org.cesecore.keys.token.PKCS11TestUtils;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -41,7 +41,7 @@ public class Pkcs11WrapperTest {
   /** Setup. */
   @BeforeClass
   public static void beforeClass() {
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
   }
   /** Setup. */
 

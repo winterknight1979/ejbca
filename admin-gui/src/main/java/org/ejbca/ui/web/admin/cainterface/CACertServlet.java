@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.core.ejb.ca.sign.SignSessionLocal;
 import org.ejbca.core.model.authorization.AccessRulesConstants;
 import org.ejbca.cvc.CardVerifiableCertificate;
@@ -161,7 +161,7 @@ public class CACertServlet extends BaseAdminServlet {
           res.setHeader(
               "Content-disposition",
               "attachment; filename=\""
-                  + StringTools.stripFilename(filename + ending)
+                  + StringUtil.stripFilename(filename + ending)
                   + "\"");
           res.setContentType("application/octet-stream");
           res.setContentLength(enccert.length);
@@ -172,7 +172,7 @@ public class CACertServlet extends BaseAdminServlet {
           res.setHeader(
               "Content-disposition",
               "attachment; filename=\""
-                  + StringTools.stripFilename(filename + ".cacert.pem")
+                  + StringUtil.stripFilename(filename + ".cacert.pem")
                   + "\"");
           res.setContentType("application/octet-stream");
           res.setContentLength(out.length());
@@ -189,7 +189,7 @@ public class CACertServlet extends BaseAdminServlet {
             res.setHeader(
                 "Content-disposition",
                 "attachment; filename=\""
-                    + StringTools.stripFilename(filename + ".cacert.jks")
+                    + StringUtil.stripFilename(filename + ".cacert.jks")
                     + "\"");
             res.setContentType("application/octet-stream");
             ks.store(res.getOutputStream(), jksPassword.toCharArray());

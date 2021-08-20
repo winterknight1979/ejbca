@@ -72,7 +72,7 @@ import org.cesecore.certificates.certificateprofile.CertificateProfileSession;
 import org.cesecore.certificates.endentity.EndEntityConstants;
 import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.ValidityDateUtil;
 import org.ejbca.config.CmpConfiguration;
 import org.ejbca.core.ejb.authentication.web.WebAuthenticationProviderSessionLocal;
 import org.ejbca.core.ejb.ra.EndEntityAccessSession;
@@ -1348,11 +1348,11 @@ public class EndEntityCertificateAuthenticationModule
     final Throwable cause = e.getCause();
     if (cause instanceof CertificateExpiredException) {
       return "Certificate has expired. NotAfter: "
-          + ValidityDate.formatAsUTC(CertTools.getNotAfter(endEntityCert))
+          + ValidityDateUtil.formatAsUTC(CertTools.getNotAfter(endEntityCert))
           + " UTC";
     } else if (cause instanceof CertificateNotYetValidException) {
       return "Certificate is not yet valid. NotBefore: "
-          + ValidityDate.formatAsUTC(CertTools.getNotBefore(endEntityCert))
+          + ValidityDateUtil.formatAsUTC(CertTools.getNotBefore(endEntityCert))
           + " UTC";
     } else {
       return e.getMessage();

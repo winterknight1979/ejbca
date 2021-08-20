@@ -28,8 +28,8 @@ import java.security.cert.X509Certificate;
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.certificate.request.PKCS10RequestMessage;
 import org.cesecore.keys.util.KeyUtil;
-import org.cesecore.util.Base64;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.Base64Util;
+import org.cesecore.util.CryptoProviderUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -42,7 +42,7 @@ public class MessagesTest {
 
       /** Param. */
   private static byte[] keytoolp10 =
-      Base64.decode(
+      Base64Util.decode(
 ("MIIBbDCB1gIBADAtMQ0wCwYDVQQDEwRUZXN0MQ8wDQYDVQQKEwZBbmFUb20xCzAJBgNVBAYTAlNF"
 + "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDY+ATE4ZB0oKfmXStu8J+do0GhTag6rOGtoydI"
 + "eNX9DdytlsmXDyONKl8746478/3HXdx9rA0RevUizKSataMpDsb3TjprRjzBTvYPZSIfzko6s8g6"
@@ -54,7 +54,7 @@ public class MessagesTest {
 
   /** Param. */
   private static byte[] oldbcp10 =
-      Base64.decode(
+      Base64Util.decode(
  ("MIIBbDCB1gIBADAtMQswCQYDVQQGEwJTRTEPMA0GA1UEChMGQW5hVG9tMQ0wCwYDVQQDEwRUZXN0"
 + "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCzN9nDdwmq23/RLGisvR3CRO9JSem2QZ7JC7nr"
 + "NlbxQBLVqlkypT/lxMMur+lTX1S+jBaqXjtirhZTVaV5C/+HObWZ5vrj30lmsCdgzFybSzVxBz0l"
@@ -66,7 +66,7 @@ public class MessagesTest {
 
   /** Param. */
   private static byte[] iep10 =
-      Base64.decode(
+      Base64Util.decode(
       ("MIICnTCCAgYCAQAwGzEZMBcGA1UEAxMQNkFFSzM0N2Z3OHZXRTQyNDCBnzANBgkq"
            + "hkiG9w0BAQEFAAOBjQAwgYkCgYEAukW70HN9bt5x2AiSZm7y8GXQuyp1jN2OIvqU"
            + "sr0dzLIOFt1H8GPJkL80wx3tLDj3xJfWJdww3TqExsxMSP+qScoYKIOeNBb/2OMW"
@@ -86,7 +86,7 @@ public class MessagesTest {
 
   /** Param. */
   private static byte[] openscep =
-      Base64.decode(
+      Base64Util.decode(
       ("MIIF3AYJKoZIhvcNAQcCoIIFzTCCBckCAQExDjAMBggqhkiG9w0CBQUAMIICvgYJ"
            + "KoZIhvcNAQcBoIICrwSCAqswggKnBgkqhkiG9w0BBwOgggKYMIIClAIBADGCAV8w"
            + "ggFbAgEAMEMwNzERMA8GA1UEAxMIQWRtaW5DQTExFTATBgNVBAoTDEVKQkNBIFNh"
@@ -123,7 +123,7 @@ public class MessagesTest {
 
   /** Param. */
   private static byte[] sscep =
-      Base64.decode(
+      Base64Util.decode(
       ("MIIF3AYJKoZIhvcNAQcCoIIFzTCCBckCAQExDjAMBggqhkiG9w0CBQUAMIICvgYJ"
            + "KoZIhvcNAQcBoIICrwSCAqswggKnBgkqhkiG9w0BBwOgggKYMIIClAIBADGCAV8w"
            + "ggFbAgEAMEMwNzERMA8GA1UEAxMIQWRtaW5DQTExFTATBgNVBAoTDEVKQkNBIFNh"
@@ -160,7 +160,7 @@ public class MessagesTest {
 
   /** Param. */
   private static byte[] scepclient =
-      Base64.decode(
+      Base64Util.decode(
       ("MIIGjgYJKoZIhvcNAQcCoIIGfzCCBnsCAQExDDAKBggqhkiG9w0CBTCCA1IGCSqG"
            + "SIb3DQEHAaCCA0MEggM/MIIDOwYJKoZIhvcNAQcDoIIDLDCCAygCAQAxggFdMIIB"
            + "WQIBADBDMDcxETAPBgNVBAMTCEFkbWluQ0ExMRUwEwYDVQQKEwxFSkJDQSBTYW1w"
@@ -201,7 +201,7 @@ public class MessagesTest {
 
   /** Param. */
   private static byte[] ciscovpnscep =
-      Base64.decode(
+      Base64Util.decode(
       ("MIIGewYJKoZIhvcNAQcCoIIGbDCCBmgCAQExDjAMBggqhkiG9w0CBQUAMIIDJgYJ"
            + "KoZIhvcNAQcBoIIDFwSCAxMwggMPBgkqhkiG9w0BBwOgggMAMIIC/AIBADGCAV8w"
            + "ggFbAgEAMEMwNzERMA8GA1UEAxMIQWRtaW5DQTExFTATBgNVBAoTDEVKQkNBIFNh"
@@ -241,7 +241,7 @@ public class MessagesTest {
 
   /** Param. */
   private static byte[] altnamep10 =
-      Base64.decode(
+      Base64Util.decode(
       ("MIIBwjCCASsCAQAwNjELMAkGA1UEBhMCQVUxDDAKBgNVBAMTA2FzZDEZMBcGCSqG"
            + "SIb3DQEJARYKYXNkQHNkZi5zZTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEA"
            + "ymEA1OVfAznYHDoYmKZ1TkNuIqfujryGN3ROrarCA6OdWteWG8IPxZBu1q70CNYz"
@@ -256,7 +256,7 @@ public class MessagesTest {
 
   /** Param. */
   private static byte[] p12 =
-      Base64.decode(
+      Base64Util.decode(
       ("MIACAQMwgAYJKoZIhvcNAQcBoIAkgASCCvIwgDCABgkqhkiG9w0BBwGggCSABIIK"
            + "2jCCCtYwggVmBgsqhkiG9w0BDAoBAqCCBPkwggT1MCcGCiqGSIb3DQEMAQMwGQQU"
            + "M9v7H78lfcE5imiW09/BzSilz+0CAWQEggTIq8j9XRSKczoqkW8oBbYpLUM2F3ic"
@@ -374,7 +374,7 @@ public class MessagesTest {
   @BeforeClass
   public static void beforeClass() throws Exception {
     // Install BouncyCastle provider
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
 
     KeyStore keyStore = KeyStore.getInstance("PKCS12", "BC");
     InputStream is = new ByteArrayInputStream(p12);

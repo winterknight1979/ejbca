@@ -48,8 +48,8 @@ import org.cesecore.config.GlobalCesecoreConfiguration;
 import org.cesecore.configuration.GlobalConfigurationSessionLocal;
 import org.cesecore.jndi.JndiConstants;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.EJBTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.EJBUtil;
+import org.cesecore.util.StringUtil;
 import org.ejbca.config.GlobalConfiguration;
 import org.ejbca.core.EjbcaException;
 import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionLocal;
@@ -125,7 +125,7 @@ public class EndEntityAccessSessionBean
     }
     // String used in SQL so strip it
     final String dn =
-        CertTools.stringToBCDNString(StringTools.strip(subjectdn));
+        CertTools.stringToBCDNString(StringUtil.strip(subjectdn));
     if (LOG.isDebugEnabled()) {
       LOG.debug("Looking for users with subjectdn: " + dn);
     }
@@ -201,9 +201,9 @@ public class EndEntityAccessSessionBean
     }
     // String used in SQL so strip it
     final String dn =
-        CertTools.stringToBCDNString(StringTools.strip(subjectdn));
+        CertTools.stringToBCDNString(StringUtil.strip(subjectdn));
     final String issuerDN =
-        CertTools.stringToBCDNString(StringTools.strip(issuerdn));
+        CertTools.stringToBCDNString(StringUtil.strip(issuerdn));
     if (LOG.isDebugEnabled()) {
       LOG.debug(
           "Looking for users with subjectdn: "
@@ -629,9 +629,9 @@ public class EndEntityAccessSessionBean
       final String endentityAccessRule)
       throws IllegalQueryException {
     boolean authorizedtoanyprofile = true;
-    final String caauthorizationstring = StringTools.strip(caauthorizationstr);
+    final String caauthorizationstring = StringUtil.strip(caauthorizationstr);
     final String endentityprofilestring =
-        StringTools.strip(endentityprofilestr);
+        StringUtil.strip(endentityprofilestr);
     final ArrayList<EndEntityInformation> returnval =
         new ArrayList<EndEntityInformation>();
     int fetchsize = getGlobalCesecoreConfiguration().getMaximumQueryCount();
@@ -861,7 +861,7 @@ public class EndEntityAccessSessionBean
               + " for admin "
               + authenticationToken.getUniqueId());
     }
-    return EJBTools.wrap(result);
+    return EJBUtil.wrap(result);
   }
 
   @Override
@@ -891,7 +891,7 @@ public class EndEntityAccessSessionBean
       // We will filter out not yet valid certificates later on, but we as the
       // database to not return any expired certificates
       searchResults =
-          EJBTools.wrapCertCollection(
+          EJBUtil.wrapCertCollection(
               certificateStoreSession
                   .findCertificatesByUsernameAndStatusAfterExpireDate(
                       username, CertificateConstants.CERT_ACTIVE, now));

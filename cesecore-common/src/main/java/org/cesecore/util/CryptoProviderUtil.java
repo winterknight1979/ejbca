@@ -34,12 +34,10 @@ import org.ejbca.cvc.CVCProvider;
  *     $
  */
 @SuppressWarnings("deprecation")
-public final class CryptoProviderTools {
+public final class CryptoProviderUtil {
 
     /** Logger. */
-  private static final Logger LOG = Logger.getLogger(CryptoProviderTools.class);
-
-  private CryptoProviderTools() { } // Not for instantiation
+  private static final Logger LOG = Logger.getLogger(CryptoProviderUtil.class);
 
   /**
    * Parameters used when generating or verifying ECDSA keys/certs using the
@@ -68,6 +66,7 @@ public final class CryptoProviderTools {
    */
   private static String systemSecurity = "SUN";
 
+  private CryptoProviderUtil() { } // Not for instantiation
   /**
    * Detect if "Unlimited Strength" Policy files has bean properly installed.
    *
@@ -83,8 +82,7 @@ public final class CryptoProviderTools {
       if (keylen == Integer.MAX_VALUE) {
         returnValue = false;
       }
-    } catch (NoSuchAlgorithmException e) {
-      // NOPMD
+    } catch (NoSuchAlgorithmException e) { // NOPMD
     }
     return returnValue;
   }

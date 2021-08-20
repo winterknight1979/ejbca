@@ -60,11 +60,11 @@ public class CeSecoreNameStyle extends BCStyle {
    * https://www.itu.int/rec/dologin.asp?lang=e&amp;id=T-REC-X.520-201210-S!Cor3!PDF-E&amp;type=items
    */
   public static final ASN1ObjectIdentifier ORGANIZATION_IDENTIFIER =
-      new ASN1ObjectIdentifier("2.5.4.97");
+      new ASN1ObjectIdentifier("2.5.4.97"); // NOPMD: This is not an IP
 
   /** */
   public static final ASN1ObjectIdentifier DESCRIPTION =
-      new ASN1ObjectIdentifier("2.5.4.13");
+      new ASN1ObjectIdentifier("2.5.4.13"); // NOPMD: this is not an IP
 
   /**
    * default look up table translating OID values into their common symbols

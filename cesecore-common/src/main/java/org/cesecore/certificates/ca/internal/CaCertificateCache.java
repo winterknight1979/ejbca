@@ -28,7 +28,7 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.certificate.HashID;
 import org.cesecore.config.OcspConfiguration;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
 
 /**
@@ -272,7 +272,7 @@ private void logCertError(final X509Certificate cert) {
       pw.println("Here follows a base64 encoding of the certificate:");
       try {
         final String b64encoded =
-            new String(Base64.encode(cert.getEncoded()));
+            new String(Base64Util.encode(cert.getEncoded()));
         pw.println(CertTools.BEGIN_CERTIFICATE);
         pw.println(b64encoded);
         pw.println(CertTools.END_CERTIFICATE);

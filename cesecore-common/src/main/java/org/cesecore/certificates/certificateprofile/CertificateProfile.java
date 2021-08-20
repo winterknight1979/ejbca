@@ -45,7 +45,7 @@ import org.cesecore.internal.InternalResources;
 import org.cesecore.internal.UpgradeableDataHashMap;
 import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.ValidityDateUtil;
 
 /**
  * CertificateProfile is a basic class used to customize a certificate
@@ -1018,7 +1018,7 @@ public class CertificateProfile extends UpgradeableDataHashMap // NOPMD: length
   }
 
   /**
-   * @see ValidityDate#getDateBeforeVersion661(long, java.util.Date)
+   * @see ValidityDateUtil#getDateBeforeVersion661(long, java.util.Date)
    * @return a long that is used to provide the end date of certificates for
    *     this profile, interpreted by ValidityDate#getDate
    * @deprecated since since EJBCA 6.6.1
@@ -1032,14 +1032,14 @@ public class CertificateProfile extends UpgradeableDataHashMap // NOPMD: length
    * Gets the encoded validity.
    *
    * @return the validity as ISO8601 date or relative time.
-   * @see org.cesecore.util.ValidityDate ValidityDate
+   * @see org.cesecore.util.ValidityDateUtil ValidityDate
    * @see org.cesecore.util.SimpleTime SimpleTime
    */
   @SuppressWarnings("deprecation")
   public String getEncodedValidity() {
     String result = (String) data.get(ENCODED_VALIDITY);
     if (StringUtils.isBlank(result)) {
-      result = ValidityDate.getStringBeforeVersion661(getValidity());
+      result = ValidityDateUtil.getStringBeforeVersion661(getValidity());
       setEncodedValidity(result);
     }
     return result;
@@ -1049,7 +1049,7 @@ public class CertificateProfile extends UpgradeableDataHashMap // NOPMD: length
    * Sets the encoded validity .
    *
    * @param encodedValidity the validity as ISO8601 date or relative time.
-   * @see org.cesecore.util.ValidityDate ValidityDate
+   * @see org.cesecore.util.ValidityDateUtil ValidityDate
    * @see org.cesecore.util.SimpleTime SimpleTime
    */
   public void setEncodedValidity(final String encodedValidity) {
@@ -4067,7 +4067,7 @@ private void doVerifyCompliant(final String keyAlgorithm)
         && data.get(VALIDITY)
             != null) { // avoid NPE if this is a very raw profile
           setEncodedValidity(
-              ValidityDate.getStringBeforeVersion661(getValidity()));
+              ValidityDateUtil.getStringBeforeVersion661(getValidity()));
 
         // Don't upgrade to anything is there was nothing to upgrade
       }

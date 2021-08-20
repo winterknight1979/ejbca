@@ -34,9 +34,9 @@ import org.apache.log4j.Logger;
 import org.cesecore.certificates.crl.RevokedCertInfo;
 import org.cesecore.dbprotection.ProtectionStringBuilder;
 import org.cesecore.keys.util.KeyUtil;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 
 /**
  * Representation of a certificate and related information.
@@ -209,7 +209,7 @@ public class CertificateData extends BaseCertificateData
     // Extract all fields to store with the certificate.
     try {
       if (storeCertificate) {
-        setBase64Cert(new String(Base64.encode(certificate.getEncoded())));
+        setBase64Cert(new String(Base64Util.encode(certificate.getEncoded())));
       }
 
       String fp = CertTools.getFingerprintAsString(certificate);
@@ -264,7 +264,7 @@ public class CertificateData extends BaseCertificateData
       try {
         keyId =
             new String(
-                Base64.encode(
+                Base64Util.encode(
                     KeyUtil.createSubjectKeyId(pubk).getKeyIdentifier(),
                     false));
       } catch (Exception e) {
@@ -499,7 +499,7 @@ public class CertificateData extends BaseCertificateData
 
   @Override
   public void setUsername(final String aUsername) {
-    this.username = StringTools.stripUsername(aUsername);
+    this.username = StringUtil.stripUsername(aUsername);
   }
 
   @Override

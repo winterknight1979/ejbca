@@ -35,10 +35,10 @@ import org.cesecore.certificates.certificate.request.ResponseMessage;
 import org.cesecore.certificates.certificate.request.X509ResponseMessage;
 import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
 import org.cesecore.certificates.endentity.EndEntityConstants;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.FileTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.core.EjbcaException;
 import org.ejbca.core.ejb.ca.sign.SignSessionLocal;
 import org.ejbca.core.model.SecConst;
@@ -174,7 +174,7 @@ public class AdminCertReqServlet extends BaseAdminServlet {
       username = dn;
     }
     // Strip dangerous chars
-    username = StringTools.stripUsername(username);
+    username = StringUtil.stripUsername(username);
     // need null check here?
     // Before doing anything else, check if the user name is unique and ok.
     username = checkUsername(rabean, username);
@@ -271,7 +271,7 @@ public class AdminCertReqServlet extends BaseAdminServlet {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Created certificate (PKCS7) for " + username);
     }
-    sendNewB64Cert(Base64.encode(pkcs7), response);
+    sendNewB64Cert(Base64Util.encode(pkcs7), response);
   }
 
   @Override
@@ -326,7 +326,7 @@ public class AdminCertReqServlet extends BaseAdminServlet {
           bytes = FileTools.getBytesFromPEM(reqBytes, beginKey, endKey);
         } catch (IOException e2) {
           // IE PKCS10 Base64 coded request
-          bytes = Base64.decode(reqBytes);
+          bytes = Base64Util.decode(reqBytes);
         }
       }
     }

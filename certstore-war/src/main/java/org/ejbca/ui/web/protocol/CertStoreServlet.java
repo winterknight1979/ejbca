@@ -31,7 +31,7 @@ import org.apache.log4j.Logger;
 import org.cesecore.certificates.certificate.CertificateStoreSessionLocal;
 import org.cesecore.certificates.certificate.HashID;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.util.HTMLTools;
 
 /**
@@ -152,7 +152,7 @@ public class CertStoreServlet extends StoreServletBase {
     resp.setHeader(
         "Content-disposition",
         "attachment; filename=\""
-            + StringTools.stripFilename(name + ".der")
+            + StringUtil.stripFilename(name + ".der")
             + "\"");
     resp.setContentLength(encoded.length);
     resp.getOutputStream().write(encoded);
@@ -188,7 +188,7 @@ public class CertStoreServlet extends StoreServletBase {
         headers.addHeader(
             "Content-disposition",
             "attachment; filename=\""
-                + StringTools.stripFilename(filename)
+                + StringUtil.stripFilename(filename)
                 + "\"");
         mp.addBodyPart(new MimeBodyPart(headers, certs[i].getEncoded()));
       }

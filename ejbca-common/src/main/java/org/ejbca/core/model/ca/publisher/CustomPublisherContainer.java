@@ -35,7 +35,7 @@ import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.certificates.certificate.Base64CertData;
 import org.cesecore.certificates.certificate.CertificateData;
 import org.cesecore.certificates.endentity.ExtendedInformation;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 
 /**
  * CustomPublisherContainer is a class handling a custom publisher. It is used
@@ -151,7 +151,7 @@ public class CustomPublisherContainer extends BasePublisher {
           // disk. Encrypt!
           try {
             value =
-                StringTools.pbeEncryptStringWithSha256Aes192(
+                StringUtil.pbeEncryptStringWithSha256Aes192(
                     properties.getProperty((String) key));
           } catch (InvalidKeyException
               | InvalidAlgorithmParameterException

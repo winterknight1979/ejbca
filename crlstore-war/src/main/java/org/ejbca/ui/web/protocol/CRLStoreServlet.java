@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
 import org.cesecore.certificates.certificate.HashID;
 import org.cesecore.certificates.crl.CrlStoreSessionLocal;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.core.protocol.crlstore.CRLCache;
 import org.ejbca.util.HTMLTools;
 
@@ -166,7 +166,7 @@ public class CRLStoreServlet extends StoreServletBase {
         "Content-disposition",
         "attachment; filename=\""
             + (isDelta ? "delta" : "")
-            + StringTools.stripFilename(name)
+            + StringUtil.stripFilename(name)
             + ".crl\"");
     resp.setContentLength(crl.length);
     resp.getOutputStream().write(crl);

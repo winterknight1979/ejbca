@@ -57,7 +57,7 @@ import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.certificates.util.AlgorithmTools;
 import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.core.EjbcaException;
 import org.ejbca.core.ejb.ra.NoSuchEndEntityException;
 import org.ejbca.core.model.SecConst;
@@ -709,7 +709,7 @@ public class EnrollWithRequestIdBean implements Serializable {
       fileName = "certificatetoken";
     }
 
-    final String filename = StringTools.stripFilename(fileName + fileExtension);
+    final String filename = StringUtil.stripFilename(fileName + fileExtension);
     ec.setResponseHeader(
         "Content-Disposition",
         "attachment; filename=\""
@@ -969,7 +969,7 @@ public class EnrollWithRequestIdBean implements Serializable {
                   AlgorithmConstants.KEYALGORITHM_ECDSA + "_" + ecNamedCurve,
                   AlgorithmConstants.KEYALGORITHM_ECDSA
                       + " "
-                      + StringTools.getAsStringWithSeparator(
+                      + StringUtil.getAsStringWithSeparator(
                           " / ",
                           AlgorithmTools.getAllCurveAliasesFromAlias(
                               ecNamedCurve))));

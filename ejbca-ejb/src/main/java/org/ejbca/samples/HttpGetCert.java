@@ -30,9 +30,9 @@ import org.bouncycastle.asn1.DERSet;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.keys.util.KeyUtil;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 
 /**
  * Example how a certificate can be fetched programmatically using HTTP/S. The
@@ -268,7 +268,7 @@ public class HttpGetCert {
     BasicConfigurator.configure();
 
     // Install BouncyCastle provider
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
 
     // Generate keys (512 bit for sample purposes)
     System.out.print("Generating 512 bit RSA keys.");
@@ -294,7 +294,7 @@ public class HttpGetCert {
 
     ByteArrayOutputStream bos1 = new ByteArrayOutputStream();
     bos1.write("-----BEGIN CERTIFICATE REQUEST-----\n".getBytes());
-    bos1.write(Base64.encode(bOut.toByteArray()));
+    bos1.write(Base64Util.encode(bOut.toByteArray()));
     bos1.write("\n-----END CERTIFICATE REQUEST-----\n".getBytes());
     bos1.close();
     System.out.println("CertificationRequest generated:");

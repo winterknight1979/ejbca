@@ -85,8 +85,8 @@ public class XmlSerializerTest {
     inputMap.put(key, value);
     final String encoded =
         useBase64
-            ? XmlSerializer.encode(inputMap)
-            : XmlSerializer.encodeWithoutBase64(inputMap);
+            ? XmlSerializerUtil.encode(inputMap)
+            : XmlSerializerUtil.encodeWithoutBase64(inputMap);
     LOG.debug(encoded);
     if (expectBase64) {
       assertTrue(
@@ -98,6 +98,6 @@ public class XmlSerializerTest {
               + " modified.",
           encoded.contains(value));
     }
-    return XmlSerializer.decode(encoded).get(key);
+    return XmlSerializerUtil.decode(encoded).get(key);
   }
 }

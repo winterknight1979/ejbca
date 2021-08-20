@@ -35,7 +35,7 @@ import org.cesecore.certificates.ca.internal.CertificateValidity;
 import org.cesecore.certificates.certificate.certextensions.CertificateExtensionException;
 import org.cesecore.certificates.certificateprofile.CertificateProfile;
 import org.cesecore.certificates.endentity.EndEntityInformation;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 
 /**
  * Class for standard X509 certificate extension. See rfc3280 or later for spec
@@ -76,7 +76,7 @@ public class CrlDistributionPoints extends StandardCertificateExtension {
         new ArrayList<DistributionPointName>();
     if (StringUtils.isNotEmpty(crldistpoint)) {
       final Iterator<String> it =
-          StringTools.splitURIs(crldistpoint).iterator();
+          StringUtil.splitURIs(crldistpoint).iterator();
       while (it.hasNext()) {
         // 6 is URI
         final String uri = (String) it.next();

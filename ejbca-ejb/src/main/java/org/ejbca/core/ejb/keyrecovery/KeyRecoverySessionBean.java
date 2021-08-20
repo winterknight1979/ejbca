@@ -50,9 +50,9 @@ import org.cesecore.keys.token.CryptoTokenOfflineException;
 import org.cesecore.keys.token.CryptoTokenSessionLocal;
 import org.cesecore.keys.util.KeyPairWrapper;
 import org.cesecore.keys.util.KeyUtil;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.EJBTools;
+import org.cesecore.util.EJBUtil;
 import org.ejbca.core.ejb.approval.ApprovalProfileSessionLocal;
 import org.ejbca.core.ejb.approval.ApprovalSessionLocal;
 import org.ejbca.core.ejb.audit.enums.EjbcaEventTypes;
@@ -145,7 +145,7 @@ public class KeyRecoverySessionBean
       final boolean checkNewest)
       throws ApprovalException, WaitingForApprovalException,
           CADoesntExistsException {
-    final Certificate certificate = EJBTools.unwrap(certificateWrapper);
+    final Certificate certificate = EJBUtil.unwrap(certificateWrapper);
     final int caid = CertTools.getIssuerDN(certificate).hashCode();
     final CAInfo cainfo = caSession.getCAInfoInternal(caid);
     final CertificateInfo certinfo =
@@ -183,7 +183,7 @@ public class KeyRecoverySessionBean
       final CryptoToken cryptoToken, final String keyAlias)
       throws CryptoTokenOfflineException {
     return new String(
-        Base64.encode(
+        Base64Util.encode(
             KeyUtil.createSubjectKeyId(cryptoToken.getPublicKey(keyAlias))
                 .getKeyIdentifier(),
             false),
@@ -201,8 +201,8 @@ public class KeyRecoverySessionBean
       LOG.trace(">addKeyRecoveryData(user: " + username + ")");
     }
     if (authorizedToAdministrateKeys(admin)) {
-      final Certificate certificate = EJBTools.unwrap(certificateWrapper);
-      final KeyPair keypair = EJBTools.unwrap(keyPairWrapper);
+      final Certificate certificate = EJBUtil.unwrap(certificateWrapper);
+      final KeyPair keypair = EJBUtil.unwrap(keyPairWrapper);
       final int caid = CertTools.getIssuerDN(certificate).hashCode();
       final String certSerialNumber =
           CertTools.getSerialNumberAsString(certificate);
@@ -286,8 +286,8 @@ public class KeyRecoverySessionBean
     if (LOG.isTraceEnabled()) {
       LOG.trace(">addKeyRecoveryDataInternal(user: " + username + ")");
     }
-    final Certificate certificate = EJBTools.unwrap(certificateWrapper);
-    final KeyPair keypair = EJBTools.unwrap(keyPairWrapper);
+    final Certificate certificate = EJBUtil.unwrap(certificateWrapper);
+    final KeyPair keypair = EJBUtil.unwrap(keyPairWrapper);
     final String certSerialNumber =
         CertTools.getSerialNumberAsString(certificate);
     boolean returnval = false;
@@ -362,7 +362,7 @@ public class KeyRecoverySessionBean
       throw new AuthorizationDeniedException(
           admin + " not authorized to administer keys");
     }
-    final Certificate certificate = EJBTools.unwrap(certificateWrapper);
+    final Certificate certificate = EJBUtil.unwrap(certificateWrapper);
     final String hexSerial =
         CertTools.getSerialNumber(certificate).toString(16);
     if (LOG.isTraceEnabled()) {
@@ -699,7 +699,7 @@ public class KeyRecoverySessionBean
           // Check if approvals is required.
           checkIfApprovalRequired(
               admin,
-              EJBTools.wrap(newestcertificate),
+              EJBUtil.wrap(newestcertificate),
               username,
               endEntityProfileId,
               true);
@@ -767,7 +767,7 @@ public class KeyRecoverySessionBean
         // Check if approvals is required.
         checkIfApprovalRequired(
             admin,
-            EJBTools.wrap(certificate),
+            EJBUtil.wrap(certificate),
             username,
             endEntityProfileId,
             false);
@@ -809,7 +809,7 @@ public class KeyRecoverySessionBean
       final AuthenticationToken admin,
       final CertificateWrapper certificateWrapper,
       final String username) {
-    final Certificate certificate = EJBTools.unwrap(certificateWrapper);
+    final Certificate certificate = EJBUtil.unwrap(certificateWrapper);
     final String hexSerial =
         CertTools.getSerialNumber(certificate)
             .toString(16); // same method to make hex as in KeyRecoveryDataBean
@@ -896,7 +896,7 @@ public class KeyRecoverySessionBean
   @Override
   public boolean existsKeys(final CertificateWrapper certificateWrapper) {
     LOG.trace(">existsKeys()");
-    final Certificate certificate = EJBTools.unwrap(certificateWrapper);
+    final Certificate certificate = EJBUtil.unwrap(certificateWrapper);
     if (certificate == null) {
       LOG.debug("Key recovery requires a certificate to be present.");
       return false;

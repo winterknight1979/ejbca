@@ -30,10 +30,6 @@ abstract class TrustManagerFactoryImpl extends TrustManagerFactorySpi {
   /** bool. */
   private boolean isInitialized = false;
 
-  TrustManagerFactoryImpl() {
-    // empty
-  }
-
   /* (non-Javadoc)
    * @see javax.net.ssl.TrustManagerFactorySpi#engineGetTrustManagers()
    */
@@ -67,9 +63,10 @@ abstract class TrustManagerFactoryImpl extends TrustManagerFactorySpi {
     this.isInitialized = true;
   }
 
-  abstract X509TrustManager getInstance(KeyStore ks) throws KeyStoreException;
+  protected abstract X509TrustManager getInstance(KeyStore ks)
+          throws KeyStoreException;
 
-  abstract X509TrustManager getInstance(ManagerFactoryParameters spec)
+  protected abstract X509TrustManager getInstance(ManagerFactoryParameters spec)
       throws InvalidAlgorithmParameterException;
 
   public static final class AcceptAll extends TrustManagerFactoryImpl {
@@ -78,7 +75,8 @@ abstract class TrustManagerFactoryImpl extends TrustManagerFactorySpi {
      * org.ejbca.util.provider.TrustManagerFactoryImpl#getInstance(java.security.KeyStore)
      */
     @Override
-    X509TrustManager getInstance(final KeyStore ks) throws KeyStoreException {
+    protected X509TrustManager getInstance(final KeyStore ks)
+            throws KeyStoreException {
       return new X509TrustManagerAcceptAll();
     }
 
@@ -87,7 +85,7 @@ abstract class TrustManagerFactoryImpl extends TrustManagerFactorySpi {
      * org.ejbca.util.provider.TrustManagerFactoryImpl#getInstance(javax.net.ssl.ManagerFactoryParameters)
      */
     @Override
-    X509TrustManager getInstance(final ManagerFactoryParameters spec)
+    protected X509TrustManager getInstance(final ManagerFactoryParameters spec)
         throws InvalidAlgorithmParameterException {
       return new X509TrustManagerAcceptAll();
     }

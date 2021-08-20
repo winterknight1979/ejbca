@@ -55,8 +55,8 @@ import org.cesecore.certificates.util.DNFieldExtractor;
 import org.cesecore.certificates.util.DnComponents;
 import org.cesecore.config.AvailableExtendedKeyUsagesConfiguration;
 import org.cesecore.util.SimpleTime;
-import org.cesecore.util.StringTools;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.StringUtil;
+import org.cesecore.util.ValidityDateUtil;
 import org.ejbca.config.GlobalConfiguration;
 import org.ejbca.core.ejb.approval.ApprovalProfileSession;
 import org.ejbca.cvc.AccessRightAuthTerm;
@@ -361,7 +361,7 @@ public class CertProfileBean extends BaseManagedBean implements Serializable {
     if (profile.getUseExpirationRestrictionForWeekdays()) {
       Date endDate = null;
       try {
-        endDate = ValidityDate.parseAsIso8601(encodedValidty);
+        endDate = ValidityDateUtil.parseAsIso8601(encodedValidty);
       } catch (ParseException e) {
         // NOOP
       }
@@ -374,14 +374,14 @@ public class CertProfileBean extends BaseManagedBean implements Serializable {
                 + Arrays.toString(profile.getExpirationRestrictionWeekdays()));
         try {
           final Date appliedDate =
-              ValidityDate.applyExpirationRestrictionForWeekdays(
+              ValidityDateUtil.applyExpirationRestrictionForWeekdays(
                   endDate,
                   profile.getExpirationRestrictionWeekdays(),
                   profile.getExpirationRestrictionForWeekdaysExpireBefore());
           if (!appliedDate.equals(endDate)) {
             final String newEncodedValidity =
-                ValidityDate.formatAsISO8601ServerTZ(
-                    appliedDate.getTime(), ValidityDate.TIMEZONE_SERVER);
+                ValidityDateUtil.formatAsISO8601ServerTZ(
+                    appliedDate.getTime(), ValidityDateUtil.TIMEZONE_SERVER);
             profile.setEncodedValidity(newEncodedValidity);
             addInfoMessage(
                 "CERT_EXPIRATION_RESTRICTION_FIXED_DATE_CHANGED",
@@ -518,7 +518,7 @@ public class CertProfileBean extends BaseManagedBean implements Serializable {
       ret.add(
           new SelectItem(
               name,
-              StringTools.getAsStringWithSeparator(
+              StringUtil.getAsStringWithSeparator(
                   " / ", namedEcCurvesMap.get(name))));
     }
     return ret;
@@ -603,7 +603,7 @@ public class CertProfileBean extends BaseManagedBean implements Serializable {
    * Gets the validity.
    *
    * @return the validity as ISO8601 date or relative time.
-   * @see org.cesecore.util.ValidityDate ValidityDate
+   * @see org.cesecore.util.ValidityDateUtil ValidityDate
    */
   public String getValidity() {
     return getCertificateProfile().getEncodedValidity();
@@ -613,14 +613,14 @@ public class CertProfileBean extends BaseManagedBean implements Serializable {
    * Sets the validity .
    *
    * @param value the validity as ISO8601 date or relative time.
-   * @see org.cesecore.util.ValidityDate ValidityDate
+   * @see org.cesecore.util.ValidityDateUtil ValidityDate
    */
   public void setValidity(final String value) {
     String valueToSet = value;
     if (null != value) {
       try {
         // parse fixed date ISO8601
-        ValidityDate.parseAsIso8601(value);
+        ValidityDateUtil.parseAsIso8601(value);
       } catch (ParseException e) {
         // parse simple time and get canonical string
         valueToSet =

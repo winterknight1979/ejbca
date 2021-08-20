@@ -67,8 +67,8 @@ import org.cesecore.keys.token.CryptoTokenManagementSessionLocal;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
 import org.cesecore.keys.token.IllegalCryptoTokenException;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.StringTools;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.StringUtil;
+import org.cesecore.util.ValidityDateUtil;
 import org.ejbca.core.EjbcaException;
 import org.ejbca.core.ejb.authentication.web.WebAuthenticationProviderSessionLocal;
 import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionLocal;
@@ -344,9 +344,9 @@ public class EjbcaWSHelperSessionBean
                 DateFormat.getDateTimeInstance(
                     DateFormat.MEDIUM, DateFormat.SHORT, Locale.US);
             final String newCustomStartTime =
-                ValidityDate.formatAsISO8601(
+                ValidityDateUtil.formatAsISO8601(
                     oldDateFormat.parse(customStartTime),
-                    ValidityDate.TIMEZONE_UTC);
+                    ValidityDateUtil.TIMEZONE_UTC);
             LOG.info(
                 "WS client sent userdata with startTime using US Locale date"
                     + " format. yyyy-MM-dd HH:mm:ssZZ should be used for"
@@ -363,7 +363,7 @@ public class EjbcaWSHelperSessionBean
             customStartTime = newCustomStartTime;
           }
           customStartTime =
-              ValidityDate.getImpliedUTCFromISO8601(customStartTime);
+              ValidityDateUtil.getImpliedUTCFromISO8601(customStartTime);
         }
         ei.setCustomData(ExtendedInformation.CUSTOM_STARTTIME, customStartTime);
         useEI = true;
@@ -391,9 +391,9 @@ public class EjbcaWSHelperSessionBean
                 DateFormat.getDateTimeInstance(
                     DateFormat.MEDIUM, DateFormat.SHORT, Locale.US);
             final String newCustomStartTime =
-                ValidityDate.formatAsISO8601(
+                ValidityDateUtil.formatAsISO8601(
                     oldDateFormat.parse(customEndTime),
-                    ValidityDate.TIMEZONE_UTC);
+                    ValidityDateUtil.TIMEZONE_UTC);
             LOG.info(
                 "WS client sent userdata with endTime using US Locale date"
                     + " format. yyyy-MM-dd HH:mm:ssZZ should be used for"
@@ -409,7 +409,7 @@ public class EjbcaWSHelperSessionBean
             }
             customEndTime = newCustomStartTime;
           }
-          customEndTime = ValidityDate.getImpliedUTCFromISO8601(customEndTime);
+          customEndTime = ValidityDateUtil.getImpliedUTCFromISO8601(customEndTime);
         }
         ei.setCustomData(ExtendedInformation.CUSTOM_ENDTIME, customEndTime);
         useEI = true;
@@ -432,7 +432,7 @@ public class EjbcaWSHelperSessionBean
       // It could/should B64 encoded to avoid XML baddies,
       // ExtendedInformation.getRawSubjectDn does encoding, if the string is
       // encoded
-      final String value = StringTools.putBase64String(userdata.getSubjectDN());
+      final String value = StringUtil.putBase64String(userdata.getSubjectDN());
       ei.setMapData(ExtendedInformation.RAWSUBJECTDN, value);
       useEI = true;
     }
@@ -628,8 +628,8 @@ public class EjbcaWSHelperSessionBean
         try {
           // Always respond with the time formatted in a neutral time zone
           startTime =
-              ValidityDate.getISO8601FromImpliedUTC(
-                  startTime, ValidityDate.TIMEZONE_UTC);
+              ValidityDateUtil.getISO8601FromImpliedUTC(
+                  startTime, ValidityDateUtil.TIMEZONE_UTC);
         } catch (ParseException e) {
           LOG.info(
               "Failed to convert "
@@ -645,8 +645,8 @@ public class EjbcaWSHelperSessionBean
         try {
           // Always respond with the time formatted in a neutral time zone
           endTime =
-              ValidityDate.getISO8601FromImpliedUTC(
-                  endTime, ValidityDate.TIMEZONE_UTC);
+              ValidityDateUtil.getISO8601FromImpliedUTC(
+                  endTime, ValidityDateUtil.TIMEZONE_UTC);
         } catch (ParseException e) {
           LOG.info(
               "Failed to convert "

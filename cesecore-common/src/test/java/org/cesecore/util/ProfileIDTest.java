@@ -21,7 +21,7 @@ import org.apache.log4j.Logger;
 import org.junit.Test;
 
 /**
- * Test of {@link ProfileID}.
+ * Test of {@link ProfileIDUtil}.
  *
  * @version $Id: ProfileIDTest.java 23749 2016-06-30 11:12:39Z mikekushner $
  */
@@ -31,7 +31,7 @@ public class ProfileIDTest {
   /** Logger. */
   private static final Logger LOG = Logger.getLogger(ProfileIDTest.class);
 
-  private class DBTestSometimesFree implements ProfileID.DB {
+  private class DBTestSometimesFree implements ProfileIDUtil.DB {
       /** tries. */
     private int triesUntilFree = -1;
 
@@ -50,7 +50,7 @@ public class ProfileIDTest {
     }
   }
 
-  private class DBTestReal implements ProfileID.DB {
+  private class DBTestReal implements ProfileIDUtil.DB {
       /** IDs. */
     private final Set<Integer> ids = new HashSet<Integer>();
 
@@ -64,7 +64,7 @@ public class ProfileIDTest {
     }
   }
 
-  private class DBTestNeverFree implements ProfileID.DB {
+  private class DBTestNeverFree implements ProfileIDUtil.DB {
     DBTestNeverFree() {
       // do nothing
     }
@@ -79,7 +79,7 @@ public class ProfileIDTest {
   public void testNothingFree() {
     LOG.trace(">testNothingFree()");
     try {
-      final int i = ProfileID.getNotUsedID(new DBTestNeverFree());
+      final int i = ProfileIDUtil.getNotUsedID(new DBTestNeverFree());
       assertTrue(
           "Should not have been possible to generate anything but "
               + i
@@ -93,27 +93,27 @@ public class ProfileIDTest {
   /**
    * Simulates real behavior. We check that the ID never has been generated
    * before. Check the log and see that {@link
-   * ProfileID#getNotUsedID(ProfileID.DB)} only calls {@link
-   * ProfileID.DB#isFree} once in almost all test.
+   * ProfileIDUtil#getNotUsedID(ProfileIDUtil.DB)} only calls {@link
+   * ProfileIDUtil.DB#isFree} once in almost all test.
    */
   @Test
   public void testReal() {
     LOG.trace(">testReal()");
     for (int i = 0; i < 0x1000000; i++) {
-      final int id = ProfileID.getNotUsedID(new DBTestReal());
+      final int id = ProfileIDUtil.getNotUsedID(new DBTestReal());
       assertTrue(id > 0xffff);
     }
     LOG.trace("<testReal()");
   }
   /**
-   * Test when {@link ProfileID#getNotUsedID(ProfileID.DB)} sometimes return
+   * Test when {@link ProfileIDUtil#getNotUsedID(ProfileIDUtil.DB)} sometimes return
    * false.
    */
   @Test
   public void testSometimesFree() {
     LOG.trace(">testSometimesFree()");
     for (int i = 0; i < 0x100; i++) {
-      final int id = ProfileID.getNotUsedID(new DBTestSometimesFree());
+      final int id = ProfileIDUtil.getNotUsedID(new DBTestSometimesFree());
       assertTrue(id > 0xffff);
     }
     LOG.trace("<testSometimesFree()");

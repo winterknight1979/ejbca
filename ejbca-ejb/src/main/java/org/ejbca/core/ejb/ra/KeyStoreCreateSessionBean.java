@@ -57,7 +57,7 @@ import org.cesecore.keys.util.KeyStoreTools;
 import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.keys.util.PublicKeyWrapper;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.EJBTools;
+import org.cesecore.util.EJBUtil;
 import org.ejbca.config.GlobalConfiguration;
 import org.ejbca.core.EjbcaException;
 import org.ejbca.core.ejb.ca.auth.EndEntityAuthenticationSessionLocal;
@@ -480,7 +480,7 @@ public class KeyStoreCreateSessionBean
         LOG.debug("Saving generated keys for recovery for user: " + username);
       }
       keyRecoverySession.addKeyRecoveryData(
-          administrator, EJBTools.wrap(cert), username, EJBTools.wrap(rsaKeys));
+          administrator, EJBUtil.wrap(cert), username, EJBUtil.wrap(rsaKeys));
     }
     //  Use CN if as alias in the keystore, if CN is not present use username
     String alias = CertTools.getPartFromDN(CertTools.getSubjectDN(cert), "CN");

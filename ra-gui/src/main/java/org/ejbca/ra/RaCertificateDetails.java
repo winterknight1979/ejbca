@@ -53,7 +53,7 @@ import org.cesecore.certificates.util.AlgorithmTools;
 import org.cesecore.certificates.util.cert.QCStatementExtension;
 import org.cesecore.certificates.util.cert.SubjectDirAttrExtension;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.ValidityDateUtil;
 import org.ejbca.core.ejb.ra.NoSuchEndEntityException;
 import org.ejbca.core.model.approval.ApprovalException;
 import org.ejbca.core.model.approval.WaitingForApprovalException;
@@ -328,7 +328,7 @@ public class RaCertificateDetails {
                 + ((ECPublicKey) publicKey).getW().getAffineY().toString(16);
       }
       this.created =
-          ValidityDate.formatAsISO8601ServerTZ(
+          ValidityDateUtil.formatAsISO8601ServerTZ(
               CertTools.getNotBefore(certificate).getTime(),
               TimeZone.getDefault());
       this.signatureAlgorithm =
@@ -425,18 +425,18 @@ public class RaCertificateDetails {
     }
     this.expireDate = certificateData.getExpireDate();
     this.expires =
-        ValidityDate.formatAsISO8601ServerTZ(expireDate, TimeZone.getDefault());
+        ValidityDateUtil.formatAsISO8601ServerTZ(expireDate, TimeZone.getDefault());
     if (status == CertificateConstants.CERT_ARCHIVED
         || status == CertificateConstants.CERT_REVOKED) {
       this.updated =
-          ValidityDate.formatAsISO8601ServerTZ(
+          ValidityDateUtil.formatAsISO8601ServerTZ(
               certificateData.getRevocationDate(), TimeZone.getDefault());
       this.revocationDate =
-          ValidityDate.formatAsISO8601ServerTZ(
+          ValidityDateUtil.formatAsISO8601ServerTZ(
               certificateData.getRevocationDate(), TimeZone.getDefault());
     } else {
       this.updated =
-          ValidityDate.formatAsISO8601ServerTZ(
+          ValidityDateUtil.formatAsISO8601ServerTZ(
               certificateData.getUpdateTime(), TimeZone.getDefault());
     }
     final String subjectKeyIdB64 = certificateData.getSubjectKeyId();

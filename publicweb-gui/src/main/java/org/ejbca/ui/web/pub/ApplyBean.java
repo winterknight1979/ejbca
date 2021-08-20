@@ -35,7 +35,7 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.certificates.util.AlgorithmTools;
 import org.cesecore.config.CesecoreConfigurationHelper;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.config.WebConfiguration;
 import org.ejbca.core.ejb.ra.NoSuchEndEntityException;
 import org.ejbca.core.model.SecConst;
@@ -582,7 +582,7 @@ public class ApplyBean implements Serializable {
                 + ";"
                 + AlgorithmConstants.KEYALGORITHM_ECDSA
                 + " "
-                + StringTools.getAsStringWithSeparator(
+                + StringUtil.getAsStringWithSeparator(
                     " / ",
                     AlgorithmTools.getAllCurveAliasesFromAlias(ecNamedCurve)));
       }

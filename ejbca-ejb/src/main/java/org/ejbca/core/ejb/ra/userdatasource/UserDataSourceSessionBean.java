@@ -40,7 +40,7 @@ import org.cesecore.authorization.control.StandardRules;
 import org.cesecore.certificates.ca.CaSessionLocal;
 import org.cesecore.jndi.JndiConstants;
 import org.cesecore.util.Base64GetHashMap;
-import org.cesecore.util.ProfileID;
+import org.cesecore.util.ProfileIDUtil;
 import org.cesecore.util.SecureXMLDecoder;
 import org.ejbca.core.ejb.audit.enums.EjbcaEventTypes;
 import org.ejbca.core.ejb.audit.enums.EjbcaModuleTypes;
@@ -756,8 +756,8 @@ public class UserDataSourceSessionBean
   }
 
   private int findFreeUserDataSourceId() {
-    final ProfileID.DB db =
-        new ProfileID.DB() {
+    final ProfileIDUtil.DB db =
+        new ProfileIDUtil.DB() {
           @Override
           public boolean isFree(final int i) {
             return UserDataSourceData.findById(
@@ -765,7 +765,7 @@ public class UserDataSourceSessionBean
                 == null;
           }
         };
-    return ProfileID.getNotUsedID(db);
+    return ProfileIDUtil.getNotUsedID(db);
   }
 
   /**

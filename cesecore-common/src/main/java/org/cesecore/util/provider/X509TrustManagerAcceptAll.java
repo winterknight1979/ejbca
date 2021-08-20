@@ -32,11 +32,6 @@ public class X509TrustManagerAcceptAll implements X509TrustManager {
   private static final Logger LOG =
       Logger.getLogger(X509TrustManagerAcceptAll.class);
 
-  /** */
-  public X509TrustManagerAcceptAll() {
-
-  }
-
   /* (non-Javadoc)
    * @see
    * javax.net.ssl.X509TrustManager#checkClientTrusted(java.security.cert.X509Certificate[],

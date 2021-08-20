@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 
 /**
  * Wrapper class for holding WS keystore data.
@@ -39,7 +39,7 @@ public class KeyStore extends TokenCertificateResponseWS {
    * @param password the password.
    */
   public KeyStore(byte[] rawKeystoreData, String password) {
-    keystoreData = Base64.encode(rawKeystoreData);
+    keystoreData = Base64Util.encode(rawKeystoreData);
   }
 
   /**
@@ -55,7 +55,7 @@ public class KeyStore extends TokenCertificateResponseWS {
           CertificateException {
     try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
       keystore.store(baos, password.toCharArray());
-      keystoreData = Base64.encode(baos.toByteArray());
+      keystoreData = Base64Util.encode(baos.toByteArray());
     }
   }
 
@@ -74,7 +74,7 @@ public class KeyStore extends TokenCertificateResponseWS {
    * @return the keystoreData in binary format
    */
   public byte[] getRawKeystoreData() {
-    return Base64.decode(keystoreData);
+    return Base64Util.decode(keystoreData);
   }
 
   /**

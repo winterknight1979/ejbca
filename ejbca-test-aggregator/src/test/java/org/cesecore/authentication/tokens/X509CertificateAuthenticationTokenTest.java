@@ -40,7 +40,7 @@ import org.cesecore.authorization.user.matchvalues.X500PrincipalAccessMatchValue
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
@@ -66,7 +66,7 @@ public class X509CertificateAuthenticationTokenTest {
   /** Before.*/
   @BeforeClass
   public static void setUpCryptoProvider() {
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
   }
 
   /** Before.

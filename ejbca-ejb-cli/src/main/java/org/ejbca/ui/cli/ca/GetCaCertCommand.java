@@ -24,7 +24,7 @@ import java.util.HashSet;
 import java.util.Set;
 import org.apache.log4j.Logger;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.ejbca.ui.cli.infrastructure.command.CommandResult;
 import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
 import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
@@ -101,7 +101,7 @@ public class GetCaCertCommand extends BaseCaAdminCommand {
     String caname = parameters.get(CA_NAME_KEY);
     String filename = parameters.get(FILE_KEY);
 
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
     ArrayList<Certificate> chain =
         new ArrayList<Certificate>(
             getCertChain(getAuthenticationToken(), caname));

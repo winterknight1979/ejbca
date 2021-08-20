@@ -36,8 +36,8 @@ import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.certificates.ca.CADoesntExistsException;
 import org.cesecore.certificates.certificate.IllegalKeyException;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
-import org.cesecore.util.Base64;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.Base64Util;
+import org.cesecore.util.CryptoProviderUtil;
 import org.ejbca.config.EjbcaConfiguration;
 import org.ejbca.core.ejb.ra.NoSuchEndEntityException;
 import org.ejbca.core.model.InternalEjbcaResources;
@@ -94,7 +94,7 @@ public class ScepServlet extends HttpServlet {
     super.init(config);
     try {
       // Install BouncyCastle provider
-      CryptoProviderTools.installBCProviderIfNotAvailable();
+      CryptoProviderUtil.installBCProviderIfNotAvailable();
     } catch (Exception e) {
       throw new ServletException(e);
     }
@@ -146,7 +146,7 @@ public class ScepServlet extends HttpServlet {
     while (-1 != (n = sin.read(buf))) {
       output.write(buf, 0, n);
     }
-    String message = new String(Base64.encode(output.toByteArray()));
+    String message = new String(Base64Util.encode(output.toByteArray()));
     service(
         operation,
         message,

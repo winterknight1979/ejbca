@@ -39,7 +39,7 @@ import org.cesecore.keys.token.IllegalCryptoTokenException;
 import org.cesecore.keys.token.PKCS11TestUtils;
 import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 
 /** @version $Id: CATokenTestBase.java 22478 2015-12-17 13:14:26Z primelars $ */
 public abstract class CATokenTestBase {
@@ -86,7 +86,7 @@ public abstract class CATokenTestBase {
       // Set key sequence so that next sequence will be 00001 (this is the
       // default though so not really needed here)
       catoken.setKeySequence(CAToken.DEFAULT_KEYSEQUENCE);
-      catoken.setKeySequenceFormat(StringTools.KEY_SEQUENCE_FORMAT_NUMERIC);
+      catoken.setKeySequenceFormat(StringUtil.KEY_SEQUENCE_FORMAT_NUMERIC);
       catoken.setSignatureAlgorithm(AlgorithmConstants.SIGALG_SHA256_WITH_RSA);
       catoken.setEncryptionAlgorithm(AlgorithmConstants.SIGALG_SHA256_WITH_RSA);
       // First we start by deleting all old entries
@@ -438,7 +438,7 @@ public abstract class CATokenTestBase {
     // Set key sequence so that next sequence will be 00001 (this is the default
     // though so not really needed here)
     catoken.setKeySequence(CAToken.DEFAULT_KEYSEQUENCE);
-    catoken.setKeySequenceFormat(StringTools.KEY_SEQUENCE_FORMAT_NUMERIC);
+    catoken.setKeySequenceFormat(StringUtil.KEY_SEQUENCE_FORMAT_NUMERIC);
     catoken.setSignatureAlgorithm(AlgorithmConstants.SIGALG_SHA1_WITH_DSA);
     catoken.setEncryptionAlgorithm(AlgorithmConstants.SIGALG_SHA256_WITH_RSA);
     // First we start by deleting all old entries
@@ -540,7 +540,7 @@ public abstract class CATokenTestBase {
       // Set key sequence so that next sequence will be 00001 (this is the
       // default though so not really needed here)
       catoken.setKeySequence(CAToken.DEFAULT_KEYSEQUENCE);
-      catoken.setKeySequenceFormat(StringTools.KEY_SEQUENCE_FORMAT_NUMERIC);
+      catoken.setKeySequenceFormat(StringUtil.KEY_SEQUENCE_FORMAT_NUMERIC);
       catoken.setSignatureAlgorithm(
           AlgorithmConstants.SIGALG_SHA256_WITH_ECDSA);
       catoken.setEncryptionAlgorithm(AlgorithmConstants.SIGALG_SHA256_WITH_RSA);
@@ -810,7 +810,7 @@ public abstract class CATokenTestBase {
       // Set key sequence so that next sequence will be 00001 (this is the
       // default though so not really needed here)
       catoken.setKeySequence(CAToken.DEFAULT_KEYSEQUENCE);
-      catoken.setKeySequenceFormat(StringTools.KEY_SEQUENCE_FORMAT_NUMERIC);
+      catoken.setKeySequenceFormat(StringUtil.KEY_SEQUENCE_FORMAT_NUMERIC);
       catoken.setSignatureAlgorithm(AlgorithmConstants.SIGALG_SHA1_WITH_RSA);
       catoken.setEncryptionAlgorithm(AlgorithmConstants.SIGALG_SHA1_WITH_RSA);
 

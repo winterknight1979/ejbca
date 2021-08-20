@@ -66,10 +66,10 @@ import org.cesecore.internal.InternalResources;
 import org.cesecore.internal.UpgradeableDataHashMap;
 import org.cesecore.keys.token.CryptoToken;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.StringTools;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.StringUtil;
+import org.cesecore.util.ValidityDateUtil;
 
 /**
  * CA is a base class that should be inherited by all CA types.
@@ -396,13 +396,13 @@ public abstract class CA extends UpgradeableDataHashMap // NOPMD: Long class
    * Gets the validity.
    *
    * @return the validity as ISO8601 date or relative time.
-   * @see org.cesecore.util.ValidityDate ValidityDate
+   * @see org.cesecore.util.ValidityDateUtil ValidityDate
    */
   @SuppressWarnings("deprecation")
   public String getEncodedValidity() {
     String result = (String) data.get(ENCODED_VALIDITY);
     if (StringUtils.isBlank(result)) {
-      result = ValidityDate.getStringBeforeVersion661(getValidity());
+      result = ValidityDateUtil.getStringBeforeVersion661(getValidity());
     }
     return result;
   }
@@ -578,7 +578,7 @@ public abstract class CA extends UpgradeableDataHashMap // NOPMD: Long class
       if (seqo != null) {
         keysequence = (String) seqo;
       }
-      int keysequenceformat = StringTools.KEY_SEQUENCE_FORMAT_NUMERIC;
+      int keysequenceformat = StringUtil.KEY_SEQUENCE_FORMAT_NUMERIC;
       Object seqfo = tokendata.get(CAToken.SEQUENCE_FORMAT);
       if (seqfo != null) {
         keysequenceformat = (Integer) seqfo;
@@ -607,7 +607,7 @@ public abstract class CA extends UpgradeableDataHashMap // NOPMD: Long class
     // things like a NulLCryptoToken does not have signature algorithms
     final String sigAlg = catoken.getSignatureAlgorithm();
     if (StringUtils.isNotEmpty(sigAlg)
-      && !StringTools.containsCaseInsensitive(
+      && !StringUtil.containsCaseInsensitive(
           AlgorithmConstants.AVAILABLE_SIGALGS, sigAlg)) {
         final String msg =
             INTRES.getLocalizedMessage(
@@ -619,7 +619,7 @@ public abstract class CA extends UpgradeableDataHashMap // NOPMD: Long class
     }
     final String encAlg = catoken.getEncryptionAlgorithm();
     if (StringUtils.isNotEmpty(encAlg)
-      && !StringTools.containsCaseInsensitive(
+      && !StringUtil.containsCaseInsensitive(
           AlgorithmConstants.AVAILABLE_SIGALGS, encAlg)) {
         final String msg =
             INTRES.getLocalizedMessage(
@@ -650,7 +650,7 @@ public abstract class CA extends UpgradeableDataHashMap // NOPMD: Long class
           try {
             this.requestcertchain.add(
                 CertTools.getCertfromByteArray(
-                    Base64.decode(b64Cert.getBytes()), Certificate.class));
+                    Base64Util.decode(b64Cert.getBytes()), Certificate.class));
           } catch (CertificateParsingException e) {
             throw new IllegalStateException(
                 "Database seems to contain invalid "
@@ -668,7 +668,7 @@ public abstract class CA extends UpgradeableDataHashMap // NOPMD: Long class
     final ArrayList<String> storechain = new ArrayList<>();
     for (final Certificate cert : requestcertificatechain) {
       try {
-        storechain.add(new String(Base64.encode(cert.getEncoded())));
+        storechain.add(new String(Base64Util.encode(cert.getEncoded())));
       } catch (Exception e) {
         throw new CesecoreRuntimeException(e);
       }
@@ -698,7 +698,7 @@ public abstract class CA extends UpgradeableDataHashMap // NOPMD: Long class
         try {
           Certificate cert =
               CertTools.getCertfromByteArray(
-                  Base64.decode(b64Cert.getBytes()), Certificate.class);
+                  Base64Util.decode(b64Cert.getBytes()), Certificate.class);
           if (cert != null) {
             if (log.isDebugEnabled()) {
               log.debug(
@@ -725,7 +725,7 @@ public abstract class CA extends UpgradeableDataHashMap // NOPMD: Long class
     final ArrayList<String> storechain = new ArrayList<>();
     for (final Certificate cert : aCertificatechain) {
       try {
-        storechain.add(new String(Base64.encode(cert.getEncoded())));
+        storechain.add(new String(Base64Util.encode(cert.getEncoded())));
       } catch (CertificateEncodingException e) {
         throw new IllegalArgumentException(e);
       }
@@ -752,7 +752,7 @@ public abstract class CA extends UpgradeableDataHashMap // NOPMD: Long class
         try {
           Certificate cert =
               CertTools.getCertfromByteArray(
-                  Base64.decode(b64Cert.getBytes()), Certificate.class);
+                  Base64Util.decode(b64Cert.getBytes()), Certificate.class);
           if (log.isDebugEnabled()) {
             log.debug(
                 "Adding CA certificate from "
@@ -785,7 +785,7 @@ public abstract class CA extends UpgradeableDataHashMap // NOPMD: Long class
     ArrayList<String> storechain = new ArrayList<>();
     for (Certificate cert : aCertificatechain) {
       try {
-        String b64Cert = new String(Base64.encode(cert.getEncoded()));
+        String b64Cert = new String(Base64Util.encode(cert.getEncoded()));
         storechain.add(b64Cert);
       } catch (CertificateEncodingException e) {
         throw new IllegalStateException(
@@ -807,7 +807,7 @@ public abstract class CA extends UpgradeableDataHashMap // NOPMD: Long class
     while (iter.hasNext()) {
       Certificate cert = iter.next();
       try {
-        String b64Cert = new String(Base64.encode(cert.getEncoded()));
+        String b64Cert = new String(Base64Util.encode(cert.getEncoded()));
         storechain.add(b64Cert);
       } catch (Exception e) {
         throw new CesecoreRuntimeException(e);
@@ -826,7 +826,7 @@ public abstract class CA extends UpgradeableDataHashMap // NOPMD: Long class
     for (Object o : storechain) {
       final String b64Cert = (String) o;
       try {
-        final byte[] decoded = Base64.decode(b64Cert.getBytes("US-ASCII"));
+        final byte[] decoded = Base64Util.decode(b64Cert.getBytes("US-ASCII"));
         final Certificate cert =
             CertTools.getCertfromByteArray(decoded, Certificate.class);
         chain.add(cert);
@@ -1279,7 +1279,7 @@ public abstract class CA extends UpgradeableDataHashMap // NOPMD: Long class
     }
     final Date notAfter;
     if (StringUtils.isNotBlank(encodedValidity)) {
-      notAfter = ValidityDate.getDate(encodedValidity, notBefore);
+      notAfter = ValidityDateUtil.getDate(encodedValidity, notBefore);
     } else {
       notAfter = null;
     }
@@ -1904,7 +1904,7 @@ private String setClassName(final int type, final String classname) {
       try {
         data.put(
             LATESTLINKCERTIFICATE,
-            new String(Base64.encode(encodedLinkCertificate), "UTF8"));
+            new String(Base64Util.encode(encodedLinkCertificate), "UTF8"));
       } catch (final UnsupportedEncodingException e) {
         throw new CesecoreRuntimeException(e); // Lack of UTF8 would be fatal.
       }
@@ -1917,7 +1917,7 @@ private String setClassName(final int type, final String classname) {
       return null;
     }
     try {
-      return Base64.decode(
+      return Base64Util.decode(
           ((String) data.get(LATESTLINKCERTIFICATE)).getBytes("UTF8"));
     } catch (final UnsupportedEncodingException e) {
       throw new CesecoreRuntimeException(e); // Lack of UTF8 would be fatal.

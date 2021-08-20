@@ -24,7 +24,7 @@ import java.security.cert.Certificate;
  * having a transient Certificate object and having an encoded certificate that
  * is actually serialized.
  *
- * @see org.cesecore.util.EJBTools
+ * @see org.cesecore.util.EJBUtil
  * @version $Id: CertificateWrapper.java 21875 2015-09-16 19:57:31Z samuellb $
  */
 public interface CertificateWrapper extends Serializable {

@@ -20,7 +20,7 @@ import javax.faces.validator.Validator;
 import javax.faces.validator.ValidatorException;
 import org.apache.log4j.Logger;
 import org.cesecore.util.SimpleTime;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.cesecore.util.TimeUnitFormat;
 import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
 
@@ -59,7 +59,7 @@ public class SimpleTimeValidator implements Validator {
               (String) component.getAttributes().get("maximumValue"));
     }
     boolean failed = true;
-    if (StringTools.hasSqlStripChars(value).isEmpty()) {
+    if (StringUtil.hasSqlStripChars(value).isEmpty()) {
       try {
         final long millis = format.parseMillis(value);
         if (minimumValue <= millis && millis <= maximumValue) {

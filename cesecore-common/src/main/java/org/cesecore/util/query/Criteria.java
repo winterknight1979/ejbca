@@ -27,9 +27,9 @@ import org.cesecore.util.query.elems.Term;
  */
 public final class Criteria implements Serializable {
 
-    private Criteria() { }
   private static final long serialVersionUID = 3186042047323993627L;
 
+  private Criteria() { }
   /**
    * @param name Name
    * @param value Value

@@ -21,7 +21,7 @@ import org.bouncycastle.jce.spec.ECNamedCurveSpec;
 import org.cesecore.certificates.ca.CAInfo;
 import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.ejbca.ui.cli.infrastructure.command.CommandResult;
 import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
 import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
@@ -60,7 +60,7 @@ public class CaInfoCommand extends BaseCaAdminCommand {
 
   @Override
   public CommandResult execute(final ParameterContainer parameters) {
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
     String caname = parameters.get(CA_NAME_KEY);
     CAInfo cainfo = getCAInfo(getAuthenticationToken(), caname);
     if (cainfo != null) {

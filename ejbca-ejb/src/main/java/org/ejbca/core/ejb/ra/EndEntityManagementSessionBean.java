@@ -87,10 +87,10 @@ import org.cesecore.jndi.JndiConstants;
 import org.cesecore.roles.member.RoleMemberData;
 import org.cesecore.util.CeSecoreNameStyle;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.EJBTools;
+import org.cesecore.util.EJBUtil;
 import org.cesecore.util.PrintableStringNameStyle;
-import org.cesecore.util.RFC4683Tools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.RFC4683Util;
+import org.cesecore.util.StringUtil;
 import org.ejbca.config.GlobalConfiguration;
 import org.ejbca.config.WebConfiguration;
 import org.ejbca.core.EjbcaException;
@@ -395,12 +395,12 @@ public class EndEntityManagementSessionBean
         endEntity, endEntityProfileId, endEntityProfileName);
     final String dn =
         CertTools.stringToBCDNString(
-            StringTools.strip(endEntityInformationCopy.getDN()));
+            StringUtil.strip(endEntityInformationCopy.getDN()));
     endEntityInformationCopy.setDN(dn);
     endEntityInformationCopy.setSubjectAltName(
-        StringTools.strip(endEntityInformationCopy.getSubjectAltName()));
+        StringUtil.strip(endEntityInformationCopy.getSubjectAltName()));
     endEntityInformationCopy.setEmail(
-        StringTools.strip(endEntityInformationCopy.getEmail()));
+        StringUtil.strip(endEntityInformationCopy.getEmail()));
     return endEntityInformationCopy;
   }
 
@@ -499,7 +499,7 @@ public class EndEntityManagementSessionBean
     final String dn = endEntity.getDN();
     String altName = endEntity.getSubjectAltName();
     try {
-      altName = RFC4683Tools.generateSimForInternalSanFormat(altName);
+      altName = RFC4683Util.generateSimForInternalSanFormat(altName);
     } catch (Exception e) {
       LOG.info("Could not generate SIM string for SAN: " + altName, e);
       throw new EndEntityProfileValidationException(
@@ -887,8 +887,8 @@ public class EndEntityManagementSessionBean
       throw new IllegalArgumentException(
           "Cannot rename an end entity to or from null.");
     }
-    currentUsername = StringTools.stripUsername(currentUsername).trim();
-    newUsername = StringTools.stripUsername(newUsername).trim();
+    currentUsername = StringUtil.stripUsername(currentUsername).trim();
+    newUsername = StringUtil.stripUsername(newUsername).trim();
     if (currentUsername.length() == 0 || newUsername.length() == 0) {
       throw new IllegalArgumentException(
           "Cannot rename an end entity to or from empty string.");
@@ -1221,7 +1221,7 @@ public class EndEntityManagementSessionBean
 
     String dn =
         CertTools.stringToBCDNString(
-            StringTools.strip(endEntityInformation.getDN()));
+            StringUtil.strip(endEntityInformation.getDN()));
     String altName = endEntityInformation.getSubjectAltName();
     if (LOG.isTraceEnabled()) {
       LOG.trace(
@@ -1234,7 +1234,7 @@ public class EndEntityManagementSessionBean
               + ")");
     }
     try {
-      altName = RFC4683Tools.generateSimForInternalSanFormat(altName);
+      altName = RFC4683Util.generateSimForInternalSanFormat(altName);
     } catch (Exception e) {
       LOG.info("Could not generate SIM string for SAN: " + altName, e);
       throw new EndEntityProfileValidationException(
@@ -3371,7 +3371,7 @@ public class EndEntityManagementSessionBean
     if (keyRecoverySession.authorizedToKeyRecover(admin, endEntityProfileId)) {
       keyRecoverySession.checkIfApprovalRequired(
           admin,
-          EJBTools.wrap(certificate),
+          EJBUtil.wrap(certificate),
           username,
           endEntityProfileId,
           false);

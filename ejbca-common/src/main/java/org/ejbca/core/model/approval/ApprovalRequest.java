@@ -33,7 +33,7 @@ import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authentication.tokens.LocalJvmOnlyAuthenticationToken;
 import org.cesecore.authentication.tokens.UsernamePrincipal;
 import org.cesecore.authentication.tokens.X509CertificateAuthenticationToken;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
 import org.ejbca.core.ejb.authentication.cli.CliAuthenticationToken;
 import org.ejbca.core.ejb.authentication.cli.CliAuthenticationTokenReferenceRegistry;
@@ -474,7 +474,7 @@ public abstract class ApprovalRequest implements Externalizable {
     final int version = in.readInt();
     if (version == 1) {
       final String requestAdminCert = (String) in.readObject();
-      final byte[] certbuf = Base64.decode(requestAdminCert.getBytes());
+      final byte[] certbuf = Base64Util.decode(requestAdminCert.getBytes());
       final CertificateFactory cf = CertTools.getCertificateFactory();
       X509Certificate x509cert = null;
       try {

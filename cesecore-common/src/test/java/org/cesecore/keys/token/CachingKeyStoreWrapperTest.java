@@ -23,7 +23,7 @@ import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.cesecore.keys.util.KeyStoreTools;
 import org.cesecore.keys.util.KeyUtil;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -36,7 +36,7 @@ import org.junit.Test;
 public class CachingKeyStoreWrapperTest {
 /** Constructor. */
   public CachingKeyStoreWrapperTest() {
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
   }
 /** PWD. */
   private static final String ALIAS = "alias";

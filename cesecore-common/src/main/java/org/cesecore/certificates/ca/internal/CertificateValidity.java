@@ -30,7 +30,7 @@ import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.internal.InternalResources;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.SimpleTime;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.ValidityDateUtil;
 
 /**
  * Class used to construct validity times based on a range of different input
@@ -71,12 +71,12 @@ public class CertificateValidity {
   static {
     final String value = CesecoreConfigurationHelper.getCaTooLateExpireDate();
     try {
-      tooLateExpireDate = ValidityDate.parseCaLatestValidDateTime(value);
+      tooLateExpireDate = ValidityDateUtil.parseCaLatestValidDateTime(value);
     } catch (Exception e) {
       final String newValue =
-          ValidityDate.formatAsISO8601(
-              new Date(Long.MAX_VALUE), ValidityDate.TIMEZONE_SERVER);
-      tooLateExpireDate = ValidityDate.parseCaLatestValidDateTime(newValue);
+          ValidityDateUtil.formatAsISO8601(
+              new Date(Long.MAX_VALUE), ValidityDateUtil.TIMEZONE_SERVER);
+      tooLateExpireDate = ValidityDateUtil.parseCaLatestValidDateTime(newValue);
       LOG.warn(
           "cesecore.properties ca.toolateexpiredate '"
               + value
@@ -394,7 +394,7 @@ private Date getLastDate(final CertificateProfile certProfile) {
               + Arrays.asList(certProfile.getExpirationRestrictionWeekdays()));
       try {
         final Date newDate =
-            ValidityDate.applyExpirationRestrictionForWeekdays(
+            ValidityDateUtil.applyExpirationRestrictionForWeekdays(
                 certProfileLastDate,
                 certProfile.getExpirationRestrictionWeekdays(),
                 certProfile.getExpirationRestrictionForWeekdaysExpireBefore());
@@ -498,10 +498,10 @@ private void logStartConstruct(final EndEntityInformation subject,
     final String encodedValidity = profile.getEncodedValidity();
     Date date = null;
     if (StringUtils.isNotBlank(encodedValidity)) {
-      date = ValidityDate.getDate(encodedValidity, aFirstDate);
+      date = ValidityDateUtil.getDate(encodedValidity, aFirstDate);
     } else {
       date =
-          ValidityDate.getDateBeforeVersion661(
+          ValidityDateUtil.getDateBeforeVersion661(
               profile.getValidity(), aFirstDate);
     }
     return date.getTime();
@@ -706,7 +706,7 @@ private static void handleNotBefore(final X509Certificate cert,
    * @param encodedValidity the validity
    * @return Boolean.TRUE if it is a relative time, Boolean.FALSE if it is an
    *     ISO8601 date, otherwise NULL. @See {@link
-   *     org.cesecore.util.ValidityDate ValidityDate} @See {@link
+   *     org.cesecore.util.ValidityDateUtil ValidityDate} @See {@link
    *     org.cesecore.util.SimpleTime SimpleTime}
    */
   private static Boolean isRelativeTime(final String encodedValidity) {
@@ -717,7 +717,7 @@ private static void handleNotBefore(final X509Certificate cert,
     } catch (NumberFormatException nfe) { // NOPMD this is a no-op
     }
     try {
-      ValidityDate.parseAsIso8601(encodedValidity);
+      ValidityDateUtil.parseAsIso8601(encodedValidity);
       return Boolean.FALSE;
     } catch (ParseException e) {
       return null;
@@ -748,7 +748,7 @@ private static void handleNotBefore(final X509Certificate cert,
       } else {
         try {
           // Try parsing data as "yyyy-MM-dd HH:mm" assuming UTC
-          result = ValidityDate.parseAsUTC(timeString);
+          result = ValidityDateUtil.parseAsUTC(timeString);
         } catch (ParseException e) {
           LOG.error(
               INTRES.getLocalizedMessage(

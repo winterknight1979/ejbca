@@ -28,7 +28,7 @@ import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.internal.InternalResources;
 import org.cesecore.jndi.JndiConstants;
 import org.cesecore.keys.token.p11.exception.NoSuchSlotException;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.cesecore.util.QueryResultWrapper;
 
 /**
@@ -57,7 +57,7 @@ public class CryptoTokenSessionBean
   /** Setup. */
   @PostConstruct
   public void postConstruct() {
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
   }
 
   @TransactionAttribute(TransactionAttributeType.SUPPORTS)

@@ -18,7 +18,7 @@ import java.util.Properties;
 import org.cesecore.keys.token.CryptoToken;
 import org.cesecore.keys.token.SoftCryptoTokenTest;
 import org.cesecore.keys.util.KeyUtil;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.junit.Test;
 
 /**
@@ -30,7 +30,7 @@ import org.junit.Test;
 public class SoftCATokenTest extends CATokenTestBase {
 /** Constructor. */
   public SoftCATokenTest() {
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
   }
   /**
    * @throws Exception fail

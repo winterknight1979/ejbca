@@ -30,7 +30,7 @@ import org.cesecore.keybind.InternalKeyBindingMgmtSessionRemote;
 import org.cesecore.keybind.InternalKeyBindingStatus;
 import org.cesecore.keybind.impl.OcspKeyBinding;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.EJBTools;
+import org.cesecore.util.EJBUtil;
 import org.cesecore.util.EjbRemoteHelper;
 import org.ejbca.ui.cli.infrastructure.command.CommandResult;
 import org.ejbca.ui.cli.infrastructure.command.EjbcaCliUserCommandBase;
@@ -133,7 +133,7 @@ public class SetDefaultOcspResponderCommand extends EjbcaCliUserCommandBase {
             getAuthenticationToken(), OcspKeyBinding.IMPLEMENTATION_ALIAS)) {
       if (info.getStatus().equals(InternalKeyBindingStatus.ACTIVE)) {
         Certificate certificate =
-            EJBTools.unwrap(
+            EJBUtil.unwrap(
                 certificateStoreSession.findCertificateByFingerprintRemote(
                     info.getCertificateId()));
         ikbContents.add(

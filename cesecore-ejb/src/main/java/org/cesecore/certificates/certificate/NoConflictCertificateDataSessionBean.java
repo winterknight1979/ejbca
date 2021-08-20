@@ -25,7 +25,7 @@ import org.apache.commons.lang.time.FastDateFormat;
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.crl.RevokedCertInfo;
 import org.cesecore.config.CesecoreConfigurationHelper;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.ValidityDateUtil;
 
 /**
  * Low level CRUD functions to access NoConflictCertificateData.
@@ -136,7 +136,7 @@ public class NoConflictCertificateDataSessionBean
               + issuerDN
               + "', Last Base CRL Date: "
               + FastDateFormat.getInstance(
-                      ValidityDate.ISO8601_DATE_FORMAT,
+                      ValidityDateUtil.ISO8601_DATE_FORMAT,
                       TimeZone.getTimeZone("GMT"))
                   .format(lastbasecrldate));
     }

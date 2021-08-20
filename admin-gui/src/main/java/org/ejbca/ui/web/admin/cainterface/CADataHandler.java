@@ -57,7 +57,7 @@ import org.cesecore.roles.management.RoleDataSessionLocal;
 import org.cesecore.roles.member.RoleMember;
 import org.cesecore.roles.member.RoleMemberDataSessionLocal;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.EJBTools;
+import org.cesecore.util.EJBUtil;
 import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionLocal;
 import org.ejbca.core.ejb.ca.publisher.PublisherSessionLocal;
 import org.ejbca.core.ejb.ra.EndEntityManagementSessionLocal;
@@ -216,7 +216,7 @@ public class CADataHandler implements Serializable {
       certs.add(CertTools.getCertfromByteArray(certbytes, Certificate.class));
     }
     caadminsession.updateCACertificate(
-        administrator, caId, EJBTools.wrapCertCollection(certs));
+        administrator, caId, EJBUtil.wrapCertCollection(certs));
   }
 
   /**
@@ -241,7 +241,7 @@ public class CADataHandler implements Serializable {
       certs.add(cert);
     }
     caadminsession.importCACertificate(
-        administrator, caname, EJBTools.wrapCertCollection(certs));
+        administrator, caname, EJBUtil.wrapCertCollection(certs));
   }
 
   /**

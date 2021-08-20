@@ -76,8 +76,8 @@ import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CeSecoreNameStyle;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.PrintableStringNameStyle;
-import org.cesecore.util.StringTools;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.StringUtil;
+import org.cesecore.util.ValidityDateUtil;
 import org.ejbca.core.EjbcaException;
 import org.ejbca.core.model.SecConst;
 import org.ejbca.core.model.TokenDownloadType;
@@ -458,12 +458,12 @@ public class EnrollMakeNewRequestBean implements Serializable {
       return raLocaleBean.getMessage("enroll_validity_help_empty");
     }
     final Date now = new Date();
-    final Date validityDate = ValidityDate.getDate(validity, now);
+    final Date validityDate = ValidityDateUtil.getDate(validity, now);
     if (validityDate == null) {
       return raLocaleBean.getMessage("enroll_validity_help_unparsable");
     }
     final Date maxDate =
-        ValidityDate.getDate(getCertificateProfile().getEncodedValidity(), now);
+        ValidityDateUtil.getDate(getCertificateProfile().getEncodedValidity(), now);
     if (validityDate.after(maxDate)) {
       return raLocaleBean.getMessage("enroll_validity_help_too_long");
     }
@@ -571,12 +571,12 @@ public class EnrollMakeNewRequestBean implements Serializable {
     }
     final Date anchorDate = new Date();
     final String validityToCheck = validity;
-    final Date userDate = ValidityDate.getDate(validityToCheck, anchorDate);
+    final Date userDate = ValidityDateUtil.getDate(validityToCheck, anchorDate);
     if (userDate == null) {
       return null;
     }
     final Date maxDate =
-        ValidityDate.getDate(
+        ValidityDateUtil.getDate(
             getCertificateProfile().getEncodedValidity(), anchorDate);
     if (userDate.after(maxDate)) {
       return null;
@@ -2147,7 +2147,7 @@ public class EnrollMakeNewRequestBean implements Serializable {
                     AlgorithmConstants.KEYALGORITHM_ECDSA + "_" + ecNamedCurve,
                     AlgorithmConstants.KEYALGORITHM_ECDSA
                         + " "
-                        + StringTools.getAsStringWithSeparator(
+                        + StringUtil.getAsStringWithSeparator(
                             " / ",
                             AlgorithmTools.getAllCurveAliasesFromAlias(
                                 ecNamedCurve))));
