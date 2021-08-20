@@ -77,7 +77,7 @@ import org.cesecore.certificates.certificatetransparency.CTLogInfo;
 import org.cesecore.certificates.ocsp.OcspResponseGeneratorSessionLocal;
 import org.cesecore.certificates.util.DNFieldExtractor;
 import org.cesecore.config.AvailableExtendedKeyUsagesConfiguration;
-import org.cesecore.config.ConfigurationHolder;
+import org.cesecore.config.ConfigurationHolderUtil;
 import org.cesecore.config.GlobalOcspConfiguration;
 import org.cesecore.config.OcspConfiguration;
 import org.cesecore.configuration.GlobalConfigurationSessionLocal;
@@ -98,9 +98,9 @@ import org.cesecore.roles.management.RoleSessionLocal;
 import org.cesecore.roles.member.RoleMember;
 import org.cesecore.roles.member.RoleMemberDataSessionLocal;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.cesecore.util.FileTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.cesecore.util.ui.PropertyValidationException;
 import org.ejbca.config.CmpConfiguration;
 import org.ejbca.config.DatabaseConfiguration;
@@ -674,7 +674,7 @@ public class UpgradeSessionBean
 
   private void importExtendedKeyUsagesFromFile() {
     final URL url =
-        ConfigurationHolder.class.getResource(
+        ConfigurationHolderUtil.class.getResource(
             "/conf/extendedkeyusage.properties");
     AvailableExtendedKeyUsagesConfiguration ekuConfig;
     if (url == null) {
@@ -686,7 +686,7 @@ public class UpgradeSessionBean
                   AvailableExtendedKeyUsagesConfiguration.CONFIGURATION_ID);
     } else {
       ekuConfig = new AvailableExtendedKeyUsagesConfiguration(false);
-      final Configuration conf = ConfigurationHolder.instance();
+      final Configuration conf = ConfigurationHolderUtil.instance();
       final String ekuname = "extendedkeyusage.name.";
       final String ekuoid = "extendedkeyusage.oid.";
       int j = 0;
@@ -1985,7 +1985,7 @@ public class UpgradeSessionBean
 
     // Read all files from trustDir, expect that they are PEM formatted
     // certificates.
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
     File dir = new File(trustDir);
     try {
       if (dir == null || !dir.isDirectory()) {
@@ -2307,6 +2307,6 @@ public class UpgradeSessionBean
   @TransactionAttribute(TransactionAttributeType.SUPPORTS)
   @Override
   public boolean isLesserThan(final String first, final String second) {
-    return StringTools.isLesserThan(first, second);
+    return StringUtil.isLesserThan(first, second);
   }
 }

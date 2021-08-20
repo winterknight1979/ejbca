@@ -27,9 +27,9 @@ import org.cesecore.authorization.user.AccessMatchType;
 import org.cesecore.authorization.user.AccessUserAspectData;
 import org.cesecore.roles.RoleData;
 import org.cesecore.roles.RoleInformation;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.LookAheadObjectInputStream;
-import org.cesecore.util.ProfileID;
+import org.cesecore.util.ProfileIDUtil;
 import org.cesecore.util.ui.DynamicUiProperty;
 import org.cesecore.util.ui.DynamicUiPropertyCallback;
 import org.cesecore.util.ui.DynamicUiPropertyValidator;
@@ -94,7 +94,7 @@ public class ApprovalStep implements Serializable {
    * @param encodedStep a serialized approval step encoded as a string.
    */
   public ApprovalStep(final String encodedStep) {
-    final byte[] bytes = Base64.decode(encodedStep.getBytes());
+    final byte[] bytes = Base64Util.decode(encodedStep.getBytes());
     try (LookAheadObjectInputStream ois =
         new LookAheadObjectInputStream(new ByteArrayInputStream(bytes))) {
       ois.setEnabledMaxObjects(false);
@@ -141,7 +141,7 @@ public class ApprovalStep implements Serializable {
       throw new IllegalStateException("Could not encode ApprovalStep", e);
     }
     byte[] byteArray = baos.toByteArray();
-    return new String(Base64.encode(byteArray, false));
+    return new String(Base64Util.encode(byteArray, false));
   }
 
   /** @return the identifier of this step. */
@@ -228,7 +228,7 @@ public class ApprovalStep implements Serializable {
   public ApprovalPartition addPartition() {
     Integer identifier;
     do {
-      identifier = ProfileID.getRandomIdNumber();
+      identifier = ProfileIDUtil.getRandomIdNumber();
     } while (partitions.containsKey(identifier));
     ApprovalPartition newPartition = new ApprovalPartition(identifier);
     partitions.put(identifier, newPartition);

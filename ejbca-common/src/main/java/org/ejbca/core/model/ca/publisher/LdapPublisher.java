@@ -46,9 +46,9 @@ import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.certificates.certificate.CertificateConstants;
 import org.cesecore.certificates.endentity.ExtendedInformation;
 import org.cesecore.certificates.util.DNFieldExtractor;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.core.model.InternalEjbcaResources;
 import org.ejbca.util.LdapNameStyle;
 import org.ejbca.util.LdapTools;
@@ -1354,14 +1354,14 @@ public class LdapPublisher extends BasePublisher {
     String pwd = (String) data.get(LOGINPASSWORD);
     // It may be obfuscated in the database, in that case de-obfuscate
     // "if" because older installations may not be obfuscated
-    pwd = StringTools.deobfuscateIf(pwd);
+    pwd = StringUtil.deobfuscateIf(pwd);
     return pwd;
   }
 
   /** @param loginpwd the loginpwd to the ldap server. */
   public void setLoginPassword(final String loginpwd) {
     // Obfuscate password before we store it in the database
-    final String pwd = StringTools.obfuscate(loginpwd);
+    final String pwd = StringUtil.obfuscate(loginpwd);
     data.put(LOGINPASSWORD, pwd);
   }
 
@@ -2054,7 +2054,7 @@ public class LdapPublisher extends BasePublisher {
 
   /** Dummy CRL. */
   protected static byte[] fakecrlbytes =
-      Base64.decode(
+      Base64Util.decode(
           ("MIIBKDCBkgIBATANBgkqhkiG9w0BAQUFADAvMQ8wDQYDVQQDEwZUZXN0Q0ExDzAN"
            + "BgNVBAoTBkFuYVRvbTELMAkGA1UEBhMCU0UXDTA0MDExMjE0MTQyMloXDTA0MDEx"
            + "MzE0MTQyMlqgLzAtMB8GA1UdIwQYMBaAFK1tyidIzx1qpuj5OjHl/0Ro8xTDMAoG"

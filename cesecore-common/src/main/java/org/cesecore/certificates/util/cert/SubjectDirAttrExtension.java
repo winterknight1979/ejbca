@@ -95,16 +95,7 @@ public final class SubjectDirAttrExtension extends CertTools {
         if (!StringUtils.isEmpty(result)) {
           prefix = ", ";
         }
-        if (attr.getAttrType().getId().equals(ID_PDA_DATE_OF_BIRTH)) {
-          ASN1Set set = attr.getAttrValues();
-          // Come on, we'll only allow one dateOfBirth, we're not allowing such
-          // frauds with multiple birth dates
-          ASN1GeneralizedTime time =
-              ASN1GeneralizedTime.getInstance(set.getObjectAt(0));
-          Date date = time.getDate();
-          String dateStr = dateF.format(date);
-          result += prefix + "dateOfBirth=" + dateStr;
-        }
+        result = handleDOB(result, prefix, dateF, attr);
         if (attr.getAttrType().getId().equals(ID_PDA_PLACE_OF_BIRTH)) {
           ASN1Set set = attr.getAttrValues();
           // same here only one placeOfBirth
@@ -136,6 +127,32 @@ public final class SubjectDirAttrExtension extends CertTools {
     }
     return result;
   }
+
+/**
+ * @param r res
+ * @param prefix pre
+ * @param dateF form
+ * @param attr attr
+ * @return result
+ * @throws ParseException fail
+ */
+private static String handleDOB(final String r,
+        final String prefix, final SimpleDateFormat dateF,
+        final Attribute attr)
+        throws ParseException {
+    String result = r;
+    if (attr.getAttrType().getId().equals(ID_PDA_DATE_OF_BIRTH)) {
+      ASN1Set set = attr.getAttrValues();
+      // Come on, we'll only allow one dateOfBirth, we're not allowing such
+      // frauds with multiple birth dates
+      ASN1GeneralizedTime time =
+          ASN1GeneralizedTime.getInstance(set.getObjectAt(0));
+      Date date = time.getDate();
+      String dateStr = dateF.format(date);
+      result += prefix + "dateOfBirth=" + dateStr;
+    }
+    return result;
+}
 
   /**
    * From subjectDirAttributes string as defined in getSubjectDirAttribute.

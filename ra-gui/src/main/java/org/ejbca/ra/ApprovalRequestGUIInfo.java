@@ -23,7 +23,7 @@ import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authentication.tokens.X509CertificateAuthenticationToken;
 import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.ValidityDateUtil;
 import org.cesecore.util.ui.DynamicUiProperty;
 import org.ejbca.core.model.approval.Approval;
 import org.ejbca.core.model.approval.ApprovalDataText;
@@ -68,8 +68,8 @@ public class ApprovalRequestGUIInfo implements Serializable {
      * @return Date
      */
     public String getApprovalDate() {
-      return ValidityDate.formatAsISO8601(
-          approval.getApprovalDate(), ValidityDate.TIMEZONE_SERVER);
+      return ValidityDateUtil.formatAsISO8601(
+          approval.getApprovalDate(), ValidityDateUtil.TIMEZONE_SERVER);
     }
 
     /**
@@ -485,10 +485,10 @@ public class ApprovalRequestGUIInfo implements Serializable {
     }
 
     requestDate =
-        ValidityDate.formatAsISO8601ServerTZ(
+        ValidityDateUtil.formatAsISO8601ServerTZ(
             approvalData.getRequestDate().getTime(), TimeZone.getDefault());
     requestExpireDate =
-        ValidityDate.formatAsISO8601ServerTZ(
+        ValidityDateUtil.formatAsISO8601ServerTZ(
             approvalData.getExpireDate().getTime(), TimeZone.getDefault());
     // These must be added last, so the "Extend" button appears under the
     // Expiration Date field.
@@ -634,7 +634,7 @@ public class ApprovalRequestGUIInfo implements Serializable {
     editLogEntries = new ArrayList<>();
     for (final TimeAndAdmin entry : arequest.getEditedByAdmin()) {
       final String editDate =
-          ValidityDate.formatAsISO8601(entry.getDate(), TimeZone.getDefault());
+       ValidityDateUtil.formatAsISO8601(entry.getDate(), TimeZone.getDefault());
       final String adminName;
       if (entry.getAdmin() instanceof X509CertificateAuthenticationToken) {
         final String adminDN =

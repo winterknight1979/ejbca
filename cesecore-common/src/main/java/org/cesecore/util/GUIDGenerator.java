@@ -23,7 +23,6 @@ import org.apache.log4j.Logger;
  * @version $Id: GUIDGenerator.java 20325 2014-11-25 19:22:49Z samuellb $
  */
 public final class GUIDGenerator {
-    private GUIDGenerator() { }
     /** Logger. */
   private static final Logger LOG = Logger.getLogger(GUIDGenerator.class);
 
@@ -33,6 +32,7 @@ public final class GUIDGenerator {
   /** Initialize the secure random instance. */
   private static final Random SEEDER = new Random();
 
+  private GUIDGenerator() { }
   /**
    * A 32 byte GUID generator (Globally Unique ID). These artificial keys SHOULD
    * <strong>NOT </strong> be seen by the user, not even touched by the DBA but

@@ -37,9 +37,9 @@ import org.cesecore.keys.token.CryptoTokenAuthenticationFailedException;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
 import org.cesecore.keys.token.IllegalCryptoTokenException;
 import org.cesecore.keys.token.PKCS11TestUtils;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 
 /** @version $Id: CATokenTestBase.java 22478 2015-12-17 13:14:26Z primelars $ */
 public abstract class CATokenTestBase {
@@ -86,7 +86,7 @@ public abstract class CATokenTestBase {
       // Set key sequence so that next sequence will be 00001 (this is the
       // default though so not really needed here)
       catoken.setKeySequence(CAToken.DEFAULT_KEYSEQUENCE);
-      catoken.setKeySequenceFormat(StringTools.KEY_SEQUENCE_FORMAT_NUMERIC);
+      catoken.setKeySequenceFormat(StringUtil.KEY_SEQUENCE_FORMAT_NUMERIC);
       catoken.setSignatureAlgorithm(AlgorithmConstants.SIGALG_SHA256_WITH_RSA);
       catoken.setEncryptionAlgorithm(AlgorithmConstants.SIGALG_SHA256_WITH_RSA);
       // First we start by deleting all old entries
@@ -162,8 +162,8 @@ public abstract class CATokenTestBase {
           cryptoToken.getPublicKey(
               catoken.getAliasFromPurpose(
                   CATokenConstants.CAKEYPURPOSE_CERTSIGN));
-      KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-      assertEquals(1024, KeyTools.getKeyLength(pub));
+      KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+      assertEquals(1024, KeyUtil.getKeyLength(pub));
       assertEquals("RSA", AlgorithmTools.getKeyAlgorithm(pub));
       String keyhash = CertTools.getFingerprintAsString(pub.getEncoded());
       PrivateKey privenc =
@@ -174,11 +174,11 @@ public abstract class CATokenTestBase {
           cryptoToken.getPublicKey(
               catoken.getAliasFromPurpose(
                   CATokenConstants.CAKEYPURPOSE_KEYENCRYPT));
-      assertEquals(1024, KeyTools.getKeyLength(pubenc));
+      assertEquals(1024, KeyUtil.getKeyLength(pubenc));
       assertEquals("RSA", AlgorithmTools.getKeyAlgorithm(pubenc));
-      KeyTools.testKey(privenc, pubenc, cryptoToken.getSignProviderName());
+      KeyUtil.testKey(privenc, pubenc, cryptoToken.getSignProviderName());
       try {
-        KeyTools.testKey(privenc, pub, cryptoToken.getSignProviderName());
+        KeyUtil.testKey(privenc, pub, cryptoToken.getSignProviderName());
         assertTrue(
             "Should have thrown because the encryption key and signature key"
                 + " should not be the same",
@@ -251,8 +251,8 @@ public abstract class CATokenTestBase {
           cryptoToken.getPublicKey(
               catoken.getAliasFromPurpose(
                   CATokenConstants.CAKEYPURPOSE_CERTSIGN));
-      KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-      assertEquals(1024, KeyTools.getKeyLength(pub));
+      KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+      assertEquals(1024, KeyUtil.getKeyLength(pub));
       String newkeyhash = CertTools.getFingerprintAsString(pub.getEncoded());
       assertFalse(
           "New kays are same as old keys, should not be...",
@@ -265,8 +265,8 @@ public abstract class CATokenTestBase {
           cryptoToken.getPublicKey(
               catoken.getAliasFromPurpose(
                   CATokenConstants.CAKEYPURPOSE_CERTSIGN_PREVIOUS));
-      KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-      assertEquals(1024, KeyTools.getKeyLength(pub));
+      KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+      assertEquals(1024, KeyUtil.getKeyLength(pub));
       String previouskeyhash =
           CertTools.getFingerprintAsString(pub.getEncoded());
       assertEquals(keyhash, previouskeyhash);
@@ -298,8 +298,8 @@ public abstract class CATokenTestBase {
           cryptoToken.getPublicKey(
               catoken.getAliasFromPurpose(
                   CATokenConstants.CAKEYPURPOSE_CERTSIGN));
-      KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-      assertEquals(1024, KeyTools.getKeyLength(pub));
+      KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+      assertEquals(1024, KeyUtil.getKeyLength(pub));
       String newkeyhash2 = CertTools.getFingerprintAsString(pub.getEncoded());
       assertEquals(newkeyhash, newkeyhash2);
       priv =
@@ -310,8 +310,8 @@ public abstract class CATokenTestBase {
           cryptoToken.getPublicKey(
               catoken.getAliasFromPurpose(
                   CATokenConstants.CAKEYPURPOSE_CERTSIGN_PREVIOUS));
-      KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-      assertEquals(1024, KeyTools.getKeyLength(pub));
+      KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+      assertEquals(1024, KeyUtil.getKeyLength(pub));
       String previouskeyhash2 =
           CertTools.getFingerprintAsString(pub.getEncoded());
       assertEquals(previouskeyhash, previouskeyhash2);
@@ -323,7 +323,7 @@ public abstract class CATokenTestBase {
           cryptoToken.getPublicKey(
               catoken.getAliasFromPurpose(
                   CATokenConstants.CAKEYPURPOSE_CERTSIGN_NEXT));
-      KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
+      KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
       String nextkeyhash = CertTools.getFingerprintAsString(pub.getEncoded());
       assertFalse(newkeyhash2.equals(nextkeyhash));
       String nextSequence =
@@ -342,7 +342,7 @@ public abstract class CATokenTestBase {
               catoken.getAliasFromPurpose(
                   CATokenConstants.CAKEYPURPOSE_KEYENCRYPT));
       try {
-        KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
+        KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
         assertTrue("Should throw", false);
       } catch (InvalidKeyException e) {
         // NOPMD
@@ -365,8 +365,8 @@ public abstract class CATokenTestBase {
           cryptoToken.getPublicKey(
               catoken.getAliasFromPurpose(
                   CATokenConstants.CAKEYPURPOSE_CERTSIGN));
-      KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-      assertEquals(1024, KeyTools.getKeyLength(pub));
+      KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+      assertEquals(1024, KeyUtil.getKeyLength(pub));
       String currentkeyhash =
           CertTools.getFingerprintAsString(pub.getEncoded());
       assertEquals(nextkeyhash, currentkeyhash);
@@ -378,8 +378,8 @@ public abstract class CATokenTestBase {
           cryptoToken.getPublicKey(
               catoken.getAliasFromPurpose(
                   CATokenConstants.CAKEYPURPOSE_CERTSIGN_PREVIOUS));
-      KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-      assertEquals(1024, KeyTools.getKeyLength(pub));
+      KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+      assertEquals(1024, KeyUtil.getKeyLength(pub));
       String previouskeyhash3 =
           CertTools.getFingerprintAsString(pub.getEncoded());
       assertEquals(newkeyhash2, previouskeyhash3);
@@ -393,8 +393,8 @@ public abstract class CATokenTestBase {
           cryptoToken.getPublicKey(
               catoken.getAliasFromPurpose(
                   CATokenConstants.CAKEYPURPOSE_KEYENCRYPT));
-      KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-      assertEquals(1024, KeyTools.getKeyLength(pub));
+      KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+      assertEquals(1024, KeyUtil.getKeyLength(pub));
       assertEquals(CryptoToken.STATUS_ACTIVE, cryptoToken.getTokenStatus());
     } finally {
       // Clean up and delete our generated keys
@@ -438,7 +438,7 @@ public abstract class CATokenTestBase {
     // Set key sequence so that next sequence will be 00001 (this is the default
     // though so not really needed here)
     catoken.setKeySequence(CAToken.DEFAULT_KEYSEQUENCE);
-    catoken.setKeySequenceFormat(StringTools.KEY_SEQUENCE_FORMAT_NUMERIC);
+    catoken.setKeySequenceFormat(StringUtil.KEY_SEQUENCE_FORMAT_NUMERIC);
     catoken.setSignatureAlgorithm(AlgorithmConstants.SIGALG_SHA1_WITH_DSA);
     catoken.setEncryptionAlgorithm(AlgorithmConstants.SIGALG_SHA256_WITH_RSA);
     // First we start by deleting all old entries
@@ -479,8 +479,8 @@ public abstract class CATokenTestBase {
         cryptoToken.getPublicKey(
             catoken.getAliasFromPurpose(
                 CATokenConstants.CAKEYPURPOSE_CERTSIGN));
-    KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-    assertEquals(1024, KeyTools.getKeyLength(pub));
+    KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+    assertEquals(1024, KeyUtil.getKeyLength(pub));
     assertEquals("DSA", AlgorithmTools.getKeyAlgorithm(pub));
     // Generate key above should have generated the sign key (DSA) and an
     // encryption key with the alias of the "default" key
@@ -494,11 +494,11 @@ public abstract class CATokenTestBase {
         cryptoToken.getPublicKey(
             catoken.getAliasFromPurpose(
                 CATokenConstants.CAKEYPURPOSE_KEYENCRYPT));
-    assertEquals(1024, KeyTools.getKeyLength(pubenc));
+    assertEquals(1024, KeyUtil.getKeyLength(pubenc));
     assertEquals("RSA", AlgorithmTools.getKeyAlgorithm(pubenc));
-    KeyTools.testKey(privenc, pubenc, cryptoToken.getSignProviderName());
+    KeyUtil.testKey(privenc, pubenc, cryptoToken.getSignProviderName());
     try {
-      KeyTools.testKey(privenc, pub, cryptoToken.getSignProviderName());
+      KeyUtil.testKey(privenc, pub, cryptoToken.getSignProviderName());
       assertTrue(
           "Should have thrown because the encryption key and signature key"
               + " should not be the same",
@@ -540,7 +540,7 @@ public abstract class CATokenTestBase {
       // Set key sequence so that next sequence will be 00001 (this is the
       // default though so not really needed here)
       catoken.setKeySequence(CAToken.DEFAULT_KEYSEQUENCE);
-      catoken.setKeySequenceFormat(StringTools.KEY_SEQUENCE_FORMAT_NUMERIC);
+      catoken.setKeySequenceFormat(StringUtil.KEY_SEQUENCE_FORMAT_NUMERIC);
       catoken.setSignatureAlgorithm(
           AlgorithmConstants.SIGALG_SHA256_WITH_ECDSA);
       catoken.setEncryptionAlgorithm(AlgorithmConstants.SIGALG_SHA256_WITH_RSA);
@@ -580,8 +580,8 @@ public abstract class CATokenTestBase {
           cryptoToken.getPublicKey(
               catoken.getAliasFromPurpose(
                   CATokenConstants.CAKEYPURPOSE_CERTSIGN));
-      KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-      assertEquals(256, KeyTools.getKeyLength(pub));
+      KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+      assertEquals(256, KeyUtil.getKeyLength(pub));
       assertEquals("ECDSA", AlgorithmTools.getKeyAlgorithm(pub));
       String keyhash = CertTools.getFingerprintAsString(pub.getEncoded());
       // There should exist an encryption key when we have generated keys with
@@ -592,7 +592,7 @@ public abstract class CATokenTestBase {
           cryptoToken.getPublicKey(
               catoken.getAliasFromPurpose(
                   CATokenConstants.CAKEYPURPOSE_KEYENCRYPT));
-      assertEquals(1024, KeyTools.getKeyLength(encPub));
+      assertEquals(1024, KeyUtil.getKeyLength(encPub));
 
       // Generate new keys, moving the old ones to "previous key"
       final String nextSignKeyAlias2 = catoken.generateNextSignKeyAlias();
@@ -620,8 +620,8 @@ public abstract class CATokenTestBase {
           cryptoToken.getPublicKey(
               catoken.getAliasFromPurpose(
                   CATokenConstants.CAKEYPURPOSE_CERTSIGN));
-      KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-      assertEquals(256, KeyTools.getKeyLength(pub));
+      KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+      assertEquals(256, KeyUtil.getKeyLength(pub));
       String newkeyhash = CertTools.getFingerprintAsString(pub.getEncoded());
       assertFalse(
           "New kays are same as old keys, should not be...",
@@ -634,8 +634,8 @@ public abstract class CATokenTestBase {
           cryptoToken.getPublicKey(
               catoken.getAliasFromPurpose(
                   CATokenConstants.CAKEYPURPOSE_CERTSIGN_PREVIOUS));
-      KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-      assertEquals(256, KeyTools.getKeyLength(pub));
+      KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+      assertEquals(256, KeyUtil.getKeyLength(pub));
       String previouskeyhash =
           CertTools.getFingerprintAsString(pub.getEncoded());
       assertEquals(keyhash, previouskeyhash);
@@ -664,8 +664,8 @@ public abstract class CATokenTestBase {
           cryptoToken.getPublicKey(
               catoken.getAliasFromPurpose(
                   CATokenConstants.CAKEYPURPOSE_CERTSIGN));
-      KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-      assertEquals(256, KeyTools.getKeyLength(pub));
+      KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+      assertEquals(256, KeyUtil.getKeyLength(pub));
       String newkeyhash2 = CertTools.getFingerprintAsString(pub.getEncoded());
       assertEquals(newkeyhash, newkeyhash2);
       priv =
@@ -676,8 +676,8 @@ public abstract class CATokenTestBase {
           cryptoToken.getPublicKey(
               catoken.getAliasFromPurpose(
                   CATokenConstants.CAKEYPURPOSE_CERTSIGN_PREVIOUS));
-      KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-      assertEquals(256, KeyTools.getKeyLength(pub));
+      KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+      assertEquals(256, KeyUtil.getKeyLength(pub));
       String previouskeyhash2 =
           CertTools.getFingerprintAsString(pub.getEncoded());
       assertEquals(previouskeyhash, previouskeyhash2);
@@ -689,7 +689,7 @@ public abstract class CATokenTestBase {
           cryptoToken.getPublicKey(
               catoken.getAliasFromPurpose(
                   CATokenConstants.CAKEYPURPOSE_CERTSIGN_NEXT));
-      KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
+      KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
       String nextkeyhash = CertTools.getFingerprintAsString(pub.getEncoded());
       assertFalse(newkeyhash2.equals(nextkeyhash));
       String nextSequence =
@@ -719,8 +719,8 @@ public abstract class CATokenTestBase {
           cryptoToken.getPublicKey(
               catoken.getAliasFromPurpose(
                   CATokenConstants.CAKEYPURPOSE_CERTSIGN));
-      KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-      assertEquals(256, KeyTools.getKeyLength(pub));
+      KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+      assertEquals(256, KeyUtil.getKeyLength(pub));
       String currentkeyhash =
           CertTools.getFingerprintAsString(pub.getEncoded());
       assertEquals(nextkeyhash, currentkeyhash);
@@ -732,8 +732,8 @@ public abstract class CATokenTestBase {
           cryptoToken.getPublicKey(
               catoken.getAliasFromPurpose(
                   CATokenConstants.CAKEYPURPOSE_CERTSIGN_PREVIOUS));
-      KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-      assertEquals(256, KeyTools.getKeyLength(pub));
+      KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+      assertEquals(256, KeyUtil.getKeyLength(pub));
       String previouskeyhash3 =
           CertTools.getFingerprintAsString(pub.getEncoded());
       assertEquals(newkeyhash2, previouskeyhash3);
@@ -753,13 +753,13 @@ public abstract class CATokenTestBase {
           cryptoToken.getPrivateKey(
               catoken.getAliasFromPurpose(
                   CATokenConstants.CAKEYPURPOSE_HARDTOKENENCRYPT));
-      KeyTools.testKey(priv, encPub, cryptoToken.getSignProviderName());
+      KeyUtil.testKey(priv, encPub, cryptoToken.getSignProviderName());
       // There exist an RSA encryption key
       pub =
           cryptoToken.getPublicKey(
               catoken.getAliasFromPurpose(
                   CATokenConstants.CAKEYPURPOSE_KEYENCRYPT));
-      assertEquals(1024, KeyTools.getKeyLength(pub));
+      assertEquals(1024, KeyUtil.getKeyLength(pub));
     } finally {
       // Clean up and delete our generated keys
       for (int i = 0; i < 4; i++) {
@@ -810,7 +810,7 @@ public abstract class CATokenTestBase {
       // Set key sequence so that next sequence will be 00001 (this is the
       // default though so not really needed here)
       catoken.setKeySequence(CAToken.DEFAULT_KEYSEQUENCE);
-      catoken.setKeySequenceFormat(StringTools.KEY_SEQUENCE_FORMAT_NUMERIC);
+      catoken.setKeySequenceFormat(StringUtil.KEY_SEQUENCE_FORMAT_NUMERIC);
       catoken.setSignatureAlgorithm(AlgorithmConstants.SIGALG_SHA1_WITH_RSA);
       catoken.setEncryptionAlgorithm(AlgorithmConstants.SIGALG_SHA1_WITH_RSA);
 
@@ -829,7 +829,7 @@ public abstract class CATokenTestBase {
       final String nextSignKeyAlias = catoken.generateNextSignKeyAlias();
       cryptoToken.generateKeyPair(keySpecification, nextSignKeyAlias);
       catoken.activateNextSignKey();
-      KeyTools.testKey(
+      KeyUtil.testKey(
           cryptoToken.getPrivateKey(
               catoken.getAliasFromPurpose(
                   CATokenConstants.CAKEYPURPOSE_CERTSIGN)),
@@ -842,7 +842,7 @@ public abstract class CATokenTestBase {
       // CryptoToken is emptied
       cryptoToken.deactivate();
       try {
-        KeyTools.testKey(
+        KeyUtil.testKey(
             cryptoToken.getPrivateKey(
                 catoken.getAliasFromPurpose(
                     CATokenConstants.CAKEYPURPOSE_CERTSIGN)),
@@ -870,7 +870,7 @@ public abstract class CATokenTestBase {
             || e.getMessage().equals(strp11));
       }
       cryptoToken.activate(TOKEN_PIN.toCharArray());
-      KeyTools.testKey(
+      KeyUtil.testKey(
           cryptoToken.getPrivateKey(
               catoken.getAliasFromPurpose(
                   CATokenConstants.CAKEYPURPOSE_CERTSIGN)),
@@ -925,7 +925,7 @@ public abstract class CATokenTestBase {
           cryptoToken.getPublicKey(
               catoken.getAliasFromPurpose(
                   CATokenConstants.CAKEYPURPOSE_CERTSIGN));
-      KeyTools.testKey(
+      KeyUtil.testKey(
           cryptoToken.getPrivateKey(
               catoken.getAliasFromPurpose(
                   CATokenConstants.CAKEYPURPOSE_CERTSIGN)),
@@ -939,7 +939,7 @@ public abstract class CATokenTestBase {
           cryptoToken.getPublicKey(
               newcatoken.getAliasFromPurpose(
                   CATokenConstants.CAKEYPURPOSE_CERTSIGN));
-      KeyTools.testKey(
+      KeyUtil.testKey(
           cryptoToken.getPrivateKey(
               newcatoken.getAliasFromPurpose(
                   CATokenConstants.CAKEYPURPOSE_CERTSIGN)),

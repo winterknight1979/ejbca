@@ -39,7 +39,7 @@ import org.cesecore.certificates.certificate.NoConflictCertificateStoreSessionLo
 import org.cesecore.certificates.crl.CRLInfo;
 import org.cesecore.certificates.crl.CrlStoreSessionLocal;
 import org.cesecore.certificates.crl.RevokedCertInfo;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.jndi.JndiConstants;
 import org.cesecore.util.CertTools;
 import org.ejbca.core.ejb.audit.enums.EjbcaEventTypes;
@@ -65,7 +65,7 @@ public class RevocationSessionBean
       Logger.getLogger(RevocationSessionBean.class);
 
   /** EM. */
-  @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+  @PersistenceContext(unitName = CesecoreConfigurationHelper.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
   /** EJB. */

@@ -47,8 +47,8 @@ import org.apache.log4j.Logger;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.encoders.DecoderException;
 import org.bouncycastle.util.encoders.Hex;
-import org.cesecore.config.CesecoreConfiguration;
-import org.cesecore.config.ConfigurationHolder;
+import org.cesecore.config.CesecoreConfigurationHelper;
+import org.cesecore.config.ConfigurationHolderUtil;
 
 /**
  * This class implements some utility functions that are useful when handling
@@ -56,9 +56,9 @@ import org.cesecore.config.ConfigurationHolder;
  *
  * @version $Id: StringTools.java 30973 2019-01-03 14:33:40Z samuellb $
  */
-public final class StringTools {
+public final class StringUtil { // NOPMD: len
     /** Logger. */
-  private static final Logger LOG = Logger.getLogger(StringTools.class);
+  private static final Logger LOG = Logger.getLogger(StringUtil.class);
 
   /** IPv4. */
   private static Pattern validIpv4Pattern = null;
@@ -74,70 +74,6 @@ public final class StringTools {
  /** IPv6. */
   private static final String IPV6_PATTERN =
       "([0-9a-f]{1,4}:){7}([0-9a-f]){1,4}";
-
-  static {
-    try {
-      validIpv4Pattern =
-          Pattern.compile(IPV4_PATTERN, Pattern.CASE_INSENSITIVE);
-      validIpv6Pattern =
-          Pattern.compile(IPV6_PATTERN, Pattern.CASE_INSENSITIVE);
-    } catch (PatternSyntaxException e) {
-      LOG.error("Unable to compile IP address validation pattern", e);
-    }
-  }
-
-  private StringTools() { } // Not for instantiation
-
-  /**
-   * Class that will be used to see if a character belong to a specific
-   * category. This is a singleton, with static initialization, meaning that it
-   * is thread safe. It also means that the
-   * CesecoreConfiguration.getForbiddenCharacters() can not be changed
-   * dynamically, but a re-start of EJBCA is needed if this calue is changed in
-   * the properties file
-   */
-  public static final class CharSet {
-      /** Singleton. */
-    private static CharSet instance =
-        new CharSet(CesecoreConfiguration.getForbiddenCharacters());
-
-    /**
-     * @return the instance
-     */
-    public static CharSet getInstance() {
-        return instance;
-    }
-
-    /** Charset. */
-    private Set<Character> charSet = null;
-    /**
-     * Create a set of characters from a char array.
-     *
-     * @param array chars
-     */
-    private CharSet(final char[] array) {
-      final Set<Character> set = new HashSet<Character>();
-      for (final char c : array) {
-        set.add(Character.valueOf(c));
-      }
-      this.charSet = set;
-    }
-    /**
-     * Check if a character is belonging to the set.
-     *
-     * @param c the character to test
-     * @return true if belonging
-     */
-    boolean contains(final char c) {
-      return this.charSet.contains(Character.valueOf(c));
-    }
-
-    /** Used to reset the value so we can JUnit test the class. */
-    public static void reset() {
-      instance = new CharSet(CesecoreConfiguration.getForbiddenCharacters());
-    }
-  }
-
   /** Characters that are not allowed in XSS compatible strings. */
   private static final CharSet STRIP_XSS = new CharSet(new char[] {'<', '>'});
   /** Characters that are not allowed
@@ -183,6 +119,78 @@ public final class StringTools {
   /** msk. */
   public static final int KEY_SEQUENCE_FORMAT_COUNTRY_CODE_PLUS_ALPHANUMERIC =
       8;
+  /** Default. */
+  private static final String DEAULT_P =
+      deobfuscate(
+          "OBF:1m0r1kmo1ioe1ia01j8z17y41l0q1abo1abm1abg"
+          + "1abe1kyc17ya1j631i5y1ik01kjy1lxf");
+  /** Default count. */
+  private static final int DEFAULT_COUNT = 100;
+
+  static {
+    try {
+      validIpv4Pattern =
+          Pattern.compile(IPV4_PATTERN, Pattern.CASE_INSENSITIVE);
+      validIpv6Pattern =
+          Pattern.compile(IPV6_PATTERN, Pattern.CASE_INSENSITIVE);
+    } catch (PatternSyntaxException e) {
+      LOG.error("Unable to compile IP address validation pattern", e);
+    }
+  }
+
+  private StringUtil() { } // Not for instantiation
+
+  /**
+   * Class that will be used to see if a character belong to a specific
+   * category. This is a singleton, with static initialization, meaning that it
+   * is thread safe. It also means that the
+   * CesecoreConfiguration.getForbiddenCharacters() can not be changed
+   * dynamically, but a re-start of EJBCA is needed if this calue is changed in
+   * the properties file
+   */
+  public static final class CharSet {
+        /** Charset. */
+        private Set<Character> charSet = null;
+      /** Singleton. */
+    private static CharSet instance =
+        new CharSet(CesecoreConfigurationHelper.getForbiddenCharacters());
+
+    /**
+     * @return the instance
+     */
+    public static CharSet getInstance() {
+        return instance;
+    }
+
+    /**
+     * Create a set of characters from a char array.
+     *
+     * @param array chars
+     */
+    private CharSet(final char[] array) {
+      final Set<Character> set = new HashSet<Character>();
+      for (final char c : array) {
+        set.add(Character.valueOf(c));
+      }
+      this.charSet = set;
+    }
+    /**
+     * Check if a character is belonging to the set.
+     *
+     * @param c the character to test
+     * @return true if belonging
+     */
+    protected boolean contains(final char c) {
+      return this.charSet.contains(Character.valueOf(c));
+    }
+
+    /** Used to reset the value so we can JUnit test the class. */
+  public static void reset() {
+   instance = new CharSet(CesecoreConfigurationHelper.getForbiddenCharacters());
+   }
+  }
+
+
 
   /**
    * Converts every string in a list to lower case.
@@ -477,7 +485,7 @@ public final class StringTools {
    */
   public static byte[] ipStringToOctets(final String str) {
     byte[] ret = null;
-    if (StringTools.isIpAddress(str)) {
+    if (StringUtil.isIpAddress(str)) {
       try {
         final InetAddress adr = InetAddress.getByName(str);
         ret = adr.getAddress();
@@ -505,11 +513,11 @@ public final class StringTools {
    *     address, <code>false</code> otherwise.
    */
   public static boolean isIpAddress(final String ipAddress) {
-    Matcher m1 = StringTools.validIpv4Pattern.matcher(ipAddress);
+    Matcher m1 = StringUtil.validIpv4Pattern.matcher(ipAddress);
     if (m1.matches()) {
       return true;
     }
-    Matcher m2 = StringTools.validIpv6Pattern.matcher(ipAddress);
+    Matcher m2 = StringUtil.validIpv6Pattern.matcher(ipAddress);
     return m2.matches();
   }
 
@@ -596,7 +604,7 @@ public final class StringTools {
     // Since we used getBytes(s, "UTF-8") in this method, we must use UTF-8 when
     // doing the reverse in another method
     return "B64:"
-        + new String(Base64.encode(s.getBytes(StandardCharsets.UTF_8), false));
+     + new String(Base64Util.encode(s.getBytes(StandardCharsets.UTF_8), false));
   }
 
   /**
@@ -622,7 +630,7 @@ public final class StringTools {
     try {
       // Since we used getBytes(s, "UTF-8") in the method putBase64String, we
       // must use UTF-8 when doing the reverse
-      return new String(Base64.decode(base64Data.getBytes("UTF-8")), "UTF-8");
+    return new String(Base64Util.decode(base64Data.getBytes("UTF-8")), "UTF-8");
     } catch (UnsupportedEncodingException | DecoderException e) {
       return input;
     }
@@ -729,8 +737,8 @@ public final class StringTools {
       final int size = 256;
       final String x = s.substring(i, i + length);
       final int i0 = Integer.parseInt(x, 36);
-      final int i1 = (i0 / size);
-      final int i2 = (i0 % size);
+      final int i1 = i0 / size;
+      final int i2 = i0 % size;
       b[l++] = (byte) ((i1 + i2 - (size - 2)) / 2);
     }
 
@@ -776,7 +784,7 @@ public final class StringTools {
   private static byte[] getSalt() {
     final boolean legacy =
         DEAULT_P.equals(
-            ConfigurationHolder.getString("password.encryption.key"));
+            ConfigurationHolderUtil.getString("password.encryption.key"));
     if (legacy) {
       LOG.debug("Using legacy password encryption/decryption");
       return getDefaultSalt();
@@ -794,14 +802,6 @@ public final class StringTools {
     return "1958473059684739584hfurmaqiekcmq".getBytes(StandardCharsets.UTF_8);
   }
 
-  /** Default. */
-  private static final String DEAULT_P =
-      deobfuscate(
-          "OBF:1m0r1kmo1ioe1ia01j8z17y41l0q1abo1abm1abg"
-          + "1abe1kyc17ya1j631i5y1ik01kjy1lxf");
-  /** Default count. */
-  private static final int DEFAULT_COUNT = 100;
-
   /** @return Default count. */
   private static int getDefaultCount() {
     return DEFAULT_COUNT;
@@ -815,10 +815,10 @@ public final class StringTools {
    */
   private static int getCount() {
     final String str =
-        ConfigurationHolder.getString("password.encryption.count");
+        ConfigurationHolderUtil.getString("password.encryption.count");
     final boolean legacy =
         DEAULT_P.equals(
-            ConfigurationHolder.getString("password.encryption.key"));
+            ConfigurationHolderUtil.getString("password.encryption.key"));
     if (StringUtils.isNumeric(str) && !legacy) {
       return Integer.valueOf(str);
     } else {
@@ -847,7 +847,7 @@ public final class StringTools {
           IllegalBlockSizeException, BadPaddingException,
           InvalidKeySpecException {
     char[] p =
-        ConfigurationHolder.getString("password.encryption.key").toCharArray();
+     ConfigurationHolderUtil.getString("password.encryption.key").toCharArray();
     return pbeEncryptStringWithSha256Aes192(in, p);
   }
 
@@ -867,8 +867,8 @@ public final class StringTools {
       final String in, final char[] p)
       throws InvalidKeyException, IllegalBlockSizeException,
           BadPaddingException, InvalidKeySpecException {
-    CryptoProviderTools.installBCProviderIfNotAvailable();
-    if (CryptoProviderTools.isUsingExportableCryptography()) {
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
+    if (CryptoProviderUtil.isUsingExportableCryptography()) {
       LOG.warn("Encryption not possible due to weak crypto policy.");
       return in;
     }
@@ -902,7 +902,7 @@ public final class StringTools {
     StringBuilder ret = new StringBuilder(size);
     final boolean legacy =
         DEAULT_P.equals(
-            ConfigurationHolder.getString("password.encryption.key"));
+            ConfigurationHolderUtil.getString("password.encryption.key"));
     if (legacy) {
       // In the old legacy system we only return the encrypted data without
       // extra info
@@ -936,7 +936,7 @@ public final class StringTools {
       throws InvalidKeyException, IllegalBlockSizeException,
           BadPaddingException, InvalidKeySpecException {
     char[] p =
-        ConfigurationHolder.getString("password.encryption.key").toCharArray();
+     ConfigurationHolderUtil.getString("password.encryption.key").toCharArray();
     return pbeDecryptStringWithSha256Aes192(in, p);
   }
 
@@ -955,8 +955,8 @@ public final class StringTools {
       final String in, final char[] p)
       throws IllegalBlockSizeException, BadPaddingException,
           InvalidKeyException, InvalidKeySpecException {
-    CryptoProviderTools.installBCProviderIfNotAvailable();
-    if (CryptoProviderTools.isUsingExportableCryptography()) {
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
+    if (CryptoProviderUtil.isUsingExportableCryptography()) {
       LOG.warn("Decryption not possible due to weak crypto policy.");
       return in;
     }
@@ -1022,7 +1022,7 @@ public final class StringTools {
       final String tmp =
           pbeDecryptStringWithSha256Aes192(
               in,
-              ConfigurationHolder.getString("password.encryption.key")
+              ConfigurationHolderUtil.getString("password.encryption.key")
                   .toCharArray());
       if (LOG.isDebugEnabled()) {
         LOG.debug("Using encrypted " + sDebug);
@@ -1032,8 +1032,8 @@ public final class StringTools {
       try {
         final String tmp =
             pbeDecryptStringWithSha256Aes192(
-                in,
-                ConfigurationHolder.getDefaultValue("password.encryption.key")
+              in,
+              ConfigurationHolderUtil.getDefaultValue("password.encryption.key")
                     .toCharArray());
         LOG.warn(
             "Using encrypted "
@@ -1066,10 +1066,7 @@ public final class StringTools {
    */
   public static String incrementKeySequence(
       final int keySequenceFormat, final String oldSequence) {
-    if (LOG.isTraceEnabled()) {
-      LOG.trace(
-          ">incrementKeySequence: " + keySequenceFormat + ", " + oldSequence);
-    }
+    logInc(keySequenceFormat, oldSequence);
     // If the sequence does not contain any number in it at all, we can only
     // return the same
     String ret = null;
@@ -1150,6 +1147,18 @@ public final class StringTools {
     }
     return ret;
   }
+
+/**
+ * @param keySequenceFormat fmt
+ * @param oldSequence seq
+ */
+private static void logInc(
+        final int keySequenceFormat, final String oldSequence) {
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
+          ">incrementKeySequence: " + keySequenceFormat + ", " + oldSequence);
+    }
+}
 
   private static String incrementNumeric(final String s) {
     // check if input is valid, if not return null
@@ -1420,7 +1429,8 @@ public final class StringTools {
    * @return true of the first version is lower (1.0 &lt; 2.0) than the second,
    *     false otherwise.
    */
-  public static boolean isLesserThan(final String first, final String second) {
+  public static boolean isLesserThan(final String first, // NOPMD: irreducible
+          final String second) {
     if (LOG.isTraceEnabled()) {
       LOG.trace("isLesserThan(" + first + ", " + second + ")");
     }

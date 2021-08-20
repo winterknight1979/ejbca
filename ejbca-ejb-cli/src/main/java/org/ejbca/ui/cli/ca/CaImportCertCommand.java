@@ -40,8 +40,8 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.cesecore.certificates.endentity.EndEntityType;
 import org.cesecore.certificates.endentity.EndEntityTypes;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
-import org.cesecore.util.EJBTools;
+import org.cesecore.util.CryptoProviderUtil;
+import org.cesecore.util.EJBUtil;
 import org.cesecore.util.EjbRemoteHelper;
 import org.cesecore.util.FileTools;
 import org.ejbca.core.ejb.ra.EndEntityAccessSessionRemote;
@@ -213,7 +213,7 @@ public class CaImportCertCommand extends BaseCaAdminCommand {
   public CommandResult execute(final ParameterContainer parameters) {
     LOG.trace(">execute()");
 
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
     String username = parameters.get(ENDENTITY_USERNAME_KEY);
     String password = parameters.get(ENDENTITY_PASSWORD_KEY);
     String caname = parameters.get(CA_NAME_KEY);
@@ -517,7 +517,7 @@ public class CaImportCertCommand extends BaseCaAdminCommand {
           .getRemoteSession(CertificateStoreSessionRemote.class)
           .storeCertificateRemote(
               getAuthenticationToken(),
-              EJBTools.wrap(certificate),
+              EJBUtil.wrap(certificate),
               username,
               CertTools.getFingerprintAsString(cacert),
               CertificateConstants.CERT_ACTIVE,

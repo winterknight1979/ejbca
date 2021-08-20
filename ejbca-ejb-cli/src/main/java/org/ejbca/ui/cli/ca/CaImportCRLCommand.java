@@ -49,10 +49,10 @@ import org.cesecore.certificates.endentity.EndEntityType;
 import org.cesecore.certificates.endentity.EndEntityTypes;
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.certificates.util.cert.CrlExtensions;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
-import org.cesecore.util.EJBTools;
+import org.cesecore.util.CryptoProviderUtil;
+import org.cesecore.util.EJBUtil;
 import org.cesecore.util.EjbRemoteHelper;
 import org.ejbca.core.ejb.ra.EndEntityAccessSessionRemote;
 import org.ejbca.core.ejb.ra.EndEntityManagementSessionRemote;
@@ -134,7 +134,7 @@ public class CaImportCRLCommand extends BaseCaAdminCommand {
   @Override
   public CommandResult execute(final ParameterContainer parameters) {
     LOG.trace(">execute()");
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
 
     try {
       // Parse arguments
@@ -214,7 +214,7 @@ public class CaImportCRLCommand extends BaseCaAdminCommand {
             final Date time =
                 new Date(); // time from which certificate is valid
             final KeyPair keyPair =
-                KeyTools.genKeys("2048", AlgorithmConstants.KEYALGORITHM_RSA);
+                KeyUtil.genKeys("2048", AlgorithmConstants.KEYALGORITHM_RSA);
 
             final SubjectPublicKeyInfo pkinfo =
                 SubjectPublicKeyInfo.getInstance(
@@ -291,7 +291,7 @@ public class CaImportCRLCommand extends BaseCaAdminCommand {
                 .getRemoteSession(CertificateStoreSessionRemote.class)
                 .storeCertificateRemote(
                     getAuthenticationToken(),
-                    EJBTools.wrap(certificate),
+                    EJBUtil.wrap(certificate),
                     missingUserName,
                     fingerprint,
                     CertificateConstants.CERT_ACTIVE,

@@ -22,7 +22,7 @@ import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.certificates.ca.CADoesntExistsException;
 import org.cesecore.certificates.crl.CrlStoreSessionRemote;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.cesecore.util.EjbRemoteHelper;
 import org.ejbca.ui.cli.infrastructure.command.CommandResult;
 import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
@@ -105,7 +105,7 @@ public class CaGetCrlCommand extends BaseCaAdminCommand {
   public CommandResult execute(final ParameterContainer parameters) {
     boolean deltaSelector = parameters.get(DELTA_KEY) != null;
     boolean pem = parameters.get(PEM_KEY) != null;
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
     // Perform CRL fetch
     String caname = parameters.get(CA_NAME_KEY);
     String outfile = parameters.get(FILE_KEY);

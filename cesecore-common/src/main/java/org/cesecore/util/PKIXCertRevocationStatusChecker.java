@@ -144,7 +144,9 @@ public class PKIXCertRevocationStatusChecker extends PKIXCertPathChecker {
   }
 
   @Override
-  public void init(final boolean forward) throws CertPathValidatorException { }
+  public void init(final boolean forward) throws CertPathValidatorException {
+      // NO OP
+  }
 
   @Override
   public boolean isForwardCheckingSupported() {
@@ -198,13 +200,7 @@ public class PKIXCertRevocationStatusChecker extends PKIXCertPathChecker {
 
     clearResult();
     Certificate cacert = getCaCert(cert);
-    if (cacert == null) {
-      final String msg =
-          "No issuer CA certificate was found. An issuer CA certificate is"
-              + " needed to create an OCSP request and to get the right CRL";
-      log.info(msg);
-      throw new CertPathValidatorException(msg);
-    }
+    handleNull(cacert);
 
     ArrayList<String> ocspurls = getOcspUrls(cert);
     if (!ocspurls.isEmpty()) {
@@ -274,6 +270,21 @@ public class PKIXCertRevocationStatusChecker extends PKIXCertPathChecker {
     }
   }
 
+/**
+ * @param cacert cert
+ * @throws CertPathValidatorException fail
+ */
+private void handleNull(final Certificate cacert)
+        throws CertPathValidatorException {
+    if (cacert == null) {
+      final String msg =
+          "No issuer CA certificate was found. An issuer CA certificate is"
+              + " needed to create an OCSP request and to get the right CRL";
+      log.info(msg);
+      throw new CertPathValidatorException(msg);
+    }
+}
+
   /**
    * Check the revocation status of 'cert' using a CRL.
    *
@@ -298,8 +309,8 @@ public class PKIXCertRevocationStatusChecker extends PKIXCertPathChecker {
     CRL aCrl = null;
     for (URL url : crlUrls) {
       aCrl = getCRL(url);
-      if (aCrl != null) {
-        if (isCorrectCRL(aCrl, issuerDN)) {
+      if (aCrl != null
+        && isCorrectCRL(aCrl, issuerDN)) {
           final boolean isRevoked = aCrl.isRevoked(cert);
           this.crl = aCrl;
           if (isRevoked) {
@@ -309,7 +320,7 @@ public class PKIXCertRevocationStatusChecker extends PKIXCertPathChecker {
                     + " was revoked");
           }
           break;
-        }
+
       }
     }
     if (this.crl == null) {
@@ -444,7 +455,7 @@ public class PKIXCertRevocationStatusChecker extends PKIXCertPathChecker {
    * @return The OCSP response, or null of no correct response could be
    *     obtained.
    */
-  private SingleResp getOCSPResponse(
+  private SingleResp getOCSPResponse(// NOPMD: irreducible
       final String ocspurl,
       final OCSPReq ocspRequest,
       final Certificate cert,
@@ -507,8 +518,8 @@ public class PKIXCertRevocationStatusChecker extends PKIXCertPathChecker {
     try {
       brep = (BasicOCSPResp) response.getResponseObject();
 
-      if ((expectedOcspRespCode != OCSPRespBuilder.SUCCESSFUL)
-          && (brep != null)) {
+      if (expectedOcspRespCode != OCSPRespBuilder.SUCCESSFUL
+          && brep != null) {
         log.warn(
             "According to RFC 2560, responseBytes are not set on error, but we"
                 + " got some.");
@@ -587,7 +598,7 @@ public class PKIXCertRevocationStatusChecker extends PKIXCertPathChecker {
     // ------------ Extract the single response and verify that it concerns a
     // cert with the right serialnumber ----//
     SingleResp[] singleResps = brep.getResponses();
-    if ((singleResps == null) || (singleResps.length == 0)) {
+    if (singleResps == null || singleResps.length == 0) {
       if (log.isDebugEnabled()) {
         log.debug("The OCSP response object contained no responses.");
       }
@@ -621,7 +632,7 @@ public class PKIXCertRevocationStatusChecker extends PKIXCertPathChecker {
         IOUtils.copy(httpErrorStream, os);
         httpErrorStream.close();
         os.close();
-      } catch (IOException ex) {
+      } catch (IOException ex) { // NOPMD: no-op
       }
     }
   }

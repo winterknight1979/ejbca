@@ -50,8 +50,8 @@ public class BasicConstraint extends StandardCertificateExtension {
       throws CertificateExtensionException {
     // Default value, end entity
     BasicConstraints bc = new BasicConstraints(false);
-    if ((certProfile.getType() == CertificateConstants.CERTTYPE_SUBCA)
-        || (certProfile.getType() == CertificateConstants.CERTTYPE_ROOTCA)) {
+    if (certProfile.getType() == CertificateConstants.CERTTYPE_SUBCA
+        || certProfile.getType() == CertificateConstants.CERTTYPE_ROOTCA) {
       if (certProfile.getUsePathLengthConstraint()) {
         bc = new BasicConstraints(certProfile.getPathLengthConstraint());
       } else {

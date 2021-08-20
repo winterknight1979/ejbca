@@ -26,7 +26,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import org.apache.log4j.Logger;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 
 /**
  * Class Holding cache variable.
@@ -54,7 +54,7 @@ public class CaIDCacheBean {
   private static final Logger LOG = Logger.getLogger(CaIDCacheBean.class);
 
   /** EM. */
-  @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+  @PersistenceContext(unitName = CesecoreConfigurationHelper.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
   /*
@@ -109,7 +109,8 @@ public class CaIDCacheBean {
     if (LOG.isTraceEnabled()) {
       LOG.trace(">updateCache");
     }
-    final long cacheTime = CesecoreConfiguration.getCacheCaTimeInCaSession();
+    final long cacheTime =
+            CesecoreConfigurationHelper.getCacheCaTimeInCaSession();
     final long now = System.currentTimeMillis();
     // Check before acquiring lock. Update cache if we force cache update or
     // cache is disabled in config (cacheTime = 0) or cache expired

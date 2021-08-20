@@ -27,7 +27,7 @@ import org.apache.log4j.Logger;
 import org.cesecore.authentication.tokens.AuthenticationSubject;
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.ejbca.core.ejb.authentication.web.WebAuthenticationProviderSessionLocal;
 import org.ejbca.ui.web.admin.cainterface.exception.AdminWebAuthenticationException;
 import org.ejbca.ui.web.admin.configuration.EjbcaWebBean;
@@ -52,7 +52,7 @@ public abstract class BaseAdminServlet extends HttpServlet {
   public void init(final ServletConfig config) throws ServletException {
     super.init(config);
     try {
-      CryptoProviderTools.installBCProvider(); // Install BouncyCastle provider
+      CryptoProviderUtil.installBCProvider(); // Install BouncyCastle provider
     } catch (Exception e) {
       throw new ServletException(e);
     }

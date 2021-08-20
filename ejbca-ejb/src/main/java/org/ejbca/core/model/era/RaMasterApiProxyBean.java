@@ -96,13 +96,13 @@ import org.cesecore.certificates.util.AlgorithmTools;
 import org.cesecore.config.RaStyleInfo;
 import org.cesecore.configuration.GlobalConfigurationSessionLocal;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.roles.AccessRulesHelper;
 import org.cesecore.roles.Role;
 import org.cesecore.roles.RoleExistsException;
 import org.cesecore.roles.member.RoleMember;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.EJBTools;
+import org.cesecore.util.EJBUtil;
 import org.ejbca.config.GlobalConfiguration;
 import org.ejbca.core.EjbcaException;
 import org.ejbca.core.ejb.ca.publisher.PublisherQueueSessionLocal;
@@ -1475,7 +1475,7 @@ public class RaMasterApiProxyBean implements RaMasterApiProxyBeanLocal {
               storedEndEntity
                   .getExtendedInformation()
                   .getKeyStoreAlgorithmSubType();
-          kp = KeyTools.genKeys(keyspec, keyalg);
+          kp = KeyUtil.genKeys(keyspec, keyalg);
           // requestCertForEndEntity verifies the password and performs the
           // finishUser operation
           cert =
@@ -1494,9 +1494,9 @@ public class RaMasterApiProxyBean implements RaMasterApiProxyBeanLocal {
           }
           if (!localNodeKeyRecoverySession.addKeyRecoveryDataInternal(
               authenticationToken,
-              EJBTools.wrap(cert),
+              EJBUtil.wrap(cert),
               username,
-              EJBTools.wrap(kp),
+              EJBUtil.wrap(kp),
               cryptoTokenId,
               keyAlias)) {
             // Should never happen. An exception stack trace is error-logged in
@@ -1566,14 +1566,14 @@ public class RaMasterApiProxyBean implements RaMasterApiProxyBeanLocal {
         if (storedEndEntity.getTokenType()
             == EndEntityConstants.TOKEN_SOFT_JKS) {
           ks =
-              KeyTools.createJKS(
+              KeyUtil.createJKS(
                   alias,
                   kp.getPrivate(),
                   endEntity.getPassword(),
                   cert,
                   cachain);
         } else {
-          ks = KeyTools.createP12(alias, kp.getPrivate(), cert, cachain);
+          ks = KeyUtil.createP12(alias, kp.getPrivate(), cert, cachain);
         }
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
           ks.store(baos, endEntity.getPassword().toCharArray());
@@ -2321,7 +2321,7 @@ public class RaMasterApiProxyBean implements RaMasterApiProxyBeanLocal {
         return authorized
             && storedEndEntity.getStatus()
                 != EndEntityConstants.STATUS_KEYRECOVERY
-            && localNodeKeyRecoverySession.existsKeys(EJBTools.wrap(cert));
+            && localNodeKeyRecoverySession.existsKeys(EJBUtil.wrap(cert));
       }
       return false;
     }

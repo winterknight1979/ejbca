@@ -103,27 +103,8 @@ public enum OcspSigningCache {
    * @param defaultResponderSubjectDn DN
    */
   public void stagingCommit(final String defaultResponderSubjectDn) {
-    OcspSigningCacheEntry lDefaultResponderCacheEntry = null;
-    for (final OcspSigningCacheEntry entry : staging.values()) {
-      if (entry.getOcspSigningCertificate() != null) {
-        final X509Certificate signingCertificate =
-            entry.getOcspSigningCertificate();
-        if (CertTools.getIssuerDN(signingCertificate)
-            .equals(defaultResponderSubjectDn)) {
-          lDefaultResponderCacheEntry = entry;
-          break;
-        }
-      } else if (entry.getCaCertificateChain() != null
-          && !entry.getCaCertificateChain().isEmpty()) {
-        final X509Certificate signingCertificate =
-            entry.getCaCertificateChain().get(0);
-        if (CertTools.getSubjectDN(signingCertificate)
-            .equals(defaultResponderSubjectDn)) {
-          lDefaultResponderCacheEntry = entry;
-          break;
-        }
-      }
-    }
+    OcspSigningCacheEntry lDefaultResponderCacheEntry =
+            getDefaultEntry(defaultResponderSubjectDn);
     // Lastly, walk through the list of entries and replace all placeholders
     // with the default responder
     Map<Integer, OcspSigningCacheEntry> modifiedEntries =
@@ -193,6 +174,36 @@ public enum OcspSigningCache {
       }
     }
   }
+
+/**
+ * @param defaultResponderSubjectDn DM
+ * @return Entry
+ */
+private OcspSigningCacheEntry getDefaultEntry(
+        final String defaultResponderSubjectDn) {
+    OcspSigningCacheEntry lDefaultResponderCacheEntry = null;
+    for (final OcspSigningCacheEntry entry : staging.values()) {
+      if (entry.getOcspSigningCertificate() != null) {
+        final X509Certificate signingCertificate =
+            entry.getOcspSigningCertificate();
+        if (CertTools.getIssuerDN(signingCertificate)
+            .equals(defaultResponderSubjectDn)) {
+          lDefaultResponderCacheEntry = entry;
+          break;
+        }
+      } else if (entry.getCaCertificateChain() != null
+          && !entry.getCaCertificateChain().isEmpty()) {
+        final X509Certificate signingCertificate =
+            entry.getCaCertificateChain().get(0);
+        if (CertTools.getSubjectDN(signingCertificate)
+            .equals(defaultResponderSubjectDn)) {
+          lDefaultResponderCacheEntry = entry;
+          break;
+        }
+      }
+    }
+    return lDefaultResponderCacheEntry;
+}
 
   /** Unlock. */
   public void stagingRelease() {
@@ -265,8 +276,8 @@ public enum OcspSigningCache {
                   + defaultResponderSubjectDn
                   + " as default OCSP responder.";
         }
-      } else if (stagedEntry.isUsingSeparateOcspSigningCertificate()) {
-        if (stagedEntry.getOcspKeyBinding().getId()
+      } else if (stagedEntry.isUsingSeparateOcspSigningCertificate()
+        && stagedEntry.getOcspKeyBinding().getId()
             != currentEntry.getOcspKeyBinding().getId()) {
           // A different OcspKeyBinding will be used to respond to requests even
           // though the issuing CA has not changed
@@ -277,7 +288,7 @@ public enum OcspSigningCache {
                   + defaultResponderSubjectDn
                   + " as default OCSP responder.";
         }
-      }
+
     }
     if (msg == null) {
       if (LOG.isDebugEnabled()) {

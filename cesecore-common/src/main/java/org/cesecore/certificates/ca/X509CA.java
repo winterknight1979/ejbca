@@ -119,7 +119,7 @@ import org.cesecore.certificates.ca.catoken.CAToken;
 import org.cesecore.certificates.ca.catoken.CATokenConstants;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAService;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceInfo;
-import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypes;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypeConstants;
 import org.cesecore.certificates.ca.internal.CertificateValidity;
 import org.cesecore.certificates.ca.internal.RequestAndPublicKeySelector;
 import org.cesecore.certificates.ca.internal.SernoGenerator;
@@ -148,20 +148,20 @@ import org.cesecore.certificates.ocsp.SHA1DigestCalculator;
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.certificates.util.AlgorithmTools;
 import org.cesecore.certificates.util.dn.DNFieldsUtil;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.internal.InternalResources;
 import org.cesecore.keys.token.CryptoToken;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
 import org.cesecore.keys.token.IllegalCryptoTokenException;
 import org.cesecore.keys.token.NullCryptoToken;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.keys.validation.IssuancePhase;
 import org.cesecore.keys.validation.ValidationException;
 import org.cesecore.util.CeSecoreNameStyle;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.PrintableStringNameStyle;
 import org.cesecore.util.SimpleTime;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 
 /**
  * X509CA is a implementation of a CA and holds data specific for Certificate
@@ -324,7 +324,7 @@ public class X509CA extends CA implements Serializable { //NOPMD: class length
       // Type was removed in 6.0.0. It is removed from the database in the
       // upgrade method in this class, but it needs to be ignored
       // for instantiation.
-      if (type != ExtendedCAServiceTypes.TYPE_OCSPEXTENDEDSERVICE) {
+      if (type != ExtendedCAServiceTypeConstants.TYPE_OCSPEXTENDEDSERVICE) {
         ExtendedCAServiceInfo info =
             this.getExtendedCAServiceInfo(type.intValue());
         if (info != null) {
@@ -648,7 +648,7 @@ public class X509CA extends CA implements Serializable { //NOPMD: class length
     return (Integer)
         getMapValueWithDefault(
             SERIALNUMBEROCTETSIZE,
-            CesecoreConfiguration.getSerialNumberOctetSizeForNewCa());
+            CesecoreConfigurationHelper.getSerialNumberOctetSizeForNewCa());
   }
 
   /** @param serialNumberOctetSize size of SN in bytes */
@@ -2419,7 +2419,7 @@ private X500Name getSubjectDn(final CertificateProfile certProfile,
       if (certProfile.getAllowDNOverrideByEndEntityInformation()
           && ei != null
           && ei.getRawSubjectDn() != null) {
-        final String stripped = StringTools.strip(ei.getRawSubjectDn());
+        final String stripped = StringUtil.strip(ei.getRawSubjectDn());
         final String escapedPluses = CertTools.handleUnescapedPlus(stripped);
         final String emptiesRemoved =
             DNFieldsUtil.removeAllEmpties(escapedPluses);
@@ -2458,7 +2458,7 @@ private X500Name getSubjectDn(final CertificateProfile certProfile,
       }
     }
     // Make sure the DN does not contain dangerous characters
-    if (!StringTools.hasStripChars(subjectDNName.toString()).isEmpty()) {
+    if (!StringUtil.hasStripChars(subjectDNName.toString()).isEmpty()) {
       if (LOG.isTraceEnabled()) {
         LOG.trace("DN with illegal name: " + subjectDNName);
       }
@@ -2518,7 +2518,7 @@ private String getSigAlg(final CertificateProfile certProfile)
       sigAlg = certProfile.getSignatureAlgorithm();
     }
     // Check that the signature algorithm is one of the allowed ones
-    if (!StringTools.containsCaseInsensitive(
+    if (!StringUtil.containsCaseInsensitive(
         AlgorithmConstants.AVAILABLE_SIGALGS, sigAlg)) {
       final String msg =
           INTRES.getLocalizedMessage(
@@ -3118,7 +3118,7 @@ private void setCrlExts(final boolean isDeltaCRL,
     // Multiple CDPs are separated with the ';' sign
     ArrayList<DistributionPoint> result = new ArrayList<>();
     for (final String uri
-        : StringTools.splitURIs(StringUtils.defaultString(distPoints))) {
+        : StringUtil.splitURIs(StringUtils.defaultString(distPoints))) {
       GeneralName gn =
           new GeneralName(
               GeneralName.uniformResourceIdentifier, new DERIA5String(uri));
@@ -3172,7 +3172,7 @@ private void setCrlExts(final boolean isDeltaCRL,
       // value if not configured)
       if (data.get(SERIALNUMBEROCTETSIZE) == null) {
         setCaSerialNumberOctetSize(
-            CesecoreConfiguration.getSerialNumberOctetSizeForExistingCa());
+           CesecoreConfigurationHelper.getSerialNumberOctetSizeForExistingCa());
       }
 
       data.put(VERSION, new Float(LATEST_VERSION));
@@ -3309,13 +3309,13 @@ private void updateUsePrintable() {
     boolean retval = false;
     // call upgrade, if needed, on installed CA services
     Collection<Integer> externalServiceTypes = getExternalCAServiceTypes();
-    if (!CesecoreConfiguration.getCaKeepOcspExtendedService()
+    if (!CesecoreConfigurationHelper.getCaKeepOcspExtendedService()
         && externalServiceTypes.contains(
-            ExtendedCAServiceTypes.TYPE_OCSPEXTENDEDSERVICE)) {
+            ExtendedCAServiceTypeConstants.TYPE_OCSPEXTENDEDSERVICE)) {
       // This type has been removed, so remove it from any CAs it's been added
       // to as well.
       externalServiceTypes.remove(
-          ExtendedCAServiceTypes.TYPE_OCSPEXTENDEDSERVICE);
+          ExtendedCAServiceTypeConstants.TYPE_OCSPEXTENDEDSERVICE);
       data.put(EXTENDEDCASERVICES, externalServiceTypes);
       retval = true;
     }
@@ -3369,7 +3369,7 @@ private void updateUsePrintable() {
       // Creating the KeyId may just throw an exception, we will log this but
       // store the cert and ignore the error
       final PublicKey pk = cryptoToken.getPublicKey(alias);
-      byte[] keyId = KeyTools.createSubjectKeyId(pk).getKeyIdentifier();
+      byte[] keyId = KeyUtil.createSubjectKeyId(pk).getKeyIdentifier();
       edGen.addRecipientInfoGenerator(
           new JceKeyTransRecipientInfoGenerator(keyId, pk));
       JceCMSContentEncryptorBuilder jceCMSContentEncryptorBuilder =
@@ -3481,7 +3481,7 @@ private void updateUsePrintable() {
     CMSEnvelopedData ed;
     final String keyAlias = getCAToken().getAliasFromPurpose(keyPurpose);
     final PublicKey pk = cryptoToken.getPublicKey(keyAlias);
-    byte[] keyId = KeyTools.createSubjectKeyId(pk).getKeyIdentifier();
+    byte[] keyId = KeyUtil.createSubjectKeyId(pk).getKeyIdentifier();
     edGen.addRecipientInfoGenerator(
         new JceKeyTransRecipientInfoGenerator(keyId, pk));
     JceCMSContentEncryptorBuilder jceCMSContentEncryptorBuilder =

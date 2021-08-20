@@ -15,7 +15,7 @@ package org.ejbca.core.protocol.ws.client;
 
 import java.io.FileOutputStream;
 import java.util.List;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.ejbca.core.protocol.ws.client.gen.AuthorizationDeniedException_Exception;
 import org.ejbca.core.protocol.ws.client.gen.Certificate;
 import org.ejbca.cvc.CVCObject;
@@ -81,7 +81,7 @@ public class CvcGetChainCommand extends EJBCAWSRABaseCommand
         for (Certificate certificate : resp) {
           byte[] b64cert = certificate.getCertificateData();
           CVCObject parsedObject =
-              CertificateParser.parseCertificate(Base64.decode(b64cert));
+              CertificateParser.parseCertificate(Base64Util.decode(b64cert));
           CVCertificate cvcert = (CVCertificate) parsedObject;
           FileOutputStream fos =
               new FileOutputStream(basefilename + i + ".cvcert");

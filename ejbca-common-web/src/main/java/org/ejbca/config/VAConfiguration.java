@@ -13,7 +13,7 @@
 
 package org.ejbca.config;
 
-import org.cesecore.config.ConfigurationHolder;
+import org.cesecore.config.ConfigurationHolderUtil;
 
 /**
  * Parses configuration bundled in conf/va.properties both for the internal and
@@ -32,7 +32,7 @@ public final class VAConfiguration {
    * @return Hash
    */
   public static String sKIDHashFromName(final String name) {
-    return ConfigurationHolder.getString(S_HASH_ALIAS_PREFIX + name);
+    return ConfigurationHolderUtil.getString(S_HASH_ALIAS_PREFIX + name);
   }
 
   /**
@@ -41,7 +41,7 @@ public final class VAConfiguration {
    * @return Bool
    */
   public static boolean sKIDHashSetAlias(final String name, final String hash) {
-    return ConfigurationHolder.updateConfiguration(
+    return ConfigurationHolderUtil.updateConfiguration(
         S_HASH_ALIAS_PREFIX + name, hash);
   }
 }

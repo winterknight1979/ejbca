@@ -57,12 +57,12 @@ import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLoc
 import org.cesecore.certificates.endentity.EndEntityConstants;
 import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.cesecore.certificates.ocsp.OcspResponseGeneratorSessionLocal;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.configuration.GlobalConfigurationSessionLocal;
 import org.cesecore.keys.token.CryptoTokenFactory;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.ejbca.config.EjbcaConfiguration;
 import org.ejbca.config.GlobalConfiguration;
 import org.ejbca.core.ejb.audit.enums.EjbcaEventTypes;
@@ -208,7 +208,7 @@ public class StartupSingletonBean {
    * @see #startup()
    */
   private static byte[] testcertbytes =
-      Base64.decode(
+      Base64Util.decode(
       ("MIIDATCCAmqgAwIBAgIIczEoghAwc3EwDQYJKoZIhvcNAQEFBQAwLzEPMA0GA1UE"
            + "AxMGVGVzdENBMQ8wDQYDVQQKEwZBbmFUb20xCzAJBgNVBAYTAlNFMB4XDTAzMDky"
            + "NDA2NDgwNFoXDTA1MDkyMzA2NTgwNFowMzEQMA4GA1UEAxMHcDEydGVzdDESMBAG"
@@ -243,8 +243,8 @@ public class StartupSingletonBean {
 
     // Reinstall BC-provider to help re-deploys to work
     LOG.trace(">init re-installing BC-provider");
-    CryptoProviderTools.removeBCProvider();
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.removeBCProvider();
+    CryptoProviderUtil.installBCProvider();
 
     // Run java seed collector, that can take a little time the first time it is
     // run
@@ -538,7 +538,7 @@ public class StartupSingletonBean {
           final Integer keyid =
               (Integer) getKeyId.invoke(config, auditTableName);
           if ((keyid != null) && (keyid > 0)) {
-            if (CesecoreConfiguration.useDatabaseIntegrityProtection(
+            if (CesecoreConfigurationHelper.useDatabaseIntegrityProtection(
                 auditTableName)) {
               // Call ProtectedDataConfiguration.instance().getProtectVersion
               final Integer protectVersion =

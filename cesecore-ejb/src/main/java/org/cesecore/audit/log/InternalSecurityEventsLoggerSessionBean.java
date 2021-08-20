@@ -33,7 +33,7 @@ import org.cesecore.audit.enums.ServiceTypes;
 import org.cesecore.audit.impl.integrityprotected.AuditRecordData;
 import org.cesecore.audit.impl.integrityprotected.IntegrityProtectedLoggerSessionLocal;
 import org.cesecore.audit.impl.queued.QueuedLoggerSessionLocal;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.time.TrustedTime;
 
 /**
@@ -145,7 +145,7 @@ public class InternalSecurityEventsLoggerSessionBean
 
   @Override
   public boolean auditLogCryptoTest(final String protectThis) {
-    if (CesecoreConfiguration.useDatabaseIntegrityProtection(
+    if (CesecoreConfigurationHelper.useDatabaseIntegrityProtection(
         AuditRecordData.class.getSimpleName())) {
       if (LOG.isDebugEnabled()) {
         LOG.debug("Performing audit log integrity protection test.");

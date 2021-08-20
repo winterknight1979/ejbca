@@ -15,7 +15,7 @@ package org.ejbca.util;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 
 /**
  * Only used for backwards compatibility with earlier versions of EJBCA.
@@ -48,7 +48,7 @@ public class Base64GetHashMap extends HashMap<Object, Object> {
     }
     if (o instanceof String) {
       String s = (String) o;
-      return StringTools.getBase64String(s);
+      return StringUtil.getBase64String(s);
     }
     return o;
   }

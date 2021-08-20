@@ -42,7 +42,7 @@ import org.cesecore.authorization.user.AccessMatchType;
 import org.cesecore.authorization.user.matchvalues.X500PrincipalAccessMatchValue;
 import org.cesecore.certificates.ca.CaSessionLocal;
 import org.cesecore.certificates.endentity.EndEntityConstants;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.configuration.GlobalConfigurationSessionLocal;
 import org.cesecore.jndi.JndiConstants;
 import org.cesecore.keys.token.CryptoTokenSessionLocal;
@@ -106,7 +106,7 @@ public class AuthorizationSystemSessionBean
   @EJB private UserDataSourceSessionLocal userDataSourceSession;
 
   /** EM. */
-  @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+  @PersistenceContext(unitName = CesecoreConfigurationHelper.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
   @Override

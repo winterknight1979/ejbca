@@ -1,7 +1,9 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://www.owasp.org/index.php/Category:OWASP_CSRFGuard_Project/Owasp.CsrfGuard.tld" prefix="csrf" %>
 <%@ page pageEncoding="ISO-8859-1"%>
-<% response.setContentType("text/html; charset="+org.ejbca.config.WebConfiguration.getWebContentEncoding()); %>
+<%
+response.setContentType("text/html; charset="+org.ejbca.config.WebConfiguration.getWebContentEncoding());
+%>
 <%@page errorPage="/errorpage.jsp" import="java.io.*,
 java.security.cert.Certificate,
 java.security.cert.CertificateException,
@@ -46,32 +48,12 @@ org.cesecore.keys.token.AvailableCryptoToken,
 org.cesecore.keys.token.CryptoTokenOfflineException,
 org.cesecore.keys.token.CryptoTokenAuthenticationFailedException,
 org.bouncycastle.jce.exception.ExtCertPathValidatorException,
-org.cesecore.util.SimpleTime,
-org.cesecore.util.ValidityDate,
-org.cesecore.util.StringTools,
-org.cesecore.certificates.util.AlgorithmConstants,
-org.cesecore.certificates.util.AlgorithmTools,
-org.cesecore.certificates.certificate.certextensions.standard.NameConstraint,
-org.ejbca.config.GlobalConfiguration,
-org.ejbca.core.EjbcaException,
-org.ejbca.core.model.authorization.AccessRulesConstants,
-org.ejbca.core.model.ca.caadmin.extendedcaservices.CmsCAServiceInfo,
-org.ejbca.core.model.ca.caadmin.extendedcaservices.HardTokenEncryptCAServiceInfo,
-org.ejbca.core.model.ca.caadmin.extendedcaservices.KeyRecoveryCAServiceInfo,
-org.ejbca.core.model.SecConst,
-org.ejbca.ui.web.admin.cainterface.CADataHandler,
-org.ejbca.ui.web.RequestHelper,
-org.ejbca.ui.web.RevokedInfoView,
-org.ejbca.ui.web.admin.cainterface.CAInfoView,
-org.ejbca.ui.web.admin.cainterface.CAInterfaceBean,
-org.ejbca.ui.web.admin.configuration.EjbcaWebBean,
-org.ejbca.ui.web.ParameterException
-" %>
+org.cesecore.util.SimpleTime,org.cesecore.util.ValidityDateUtil,org.cesecore.util.StringUtil,org.cesecore.certificates.util.AlgorithmConstants,org.cesecore.certificates.util.AlgorithmTools,org.cesecore.certificates.certificate.certextensions.standard.NameConstraint,org.ejbca.config.GlobalConfiguration,org.ejbca.core.EjbcaException,org.ejbca.core.model.authorization.AccessRulesConstants,org.ejbca.core.model.ca.caadmin.extendedcaservices.CmsCAServiceInfo,org.ejbca.core.model.ca.caadmin.extendedcaservices.HardTokenEncryptCAServiceInfo,org.ejbca.core.model.ca.caadmin.extendedcaservices.KeyRecoveryCAServiceInfo,org.ejbca.core.model.SecConst,org.ejbca.ui.web.admin.cainterface.CADataHandler,org.ejbca.ui.web.RequestHelper,org.ejbca.ui.web.RevokedInfoView,org.ejbca.ui.web.admin.cainterface.CAInfoView,org.ejbca.ui.web.admin.cainterface.CAInterfaceBean,org.ejbca.ui.web.admin.configuration.EjbcaWebBean,org.ejbca.ui.web.ParameterException" %>
 <html>
 <jsp:useBean id="ejbcawebbean" scope="session" class="org.ejbca.ui.web.admin.configuration.EjbcaWebBean" />
 <jsp:useBean id="cabean" scope="session" class="org.ejbca.ui.web.admin.cainterface.CAInterfaceBean" />
 
-<%! // Declarations 
+<%!// Declarations 
   static final String ACTION                              = "action";
   static final String ACTION_EDIT_CAS                     = "editcas";
   static final String ACTION_EDIT_CA                      = "editca";
@@ -310,13 +292,11 @@ org.ejbca.ui.web.ParameterException
           keyAliasHardTokenEncryptKey, keyAliasKeyEncryptKey, keyAliasKeyTestKey,
           fileBuffer);
       return illegaldnoraltname;
-  }
-  
-%><%       
-  // Initialize environment
+  }%><%
+// Initialize environment
   String includefile = "choosecapage.jspf"; 
   int catype = CAInfo.CATYPE_X509;
-  int keySequenceFormat = StringTools.KEY_SEQUENCE_FORMAT_NUMERIC;
+  int keySequenceFormat = StringUtil.KEY_SEQUENCE_FORMAT_NUMERIC;
   String cryptoTokenIdParam = "";
   String signatureAlgorithmParam = "";
   String extendedServicesKeySpecParam = null;
@@ -350,17 +330,16 @@ org.ejbca.ui.web.ParameterException
   int row = 0;
 
   Map<Integer,String> caidtonamemap = cabean.getCAIdToNameMap();
-
 %>
 <head>
-  <title><c:out value="<%= globalconfiguration.getEjbcaTitle() %>" /></title>
-  <base href="<%= ejbcawebbean.getBaseUrl() %>" />
-  <link rel="stylesheet" type="text/css" href="<c:out value='<%=ejbcawebbean.getCssFile() %>' />" />
+  <title><c:out value="<%=globalconfiguration.getEjbcaTitle()%>" /></title>
+  <base href="<%=ejbcawebbean.getBaseUrl()%>" />
+  <link rel="stylesheet" type="text/css" href="<c:out value='<%=ejbcawebbean.getCssFile()%>' />" />
   <link rel="shortcut icon" href="<%=ejbcawebbean.getImagefileInfix("favicon.png")%>" type="image/png" />
-  <script type="text/javascript" src="<%= globalconfiguration.getAdminWebPath() %>ejbcajslib.js"></script>
+  <script type="text/javascript" src="<%=globalconfiguration.getAdminWebPath()%>ejbcajslib.js"></script>
 </head>
 <%
-    RequestHelper.setDefaultCharacterEncoding(request);
+RequestHelper.setDefaultCharacterEncoding(request);
     // Map both multipart requests parameters and regular requests parameteres to a single map
     final Map<String, String> requestMap = new HashMap<String, String>();
     final byte[] fileBuffer = cabean.parseRequestParameters(request, requestMap);
@@ -766,7 +745,7 @@ org.ejbca.ui.web.ParameterException
     	    // Change the CA type we are
     	    catype = Integer.parseInt(requestMap.get(SELECT_CATYPE));
             caname = requestMap.get(HIDDEN_CANAME);
-            keySequenceFormat = StringTools.KEY_SEQUENCE_FORMAT_NUMERIC;
+            keySequenceFormat = StringUtil.KEY_SEQUENCE_FORMAT_NUMERIC;
             if (requestMap.get(SELECT_KEY_SEQUENCE_FORMAT) != null) {
           	    keySequenceFormat = Integer.parseInt(requestMap.get(SELECT_KEY_SEQUENCE_FORMAT));
             }
@@ -778,7 +757,7 @@ org.ejbca.ui.web.ParameterException
             signatureAlgorithmParam = request.getParameter(HIDDEN_CASIGNALGO);
             catype = Integer.parseInt(request.getParameter(HIDDEN_CATYPE));
             caname = request.getParameter(HIDDEN_CANAME);   
-            keySequenceFormat = StringTools.KEY_SEQUENCE_FORMAT_NUMERIC;
+            keySequenceFormat = StringUtil.KEY_SEQUENCE_FORMAT_NUMERIC;
             if (request.getParameter(SELECT_KEY_SEQUENCE_FORMAT) != null) {
             	keySequenceFormat = Integer.parseInt(request.getParameter(SELECT_KEY_SEQUENCE_FORMAT)); 
             }
@@ -790,7 +769,7 @@ org.ejbca.ui.web.ParameterException
     	    signatureAlgorithmParam = requestMap.get(SELECT_SIGNATUREALGORITHM);
             catype = Integer.parseInt(requestMap.get(HIDDEN_CATYPE));
             caname = requestMap.get(HIDDEN_CANAME);   
-            keySequenceFormat = StringTools.KEY_SEQUENCE_FORMAT_NUMERIC;
+            keySequenceFormat = StringUtil.KEY_SEQUENCE_FORMAT_NUMERIC;
             if (requestMap.get(SELECT_KEY_SEQUENCE_FORMAT) != null) {
           	    keySequenceFormat = Integer.parseInt(requestMap.get(SELECT_KEY_SEQUENCE_FORMAT)); 
             }
@@ -802,7 +781,7 @@ org.ejbca.ui.web.ParameterException
                 try {
                     cadatahandler.importCAFromKeyStore(importcaname, fileBuffer, importpassword, importsigalias, importencalias);
                 } catch (Exception e) {
-				    %> <div style="color: #FF0000;"> <%
+%> <div style="color: #FF0000;"> <%
 						    out.println( e.getMessage() );
 				    %> </div> <%
 				    includefile="importca.jspf";

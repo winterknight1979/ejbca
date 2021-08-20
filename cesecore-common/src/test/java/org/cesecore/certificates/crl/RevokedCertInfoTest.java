@@ -19,7 +19,7 @@ import java.math.BigInteger;
 import java.text.ParseException;
 import java.util.Collection;
 import org.cesecore.util.CompressedCollection;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.ValidityDateUtil;
 import org.junit.Test;
 
 /**
@@ -54,7 +54,7 @@ public class RevokedCertInfoTest {
 
   private static long date(final String ymd) {
     try {
-      return ValidityDate.parseAsIso8601(ymd).getTime();
+      return ValidityDateUtil.parseAsIso8601(ymd).getTime();
     } catch (ParseException e) {
       throw new IllegalArgumentException(e);
     }

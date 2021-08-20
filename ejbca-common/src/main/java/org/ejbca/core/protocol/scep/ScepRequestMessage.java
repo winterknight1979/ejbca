@@ -65,7 +65,7 @@ import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
 import org.cesecore.certificates.certificate.request.PKCS10RequestMessage;
 import org.cesecore.certificates.certificate.request.RequestMessage;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
 
 /**
@@ -327,7 +327,7 @@ public class ScepRequestMessage extends PKCS10RequestMessage
             Enumeration<?> values = a.getAttrValues().getObjects();
             ASN1OctetString str =
                 ASN1OctetString.getInstance(values.nextElement());
-            senderNonce = new String(Base64.encode(str.getOctets(), false));
+            senderNonce = new String(Base64Util.encode(str.getOctets(), false));
             if (LOG.isDebugEnabled()) {
               LOG.debug("senderNonce = " + senderNonce);
             }
@@ -488,7 +488,7 @@ public class ScepRequestMessage extends PKCS10RequestMessage
       if (LOG.isDebugEnabled()) {
         LOG.debug(
             "Successfully extracted PKCS10:"
-                + new String(Base64.encode(pkcs10.getEncoded())));
+                + new String(Base64Util.encode(pkcs10.getEncoded())));
       }
     }
     if (messageType == ScepRequestMessage.SCEP_TYPE_GETCRL) {

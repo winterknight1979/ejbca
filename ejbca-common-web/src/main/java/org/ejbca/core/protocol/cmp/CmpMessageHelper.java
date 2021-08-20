@@ -89,8 +89,8 @@ import org.bouncycastle.util.encoders.Hex;
 import org.cesecore.certificates.certificate.request.FailInfo;
 import org.cesecore.certificates.certificate.request.ResponseMessage;
 import org.cesecore.certificates.util.AlgorithmTools;
-import org.cesecore.util.Base64;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.Base64Util;
+import org.cesecore.util.StringUtil;
 import org.ejbca.core.model.InternalEjbcaResources;
 
 /**
@@ -183,15 +183,15 @@ public final class CmpMessageHelper {
     pkiHeader.setMessageTime(new DERGeneralizedTime(new Date()));
     if (senderNonce != null) {
       pkiHeader.setSenderNonce(
-          new DEROctetString(Base64.decode(senderNonce.getBytes())));
+          new DEROctetString(Base64Util.decode(senderNonce.getBytes())));
     }
     if (recipientNonce != null) {
       pkiHeader.setRecipNonce(
-          new DEROctetString(Base64.decode(recipientNonce.getBytes())));
+          new DEROctetString(Base64Util.decode(recipientNonce.getBytes())));
     }
     if (transactionId != null) {
       pkiHeader.setTransactionID(
-          new DEROctetString(Base64.decode(transactionId.getBytes())));
+          new DEROctetString(Base64Util.decode(transactionId.getBytes())));
     }
     return pkiHeader;
   }
@@ -569,21 +569,21 @@ public final class CmpMessageHelper {
                 + ", failText="
                 + failText);
       }
-      resp.setSenderNonce(new String(Base64.encode(createSenderNonce())));
+      resp.setSenderNonce(new String(Base64Util.encode(createSenderNonce())));
       // Sender nonce is optional and might not always be included
       if (pkiHeader.getSenderNonce() != null) {
         resp.setRecipientNonce(
-            new String(Base64.encode(pkiHeader.getSenderNonce().getOctets())));
+         new String(Base64Util.encode(pkiHeader.getSenderNonce().getOctets())));
       }
       resp.setSender(pkiHeader.getRecipient());
       resp.setRecipient(pkiHeader.getSender());
       if (pkiHeader.getTransactionID() != null) {
         resp.setTransactionId(
             new String(
-                Base64.encode(pkiHeader.getTransactionID().getOctets())));
+                Base64Util.encode(pkiHeader.getTransactionID().getOctets())));
       } else {
         // Choose a random transaction ID if the client did not provide one
-        resp.setTransactionId(new String(Base64.encode(createSenderNonce())));
+      resp.setTransactionId(new String(Base64Util.encode(createSenderNonce())));
       }
       resp.setFailInfo(failInfo);
       resp.setFailText(failText);
@@ -622,14 +622,14 @@ public final class CmpMessageHelper {
       final String responseProt) {
     final CmpErrorResponseMessage cresp = new CmpErrorResponseMessage();
     cresp.setRecipientNonce(msg.getSenderNonce());
-    cresp.setSenderNonce(new String(Base64.encode(createSenderNonce())));
+    cresp.setSenderNonce(new String(Base64Util.encode(createSenderNonce())));
     cresp.setSender(msg.getRecipient());
     cresp.setRecipient(msg.getSender());
     if (msg.getTransactionId() != null) {
       cresp.setTransactionId(msg.getTransactionId());
     } else {
       // Choose a random transaction ID if the client did not provide one
-      cresp.setTransactionId(new String(Base64.encode(createSenderNonce())));
+     cresp.setTransactionId(new String(Base64Util.encode(createSenderNonce())));
     }
     cresp.setFailText(failText);
     cresp.setFailInfo(failInfo);
@@ -906,7 +906,7 @@ public final class CmpMessageHelper {
         bytes = newbytes;
       }
       str = new String(bytes, StandardCharsets.UTF_8);
-      if (StringTools.isAlphaOrAsciiPrintable(str)) {
+      if (StringUtil.isAlphaOrAsciiPrintable(str)) {
         if (LOG.isDebugEnabled()) {
           LOG.debug("Found string: " + str);
         }

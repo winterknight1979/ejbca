@@ -58,7 +58,7 @@ import org.cesecore.roles.Role;
 import org.cesecore.roles.management.RoleSessionLocal;
 import org.cesecore.util.Base64GetHashMap;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.ProfileID;
+import org.cesecore.util.ProfileIDUtil;
 import org.ejbca.config.GlobalConfiguration;
 import org.ejbca.core.ejb.audit.enums.EjbcaEventTypes;
 import org.ejbca.core.ejb.audit.enums.EjbcaModuleTypes;
@@ -1737,8 +1737,8 @@ public class HardTokenSessionBean
   }
 
   private int findFreeHardTokenProfileId() {
-    final ProfileID.DB db =
-        new ProfileID.DB() {
+    final ProfileIDUtil.DB db =
+        new ProfileIDUtil.DB() {
           @Override
           public boolean isFree(final int i) {
             return HardTokenProfileData.findByPK(
@@ -1746,12 +1746,12 @@ public class HardTokenSessionBean
                 == null;
           }
         };
-    return ProfileID.getNotUsedID(db);
+    return ProfileIDUtil.getNotUsedID(db);
   }
 
   private int findFreeHardTokenIssuerId() {
-    final ProfileID.DB db =
-        new ProfileID.DB() {
+    final ProfileIDUtil.DB db =
+        new ProfileIDUtil.DB() {
           @Override
           public boolean isFree(final int i) {
             return HardTokenIssuerData.findByPK(
@@ -1759,7 +1759,7 @@ public class HardTokenSessionBean
                 == null;
           }
         };
-    return ProfileID.getNotUsedID(db);
+    return ProfileIDUtil.getNotUsedID(db);
   }
 
   /**

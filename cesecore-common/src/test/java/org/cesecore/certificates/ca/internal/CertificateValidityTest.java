@@ -42,11 +42,11 @@ import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
 import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.cesecore.certificates.endentity.ExtendedInformation;
 import org.cesecore.certificates.util.AlgorithmConstants;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.cesecore.util.SimpleTime;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.ValidityDateUtil;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -92,10 +92,10 @@ public class CertificateValidityTest {
    */
   @Before
   public void setUp() throws Exception {
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
     // Everything from now on!
     now = new Date();
-    keyPair = KeyTools.genKeys("1024", "RSA");
+    keyPair = KeyUtil.genKeys("1024", "RSA");
     CertificateValidity.setTooLateExpireDate(
         new SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
             .parse("2036-01-19 03:14:08"));
@@ -180,8 +180,8 @@ public class CertificateValidityTest {
             CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER);
     CertificateValidity validity;
     profile.setEncodedValidity(
-        ValidityDate.formatAsISO8601(
-            absolulteTestDate, ValidityDate.TIMEZONE_SERVER));
+        ValidityDateUtil.formatAsISO8601(
+            absolulteTestDate, ValidityDateUtil.TIMEZONE_SERVER));
     Date notBefore;
     Date notAfter;
 
@@ -282,9 +282,9 @@ public class CertificateValidityTest {
         true); // is overwritten by the extended information date!
     profile.setUseExpirationRestrictionForWeekdays(
         false); // otherwise it could overwrite the end date again!
-    String extendedInformationStartDate = ValidityDate.formatAsUTC(now);
+    String extendedInformationStartDate = ValidityDateUtil.formatAsUTC(now);
     String extendedInformationEndDate =
-        ValidityDate.formatAsUTC(absolulteTestDate);
+        ValidityDateUtil.formatAsUTC(absolulteTestDate);
     ExtendedInformation extendedInformation = new ExtendedInformation();
     extendedInformation.setCustomData(
         ExtendedInformation.CUSTOM_STARTTIME, extendedInformationStartDate);
@@ -307,7 +307,7 @@ public class CertificateValidityTest {
             false,
             false);
     // seconds MUST be cut here!
-    notBefore = ValidityDate.parseAsUTC(extendedInformationStartDate);
+    notBefore = ValidityDateUtil.parseAsUTC(extendedInformationStartDate);
     notAfter =
         new Date((absolulteTestDate.getTime() / (60 * 1000)) * 60 * 1000);
     assertTrue(
@@ -376,11 +376,11 @@ public class CertificateValidityTest {
                 + 2L * SimpleTime.MILLISECONDS_PER_DAY);
     try {
       profile.setEncodedValidity(
-          ValidityDate.formatAsISO8601(
+          ValidityDateUtil.formatAsISO8601(
               new Date(
                   tooLateExpireTestDate.getTime()
                       + 4L * SimpleTime.MILLISECONDS_PER_DAY),
-              ValidityDate.TIMEZONE_SERVER));
+              ValidityDateUtil.TIMEZONE_SERVER));
       validity =
           new CertificateValidity(
               now, subject, profile, null, exceededEndDate, null, false, false);
@@ -410,8 +410,8 @@ public class CertificateValidityTest {
             CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER);
     CertificateValidity validity;
     profile.setEncodedValidity(
-        ValidityDate.formatAsISO8601(
-            absolulteTestDate, ValidityDate.TIMEZONE_SERVER));
+        ValidityDateUtil.formatAsISO8601(
+            absolulteTestDate, ValidityDateUtil.TIMEZONE_SERVER));
     Date notBefore;
     Date notAfter;
 
@@ -587,8 +587,8 @@ public class CertificateValidityTest {
     final Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
     cal.add(Calendar.DATE, 50);
     testBaseTestCertificateValidity(
-        ValidityDate.formatAsISO8601(
-            cal.getTime(), ValidityDate.TIMEZONE_SERVER));
+        ValidityDateUtil.formatAsISO8601(
+            cal.getTime(), ValidityDateUtil.TIMEZONE_SERVER));
   }
   /**
    * @throws InvalidAlgorithmParameterException fail
@@ -610,7 +610,7 @@ public class CertificateValidityTest {
           NoSuchProviderException, OperatorCreationException,
           CertificateException, IOException, CAOfflineException,
           ParseException {
-    final KeyPair pair = KeyTools.genKeys("512", "RSA");
+    final KeyPair pair = KeyUtil.genKeys("512", "RSA");
     /// A certificate without private key usage period
     X509Certificate cert =
         CertTools.genSelfCertForPurpose(
@@ -1121,7 +1121,7 @@ public class CertificateValidityTest {
     cal1.add(Calendar.DAY_OF_MONTH, -10);
     ei.setCustomData(
         ExtendedInformation.CUSTOM_STARTTIME,
-        ValidityDate.formatAsUTC(cal1.getTime()));
+        ValidityDateUtil.formatAsUTC(cal1.getTime()));
     ei.setCustomData(ExtendedInformation.CUSTOM_ENDTIME, "200:0:0");
     subject.setExtendedInformation(ei);
     cv = new CertificateValidity(subject, cp, null, null, cacert, false, false);
@@ -1194,7 +1194,7 @@ public class CertificateValidityTest {
    */
   private boolean isRelativeTime(final String encodedValidity) {
     try {
-      ValidityDate.parseAsIso8601(encodedValidity);
+      ValidityDateUtil.parseAsIso8601(encodedValidity);
       return false;
     } catch (ParseException e) {
       // must be SimpleTime here

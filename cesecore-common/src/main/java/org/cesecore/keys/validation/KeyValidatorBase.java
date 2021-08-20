@@ -74,7 +74,9 @@ public abstract class KeyValidatorBase extends ValidatorBase
   }
 
   @Override
-  public void initDynamicUiModel() { }
+  public void initDynamicUiModel() {
+      // NOPMD: no-op
+  }
 
   @Override
   public List<Integer> getApplicablePhases() {

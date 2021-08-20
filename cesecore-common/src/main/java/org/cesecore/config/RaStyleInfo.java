@@ -209,9 +209,6 @@ public class RaStyleInfo implements Serializable {
       return false;
     }
     RaStyleInfo other = (RaStyleInfo) obj;
-    if (archiveId != other.archiveId) {
-      return false;
-    }
-    return true;
+    return archiveId == other.archiveId;
   }
 }

@@ -330,7 +330,7 @@ public class NameConstraint extends StandardCertificateExtension {
       case GeneralName.rfc822Name:
         // Prepend @ is it's only the domain part to distinguish from DNS names
         String str = (String) data;
-        return (str.contains("@") ? str : "@" + str);
+        return str.contains("@") ? str : "@" + str;
       default:
         throw new UnsupportedOperationException(
             "Unsupported name constraint type " + type);

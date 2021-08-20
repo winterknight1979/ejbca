@@ -43,7 +43,8 @@ public class AvailableExtendedKeyUsagesConfiguration extends ConfigurationBase
    *
    * @param ignored ignored
    */
-  public AvailableExtendedKeyUsagesConfiguration(final boolean ignored) {
+  public AvailableExtendedKeyUsagesConfiguration(
+          final boolean ignored) { //NOPMD
     super();
   }
 
@@ -212,5 +213,7 @@ public class AvailableExtendedKeyUsagesConfiguration extends ConfigurationBase
   }
 
   @Override
-  public void upgrade() { }
+  public void upgrade() {
+      // No-op
+  }
 }

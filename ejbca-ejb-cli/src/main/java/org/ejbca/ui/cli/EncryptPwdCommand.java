@@ -19,8 +19,8 @@ import java.security.spec.InvalidKeySpecException;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import org.apache.log4j.Logger;
-import org.cesecore.util.CryptoProviderTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.CryptoProviderUtil;
+import org.cesecore.util.StringUtil;
 import org.ejbca.ui.cli.infrastructure.command.CommandResult;
 import org.ejbca.ui.cli.infrastructure.command.EjbcaCommandBase;
 import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
@@ -86,7 +86,7 @@ public class EncryptPwdCommand extends EjbcaCommandBase {
     }
     LOG.info("Enter word to encrypt: ");
     String s = String.valueOf(System.console().readPassword());
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
     LOG.info(
         "Encrypting pwd ("
             + (readKey ? "with custom key" : "with default key")
@@ -95,9 +95,9 @@ public class EncryptPwdCommand extends EjbcaCommandBase {
 
     try {
       if (readKey) {
-        enc = StringTools.pbeEncryptStringWithSha256Aes192(s, encryptionKey);
+        enc = StringUtil.pbeEncryptStringWithSha256Aes192(s, encryptionKey);
       } else {
-        enc = StringTools.pbeEncryptStringWithSha256Aes192(s);
+        enc = StringUtil.pbeEncryptStringWithSha256Aes192(s);
       }
     } catch (InvalidKeyException
         | InvalidAlgorithmParameterException

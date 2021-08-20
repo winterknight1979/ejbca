@@ -27,8 +27,8 @@ import javax.persistence.Transient;
 import org.apache.log4j.Logger;
 import org.cesecore.dbprotection.ProtectedData;
 import org.cesecore.dbprotection.ProtectionStringBuilder;
-import org.cesecore.util.Base64;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.Base64Util;
+import org.cesecore.util.StringUtil;
 
 /**
  * Representation of a certificates key recovery data.
@@ -136,7 +136,7 @@ public class KeyRecoveryData extends ProtectedData implements Serializable {
    * @param ausername user
    */
   public void setUsername(final String ausername) {
-    this.username = StringTools.stripUsername(ausername);
+    this.username = StringUtil.stripUsername(ausername);
   }
 
   /**
@@ -302,14 +302,14 @@ public class KeyRecoveryData extends ProtectedData implements Serializable {
    */
   @Transient
   public byte[] getKeyDataAsByteArray() {
-    return Base64.decode(this.getKeyData().getBytes());
+    return Base64Util.decode(this.getKeyData().getBytes());
   }
 
   /**
    * @param keydata data
    */
   public void setKeyDataFromByteArray(final byte[] keydata) {
-    setKeyData(new String(Base64.encode(keydata)));
+    setKeyData(new String(Base64Util.encode(keydata)));
   }
 
   //

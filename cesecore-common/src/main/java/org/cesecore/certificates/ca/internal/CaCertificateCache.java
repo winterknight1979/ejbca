@@ -24,10 +24,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.certificate.HashID;
 import org.cesecore.config.OcspConfiguration;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
 
 /**
@@ -149,38 +150,10 @@ public enum CaCertificateCache {
       final X509Certificate cert = (X509Certificate) tmp;
       try { // test if certificate is OK. we have experienced that BC could
             // decode a certificate that later on could not be used.
-        final Integer key = HashID.getFromKeyID(cert).getKey();
-        final X509Certificate pastCert =
-            newCertsFromSubjectKeyIdentifier.get(key);
-        // Add the entry if it's the first, or if it is more recent than the one
-        // existing (in that case replace it)
-        if (pastCert == null
-            || (pastCert != null
-                && CertTools.getNotBefore(cert)
-                    .after(CertTools.getNotBefore(pastCert)))) {
-          newCertsFromSubjectKeyIdentifier.put(key, cert);
-        }
+        handlePastCert(newCertsFromSubjectKeyIdentifier, cert);
       } catch (
           Throwable t) { // NOPMD: catch all to not break with an error here.
-        if (log.isDebugEnabled()) {
-          final StringWriter sw = new StringWriter();
-          final PrintWriter pw = new PrintWriter(sw);
-          pw.println("Erroneous certificate fetched from database.");
-          pw.println(
-              "The public key can not be extracted from the certificate.");
-          pw.println("Here follows a base64 encoding of the certificate:");
-          try {
-            final String b64encoded =
-                new String(Base64.encode(cert.getEncoded()));
-            pw.println(CertTools.BEGIN_CERTIFICATE);
-            pw.println(b64encoded);
-            pw.println(CertTools.END_CERTIFICATE);
-          } catch (CertificateEncodingException e) {
-            pw.println("Not possible to encode certificate.");
-          }
-          pw.flush();
-          log.debug(sw.toString());
-        }
+        logCertError(cert);
         continue;
       }
       final Integer subjectDNKey = HashID.getFromSubjectDN(cert).getKey();
@@ -199,24 +172,27 @@ public enum CaCertificateCache {
         isLatest = true;
       }
       if (isLatest) {
-        newCertsFromSubjectDN.put(subjectDNKey, cert);
-        final Integer issuerDNKey = HashID.getFromIssuerDN(cert).getKey();
-        if (!issuerDNKey.equals(
-            subjectDNKey)) { // don't add roots to themselves
-          Set<X509Certificate> sIssuer = newCertsFromIssuerDN.get(issuerDNKey);
-          if (sIssuer == null) {
-            sIssuer = new HashSet<X509Certificate>();
-            newCertsFromIssuerDN.put(issuerDNKey, sIssuer);
-          }
-          sIssuer.add(cert);
-          sIssuer.remove(pastCert);
-        } else {
-          newRootCertificates.add(cert);
-          newRootCertificates.remove(pastCert);
-        }
+        handleLatest(newCertsFromSubjectDN, newCertsFromIssuerDN,
+                newRootCertificates, cert, subjectDNKey, pastCert);
       }
     }
     // Log what we have stored in the cache
+    logDebugCache(newCertsFromSubjectKeyIdentifier);
+    // Replace the old caches
+    certsFromSubjectKeyIdentifier = newCertsFromSubjectKeyIdentifier;
+    certsFromIssuerDN = newCertsFromIssuerDN;
+    certsFromSubjectDN = newCertsFromSubjectDN;
+    rootCertificates = newRootCertificates;
+    certValidTo =
+        System.currentTimeMillis()
+            + OcspConfiguration.getSigningCertsValidTimeInMilliseconds();
+  }
+
+/**
+ * @param newCertsFromSubjectKeyIdentifier certs
+ */
+private void logDebugCache(
+        final Map<Integer, X509Certificate> newCertsFromSubjectKeyIdentifier) {
     if (log.isDebugEnabled()) {
       final StringWriter sw = new StringWriter();
       final PrintWriter pw = new PrintWriter(sw, true);
@@ -230,13 +206,81 @@ public enum CaCertificateCache {
       }
       log.debug(sw);
     }
-    // Replace the old caches
-    certsFromSubjectKeyIdentifier = newCertsFromSubjectKeyIdentifier;
-    certsFromIssuerDN = newCertsFromIssuerDN;
-    certsFromSubjectDN = newCertsFromSubjectDN;
-    rootCertificates = newRootCertificates;
-    certValidTo =
-        System.currentTimeMillis()
-            + OcspConfiguration.getSigningCertsValidTimeInMilliseconds();
-  }
+}
+
+/**
+ * @param newCertsFromSubjectKeyIdentifier Map
+ * @param cert Cert
+ */
+private void handlePastCert(
+        final Map<Integer, X509Certificate> newCertsFromSubjectKeyIdentifier,
+        final X509Certificate cert) {
+    final Integer key = HashID.getFromKeyID(cert).getKey();
+    final X509Certificate pastCert =
+        newCertsFromSubjectKeyIdentifier.get(key);
+    // Add the entry if it's the first, or if it is more recent than the one
+    // existing (in that case replace it)
+    if (pastCert == null
+        || pastCert != null
+            && CertTools.getNotBefore(cert)
+                .after(CertTools.getNotBefore(pastCert))) {
+      newCertsFromSubjectKeyIdentifier.put(key, cert);
+    }
+}
+
+/**
+ * @param newCertsFromSubjectDN Map
+ * @param newCertsFromIssuerDN Map
+ * @param newRootCertificates Map
+ * @param cert Cert
+ * @param subjectDNKey Key
+ * @param pastCert Cert
+ */
+private void handleLatest(
+        final Map<Integer, X509Certificate> newCertsFromSubjectDN,
+        final Map<Integer, Set<X509Certificate>> newCertsFromIssuerDN,
+        final Set<X509Certificate> newRootCertificates,
+        final X509Certificate cert, final Integer subjectDNKey,
+        final X509Certificate pastCert) {
+    newCertsFromSubjectDN.put(subjectDNKey, cert);
+    final Integer issuerDNKey = HashID.getFromIssuerDN(cert).getKey();
+    if (!issuerDNKey.equals(
+        subjectDNKey)) { // don't add roots to themselves
+      Set<X509Certificate> sIssuer = newCertsFromIssuerDN.get(issuerDNKey);
+      if (sIssuer == null) {
+        sIssuer = new HashSet<X509Certificate>();
+        newCertsFromIssuerDN.put(issuerDNKey, sIssuer);
+      }
+      sIssuer.add(cert);
+      sIssuer.remove(pastCert);
+    } else {
+      newRootCertificates.add(cert);
+      newRootCertificates.remove(pastCert);
+    }
+}
+
+/**
+ * @param cert cert
+ */
+private void logCertError(final X509Certificate cert) {
+    if (log.isDebugEnabled()) {
+      final StringWriter sw = new StringWriter();
+      final PrintWriter pw = new PrintWriter(sw);
+      pw.println("Erroneous certificate fetched from database.");
+      pw.println(
+          "The public key can not be extracted from the certificate.");
+      pw.println("Here follows a base64 encoding of the certificate:");
+      try {
+        final String b64encoded =
+            new String(Base64Util.encode(cert.getEncoded()));
+        pw.println(CertTools.BEGIN_CERTIFICATE);
+        pw.println(b64encoded);
+        pw.println(CertTools.END_CERTIFICATE);
+      } catch (CertificateEncodingException e) {
+        pw.println("Not possible to encode certificate.");
+      }
+      pw.flush();
+      log.debug(sw.toString());
+    }
+}
 }

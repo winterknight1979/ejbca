@@ -213,7 +213,7 @@ public class LookAheadObjectInputStream extends ObjectInputStream {
    *     list of accepted classes (if enabledSubclassing==true)
    */
   @Override
-  protected Class<?> resolveClass(final ObjectStreamClass desc)
+  protected Class<?> resolveClass(final ObjectStreamClass desc) // NOPMD: irred
       throws IOException, ClassNotFoundException {
     Class<?> resolvedClass = super.resolveClass(desc); // can be an array
     Class<?> resolvedClassType =

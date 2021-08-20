@@ -23,7 +23,7 @@ import org.cesecore.certificates.ca.catoken.CAToken;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceInfo;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.SimpleTime;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 
 /**
  * Holds non-sensitive information about a CVC CA (Card Verifiable Certificate).
@@ -162,7 +162,7 @@ public class CVCCAInfo extends CAInfo {
       final boolean aUseUserStorage,
       final boolean aUseCertificateStorage,
       final boolean aAcceptRevocationNonExistingEntry) {
-    this.subjectdn = CertTools.stringToBCDNString(StringTools.strip(subjectDn));
+    this.subjectdn = CertTools.stringToBCDNString(StringUtil.strip(subjectDn));
     this.caid = CertTools.stringToBCDNString(this.subjectdn).hashCode();
     this.name = name;
     this.status = status;

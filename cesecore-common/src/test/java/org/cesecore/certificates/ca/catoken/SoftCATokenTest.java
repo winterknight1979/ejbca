@@ -17,8 +17,8 @@ import static org.junit.Assert.assertEquals;
 import java.util.Properties;
 import org.cesecore.keys.token.CryptoToken;
 import org.cesecore.keys.token.SoftCryptoTokenTest;
-import org.cesecore.keys.util.KeyTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.keys.util.KeyUtil;
+import org.cesecore.util.CryptoProviderUtil;
 import org.junit.Test;
 
 /**
@@ -30,7 +30,7 @@ import org.junit.Test;
 public class SoftCATokenTest extends CATokenTestBase {
 /** Constructor. */
   public SoftCATokenTest() {
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
   }
   /**
    * @throws Exception fail
@@ -90,7 +90,7 @@ public class SoftCATokenTest extends CATokenTestBase {
     cryptoToken.activate(TOKEN_PIN.toCharArray());
     cryptoToken.generateKeyPair(
         "1024", "rsatest" + CAToken.DEFAULT_KEYSEQUENCE);
-    KeyTools.testKey(
+    KeyUtil.testKey(
         cryptoToken.getPrivateKey(
             catoken.getAliasFromPurpose(
                 CATokenConstants.CAKEYPURPOSE_CERTSIGN)),
@@ -101,7 +101,7 @@ public class SoftCATokenTest extends CATokenTestBase {
     // With auto-activate, deactivate doesn't do anything because the token
     // always auto-activates with the default pwd
     cryptoToken.deactivate();
-    KeyTools.testKey(
+    KeyUtil.testKey(
         cryptoToken.getPrivateKey(
             catoken.getAliasFromPurpose(
                 CATokenConstants.CAKEYPURPOSE_CERTSIGN)),

@@ -15,7 +15,7 @@ package org.cesecore.keybind;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.internal.CommonCache;
 import org.cesecore.internal.CommonCacheBase;
 
@@ -39,7 +39,7 @@ public enum InternalKeyBindingCache implements CommonCache<InternalKeyBinding> {
           // We never disable storage of InternalKeyBindings in the cache
           // completely
           return Math.max(
-              CesecoreConfiguration.getCacheTimeInternalKeyBinding(), 0);
+              CesecoreConfigurationHelper.getCacheTimeInternalKeyBinding(), 0);
         }
 
         @Override

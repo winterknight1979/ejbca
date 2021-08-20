@@ -41,11 +41,11 @@ import org.cesecore.authorization.user.AccessUserAspectData;
 import org.cesecore.authorization.user.matchvalues.AccessMatchValue;
 import org.cesecore.authorization.user.matchvalues.AccessMatchValueReverseLookupRegistry;
 import org.cesecore.certificates.endentity.EndEntityConstants;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.internal.InternalResources;
 import org.cesecore.roles.AdminGroupData;
 import org.cesecore.roles.RoleExistsException;
-import org.cesecore.util.ProfileID;
+import org.cesecore.util.ProfileIDUtil;
 import org.cesecore.util.QueryResultWrapper;
 import org.ejbca.config.EjbcaConfiguration;
 import org.ejbca.core.ejb.authentication.cli.CliUserAccessMatchValue;
@@ -76,7 +76,7 @@ public class LegacyRoleManagementSessionBean
   @EJB private SecurityEventsLoggerSessionLocal securityEventsLogger;
 
   /** EM. */
-  @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+  @PersistenceContext(unitName = CesecoreConfigurationHelper.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
   @Override
@@ -119,14 +119,14 @@ public class LegacyRoleManagementSessionBean
   }
 
   private Integer findFreeRoleId() {
-    final ProfileID.DB db =
-        new ProfileID.DB() {
+    final ProfileIDUtil.DB db =
+        new ProfileIDUtil.DB() {
           @Override
           public boolean isFree(final int i) {
             return entityManager.find(AdminGroupData.class, i) == null;
           }
         };
-    return Integer.valueOf(ProfileID.getNotUsedID(db));
+    return Integer.valueOf(ProfileIDUtil.getNotUsedID(db));
   }
 
   @Override

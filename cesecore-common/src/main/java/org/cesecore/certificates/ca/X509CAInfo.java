@@ -25,17 +25,17 @@ import java.util.Map;
 import org.cesecore.certificates.ca.catoken.CAToken;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceInfo;
 import org.cesecore.certificates.certificateprofile.CertificatePolicy;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.SimpleTime;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 
 /**
  * Holds non-sensitive information about a X509CA.
  *
  * @version $Id: X509CAInfo.java 34456 2020-02-06 18:36:20Z anatom $
  */
-public class X509CAInfo extends CAInfo {
+public class X509CAInfo extends CAInfo { // NOPMD: class length
 
   private static final long serialVersionUID = 2L;
   /** Policies. */
@@ -123,7 +123,7 @@ public class X509CAInfo extends CAInfo {
         certificatechain, // Certificate chain
         catoken, // CA Token
         "", // Description
-        CesecoreConfiguration
+        CesecoreConfigurationHelper
             .getSerialNumberOctetSizeForNewCa(), // serial number octet size
         -1, // Revocation reason
         null, // Revocation date
@@ -241,7 +241,7 @@ public class X509CAInfo extends CAInfo {
    * @param acmpRaAuthSecret bool
    * @param keepExpiredCertsOnCRL bool
    */
-  private X509CAInfo(
+  private X509CAInfo(// NOPMD: method length
       final String subjectDn,
       final String name,
       final int status,
@@ -297,7 +297,7 @@ public class X509CAInfo extends CAInfo {
       final boolean aacceptRevocationNonExistingEntry,
       final String acmpRaAuthSecret,
       final boolean keepExpiredCertsOnCRL) {
-    this.subjectdn = CertTools.stringToBCDNString(StringTools.strip(subjectDn));
+    this.subjectdn = CertTools.stringToBCDNString(StringUtil.strip(subjectDn));
     this.caid = CertTools.stringToBCDNString(this.subjectdn).hashCode();
     this.name = name;
     this.status = status;
@@ -434,7 +434,7 @@ public class X509CAInfo extends CAInfo {
    * @param acmpRaAuthSecret bool
    * @param keepExpiredCertsOnCRL bool
    */
-  public X509CAInfo(
+  public X509CAInfo(// NOPMD: Params
       final int caid,
       final String encodedValidity,
       final CAToken catoken,
@@ -755,7 +755,7 @@ public class X509CAInfo extends CAInfo {
    *
    * @param value new name
    */
-  void setNameChanged(final boolean value) {
+  void setNameChanged(final boolean value) { //NOPMD: PP
     nameChanged = value;
   }
 

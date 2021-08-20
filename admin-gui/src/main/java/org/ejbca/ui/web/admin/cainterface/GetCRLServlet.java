@@ -21,7 +21,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.crl.CrlStoreSessionLocal;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.core.model.InternalEjbcaResources;
 import org.ejbca.core.model.authorization.AccessRulesConstants;
 import org.ejbca.ui.web.RequestHelper;
@@ -109,7 +109,7 @@ public class GetCRLServlet extends BaseAdminServlet {
         res.setHeader(
             "Content-disposition",
             "attachment; filename=\""
-                + StringTools.stripFilename(filename)
+                + StringUtil.stripFilename(filename)
                 + "\"");
         res.setContentType("application/pkix-crl");
         res.setContentLength(crl.length);
@@ -136,7 +136,7 @@ public class GetCRLServlet extends BaseAdminServlet {
         res.setHeader(
             "Content-disposition",
             "attachment; filename=\""
-                + StringTools.stripFilename(filename)
+                + StringUtil.stripFilename(filename)
                 + "\"");
         res.setContentType("application/pkix-crl");
         res.setContentLength(crl.length);

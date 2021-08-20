@@ -192,7 +192,7 @@ public interface CAAdminSession {
    * @param caName name
    * @param wrappedCerts contains the full certificate chain down to the leaf CA
    *     to be imported. Use {@link
-   *     org.cesecore.util.EJBTools#wrapCertCollection} to convert to the
+   *     org.cesecore.util.EJBUtil#wrapCertCollection} to convert to the
    *     wrapper type.
    * @throws AuthorizationDeniedException fail
    * @throws CAExistsException fail
@@ -217,7 +217,7 @@ public interface CAAdminSession {
    * @param caId ca
    * @param wrappedCerts contains the full certificate chain down to the leaf CA
    *     to be imported. Use {@link
-   *     org.cesecore.util.EJBTools#wrapCertCollection} to convert to the
+   *     org.cesecore.util.EJBUtil#wrapCertCollection} to convert to the
    *     wrapper type.
    * @throws CADoesntExistsException fail
    * @throws AuthorizationDeniedException fail

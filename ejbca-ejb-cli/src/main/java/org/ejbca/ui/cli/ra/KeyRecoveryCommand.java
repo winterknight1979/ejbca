@@ -21,7 +21,7 @@ import org.cesecore.certificates.ca.CADoesntExistsException;
 import org.cesecore.certificates.certificate.CertificateStoreSessionRemote;
 import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.cesecore.configuration.GlobalConfigurationSessionRemote;
-import org.cesecore.util.EJBTools;
+import org.cesecore.util.EJBUtil;
 import org.cesecore.util.EjbRemoteHelper;
 import org.ejbca.config.GlobalConfiguration;
 import org.ejbca.core.ejb.keyrecovery.KeyRecoverySessionRemote;
@@ -110,7 +110,7 @@ public class KeyRecoveryCommand extends BaseRaCommand {
             .findUsernameByCertSerno(certificatesn, issuerdn);
     if (!EjbRemoteHelper.INSTANCE
         .getRemoteSession(KeyRecoverySessionRemote.class)
-        .existsKeys(EJBTools.wrap(cert))) {
+        .existsKeys(EJBUtil.wrap(cert))) {
       getLogger().error("Specified keys don't exist in database.");
       return CommandResult.FUNCTIONAL_FAILURE;
     }

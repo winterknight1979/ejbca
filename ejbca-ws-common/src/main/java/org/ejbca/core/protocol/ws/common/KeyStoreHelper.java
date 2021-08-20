@@ -18,7 +18,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.cert.CertificateException;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 
 /**
  * Class used to generate a java.security.KeyStore from a
@@ -51,7 +51,7 @@ public final class KeyStoreHelper {
             ? java.security.KeyStore.getInstance("JKS")
             : java.security.KeyStore.getInstance(type, "BC");
     ByteArrayInputStream bais =
-        new ByteArrayInputStream(Base64.decode(keystoreData));
+        new ByteArrayInputStream(Base64Util.decode(keystoreData));
     ks.load(bais, password.toCharArray());
     return ks;
   }

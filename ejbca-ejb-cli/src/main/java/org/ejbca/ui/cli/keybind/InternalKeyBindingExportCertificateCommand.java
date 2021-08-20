@@ -22,7 +22,7 @@ import org.cesecore.certificates.certificate.CertificateStoreSessionRemote;
 import org.cesecore.keybind.CertificateImportException;
 import org.cesecore.keybind.InternalKeyBindingInfo;
 import org.cesecore.keybind.InternalKeyBindingMgmtSessionRemote;
-import org.cesecore.util.EJBTools;
+import org.cesecore.util.EJBUtil;
 import org.cesecore.util.EjbRemoteHelper;
 import org.ejbca.ui.cli.infrastructure.command.CommandResult;
 import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
@@ -96,7 +96,7 @@ public class InternalKeyBindingExportCertificateCommand
         return CommandResult.FUNCTIONAL_FAILURE;
       }
       final Certificate cert =
-          EJBTools.unwrap(
+          EJBUtil.unwrap(
               certStoreSession.findCertificateByFingerprintRemote(fp));
       if (cert == null) {
         getLogger()

@@ -86,7 +86,7 @@ import org.cesecore.certificates.endentity.ExtendedInformation;
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.certificates.util.AlgorithmTools;
 import org.cesecore.certificates.util.DNFieldExtractor;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.keys.token.CryptoToken;
 import org.cesecore.keys.token.CryptoTokenAuthenticationFailedException;
 import org.cesecore.keys.token.CryptoTokenInfo;
@@ -96,12 +96,12 @@ import org.cesecore.keys.token.CryptoTokenOfflineException;
 import org.cesecore.keys.token.KeyPairInfo;
 import org.cesecore.keys.token.SoftCryptoToken;
 import org.cesecore.keys.validation.KeyValidatorSessionLocal;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.FileTools;
 import org.cesecore.util.SimpleTime;
-import org.cesecore.util.StringTools;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.StringUtil;
+import org.cesecore.util.ValidityDateUtil;
 import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionLocal;
 import org.ejbca.core.ejb.ca.publisher.PublisherQueueSessionLocal;
 import org.ejbca.core.ejb.ca.publisher.PublisherSessionLocal;
@@ -668,7 +668,7 @@ public class CAInterfaceBean implements Serializable {
     if (request != null) {
       returnval =
           RequestHelper.BEGIN_CERTIFICATE_REQUEST_WITH_NL
-              + new String(Base64.encode(request, true))
+              + new String(Base64Util.encode(request, true))
               + RequestHelper.END_CERTIFICATE_REQUEST_WITH_NL;
     }
     return returnval;
@@ -707,7 +707,7 @@ public class CAInterfaceBean implements Serializable {
   public String getProcessedCertificateAsString() throws Exception {
     String returnval = null;
     if (request != null) {
-      byte[] b64cert = Base64.encode(this.processedcert.getEncoded(), true);
+      byte[] b64cert = Base64Util.encode(this.processedcert.getEncoded(), true);
       returnval = CertTools.BEGIN_CERTIFICATE_WITH_NL;
       returnval += new String(b64cert);
       returnval += CertTools.END_CERTIFICATE_WITH_NL;
@@ -1000,7 +1000,7 @@ public class CAInterfaceBean implements Serializable {
         final Properties cryptoTokenProperties = new Properties();
         cryptoTokenProperties.setProperty(
             CryptoToken.AUTOACTIVATE_PIN_PROPERTY,
-            CesecoreConfiguration.getCaKeyStorePass());
+            CesecoreConfigurationHelper.getCaKeyStorePass());
         try {
           cryptoTokenId =
               cryptoTokenManagementSession.createCryptoToken(
@@ -1051,12 +1051,12 @@ public class CAInterfaceBean implements Serializable {
             && AlgorithmConstants.KEYALGORITHM_ECGOST3410.equals(
                 caSignKeyAlgo)) {
           caSignKeySpec =
-              CesecoreConfiguration.getExtraAlgSubAlgName("gost3410", "B");
+             CesecoreConfigurationHelper.getExtraAlgSubAlgName("gost3410", "B");
           extendedServiceSignatureKeySpec = caSignKeySpec;
         } else if (AlgorithmTools.isDstu4145Enabled()
             && AlgorithmConstants.KEYALGORITHM_DSTU4145.equals(caSignKeyAlgo)) {
           caSignKeySpec =
-              CesecoreConfiguration.getExtraAlgSubAlgName("dstu4145", "233");
+           CesecoreConfigurationHelper.getExtraAlgSubAlgName("dstu4145", "233");
           extendedServiceSignatureKeySpec = caSignKeySpec;
         }
         cryptoTokenManagementSession.createKeyPair(
@@ -1288,7 +1288,7 @@ public class CAInterfaceBean implements Serializable {
       throw new Exception("No key specification supplied.");
     }
     if (keySequenceFormat == null) {
-      caToken.setKeySequenceFormat(StringTools.KEY_SEQUENCE_FORMAT_NUMERIC);
+      caToken.setKeySequenceFormat(StringUtil.KEY_SEQUENCE_FORMAT_NUMERIC);
     } else {
       caToken.setKeySequenceFormat(Integer.parseInt(keySequenceFormat));
     }
@@ -1353,10 +1353,10 @@ public class CAInterfaceBean implements Serializable {
         // Certificate policies from the CA and the CertificateProfile will be
         // merged for cert creation in the CAAdminSession.createCA call
         final List<Integer> crlPublishers =
-            StringTools.idStringToListOfInteger(
+            StringUtil.idStringToListOfInteger(
                 availablePublisherValues, LIST_SEPARATOR);
         final List<Integer> keyValidators =
-            StringTools.idStringToListOfInteger(
+            StringUtil.idStringToListOfInteger(
                 availableKeyValidatorValues, LIST_SEPARATOR);
 
         List<String> authorityInformationAccess = new ArrayList<>();
@@ -1394,8 +1394,8 @@ public class CAInterfaceBean implements Serializable {
 
         final int caSerialNumberOctetSize =
             (caSerialNumberOctetSizeString != null)
-                ? Integer.parseInt(caSerialNumberOctetSizeString)
-                : CesecoreConfiguration.getSerialNumberOctetSizeForNewCa();
+               ? Integer.parseInt(caSerialNumberOctetSizeString)
+               : CesecoreConfigurationHelper.getSerialNumberOctetSizeForNewCa();
 
         if (crlPeriod != 0 && !illegaldnoraltname) {
           if (buttonCreateCa) {
@@ -1646,11 +1646,11 @@ public class CAInterfaceBean implements Serializable {
    */
   public String isValidityTimeValid(final String validityString) {
     // Fixed end dates are not limited
-    if (ValidityDate.isValidIso8601Date(validityString)) {
+    if (ValidityDateUtil.isValidIso8601Date(validityString)) {
       // We have a valid date, let's just check that it's in the future as well.
       Date validityDate;
       try {
-        validityDate = ValidityDate.parseAsIso8601(validityString);
+        validityDate = ValidityDateUtil.parseAsIso8601(validityString);
       } catch (ParseException e) {
         throw new IllegalStateException(
             validityString
@@ -1706,7 +1706,7 @@ public class CAInterfaceBean implements Serializable {
           AlgorithmConstants.KEYSPECPREFIX_ECGOST3410)) {
         keyType = AlgorithmConstants.KEYALGORITHM_ECGOST3410;
       } else if (AlgorithmTools.isDstu4145Enabled()
-          && keySpec.startsWith(CesecoreConfiguration.getOidDstu4145())) {
+          && keySpec.startsWith(CesecoreConfigurationHelper.getOidDstu4145())) {
         keyType = AlgorithmConstants.KEYALGORITHM_DSTU4145;
       } else {
         keyType = AlgorithmConstants.KEYALGORITHM_ECDSA;
@@ -1882,7 +1882,7 @@ public class CAInterfaceBean implements Serializable {
       catoken = new CAToken(caid, new Properties());
     }
     if (keySequenceFormat == null) {
-      catoken.setKeySequenceFormat(StringTools.KEY_SEQUENCE_FORMAT_NUMERIC);
+      catoken.setKeySequenceFormat(StringUtil.KEY_SEQUENCE_FORMAT_NUMERIC);
     } else {
       catoken.setKeySequenceFormat(Integer.parseInt(keySequenceFormat));
     }
@@ -1904,7 +1904,7 @@ public class CAInterfaceBean implements Serializable {
     } else {
       try {
         // Fixed dates are not limited.
-        ValidityDate.parseAsIso8601(validityString);
+        ValidityDateUtil.parseAsIso8601(validityString);
       } catch (ParseException e) {
         // Only positive relative times allowed.
         long millis;
@@ -1931,10 +1931,10 @@ public class CAInterfaceBean implements Serializable {
       //           final int approvalProfileID = (approvalProfileParam==null ?
       // -1 : Integer.parseInt(approvalProfileParam));
       final List<Integer> crlpublishers =
-          StringTools.idStringToListOfInteger(
+          StringUtil.idStringToListOfInteger(
               availablePublisherValues, LIST_SEPARATOR);
       final List<Integer> keyValidators =
-          StringTools.idStringToListOfInteger(
+          StringUtil.idStringToListOfInteger(
               availableKeyValidatorValues, LIST_SEPARATOR);
 
       // Info specific for X509 CA
@@ -1968,8 +1968,8 @@ public class CAInterfaceBean implements Serializable {
 
         final int caSerialNumberOctetSize =
             (caSerialNumberOctetSizeString != null)
-                ? Integer.parseInt(caSerialNumberOctetSizeString)
-                : CesecoreConfiguration.getSerialNumberOctetSizeForNewCa();
+               ? Integer.parseInt(caSerialNumberOctetSizeString)
+               : CesecoreConfigurationHelper.getSerialNumberOctetSizeForNewCa();
 
         // No need to add the HardTokenEncrypt or Keyrecovery extended service
         // here, because they are only "updated" in EditCA, and there
@@ -2381,12 +2381,12 @@ public class CAInterfaceBean implements Serializable {
       ret.add(new SimpleEntry<>(ecNamedCurve, "ECDSA " + ecNamedCurve));
     }
 
-    for (String alg : CesecoreConfiguration.getExtraAlgs()) {
-      for (String subalg : CesecoreConfiguration.getExtraAlgSubAlgs(alg)) {
+    for (String alg : CesecoreConfigurationHelper.getExtraAlgs()) {
+     for (String subalg : CesecoreConfigurationHelper.getExtraAlgSubAlgs(alg)) {
         final String title =
-            CesecoreConfiguration.getExtraAlgSubAlgTitle(alg, subalg);
+            CesecoreConfigurationHelper.getExtraAlgSubAlgTitle(alg, subalg);
         final String name =
-            CesecoreConfiguration.getExtraAlgSubAlgName(alg, subalg);
+            CesecoreConfigurationHelper.getExtraAlgSubAlgName(alg, subalg);
         ret.add(new SimpleEntry<>(name, title));
       }
     }

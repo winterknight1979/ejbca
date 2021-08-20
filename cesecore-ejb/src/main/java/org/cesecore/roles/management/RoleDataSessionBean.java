@@ -25,12 +25,12 @@ import javax.persistence.TypedQuery;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.cesecore.authorization.cache.AccessTreeUpdateSessionLocal;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.jndi.JndiConstants;
 import org.cesecore.roles.Role;
 import org.cesecore.roles.RoleData;
 import org.cesecore.roles.member.RoleMemberDataSessionLocal;
-import org.cesecore.util.ProfileID;
+import org.cesecore.util.ProfileIDUtil;
 import org.cesecore.util.QueryResultWrapper;
 
 /**
@@ -52,7 +52,7 @@ public class RoleDataSessionBean
   @EJB private RoleMemberDataSessionLocal roleMemberDataSession;
 
   /** EM. */
-  @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+  @PersistenceContext(unitName = CesecoreConfigurationHelper.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
   @Override
@@ -206,15 +206,15 @@ public class RoleDataSessionBean
 
   /** @return a integer Id that is currently unused in the database */
   private int findFreeRoleId() {
-    final ProfileID.DB db =
-        new ProfileID.DB() {
+    final ProfileIDUtil.DB db =
+        new ProfileIDUtil.DB() {
           @Override
           public boolean isFree(final int candidate) {
             return candidate != Role.ROLE_ID_UNASSIGNED
                 && getRole(candidate) == null;
           }
         };
-    return ProfileID.getNotUsedID(db);
+    return ProfileIDUtil.getNotUsedID(db);
   }
 
   @Override

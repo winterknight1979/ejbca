@@ -36,8 +36,8 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.cesecore.certificates.endentity.ExtendedInformation;
 import org.cesecore.certificates.util.AlgorithmTools;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.StringTools;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.StringUtil;
+import org.cesecore.util.ValidityDateUtil;
 import org.ejbca.core.model.ra.ExtendedInformationFields;
 import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
 
@@ -172,7 +172,7 @@ public class RaEndEntityDetails {
     final Date timeCreated = endEntity.getTimeCreated();
     if (timeCreated != null) {
       this.created =
-          ValidityDate.formatAsISO8601ServerTZ(
+          ValidityDateUtil.formatAsISO8601ServerTZ(
               timeCreated.getTime(), TimeZone.getDefault());
     } else {
       this.created = "";
@@ -180,7 +180,7 @@ public class RaEndEntityDetails {
     final Date timeModified = endEntity.getTimeModified();
     if (timeModified != null) {
       this.modified =
-          ValidityDate.formatAsISO8601ServerTZ(
+          ValidityDateUtil.formatAsISO8601ServerTZ(
               timeModified.getTime(), TimeZone.getDefault());
     } else {
       this.modified = "";
@@ -487,7 +487,7 @@ public class RaEndEntityDetails {
       fileName = "request_csr";
     }
 
-    final String filename = StringTools.stripFilename(fileName + fileExtension);
+    final String filename = StringUtil.stripFilename(fileName + fileExtension);
     ec.setResponseHeader(
         "Content-Disposition",
         "attachment; filename=\""

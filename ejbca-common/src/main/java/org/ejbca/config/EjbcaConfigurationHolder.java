@@ -26,7 +26,7 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.SystemConfiguration;
 import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
 import org.apache.log4j.Logger;
-import org.cesecore.config.ConfigurationHolder;
+import org.cesecore.config.ConfigurationHolderUtil;
 
 /**
  * This is a singleton. Used to configure common-configuration with our sources.
@@ -259,7 +259,7 @@ public final class EjbcaConfigurationHolder {
     final StringBuilder str = new StringBuilder();
     String[] rets = instance().getStringArray(property);
     if (rets.length == 0) {
-      rets = ConfigurationHolder.getDefaultValueArray(property);
+      rets = ConfigurationHolderUtil.getDefaultValueArray(property);
     }
     for (int i = 0; i < rets.length; i++) {
       if (i != 0) {
@@ -270,7 +270,7 @@ public final class EjbcaConfigurationHolder {
     if (str.length() != 0) {
       ret = str.toString();
     } else {
-      ret = ConfigurationHolder.getDefaultValue(property);
+      ret = ConfigurationHolderUtil.getDefaultValue(property);
     }
     return ret;
   }

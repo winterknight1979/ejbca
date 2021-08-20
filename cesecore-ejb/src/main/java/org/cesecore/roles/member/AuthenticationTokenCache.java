@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.cesecore.authentication.tokens.AuthenticationToken;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.internal.CommonCache;
 import org.cesecore.internal.CommonCacheBase;
 
@@ -38,7 +38,7 @@ public enum AuthenticationTokenCache
       new CommonCacheBase<AuthenticationTokenCacheKey>() {
         @Override
         protected long getCacheTime() {
-          return CesecoreConfiguration.getCacheAuthorizationTime();
+          return CesecoreConfigurationHelper.getCacheAuthorizationTime();
         }
 
         @Override

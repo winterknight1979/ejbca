@@ -29,7 +29,7 @@ import javax.persistence.Transient;
 import org.apache.log4j.Logger;
 import org.cesecore.dbprotection.ProtectedData;
 import org.cesecore.dbprotection.ProtectionStringBuilder;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.ejbca.core.model.approval.Approval;
 import org.ejbca.core.model.approval.ApprovalDataVO;
 import org.ejbca.core.model.approval.ApprovalRequest;
@@ -525,7 +525,7 @@ public class ApprovalData extends ProtectedData implements Serializable {
       ObjectInputStream ois =
           new ObjectInputStream(
               new ByteArrayInputStream(
-                  Base64.decode(getRequestdata().getBytes())));
+                  Base64Util.decode(getRequestdata().getBytes())));
       retval = (ApprovalRequest) ois.readObject();
     } catch (IOException e) {
       LOG.error("Error building approval request.", e);
@@ -547,7 +547,7 @@ public class ApprovalData extends ProtectedData implements Serializable {
       ObjectInputStream ois =
           new ObjectInputStream(
               new ByteArrayInputStream(
-                  Base64.decode(getApprovaldata().getBytes())));
+                  Base64Util.decode(getApprovaldata().getBytes())));
       int size = ois.readInt();
       for (int i = 0; i < size; i++) {
         Approval next = (Approval) ois.readObject();

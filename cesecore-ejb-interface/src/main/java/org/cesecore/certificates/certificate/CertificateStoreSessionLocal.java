@@ -174,7 +174,7 @@ public interface CertificateStoreSessionLocal extends CertificateStoreSession {
    * @return null or the certificate which is active, matches the argument and
    *     has the latest updateTime
    * @see
-   *     org.cesecore.keys.util.KeyTools#createSubjectKeyId(java.security.PublicKey)
+   *     org.cesecore.keys.util.KeyUtil#createSubjectKeyId(java.security.PublicKey)
    */
   Certificate findMostRecentlyUpdatedActiveCertificate(byte[] subjectKeyId);
 

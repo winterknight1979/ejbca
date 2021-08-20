@@ -39,9 +39,9 @@ import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.certificates.util.AlgorithmTools;
 import org.cesecore.certificates.util.DNFieldExtractor;
 import org.cesecore.internal.UpgradeableDataHashMap;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.junit.Test;
 
 /**
@@ -836,21 +836,21 @@ public class CertificateProfileTest {
   @Test
   public void testInvalidKeySpecs() throws InvalidAlgorithmParameterException {
     // Install BC for key generation (if needed)
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
     final KeyPair keyPairRsa =
-        KeyTools.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
+        KeyUtil.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
     assertEquals(
         "Unexpected key size of key pair used in this test.",
         512,
-        KeyTools.getKeyLength(keyPairRsa.getPublic()));
+        KeyUtil.getKeyLength(keyPairRsa.getPublic()));
     final String usedEcCurveName = "prime256v1";
     final KeyPair keyPairEc =
-        KeyTools.genKeys(
+        KeyUtil.genKeys(
             usedEcCurveName, AlgorithmConstants.KEYALGORITHM_ECDSA);
     assertEquals(
         "Unexpected key size of key pair used in this test.",
         256,
-        KeyTools.getKeyLength(keyPairEc.getPublic()));
+        KeyUtil.getKeyLength(keyPairEc.getPublic()));
     // Test happy path. RSA 512 bit key. RSA 512 allowed by certificate profile.
     testInvalidKeySpecsInternal(
         true,

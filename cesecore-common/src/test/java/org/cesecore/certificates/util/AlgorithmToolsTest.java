@@ -36,10 +36,10 @@ import java.security.spec.ECPoint;
 import java.util.List;
 import org.apache.log4j.Logger;
 import org.bouncycastle.jce.ECGOST3410NamedCurveTable;
-import org.cesecore.config.CesecoreConfiguration;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.config.CesecoreConfigurationHelper;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.ejbca.cvc.AuthorizationRoleEnum;
 import org.ejbca.cvc.CAReferenceField;
 import org.ejbca.cvc.CardVerifiableCertificate;
@@ -62,7 +62,7 @@ public class AlgorithmToolsTest {
    */
   @Before
   public void setUp() throws Exception {
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
   }
   /**
    * Test.
@@ -132,7 +132,7 @@ public class AlgorithmToolsTest {
         AlgorithmTools.getKeySpecification(new MockECDSAPublicKey()));
     assertEquals(
         "10", AlgorithmTools.getKeySpecification(new MockRSAPublicKey()));
-    KeyPair pair = KeyTools.genKeys("prime192v1", "ECDSA");
+    KeyPair pair = KeyUtil.genKeys("prime192v1", "ECDSA");
     final String ecNamedCurve =
         AlgorithmTools.getKeySpecification(pair.getPublic());
     assertTrue(
@@ -146,7 +146,7 @@ public class AlgorithmToolsTest {
     // preferred name on this system, since it depends on available providers.
     // assertEquals("Unexpected preferred named curve alias.", "secp192r1",
     // ecNamedCurve);
-    pair = KeyTools.genKeys("1024", "DSA");
+    pair = KeyUtil.genKeys("1024", "DSA");
     assertEquals("1024", AlgorithmTools.getKeySpecification(pair.getPublic()));
   }
   /**
@@ -157,7 +157,7 @@ public class AlgorithmToolsTest {
   public void testGetKeySpecificationGOST3410() throws Exception {
     assumeTrue(AlgorithmTools.isGost3410Enabled());
     final String keyspec =
-        CesecoreConfiguration.getExtraAlgSubAlgName("gost3410", "B");
+        CesecoreConfigurationHelper.getExtraAlgSubAlgName("gost3410", "B");
     KeyPairGenerator keygen = KeyPairGenerator.getInstance("ECGOST3410", "BC");
     AlgorithmParameterSpec ecSpec =
         ECGOST3410NamedCurveTable.getParameterSpec(keyspec);
@@ -173,9 +173,9 @@ public class AlgorithmToolsTest {
   public void testGetKeySpecificationDSTU4145() throws Exception {
     assumeTrue(AlgorithmTools.isDstu4145Enabled());
     final String keyspec =
-        CesecoreConfiguration.getExtraAlgSubAlgName("dstu4145", "233");
+        CesecoreConfigurationHelper.getExtraAlgSubAlgName("dstu4145", "233");
     KeyPairGenerator keygen = KeyPairGenerator.getInstance("DSTU4145", "BC");
-    AlgorithmParameterSpec ecSpec = KeyTools.dstuOidToAlgoParams(keyspec);
+    AlgorithmParameterSpec ecSpec = KeyUtil.dstuOidToAlgoParams(keyspec);
     keygen.initialize(ecSpec);
     KeyPair keys = keygen.generateKeyPair();
     assertEquals(keyspec, AlgorithmTools.getKeySpecification(keys.getPublic()));
@@ -585,7 +585,7 @@ public class AlgorithmToolsTest {
   @Test
   public void testCertSignatureAlgorithmAsString() throws Exception {
     // X.509
-    KeyPair keyPair = KeyTools.genKeys("1024", "RSA");
+    KeyPair keyPair = KeyUtil.genKeys("1024", "RSA");
     Certificate sha1rsa =
         CertTools.genSelfCert(
             "CN=TEST",
@@ -795,7 +795,7 @@ public class AlgorithmToolsTest {
         AlgorithmTools.getSignatureAlgorithm(cvsha256mgf));
 
     // DSA
-    keyPair = KeyTools.genKeys("1024", "DSA");
+    keyPair = KeyUtil.genKeys("1024", "DSA");
     Certificate sha1rsadsa =
         CertTools.genSelfCert(
             "CN=TEST",
@@ -812,7 +812,7 @@ public class AlgorithmToolsTest {
         "SHA1WithDSA", AlgorithmTools.getSignatureAlgorithm(sha1rsadsa));
 
     // ECC
-    keyPair = KeyTools.genKeys("prime192v1", "ECDSA");
+    keyPair = KeyUtil.genKeys("prime192v1", "ECDSA");
     Certificate sha1ecc =
         CertTools.genSelfCert(
             "CN=TEST",
@@ -982,8 +982,8 @@ public class AlgorithmToolsTest {
   public void testCertSignatureAlgorithmAsStringGOST3410() throws Exception {
     assumeTrue(AlgorithmTools.isGost3410Enabled());
     KeyPair keyPair =
-        KeyTools.genKeys(
-            CesecoreConfiguration.getExtraAlgSubAlgName("gost3410", "B"),
+        KeyUtil.genKeys(
+            CesecoreConfigurationHelper.getExtraAlgSubAlgName("gost3410", "B"),
             AlgorithmConstants.KEYALGORITHM_ECGOST3410);
     Certificate gost3411withgost3410 =
         CertTools.genSelfCert(
@@ -1010,8 +1010,8 @@ public class AlgorithmToolsTest {
   public void testCertSignatureAlgorithmAsStringDSTU4145() throws Exception {
     assumeTrue(AlgorithmTools.isDstu4145Enabled());
     KeyPair keyPair =
-        KeyTools.genKeys(
-            CesecoreConfiguration.getExtraAlgSubAlgName("dstu4145", "233"),
+        KeyUtil.genKeys(
+           CesecoreConfigurationHelper.getExtraAlgSubAlgName("dstu4145", "233"),
             AlgorithmConstants.KEYALGORITHM_DSTU4145);
     Certificate gost3411withgost3410 =
         CertTools.genSelfCert(

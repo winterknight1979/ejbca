@@ -34,7 +34,7 @@ import org.cesecore.certificates.util.AlgorithmTools;
 import org.cesecore.keys.token.CryptoToken;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
 import org.cesecore.keys.token.CryptoTokenSessionLocal;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
 import org.ejbca.config.CmpConfiguration;
 import org.ejbca.core.ejb.EjbBridgeSessionLocal;
@@ -111,7 +111,7 @@ public class ConfirmationMessageHandler extends BaseCmpMessageHandler
       cresp = new CmpConfirmResponseMessage();
       cresp.setRecipientNonce(cmpRequestMessage.getSenderNonce());
       cresp.setSenderNonce(
-          new String(Base64.encode(CmpMessageHelper.createSenderNonce())));
+          new String(Base64Util.encode(CmpMessageHelper.createSenderNonce())));
       cresp.setSender(cmpRequestMessage.getRecipient());
       cresp.setRecipient(cmpRequestMessage.getSender());
       cresp.setTransactionId(cmpRequestMessage.getTransactionId());

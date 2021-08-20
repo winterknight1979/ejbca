@@ -16,7 +16,7 @@ package org.ejbca.ui.cli.ca;
 import java.util.Collection;
 import java.util.Map;
 import org.apache.log4j.Logger;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.cesecore.util.EjbRemoteHelper;
 import org.ejbca.core.ejb.ca.publisher.PublisherSessionRemote;
 import org.ejbca.ui.cli.infrastructure.command.CommandResult;
@@ -44,7 +44,7 @@ public class CaListPublishersCommand extends BaseCaAdminCommand {
     final PublisherSessionRemote pubsession =
         EjbRemoteHelper.INSTANCE.getRemoteSession(PublisherSessionRemote.class);
     // Get the publisher named
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
     Map<Integer, String> map = pubsession.getPublisherIdToNameMap();
     Collection<Integer> ids = map.keySet();
     for (Integer id : ids) {

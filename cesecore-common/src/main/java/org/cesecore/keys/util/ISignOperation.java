@@ -13,7 +13,7 @@
 package org.cesecore.keys.util;
 
 import java.security.Provider;
-import java.util.List;
+import java.util.List; // NOPMD: jdoc
 
 /**
  * An object of a class implementing this interface must be constructed before

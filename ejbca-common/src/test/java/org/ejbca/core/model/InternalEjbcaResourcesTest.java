@@ -15,7 +15,7 @@ package org.ejbca.core.model;
 
 import static org.junit.Assert.assertEquals;
 
-import org.cesecore.config.ConfigurationHolder;
+import org.cesecore.config.ConfigurationHolderUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,15 +34,15 @@ public class InternalEjbcaResourcesTest {
   /** Test. */
   @Before
   public void before() {
-    ConfigurationHolder.backupConfiguration();
-    ConfigurationHolder.updateConfiguration(
+    ConfigurationHolderUtil.backupConfiguration();
+    ConfigurationHolderUtil.updateConfiguration(
         "intresources.secondarylanguage", "sv");
   }
 
   /** Test. */
   @After
   public void after() {
-    ConfigurationHolder.restoreConfiguration();
+    ConfigurationHolderUtil.restoreConfiguration();
   }
 
   /** Test. */

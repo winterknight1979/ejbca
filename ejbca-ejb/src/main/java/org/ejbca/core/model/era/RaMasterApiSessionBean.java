@@ -110,13 +110,13 @@ import org.cesecore.certificates.crl.CrlStoreSessionLocal;
 import org.cesecore.certificates.endentity.EndEntityConstants;
 import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.cesecore.certificates.endentity.ExtendedInformation;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.config.GlobalCesecoreConfiguration;
 import org.cesecore.config.RaStyleInfo;
 import org.cesecore.configuration.GlobalConfigurationSessionLocal;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
 import org.cesecore.keys.token.CryptoTokenSessionLocal;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.keys.validation.DnsNameValidator;
 import org.cesecore.keys.validation.KeyValidatorSessionLocal;
 import org.cesecore.keys.validation.Validator;
@@ -128,9 +128,9 @@ import org.cesecore.roles.member.RoleMember;
 import org.cesecore.roles.member.RoleMemberData;
 import org.cesecore.roles.member.RoleMemberSessionLocal;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.EJBTools;
-import org.cesecore.util.StringTools;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.EJBUtil;
+import org.cesecore.util.StringUtil;
+import org.cesecore.util.ValidityDateUtil;
 import org.ejbca.config.GlobalConfiguration;
 import org.ejbca.config.GlobalCustomCssConfiguration;
 import org.ejbca.core.EjbcaException;
@@ -336,7 +336,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
   @EJB private AcmeChallengeDataSessionLocal acmeChallengeDataSession;
 
   /** EM. */
-  @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+  @PersistenceContext(unitName = CesecoreConfigurationHelper.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
   /**
@@ -1469,7 +1469,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     for (final int caId : authorizedLocalCaIds) {
       final String issuerDn =
           CertTools.stringToBCDNString(
-              StringTools.strip(
+              StringUtil.strip(
                   caSession.getCAInfoInternal(caId).getSubjectDN()));
       issuerDns.add(issuerDn);
     }
@@ -2509,7 +2509,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
       final Date notAfter =
           encodedValidity == null
               ? null
-              : ValidityDate.getDate(encodedValidity, new Date());
+              : ValidityDateUtil.getDate(encodedValidity, new Date());
       keyStore =
           keyStoreCreateSessionLocal.generateOrKeyRecoverToken(
               admin, // Authentication token
@@ -2550,7 +2550,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     if (endEntity.getTokenType() == EndEntityConstants.TOKEN_SOFT_PEM) {
       try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
         outputStream.write(
-            KeyTools.getSinglePemFromKeyStore(
+            KeyUtil.getSinglePemFromKeyStore(
                 keyStore, endEntity.getPassword().toCharArray()));
         return outputStream.toByteArray();
       } catch (IOException
@@ -2602,7 +2602,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     req.setNotAfter(
         encodedValidity == null
             ? null
-            : ValidityDate.getDate(encodedValidity, new Date()));
+            : ValidityDateUtil.getDate(encodedValidity, new Date()));
     try {
       ResponseMessage resp =
           signSessionLocal.createCertificate(
@@ -2827,7 +2827,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
               try {
                 lastcert.verify(cert.getPublicKey());
                 // this was the right certificate
-                retval.add(EJBTools.wrap(cert));
+                retval.add(EJBUtil.wrap(cert));
                 // To determine if we have found the last certificate or not
                 selfSigned = CertTools.isSelfSigned(cert);
                 // Find the next certificate in the chain now
@@ -3052,7 +3052,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
       }
     }
     return returnval
-        && keyRecoverySessionLocal.existsKeys(EJBTools.wrap(cert))
+        && keyRecoverySessionLocal.existsKeys(EJBUtil.wrap(cert))
         && !keyRecoverySessionLocal.isUserMarked(username);
   }
 
@@ -3477,7 +3477,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
       throw new CADoesntExistsException(
           "CA with ID " + caid + " doesn't exist");
     }
-    return EJBTools.wrapCertCollection(caInfo.getCertificateChain());
+    return EJBUtil.wrapCertCollection(caInfo.getCertificateChain());
   }
 
   private Date getDate(final long days) {
@@ -3576,7 +3576,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
       throw new AuthorizationDeniedException(msg);
     }
     Date findDate = getDate(days);
-    return EJBTools.wrapCertCollection(
+    return EJBUtil.wrapCertCollection(
         certificateStoreSession.findExpiringCertificates(
             findDate, maxNumberOfResults, offset));
   }
@@ -3604,7 +3604,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     final List<Certificate> result =
         certificateStoreSession.findCertificatesByExpireTimeAndTypeWithLimit(
             findDate, certificateType, maxNumberOfResults);
-    return EJBTools.wrapCertCollection(result);
+    return EJBUtil.wrapCertCollection(result);
   }
 
   @Override
@@ -3631,7 +3631,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     final List<java.security.cert.Certificate> result =
         certificateStoreSession.findCertificatesByExpireTimeAndIssuerWithLimit(
             findDate, issuerDN, maxNumberOfResults);
-    return EJBTools.wrapCertCollection(result);
+    return EJBUtil.wrapCertCollection(result);
   }
 
   @Override
@@ -4032,7 +4032,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
       final Date notAfter =
           encodedValidity == null
               ? null
-              : ValidityDate.getDate(encodedValidity, new Date());
+              : ValidityDateUtil.getDate(encodedValidity, new Date());
       keyStore =
           keyStoreCreateSessionLocal.generateOrKeyRecoverToken(
               authenticationToken,
@@ -4077,7 +4077,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     if (endEntity.getTokenType() == EndEntityConstants.TOKEN_SOFT_PEM) {
       try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
         outputStream.write(
-            KeyTools.getSinglePemFromKeyStore(
+            KeyUtil.getSinglePemFromKeyStore(
                 keyStore, endEntity.getPassword().toCharArray()));
         return outputStream.toByteArray();
       } catch (IOException
@@ -4157,7 +4157,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     req.setNotAfter(
         encodedValidity == null
             ? null
-            : ValidityDate.getDate(encodedValidity, new Date()));
+            : ValidityDateUtil.getDate(encodedValidity, new Date()));
     try {
       ResponseMessage resp =
           signSessionLocal.createCertificate(

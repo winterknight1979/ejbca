@@ -83,13 +83,13 @@ public class IssuerAltNames extends StandardCertificateExtension {
     if (StringUtils.isNotEmpty(altName)) {
       ret = CertTools.getGeneralNamesFromAltName(altName);
     }
-    if (ret == null) {
-      if (LOG.isDebugEnabled()) {
+    if (ret == null
+      && LOG.isDebugEnabled()) {
         LOG.debug(
             "No altnames (SubjectAltName in issuing CA certificate) trying to"
                 + " make IssuerAltName extension: "
                 + altName);
-      }
+
     }
     return ret;
   }

@@ -89,13 +89,13 @@ import org.cesecore.jndi.JndiConstants;
 import org.cesecore.keys.token.CryptoToken;
 import org.cesecore.keys.token.CryptoTokenManagementSessionLocal;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.keys.validation.IssuancePhase;
 import org.cesecore.keys.validation.KeyValidatorSessionLocal;
 import org.cesecore.keys.validation.ValidationException;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 
 /**
  * Session bean for creating certificates.
@@ -139,7 +139,7 @@ public class CertificateCreateSessionBean
   @PostConstruct
   public void postConstruct() {
     // Install BouncyCastle provider
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
   }
 
   @Override
@@ -468,7 +468,8 @@ public class CertificateCreateSessionBean
     details.put("notbefore", notBefore);
     details.put("notafter", notAfter);
     details.put("sequence", sequence);
-    details.put("publickey", new String(Base64.encode(pk.getEncoded(), false)));
+    details.put("publickey", new String(
+            Base64Util.encode(pk.getEncoded(), false)));
     logSession.log(
         EventTypes.CERT_REQUEST,
         EventStatus.SUCCESS,
@@ -812,7 +813,7 @@ public class CertificateCreateSessionBean
       issuedetails.put("issuancerevocationreason", revreason);
       try {
         issuedetails.put(
-            "cert", new String(Base64.encode(cert.getEncoded(), false)));
+            "cert", new String(Base64Util.encode(cert.getEncoded(), false)));
       } catch (CertificateEncodingException e) {
         // Should not be able to happen at this point
         throw new IllegalStateException();
@@ -983,7 +984,7 @@ public class CertificateCreateSessionBean
               try {
                 issuedetails.put(
                     "cert",
-                    new String(Base64.encode(precert.getEncoded(), false)));
+                    new String(Base64Util.encode(precert.getEncoded(), false)));
               } catch (CertificateEncodingException e) {
                 LOG.warn("Could not encode cert", e);
               }
@@ -1082,7 +1083,7 @@ public class CertificateCreateSessionBean
     final String username = endEntityInformation.getUsername();
     byte[] subjectKeyId = null;
     if (enforceUniquePublicKeys) {
-      subjectKeyId = KeyTools.createSubjectKeyId(publicKey).getKeyIdentifier();
+      subjectKeyId = KeyUtil.createSubjectKeyId(publicKey).getKeyIdentifier();
     }
     // boolean multipleCheckOk = false;
 

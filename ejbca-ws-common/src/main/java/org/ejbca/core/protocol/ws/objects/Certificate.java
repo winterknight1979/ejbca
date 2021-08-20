@@ -13,7 +13,7 @@
 package org.ejbca.core.protocol.ws.objects;
 
 import java.security.cert.CertificateEncodingException;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 
 /**
  * Holds certificate WS elements.
@@ -34,14 +34,14 @@ public class Certificate extends TokenCertificateResponseWS {
    */
   public Certificate(java.security.cert.Certificate cert)
       throws CertificateEncodingException {
-    certificateData = Base64.encode(cert.getEncoded());
+    certificateData = Base64Util.encode(cert.getEncoded());
   }
 
   /**
    * @param certData data
    */
   public Certificate(byte[] certData) {
-    certificateData = Base64.encode(certData);
+    certificateData = Base64Util.encode(certData);
   }
 
   /**
@@ -50,7 +50,7 @@ public class Certificate extends TokenCertificateResponseWS {
    * @return the certificateData in binary format
    */
   public byte[] getRawCertificateData() {
-    return Base64.decode(certificateData);
+    return Base64Util.decode(certificateData);
   }
 
   /**

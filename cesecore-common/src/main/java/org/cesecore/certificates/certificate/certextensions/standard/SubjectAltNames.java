@@ -53,14 +53,14 @@ public class SubjectAltNames extends StandardCertificateExtension {
     if (certProfile.getUseSubjectAltNameSubSet()) {
       altName = certProfile.createSubjectAltNameSubSet(altName);
     }
-    if ((altName != null) && (altName.length() > 0)) {
+    if (altName != null && altName.length() > 0) {
       ret = CertTools.getGeneralNamesFromAltName(altName);
     }
-    if (ret == null) {
-      if (LOG.isDebugEnabled()) {
+    if (ret == null
+        && LOG.isDebugEnabled()) {
         LOG.debug(
             "No altnames trying to make SubjectAltName extension: " + altName);
-      }
+
     }
     return ret;
   }

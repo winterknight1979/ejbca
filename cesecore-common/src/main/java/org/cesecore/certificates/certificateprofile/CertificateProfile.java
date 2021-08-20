@@ -43,9 +43,9 @@ import org.cesecore.certificates.util.DNFieldExtractor;
 import org.cesecore.certificates.util.DnComponents;
 import org.cesecore.internal.InternalResources;
 import org.cesecore.internal.UpgradeableDataHashMap;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.ValidityDateUtil;
 
 /**
  * CertificateProfile is a basic class used to customize a certificate
@@ -54,7 +54,7 @@ import org.cesecore.util.ValidityDate;
  * @version $Id: CertificateProfile.java 29578 2018-08-07 12:19:15Z
  *     jekaterina_b_helmes $
  */
-public class CertificateProfile extends UpgradeableDataHashMap
+public class CertificateProfile extends UpgradeableDataHashMap // NOPMD: length
     implements Serializable, Cloneable {
     /** Logger. */
   private static final Logger LOG = Logger.getLogger(CertificateProfile.class);
@@ -638,8 +638,21 @@ public class CertificateProfile extends UpgradeableDataHashMap
       USE_STD_CERT_EXTENSIONS = new HashMap<>();
   /** Days in week. */
   private static final int DAYS_IN_WEEK = 7;
+  // Old values used to upgrade from v22 to v23
+  /** ID. */
+  protected static final String CERTIFICATEPOLICYID = "certificatepolicyid";
+  /** Policy Notice Url to CPS field alias in the data structure. */
+  protected static final String POLICY_NOTICE_CPS_URL = "policynoticecpsurl";
+  /** Policy Notice User Notice field alias in the data structure. */
+  protected static final String POLICY_NOTICE_UNOTICE_TEXT =
+      "policynoticeunoticetext";
 
-  {
+  /** Min RSA/DSA key size. */
+  private static final int MIN_RSA_DSA_SIZE = 1024;
+  /** Min EC key size. */
+  private static final int MIN_EC_SIZE = 521;
+
+  static {
     USE_STD_CERT_EXTENSIONS.put(
         USEBASICCONSTRAINTS, Extension.basicConstraints.getId());
     USE_STD_CERT_EXTENSIONS.put(
@@ -679,15 +692,6 @@ public class CertificateProfile extends UpgradeableDataHashMap
     USE_STD_CERT_EXTENSIONS.put(USECARDNUMBER, OID_CARDNUMBER);
   }
 
-  // Old values used to upgrade from v22 to v23
-  /** ID. */
-  protected static final String CERTIFICATEPOLICYID = "certificatepolicyid";
-  /** Policy Notice Url to CPS field alias in the data structure. */
-  protected static final String POLICY_NOTICE_CPS_URL = "policynoticecpsurl";
-  /** Policy Notice User Notice field alias in the data structure. */
-  protected static final String POLICY_NOTICE_UNOTICE_TEXT =
-      "policynoticeunoticetext";
-
   // Public Methods
 
   /**
@@ -719,7 +723,7 @@ public class CertificateProfile extends UpgradeableDataHashMap
     setDefaultValues(type);
   }
 
-  private void setCommonDefaults() {
+  private void setCommonDefaults() { // NOPMD: len
     setType(CertificateConstants.CERTTYPE_ENDENTITY);
     setCertificateVersion(VERSION_X509V3);
     setEncodedValidity(DEFAULT_CERTIFICATE_VALIDITY);
@@ -868,7 +872,7 @@ public class CertificateProfile extends UpgradeableDataHashMap
    * @param type one of CertificateProfileConstants.CERTPROFILE_FIXED_XX, for
    *     example CertificateConstants.CERTPROFILE_FIXED_ROOTCA
    */
-  private void setDefaultValues(final int type) {
+  private void setDefaultValues(final int type) { // NOPMD: len
     if (type == CertificateProfileConstants.CERTPROFILE_FIXED_ROOTCA) {
       setType(CertificateConstants.CERTTYPE_ROOTCA);
       setAllowValidityOverride(true);
@@ -1014,7 +1018,7 @@ public class CertificateProfile extends UpgradeableDataHashMap
   }
 
   /**
-   * @see ValidityDate#getDateBeforeVersion661(long, java.util.Date)
+   * @see ValidityDateUtil#getDateBeforeVersion661(long, java.util.Date)
    * @return a long that is used to provide the end date of certificates for
    *     this profile, interpreted by ValidityDate#getDate
    * @deprecated since since EJBCA 6.6.1
@@ -1028,14 +1032,14 @@ public class CertificateProfile extends UpgradeableDataHashMap
    * Gets the encoded validity.
    *
    * @return the validity as ISO8601 date or relative time.
-   * @see org.cesecore.util.ValidityDate ValidityDate
+   * @see org.cesecore.util.ValidityDateUtil ValidityDate
    * @see org.cesecore.util.SimpleTime SimpleTime
    */
   @SuppressWarnings("deprecation")
   public String getEncodedValidity() {
     String result = (String) data.get(ENCODED_VALIDITY);
     if (StringUtils.isBlank(result)) {
-      result = ValidityDate.getStringBeforeVersion661(getValidity());
+      result = ValidityDateUtil.getStringBeforeVersion661(getValidity());
       setEncodedValidity(result);
     }
     return result;
@@ -1045,7 +1049,7 @@ public class CertificateProfile extends UpgradeableDataHashMap
    * Sets the encoded validity .
    *
    * @param encodedValidity the validity as ISO8601 date or relative time.
-   * @see org.cesecore.util.ValidityDate ValidityDate
+   * @see org.cesecore.util.ValidityDateUtil ValidityDate
    * @see org.cesecore.util.SimpleTime SimpleTime
    */
   public void setEncodedValidity(final String encodedValidity) {
@@ -1680,7 +1684,7 @@ public class CertificateProfile extends UpgradeableDataHashMap
    * @return URI
    */
   public String getFreshestCRLURI() {
-    return ((String) data.get(FRESHESTCRLURI));
+    return (String) data.get(FRESHESTCRLURI);
   }
 
   /**
@@ -3267,7 +3271,7 @@ public class CertificateProfile extends UpgradeableDataHashMap
         USE_STD_CERT_EXTENSIONS.keySet().iterator();
     while (iter.hasNext()) {
       String s = iter.next();
-      if ((data.get(s) != null) && ((Boolean) data.get(s)).booleanValue()) {
+      if (data.get(s) != null && ((Boolean) data.get(s)).booleanValue()) {
         ret.add(USE_STD_CERT_EXTENSIONS.get(s));
         if (LOG.isDebugEnabled()) {
           LOG.debug("Using standard certificate extension: " + s);
@@ -3880,18 +3884,7 @@ public class CertificateProfile extends UpgradeableDataHashMap
     if (data.get(CT_MAX_SCTS_OCSP) != null) {
       data.remove(CT_MAX_SCTS_OCSP);
     }
-    if (data.get(CT_MIN_MANDATORY_SCTS) != null) {
-      data.remove(CT_MIN_MANDATORY_SCTS);
-    }
-    if (data.get(CT_MAX_MANDATORY_SCTS) != null) {
-      data.remove(CT_MAX_MANDATORY_SCTS);
-    }
-    if (data.get(CT_MIN_MANDATORY_SCTS_OCSP) != null) {
-      data.remove(CT_MIN_MANDATORY_SCTS_OCSP);
-    }
-    if (data.get(CT_MAX_MANDATORY_SCTS_OCSP) != null) {
-      data.remove(CT_MAX_MANDATORY_SCTS_OCSP);
-    }
+    removeMandatory();
     if (data.get(CT_MIN_NONMANDATORY_SCTS) != null) {
       data.remove(CT_MIN_NONMANDATORY_SCTS);
     }
@@ -3906,6 +3899,24 @@ public class CertificateProfile extends UpgradeableDataHashMap
     }
   }
 
+/**
+ *
+ */
+private void removeMandatory() {
+    if (data.get(CT_MIN_MANDATORY_SCTS) != null) {
+      data.remove(CT_MIN_MANDATORY_SCTS);
+    }
+    if (data.get(CT_MAX_MANDATORY_SCTS) != null) {
+      data.remove(CT_MAX_MANDATORY_SCTS);
+    }
+    if (data.get(CT_MIN_MANDATORY_SCTS_OCSP) != null) {
+      data.remove(CT_MIN_MANDATORY_SCTS_OCSP);
+    }
+    if (data.get(CT_MAX_MANDATORY_SCTS_OCSP) != null) {
+      data.remove(CT_MAX_MANDATORY_SCTS_OCSP);
+    }
+}
+
   /**
    * Checks that a public key fulfills the policy in the CertificateProfile.
    *
@@ -3915,23 +3926,12 @@ public class CertificateProfile extends UpgradeableDataHashMap
    */
   public void verifyKey(final PublicKey publicKey) throws IllegalKeyException {
     final String keyAlgorithm = AlgorithmTools.getKeyAlgorithm(publicKey);
-    final int keyLength = KeyTools.getKeyLength(publicKey);
+    final int keyLength = KeyUtil.getKeyLength(publicKey);
     if (LOG.isDebugEnabled()) {
       LOG.debug("KeyAlgorithm: " + keyAlgorithm + " KeyLength: " + keyLength);
     }
     // Verify that the key algorithm is compliant with the certificate profile
-    if (!getAvailableKeyAlgorithmsAsList().contains(keyAlgorithm)) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug(
-            "List of available algorithms "
-                + getAvailableKeyAlgorithmsAsList()
-                + " does not contain the on of the public key: "
-                + keyAlgorithm);
-      }
-      throw new IllegalKeyException(
-          INT_RES.getLocalizedMessage(
-              "createcert.illegalkeyalgorithm", keyAlgorithm));
-    }
+    doVerifyCompliant(keyAlgorithm);
     if (AlgorithmConstants.KEYALGORITHM_ECDSA.equals(keyAlgorithm)) {
       final List<String> availableEcCurves = getAvailableEcCurvesAsList();
       final String keySpecification =
@@ -3956,13 +3956,33 @@ public class CertificateProfile extends UpgradeableDataHashMap
           INT_RES.getLocalizedMessage(
               "createcert.unsupportedkeytype", publicKey.getClass().getName()));
     }
-    if ((keyLength < (getMinimumAvailableBitLength() - 1))
-        || (keyLength > (getMaximumAvailableBitLength()))) {
+    if (keyLength < (getMinimumAvailableBitLength() - 1)
+        || keyLength > (getMaximumAvailableBitLength())) {
       throw new IllegalKeyException(
           INT_RES.getLocalizedMessage(
               "createcert.illegalkeylength", Integer.valueOf(keyLength)));
     }
   }
+
+/**
+ * @param keyAlgorithm algo
+ * @throws IllegalKeyException Fail
+ */
+private void doVerifyCompliant(final String keyAlgorithm)
+        throws IllegalKeyException {
+    if (!getAvailableKeyAlgorithmsAsList().contains(keyAlgorithm)) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
+            "List of available algorithms "
+                + getAvailableKeyAlgorithmsAsList()
+                + " does not contain the on of the public key: "
+                + keyAlgorithm);
+      }
+      throw new IllegalKeyException(
+          INT_RES.getLocalizedMessage(
+              "createcert.illegalkeyalgorithm", keyAlgorithm));
+    }
+}
 
   /**
    * Checks that provided caId is allowed.
@@ -4023,7 +4043,185 @@ public class CertificateProfile extends UpgradeableDataHashMap
               "certprofile.upgrade", new Float(getVersion()));
       LOG.info(msg);
 
-      if (data.get(ALLOWKEYUSAGEOVERRIDE) == null) {
+      doUpgradeSetup1();
+      doUpgradeSetup2();
+      doUpgradeSetup3();
+      doV202122Upgrade();
+      doV23Upgrade();
+      doV2425Upgrade();
+      doV26to31Upgrade();
+      doV33To35Upgrade();
+      doV36to41Upgrade();
+      // v42. ETSI QC Type and PDS specified in EN 319 412-05.
+      // Nothing to set though, since null values means to not use the new
+      // values
+
+      // v43, ECA-5304.
+      if (data.get(USEDEFAULTCAISSUER) == null) {
+        setUseDefaultCAIssuer(false);
+      }
+
+      // v44. ECA-5141
+      // 'encodedValidity' is derived by the former long value!
+      if (null == data.get(ENCODED_VALIDITY)
+        && data.get(VALIDITY)
+            != null) { // avoid NPE if this is a very raw profile
+          setEncodedValidity(
+              ValidityDateUtil.getStringBeforeVersion661(getValidity()));
+
+        // Don't upgrade to anything is there was nothing to upgrade
+      }
+      // v44. ECA-5330
+      // initialize fields for expiration restriction for weekdays. use is false
+      // because of backward compatibility, the before restriction default is
+      // true
+      doV44Upgrade();
+
+      // v45: Multiple ETSI QC PDS values (ECA-5478)
+      doV45Upgrade();
+      // v46: approvals changed type to LinkedHashMap
+      setApprovals(getApprovals());
+
+      data.put(VERSION, new Float(LATEST_VERSION));
+    }
+    LOG.trace("<upgrade");
+  }
+
+/**
+ *
+ */
+private void doV44Upgrade() {
+    if (null == data.get(USE_EXPIRATION_RESTRICTION_FOR_WEEKDAYS)) {
+        setUseExpirationRestrictionForWeekdays(false);
+      }
+      if (null == data.get(EXPIRATION_RESTRICTION_WEEKDAYS)) {
+        setDefaultExpirationRestrictionWeekdays();
+      }
+      if (null == data.get(EXPIRATION_RESTRICTION_FOR_WEEKDAYS_BEFORE)) {
+        setExpirationRestrictionForWeekdaysExpireBefore(true);
+      }
+      // v44. ECA-3554
+      // initialize default certificate not before offset (default '-10m'
+      // because of backward compatibility).
+      if (null == data.get(USE_CERTIFICATE_VALIDITY_OFFSET)) {
+        setUseCertificateValidityOffset(false);
+      }
+      if (null == data.get(CERTIFICATE_VALIDITY_OFFSET)) {
+        setCertificateValidityOffset(DEFAULT_CERTIFICATE_VALIDITY_OFFSET);
+      }
+}
+
+/**
+ *
+ */
+private void doV36to41Upgrade() {
+    if (data.get(USEISSUERALTERNATIVENAME) == null) { // v 36
+        setUseIssuerAlternativeName(false);
+      }
+      if (data.get(ISSUERALTERNATIVENAMECRITICAL) == null) { // v 36
+        setIssuerAlternativeNameCritical(false);
+      }
+      if (data.get(USEDOCUMENTTYPELIST) == null) { // v 37
+        setUseDocumentTypeList(false);
+      }
+      if (data.get(DOCUMENTTYPELISTCRITICAL) == null) { // v 37
+        setDocumentTypeListCritical(false);
+      }
+      if (data.get(DOCUMENTTYPELIST) == null) { // v 37
+        setDocumentTypeList(new ArrayList<String>());
+      }
+      doV39Upgrade();
+      if (data.get(AVAILABLEECCURVES) == null) { // v 40
+        setAvailableEcCurves(new String[] {ANY_EC_CURVE});
+      }
+      if (data.get(APPROVALPROFILE) == null) { // v41
+        setApprovalProfileID(-1);
+      }
+}
+
+/**
+ *
+ */
+private void doV33To35Upgrade() {
+    if (data.get(NUMOFREQAPPROVALS) == null) { // v 33
+        setNumOfReqApprovals(1);
+      }
+      if (data.get(APPROVALSETTINGS) == null) { // v 33
+        setApprovalSettings(new ArrayList<Integer>());
+      }
+
+      if (data.get(SIGNATUREALGORITHM) == null) { // v 34
+        setSignatureAlgorithm(null);
+      }
+
+      if (data.get(USEPRIVKEYUSAGEPERIODNOTBEFORE) == null) { // v 35
+        setUsePrivateKeyUsagePeriodNotBefore(false);
+      }
+      if (data.get(USEPRIVKEYUSAGEPERIODNOTAFTER) == null) { // v 35
+        setUsePrivateKeyUsagePeriodNotAfter(false);
+      }
+      if (data.get(PRIVKEYUSAGEPERIODSTARTOFFSET) == null) { // v 35
+        setPrivateKeyUsagePeriodStartOffset(
+            DEFAULT_PRIVATE_KEY_USAGE_PERIOD_OFFSET);
+      }
+      if (data.get(PRIVKEYUSAGEPERIODLENGTH) == null) { // v 35
+        setPrivateKeyUsagePeriodLength(DEFAULT_PRIVATE_KEY_USAGE_PERIOD_LENGTH);
+      }
+}
+
+/**
+ *
+ */
+private void doV26to31Upgrade() {
+    if (data.get(ALLOWEXTENSIONOVERRIDE) == null) {
+        setAllowExtensionOverride(false); // v26
+      }
+
+      if (data.get(USEQCETSIRETENTIONPERIOD) == null) {
+        setUseQCEtsiRetentionPeriod(false); // v27
+        setQCEtsiRetentionPeriod(0);
+      }
+
+      if (data.get(CVCACCESSRIGHTS) == null) {
+        setCVCAccessRights(CertificateProfile.CVC_ACCESS_NONE); // v28
+      }
+
+      if (data.get(USELDAPDNORDER) == null) {
+        setUseLdapDnOrder(true); // v29, default value is true
+      }
+
+      if (data.get(USECARDNUMBER) == null) { // v30, default value is false
+        setUseCardNumber(false);
+      }
+
+      if (data.get(ALLOWDNOVERRIDE) == null) {
+        setAllowDNOverride(false); // v31
+      }
+}
+
+/**
+ *
+ */
+private void doV202122Upgrade() {
+    if (data.get(CRLISSUER) == null) {
+        setCRLIssuer(null); // v20
+      }
+
+      if (data.get(USEOCSPNOCHECK) == null) {
+        setUseOcspNoCheck(false); // v21
+      }
+      if (data.get(USEFRESHESTCRL) == null) {
+        setUseFreshestCRL(false); // v22
+        setUseCADefinedFreshestCRL(false);
+        setFreshestCRLURI(null);
+      }
+}
+
+/**
+ *
+ */
+private void doUpgradeSetup1() {
+    if (data.get(ALLOWKEYUSAGEOVERRIDE) == null) {
         data.put(ALLOWKEYUSAGEOVERRIDE, Boolean.TRUE);
       }
       if (data.get(USEEXTENDEDKEYUSAGE) == null) {
@@ -4040,11 +4238,13 @@ public class CertificateProfile extends UpgradeableDataHashMap
         availablecas.add(Integer.valueOf(ANYCA));
         data.put(AVAILABLECAS, availablecas);
       }
+}
+private void doUpgradeSetup2() {
       if (data.get(USEDPUBLISHERS) == null) {
         data.put(USEDPUBLISHERS, new ArrayList<Integer>());
       }
-      if ((data.get(USEOCSPSERVICELOCATOR) == null)
-          && (data.get(USEAUTHORITYINFORMATIONACCESS) == null)) {
+      if (data.get(USEOCSPSERVICELOCATOR) == null
+          && data.get(USEAUTHORITYINFORMATIONACCESS) == null) {
         // Only set this flag if we have not already set the new flag
         // USEAUTHORITYINFORMATIONACCESS
         // setUseOCSPServiceLocator(false);
@@ -4074,6 +4274,8 @@ public class CertificateProfile extends UpgradeableDataHashMap
         setPathLengthConstraint(0);
       }
 
+}
+private void doUpgradeSetup3() {
       if (data.get(USEQCSTATEMENT) == null) {
         setUseQCStatement(false);
         setUsePkixQCSyntaxV2(false);
@@ -4106,22 +4308,93 @@ public class CertificateProfile extends UpgradeableDataHashMap
       if (data.get(ALLOWVALIDITYOVERRIDE) == null) {
         setAllowValidityOverride(false);
       }
+}
 
-      if (data.get(CRLISSUER) == null) {
-        setCRLIssuer(null); // v20
+/**
+ *
+ */
+private void doV2425Upgrade() {
+    if (data.get(USECAISSUERS) == null
+          && data.get(USEAUTHORITYINFORMATIONACCESS) == null) {
+        // Only set this flag if we have not already set the new flag
+        // USEAUTHORITYINFORMATIONACCESS
+        // setUseCaIssuers(false); // v24
+        data.put(USECAISSUERS, Boolean.FALSE); // v24
+        setCaIssuers(new ArrayList<String>());
       }
+      if ((data.get(USEOCSPSERVICELOCATOR) != null
+              || data.get(USECAISSUERS) != null)
+          && data.get(USEAUTHORITYINFORMATIONACCESS) == null) {
+        // Only do this if we have not already set the new flag
+        // USEAUTHORITYINFORMATIONACCESS
+        boolean ocsp = false;
+        if (data.get(USEOCSPSERVICELOCATOR) != null) {
+          ocsp = ((Boolean) data.get(USEOCSPSERVICELOCATOR)).booleanValue();
+        }
+        boolean caissuers = false;
+        if (data.get(USECAISSUERS) != null) {
+          caissuers = ((Boolean) data.get(USECAISSUERS)).booleanValue();
+        }
+        if (ocsp || caissuers) {
+          setUseAuthorityInformationAccess(true); // v25
+        } else {
+          setUseAuthorityInformationAccess(false); // v25
+        }
+      } else if (data.get(USEAUTHORITYINFORMATIONACCESS) == null) {
+        setUseAuthorityInformationAccess(false);
+      }
+}
 
-      if (data.get(USEOCSPNOCHECK) == null) {
-        setUseOcspNoCheck(false); // v21
+/**
+ *
+ */
+private void doV45Upgrade() {
+    if (!data.containsKey(QCETSIPDS)) {
+        final String url = (String) data.get(QCETSIPDSURL);
+        final String lang = (String) data.get(QCETSIPDSLANG);
+        if (StringUtils.isNotEmpty(url)) {
+          final List<PKIDisclosureStatement> pdsList = new ArrayList<>();
+          pdsList.add(new PKIDisclosureStatement(url, lang));
+          data.put(QCETSIPDS, pdsList);
+        } else {
+          data.put(QCETSIPDS, null);
+        }
       }
-      if (data.get(USEFRESHESTCRL) == null) {
-        setUseFreshestCRL(false); // v22
-        setUseCADefinedFreshestCRL(false);
-        setFreshestCRLURI(null);
-      }
+}
 
-      if (data.get(CERTIFICATE_POLICIES) == null) { // v23
-        if (data.get(CERTIFICATEPOLICYID) != null) {
+/**
+ *
+ */
+private void doV39Upgrade() {
+    if (data.get(AVAILABLEKEYALGORITHMS) == null) { // v 39
+        // Make some intelligent guesses what key algorithm this profile is used
+        // for
+        final List<String> availableKeyAlgorithms =
+            AlgorithmTools.getAvailableKeyAlgorithms();
+        if (getMinimumAvailableBitLength() > MIN_EC_SIZE) {
+          availableKeyAlgorithms.remove(AlgorithmConstants.KEYALGORITHM_ECDSA);
+          availableKeyAlgorithms.remove(
+              AlgorithmConstants.KEYALGORITHM_DSTU4145);
+          availableKeyAlgorithms.remove(
+              AlgorithmConstants.KEYALGORITHM_ECGOST3410);
+        }
+        if (getMinimumAvailableBitLength() > MIN_RSA_DSA_SIZE
+            || getMaximumAvailableBitLength() < MIN_RSA_DSA_SIZE) {
+          availableKeyAlgorithms.remove(AlgorithmConstants.KEYALGORITHM_DSA);
+        }
+        if (getMaximumAvailableBitLength() < MIN_RSA_DSA_SIZE) {
+          availableKeyAlgorithms.remove(AlgorithmConstants.KEYALGORITHM_RSA);
+        }
+        setAvailableKeyAlgorithmsAsList(availableKeyAlgorithms);
+      }
+}
+
+/**
+ *
+ */
+private void doV23Upgrade() {
+    if (data.get(CERTIFICATE_POLICIES) == null  // v23
+        && data.get(CERTIFICATEPOLICYID) != null) {
           String ids = (String) data.get(CERTIFICATEPOLICYID);
           String unotice = null;
           String cpsuri = null;
@@ -4160,193 +4433,8 @@ public class CertificateProfile extends UpgradeableDataHashMap
             CertificatePolicy newpolicy = new CertificatePolicy(id, null, null);
             addCertificatePolicy(newpolicy);
           }
-        }
-      }
 
-      if ((data.get(USECAISSUERS) == null)
-          && (data.get(USEAUTHORITYINFORMATIONACCESS) == null)) {
-        // Only set this flag if we have not already set the new flag
-        // USEAUTHORITYINFORMATIONACCESS
-        // setUseCaIssuers(false); // v24
-        data.put(USECAISSUERS, Boolean.FALSE); // v24
-        setCaIssuers(new ArrayList<String>());
       }
-      if (((data.get(USEOCSPSERVICELOCATOR) != null)
-              || (data.get(USECAISSUERS) != null))
-          && (data.get(USEAUTHORITYINFORMATIONACCESS) == null)) {
-        // Only do this if we have not already set the new flag
-        // USEAUTHORITYINFORMATIONACCESS
-        boolean ocsp = false;
-        if ((data.get(USEOCSPSERVICELOCATOR) != null)) {
-          ocsp = ((Boolean) data.get(USEOCSPSERVICELOCATOR)).booleanValue();
-        }
-        boolean caissuers = false;
-        if ((data.get(USECAISSUERS) != null)) {
-          caissuers = ((Boolean) data.get(USECAISSUERS)).booleanValue();
-        }
-        if (ocsp || caissuers) {
-          setUseAuthorityInformationAccess(true); // v25
-        } else {
-          setUseAuthorityInformationAccess(false); // v25
-        }
-      } else if (data.get(USEAUTHORITYINFORMATIONACCESS) == null) {
-        setUseAuthorityInformationAccess(false);
-      }
+}
 
-      if (data.get(ALLOWEXTENSIONOVERRIDE) == null) {
-        setAllowExtensionOverride(false); // v26
-      }
-
-      if (data.get(USEQCETSIRETENTIONPERIOD) == null) {
-        setUseQCEtsiRetentionPeriod(false); // v27
-        setQCEtsiRetentionPeriod(0);
-      }
-
-      if (data.get(CVCACCESSRIGHTS) == null) {
-        setCVCAccessRights(CertificateProfile.CVC_ACCESS_NONE); // v28
-      }
-
-      if (data.get(USELDAPDNORDER) == null) {
-        setUseLdapDnOrder(true); // v29, default value is true
-      }
-
-      if (data.get(USECARDNUMBER) == null) { // v30, default value is false
-        setUseCardNumber(false);
-      }
-
-      if (data.get(ALLOWDNOVERRIDE) == null) {
-        setAllowDNOverride(false); // v31
-      }
-
-      if (data.get(NUMOFREQAPPROVALS) == null) { // v 33
-        setNumOfReqApprovals(1);
-      }
-      if (data.get(APPROVALSETTINGS) == null) { // v 33
-        setApprovalSettings(new ArrayList<Integer>());
-      }
-
-      if (data.get(SIGNATUREALGORITHM) == null) { // v 34
-        setSignatureAlgorithm(null);
-      }
-
-      if (data.get(USEPRIVKEYUSAGEPERIODNOTBEFORE) == null) { // v 35
-        setUsePrivateKeyUsagePeriodNotBefore(false);
-      }
-      if (data.get(USEPRIVKEYUSAGEPERIODNOTAFTER) == null) { // v 35
-        setUsePrivateKeyUsagePeriodNotAfter(false);
-      }
-      if (data.get(PRIVKEYUSAGEPERIODSTARTOFFSET) == null) { // v 35
-        setPrivateKeyUsagePeriodStartOffset(
-            DEFAULT_PRIVATE_KEY_USAGE_PERIOD_OFFSET);
-      }
-      if (data.get(PRIVKEYUSAGEPERIODLENGTH) == null) { // v 35
-        setPrivateKeyUsagePeriodLength(DEFAULT_PRIVATE_KEY_USAGE_PERIOD_LENGTH);
-      }
-      if (data.get(USEISSUERALTERNATIVENAME) == null) { // v 36
-        setUseIssuerAlternativeName(false);
-      }
-      if (data.get(ISSUERALTERNATIVENAMECRITICAL) == null) { // v 36
-        setIssuerAlternativeNameCritical(false);
-      }
-      if (data.get(USEDOCUMENTTYPELIST) == null) { // v 37
-        setUseDocumentTypeList(false);
-      }
-      if (data.get(DOCUMENTTYPELISTCRITICAL) == null) { // v 37
-        setDocumentTypeListCritical(false);
-      }
-      if (data.get(DOCUMENTTYPELIST) == null) { // v 37
-        setDocumentTypeList(new ArrayList<String>());
-      }
-      if (data.get(AVAILABLEKEYALGORITHMS) == null) { // v 39
-        // Make some intelligent guesses what key algorithm this profile is used
-        // for
-        final List<String> availableKeyAlgorithms =
-            AlgorithmTools.getAvailableKeyAlgorithms();
-        if (getMinimumAvailableBitLength() > MIN_EC_SIZE) {
-          availableKeyAlgorithms.remove(AlgorithmConstants.KEYALGORITHM_ECDSA);
-          availableKeyAlgorithms.remove(
-              AlgorithmConstants.KEYALGORITHM_DSTU4145);
-          availableKeyAlgorithms.remove(
-              AlgorithmConstants.KEYALGORITHM_ECGOST3410);
-        }
-        if (getMinimumAvailableBitLength() > MIN_RSA_DSA_SIZE
-            || getMaximumAvailableBitLength() < MIN_RSA_DSA_SIZE) {
-          availableKeyAlgorithms.remove(AlgorithmConstants.KEYALGORITHM_DSA);
-        }
-        if (getMaximumAvailableBitLength() < MIN_RSA_DSA_SIZE) {
-          availableKeyAlgorithms.remove(AlgorithmConstants.KEYALGORITHM_RSA);
-        }
-        setAvailableKeyAlgorithmsAsList(availableKeyAlgorithms);
-      }
-      if (data.get(AVAILABLEECCURVES) == null) { // v 40
-        setAvailableEcCurves(new String[] {ANY_EC_CURVE});
-      }
-      if (data.get(APPROVALPROFILE) == null) { // v41
-        setApprovalProfileID(-1);
-      }
-      // v42. ETSI QC Type and PDS specified in EN 319 412-05.
-      // Nothing to set though, since null values means to not use the new
-      // values
-
-      // v43, ECA-5304.
-      if (data.get(USEDEFAULTCAISSUER) == null) {
-        setUseDefaultCAIssuer(false);
-      }
-
-      // v44. ECA-5141
-      // 'encodedValidity' is derived by the former long value!
-      if (null == data.get(ENCODED_VALIDITY)) {
-        if (data.get(VALIDITY)
-            != null) { // avoid NPE if this is a very raw profile
-          setEncodedValidity(
-              ValidityDate.getStringBeforeVersion661(getValidity()));
-        }
-        // Don't upgrade to anything is there was nothing to upgrade
-      }
-      // v44. ECA-5330
-      // initialize fields for expiration restriction for weekdays. use is false
-      // because of backward compatibility, the before restriction default is
-      // true
-      if (null == data.get(USE_EXPIRATION_RESTRICTION_FOR_WEEKDAYS)) {
-        setUseExpirationRestrictionForWeekdays(false);
-      }
-      if (null == data.get(EXPIRATION_RESTRICTION_WEEKDAYS)) {
-        setDefaultExpirationRestrictionWeekdays();
-      }
-      if (null == data.get(EXPIRATION_RESTRICTION_FOR_WEEKDAYS_BEFORE)) {
-        setExpirationRestrictionForWeekdaysExpireBefore(true);
-      }
-      // v44. ECA-3554
-      // initialize default certificate not before offset (default '-10m'
-      // because of backward compatibility).
-      if (null == data.get(USE_CERTIFICATE_VALIDITY_OFFSET)) {
-        setUseCertificateValidityOffset(false);
-      }
-      if (null == data.get(CERTIFICATE_VALIDITY_OFFSET)) {
-        setCertificateValidityOffset(DEFAULT_CERTIFICATE_VALIDITY_OFFSET);
-      }
-
-      // v45: Multiple ETSI QC PDS values (ECA-5478)
-      if (!data.containsKey(QCETSIPDS)) {
-        final String url = (String) data.get(QCETSIPDSURL);
-        final String lang = (String) data.get(QCETSIPDSLANG);
-        if (StringUtils.isNotEmpty(url)) {
-          final List<PKIDisclosureStatement> pdsList = new ArrayList<>();
-          pdsList.add(new PKIDisclosureStatement(url, lang));
-          data.put(QCETSIPDS, pdsList);
-        } else {
-          data.put(QCETSIPDS, null);
-        }
-      }
-      // v46: approvals changed type to LinkedHashMap
-      setApprovals(getApprovals());
-
-      data.put(VERSION, new Float(LATEST_VERSION));
-    }
-    LOG.trace("<upgrade");
-  }
-  /** Min RSA/DSA key size. */
-  private static final int MIN_RSA_DSA_SIZE = 1024;
-  /** Min EC key size. */
-  private static final int MIN_EC_SIZE = 521;
 }

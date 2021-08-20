@@ -74,13 +74,13 @@ public class SubjectDirectoryAttributes extends StandardCertificateExtension {
         ret = new DERSequence(vec);
       }
     }
-    if (ret == null) {
-      if (LOG.isDebugEnabled()) {
+    if (ret == null
+     && LOG.isDebugEnabled()) {
         LOG.debug(
             "No directory attributes trying to create"
                 + " SubjectDirectoryAttributes extension: "
                 + dirAttrString);
-      }
+
     }
     return ret;
   }

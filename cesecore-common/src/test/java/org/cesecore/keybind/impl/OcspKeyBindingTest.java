@@ -41,9 +41,9 @@ import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.config.AvailableExtendedKeyUsagesConfiguration;
 import org.cesecore.keybind.CertificateImportException;
 import org.cesecore.keybind.impl.OcspKeyBinding.ResponderIdType;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -91,7 +91,7 @@ public class OcspKeyBindingTest {
  */
   @BeforeClass
   public static void beforeClass() throws Exception {
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
     ekuExtensionOnly =
         Arrays.asList(new Extension[] {getExtendedKeyUsageExtension()});
   }
@@ -269,7 +269,7 @@ public class OcspKeyBindingTest {
           NoSuchProviderException, OperatorCreationException,
           CertificateException, IOException {
     final KeyPair keyPair =
-        KeyTools.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
+        KeyUtil.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
     return CertTools.genSelfCertForPurpose(
         "CN=OcspSinger",
         365,

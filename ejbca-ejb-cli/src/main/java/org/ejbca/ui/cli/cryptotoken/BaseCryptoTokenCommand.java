@@ -18,7 +18,7 @@ import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.keys.token.CryptoTokenManagementSessionRemote;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
 import org.cesecore.util.EjbRemoteHelper;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.ui.cli.infrastructure.command.CommandResult;
 import org.ejbca.ui.cli.infrastructure.command.EjbcaCliUserCommandBase;
 import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
@@ -111,13 +111,13 @@ public abstract class BaseCryptoTokenCommand extends EjbcaCliUserCommandBase {
       getLogger().info("Enter CryptoToken password: ");
       getLogger().info("");
       authenticationCode =
-          StringTools.passwordDecryption(
+          StringUtil.passwordDecryption(
                   String.valueOf(System.console().readPassword()),
                   "CryptoToken pin")
               .toCharArray();
     } else {
       authenticationCode =
-          StringTools.passwordDecryption(commandLineArgument, "CryptoToken pin")
+          StringUtil.passwordDecryption(commandLineArgument, "CryptoToken pin")
               .toCharArray();
     }
     return authenticationCode;

@@ -73,11 +73,11 @@ import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLoc
 import org.cesecore.certificates.util.DNFieldExtractor;
 import org.cesecore.config.AvailableExtendedKeyUsagesConfiguration;
 import org.cesecore.configuration.GlobalConfigurationSessionLocal;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.roles.management.RoleSessionLocal;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.StringTools;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.StringUtil;
+import org.cesecore.util.ValidityDateUtil;
 import org.ejbca.config.CmpConfiguration;
 import org.ejbca.config.EstConfiguration;
 import org.ejbca.config.GlobalConfiguration;
@@ -222,7 +222,7 @@ public class EjbcaWebBean implements Serializable {
    * parameter in the user's preferences is probably
    * the way to go.
    */
-  private final TimeZone timeZone = ValidityDate.TIMEZONE_SERVER;
+  private final TimeZone timeZone = ValidityDateUtil.TIMEZONE_SERVER;
 
   /** Creates a new instance of EjbcaWebBean. */
   public EjbcaWebBean() { }
@@ -376,7 +376,7 @@ public class EjbcaWebBean implements Serializable {
         if (WebConfiguration.getAdminLogForwardedFor()) {
           details.put(
               "forwardedip",
-              StringTools.getCleanXForwardedFor(
+              StringUtil.getCleanXForwardedFor(
                   httpServletRequest.getHeader("X-Forwarded-For")));
         }
         // Also check if this administrator is present in any role, if not,
@@ -427,7 +427,7 @@ public class EjbcaWebBean implements Serializable {
         if (WebConfiguration.getAdminLogForwardedFor()) {
           details.put(
               "forwardedip",
-              StringTools.getCleanXForwardedFor(
+              StringUtil.getCleanXForwardedFor(
                   httpServletRequest.getHeader("X-Forwarded-For")));
         }
         // Also check if this administrator is present in any role, if not,
@@ -1105,7 +1105,7 @@ public class EjbcaWebBean implements Serializable {
    * @return a more user friendly representation of a Date.
    */
   public String formatAsISO8601(final Date date) {
-    return ValidityDate.formatAsISO8601(date, timeZone);
+    return ValidityDateUtil.formatAsISO8601(date, timeZone);
   }
 
   /**
@@ -1116,7 +1116,7 @@ public class EjbcaWebBean implements Serializable {
    * @throws ParseException fail
    */
   public String validateDateFormat(final String value) throws ParseException {
-    return ValidityDate.formatAsUTC(ValidityDate.parseAsUTC(value));
+    return ValidityDateUtil.formatAsUTC(ValidityDateUtil.parseAsUTC(value));
   }
 
   /**
@@ -1136,7 +1136,7 @@ public class EjbcaWebBean implements Serializable {
    */
   public String getDateExample() {
     return "["
-        + ValidityDate.ISO8601_DATE_FORMAT
+        + ValidityDateUtil.ISO8601_DATE_FORMAT
         + "]: '"
         + formatAsISO8601(new Date())
         + "'";
@@ -1152,7 +1152,7 @@ public class EjbcaWebBean implements Serializable {
    */
   public String getImpliedUTCFromISO8601(final String dateString)
       throws ParseException {
-    return ValidityDate.getImpliedUTCFromISO8601(dateString);
+    return ValidityDateUtil.getImpliedUTCFromISO8601(dateString);
   }
 
   /**
@@ -1182,7 +1182,7 @@ public class EjbcaWebBean implements Serializable {
    */
   public String getISO8601FromImpliedUTC(final String dateString)
       throws ParseException {
-    return ValidityDate.getISO8601FromImpliedUTC(dateString, timeZone);
+    return ValidityDateUtil.getISO8601FromImpliedUTC(dateString, timeZone);
   }
 
   /**
@@ -1565,7 +1565,7 @@ public class EjbcaWebBean implements Serializable {
    * @return true if key strength is limited
    */
   public boolean isUsingExportableCryptography() {
-    return KeyTools.isUsingExportableCryptography();
+    return KeyUtil.isUsingExportableCryptography();
   }
 
   /**
@@ -1590,8 +1590,8 @@ public class EjbcaWebBean implements Serializable {
 
   /** @return The current time on the server */
   public String getServerTime() {
-    return ValidityDate.formatAsISO8601(
-        new Date(), ValidityDate.TIMEZONE_SERVER);
+    return ValidityDateUtil.formatAsISO8601(
+        new Date(), ValidityDateUtil.TIMEZONE_SERVER);
   }
 
   /**
@@ -1687,7 +1687,7 @@ public class EjbcaWebBean implements Serializable {
    * @return Cett
    */
   public String[] getCertSernoAndIssuerdn(final String certdata) {
-    final String[] ret = StringTools.parseCertData(certdata);
+    final String[] ret = StringUtil.parseCertData(certdata);
     if (LOG.isDebugEnabled()) {
       LOG.debug(
           "getCertSernoAndIssuerdn: "

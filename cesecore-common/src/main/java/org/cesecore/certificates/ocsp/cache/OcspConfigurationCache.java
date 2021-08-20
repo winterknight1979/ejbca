@@ -78,9 +78,9 @@ public enum OcspConfigurationCache {
         OcspConfiguration.getNonExistingIsUnauthorized();
 
     // Write an error to the logs if more than one of the above is true
-    if ((this.nonExistingIsGood
-            && (this.nonExistingIsRevoked || this.nonExistingIsUnauthorized))
-        || (this.nonExistingIsRevoked && this.nonExistingIsUnauthorized)) {
+    if (this.nonExistingIsGood
+            && (this.nonExistingIsRevoked || this.nonExistingIsUnauthorized)
+        || this.nonExistingIsRevoked && this.nonExistingIsUnauthorized) {
       LOG.error(
           "Error: More than one of ocsp.nonexistingisgood,"
               + " ocsp.nonexistingisrevoked and ocsp.nonexistingisunauthorized"

@@ -25,7 +25,7 @@ import org.cesecore.certificates.ca.CaSessionLocal;
 import org.cesecore.certificates.certificate.CertificateStoreSessionLocal;
 import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
 import org.cesecore.configuration.GlobalConfigurationSessionLocal;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.ejbca.core.ejb.ca.auth.EndEntityAuthenticationSessionLocal;
 import org.ejbca.core.ejb.ca.sign.SignSessionLocal;
 import org.ejbca.core.ejb.ra.EndEntityAccessSessionLocal;
@@ -98,7 +98,7 @@ public class CertReqServlet extends HttpServlet {
   public void init(final ServletConfig config) throws ServletException {
     super.init(config);
     // Install BouncyCastle provider
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
   }
 
   /**

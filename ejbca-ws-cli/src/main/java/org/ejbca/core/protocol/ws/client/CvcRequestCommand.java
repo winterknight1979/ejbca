@@ -21,10 +21,10 @@ import java.security.PublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.List;
 import org.apache.commons.lang.RandomStringUtils;
-import org.cesecore.keys.util.KeyTools;
-import org.cesecore.util.Base64;
+import org.cesecore.keys.util.KeyUtil;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.cesecore.util.FileTools;
 import org.ejbca.core.protocol.ws.client.gen.AuthorizationDeniedException_Exception;
 import org.ejbca.core.protocol.ws.client.gen.Certificate;
@@ -125,7 +125,7 @@ public class CvcRequestCommand extends EJBCAWSRABaseCommand
       getPrintStream().println("Key spec: " + keySpec);
 
       try {
-        CryptoProviderTools.installBCProvider();
+        CryptoProviderUtil.installBCProvider();
 
         String cvcreq = null;
         if (genrequest) {
@@ -138,7 +138,7 @@ public class CvcRequestCommand extends EJBCAWSRABaseCommand
           if (signatureAlg.contains("ECDSA")) {
             keytype = "ECDSA";
           }
-          KeyPair keyPair = KeyTools.genKeys(keySpec, keytype);
+          KeyPair keyPair = KeyUtil.genKeys(keySpec, keytype);
           String country = CertTools.getPartFromDN(dn, "C");
           String mnemonic = CertTools.getPartFromDN(dn, "CN");
           if (sequence.equalsIgnoreCase("null")) {
@@ -211,13 +211,13 @@ public class CvcRequestCommand extends EJBCAWSRABaseCommand
               getPrintStream()
                   .println("Verifying the request before sending it...");
               PublicKey pk =
-                  KeyTools.getECPublicKeyWithParams(
+                  KeyUtil.getECPublicKeyWithParams(
                       authCert.getCertificateBody().getPublicKey(), keySpec);
               authRequest.verify(pk);
             }
             der = authRequest.getDEREncoded();
           }
-          cvcreq = new String(Base64.encode(der));
+          cvcreq = new String(Base64Util.encode(der));
           // Print the generated request to file
           FileOutputStream fos = new FileOutputStream(basefilename + ".cvreq");
           fos.write(der);
@@ -240,7 +240,7 @@ public class CvcRequestCommand extends EJBCAWSRABaseCommand
               .println(
                   "Reading request from filename: " + basefilename + ".cvreq");
           byte[] der = FileTools.readFiletoBuffer(basefilename + ".cvreq");
-          cvcreq = new String(Base64.encode(der));
+          cvcreq = new String(Base64Util.encode(der));
         }
 
         // Edit a user, creating it if it does not exist
@@ -260,7 +260,7 @@ public class CvcRequestCommand extends EJBCAWSRABaseCommand
         Certificate cert = resp.get(0);
         byte[] b64cert = cert.getCertificateData();
         CVCObject parsedObject =
-            CertificateParser.parseCertificate(Base64.decode(b64cert));
+            CertificateParser.parseCertificate(Base64Util.decode(b64cert));
         CVCertificate cvcert = (CVCertificate) parsedObject;
         FileOutputStream fos = new FileOutputStream(basefilename + ".cvcert");
         fos.write(cvcert.getDEREncoded());

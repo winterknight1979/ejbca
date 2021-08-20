@@ -26,9 +26,9 @@ import java.util.Date;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.certificate.HashID;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -42,7 +42,7 @@ public class CaCertificateCacheTest {
       Logger.getLogger(CaCertificateCacheTest.class);
 /** key. */
   private static byte[] testroot =
-      Base64.decode(
+      Base64Util.decode(
           ("MIICPDCCAaWgAwIBAgIIV++ss+Mrw5MwDQYJKoZIhvcNAQEFBQAwLjERMA8GA1UE"
            + "AwwIVGVzdFJvb3QxDDAKBgNVBAoMA0ZvbzELMAkGA1UEBhMCU0UwHhcNMDgwOTI5"
            + "MTM0MjQwWhcNMTYxMjE2MTM0MjQwWjAuMREwDwYDVQQDDAhUZXN0Um9vdDEMMAoG"
@@ -58,7 +58,7 @@ public class CaCertificateCacheTest {
               .getBytes());
 /** key. */
   private static byte[] testrootnew =
-      Base64.decode(
+      Base64Util.decode(
           ("MIICPDCCAaWgAwIBAgIIC662hmhBnZowDQYJKoZIhvcNAQEFBQAwLjERMA8GA1UE"
            + "AwwIVGVzdFJvb3QxDDAKBgNVBAoMA0ZvbzELMAkGA1UEBhMCU0UwHhcNMDgwOTI5"
            + "MTM0MzM3WhcNMTYxMjE2MTM0MzM3WjAuMREwDwYDVQQDDAhUZXN0Um9vdDEMMAoG"
@@ -74,7 +74,7 @@ public class CaCertificateCacheTest {
               .getBytes());
 /** key. */
   private static byte[] testsub =
-      Base64.decode(
+      Base64Util.decode(
           ("MIICOzCCAaSgAwIBAgIIFUunDyPOxAIwDQYJKoZIhvcNAQEFBQAwLjERMA8GA1UE"
            + "AwwIVGVzdFJvb3QxDDAKBgNVBAoMA0ZvbzELMAkGA1UEBhMCU0UwHhcNMDgwOTI5"
            + "MTM0MzA5WhcNMTYxMjE2MTM0MjQwWjAtMRAwDgYDVQQDDAdUZXN0U3ViMQwwCgYD"
@@ -90,7 +90,7 @@ public class CaCertificateCacheTest {
               .getBytes());
 /** key. */
   private static byte[] testcvc =
-      Base64.decode(
+      Base64Util.decode(
           ("fyGCAWh/ToHgXykBAEIOU0VDVkNUZXN0MDAwMDF/SYGUBgoEAH8ABwICAgEBgYGA"
            + "h2uvpDVvYQygDCpZ91ln37I2UcEAPFSjgsNGRq1tJ6Xl+SueIbdR8zfc62+8yNBH"
            + "3PsI/Ogt48NehSI2Z4CAXMbE4coyB7iQHlXUKpb+oBgXU+7LsDxvgDXtcypZwxJ2"
@@ -103,7 +103,7 @@ public class CaCertificateCacheTest {
 
   /** key. */
   private static byte[] testscepca =
-      Base64.decode(
+      Base64Util.decode(
           ("MIICzjCCAbagAwIBAgIILbZXprQLU6EwDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE"
            + "AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw"
            + "HhcNMDgwOTI0MTQ0OTE5WhcNMDkwMTEzMTQ0OTE5WjA2MRAwDgYDVQQDDAdTY2Vw"
@@ -126,7 +126,7 @@ public class CaCertificateCacheTest {
    */
   @BeforeClass
   public static void beforeClass() throws Exception {
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
   }
   /**
    * @throws Exception fail

@@ -26,11 +26,11 @@ import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceNotActiveE
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceRequest;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceRequestException;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceResponse;
-import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypes;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypeConstants;
 import org.cesecore.certificates.ca.extendedservices.IllegalExtendedCAServiceRequestException;
 import org.cesecore.certificates.certificate.certextensions.AvailableCustomCertificateExtensionsConfiguration;
 import org.cesecore.keys.token.CryptoToken;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.ejbca.core.model.InternalEjbcaResources;
 
 /**
@@ -60,14 +60,14 @@ public class HardTokenEncryptCAService extends ExtendedCAService
     super(serviceinfo);
     log.debug(
         "HardTokenEncryptCAService : constructor " + serviceinfo.getStatus());
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
     data = new LinkedHashMap<Object, Object>();
     data.put(
         ExtendedCAServiceInfo.IMPLEMENTATIONCLASS, this.getClass().getName());
     data.put(
         EXTENDEDCASERVICETYPE,
         Integer.valueOf(
-            ExtendedCAServiceTypes.TYPE_HARDTOKENENCEXTENDEDSERVICE));
+            ExtendedCAServiceTypeConstants.TYPE_HARDTOKENENCEXTENDEDSERVICE));
     data.put(VERSION, Float.valueOf(LATEST_VERSION));
     setStatus(serviceinfo.getStatus());
   }
@@ -77,7 +77,7 @@ public class HardTokenEncryptCAService extends ExtendedCAService
    */
   public HardTokenEncryptCAService(final HashMap<?, ?> data) {
     super(data);
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
     loadData(data);
   }
 

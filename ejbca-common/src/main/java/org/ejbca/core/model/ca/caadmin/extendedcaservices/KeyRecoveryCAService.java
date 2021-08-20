@@ -28,13 +28,13 @@ import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceNotActiveE
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceRequest;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceRequestException;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceResponse;
-import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypes;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypeConstants;
 import org.cesecore.certificates.ca.extendedservices.IllegalExtendedCAServiceRequestException;
 import org.cesecore.certificates.certificate.certextensions.AvailableCustomCertificateExtensionsConfiguration;
 import org.cesecore.keys.token.CryptoToken;
-import org.cesecore.keys.util.KeyTools;
-import org.cesecore.util.Base64;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.keys.util.KeyUtil;
+import org.cesecore.util.Base64Util;
+import org.cesecore.util.CryptoProviderUtil;
 import org.ejbca.core.model.InternalEjbcaResources;
 
 /**
@@ -65,14 +65,14 @@ public class KeyRecoveryCAService extends ExtendedCAService
       log.debug(
           "KeyRecoveryCAService : constructor " + serviceinfo.getStatus());
     }
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
     data = new LinkedHashMap<Object, Object>();
     data.put(
         ExtendedCAServiceInfo.IMPLEMENTATIONCLASS, this.getClass().getName());
     data.put(
         EXTENDEDCASERVICETYPE,
         Integer.valueOf(
-            ExtendedCAServiceTypes.TYPE_KEYRECOVERYEXTENDEDSERVICE));
+            ExtendedCAServiceTypeConstants.TYPE_KEYRECOVERYEXTENDEDSERVICE));
     data.put(VERSION, Float.valueOf(LATEST_VERSION));
     setStatus(serviceinfo.getStatus());
   }
@@ -82,7 +82,7 @@ public class KeyRecoveryCAService extends ExtendedCAService
    */
   public KeyRecoveryCAService(final HashMap<?, ?> data) {
     super(data);
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
     loadData(data);
   }
 
@@ -156,8 +156,8 @@ public class KeyRecoveryCAService extends ExtendedCAService
         try {
           keyId =
               new String(
-                  Base64.encode(
-                      KeyTools.createSubjectKeyId(
+                  Base64Util.encode(
+                      KeyUtil.createSubjectKeyId(
                               cryptoToken.getPublicKey(keyAlias))
                           .getKeyIdentifier(),
                       false));
@@ -245,8 +245,8 @@ public class KeyRecoveryCAService extends ExtendedCAService
           try {
             keyId =
                 new String(
-                    Base64.encode(
-                        KeyTools.createSubjectKeyId(
+                    Base64Util.encode(
+                        KeyUtil.createSubjectKeyId(
                                 cryptoToken.getPublicKey(keyAlias))
                             .getKeyIdentifier(),
                         false));

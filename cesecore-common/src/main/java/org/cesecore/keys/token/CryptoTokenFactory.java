@@ -108,7 +108,7 @@ public final class CryptoTokenFactory {
    * @return true if registration went successful, false if the classpath could
    *     not be found or the classpath was already registered.
    */
-  /*package*/ boolean addAvailableCryptoToken(
+  /*package*/ boolean addAvailableCryptoToken(// NOPMD
       final String classname,
       final String name,
       final boolean translateable,

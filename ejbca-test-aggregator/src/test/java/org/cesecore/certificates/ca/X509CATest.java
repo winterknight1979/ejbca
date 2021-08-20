@@ -105,16 +105,16 @@ import org.cesecore.certificates.endentity.ExtendedInformation;
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.certificates.util.AlgorithmTools;
 import org.cesecore.certificates.util.cert.CrlExtensions;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.keys.token.CryptoToken;
 import org.cesecore.keys.token.CryptoTokenFactory;
 import org.cesecore.keys.token.SoftCryptoToken;
 import org.cesecore.keys.token.p11.exception.NoSuchSlotException;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CeSecoreNameStyle;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.CryptoProviderUtil;
+import org.cesecore.util.StringUtil;
 import org.junit.Test;
 
 /**
@@ -134,7 +134,7 @@ public class X509CATest {
 
   /** Constructor. */
   public X509CATest() {
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
   }
 
   /**
@@ -681,7 +681,7 @@ public class X509CATest {
         AlgorithmConstants.SIGALG_SHA256_WITH_RSA,
         caToken1.getEncryptionAlgorithm());
     assertEquals(
-        StringTools.KEY_SEQUENCE_FORMAT_NUMERIC,
+        StringUtil.KEY_SEQUENCE_FORMAT_NUMERIC,
         caToken1.getKeySequenceFormat());
 
     final CAInfo cainfo2 = ca2.getCAInfo();
@@ -693,7 +693,7 @@ public class X509CATest {
         AlgorithmConstants.SIGALG_SHA256_WITH_RSA,
         caToken2.getEncryptionAlgorithm());
     assertEquals(
-        StringTools.KEY_SEQUENCE_FORMAT_NUMERIC,
+        StringUtil.KEY_SEQUENCE_FORMAT_NUMERIC,
         caToken2.getKeySequenceFormat());
   }
 
@@ -1058,7 +1058,7 @@ public class X509CATest {
 
     // set up test CA, end entity and certificate profile
     final CryptoToken cryptoToken = getNewCryptoToken();
-    final KeyPair keypair = KeyTools.genKeys("1024", "RSA");
+    final KeyPair keypair = KeyUtil.genKeys("1024", "RSA");
     final X509CA ca = createTestCA(cryptoToken, "CN=foo");
 
     String emailPlain = "user@user.com";
@@ -1215,7 +1215,7 @@ public class X509CATest {
     cpOcspUrls.add("http://certificate-profile.ocsp.service.locator.url.sw");
     // set up test CA, end entity and certificate profile
     final CryptoToken cryptoToken = getNewCryptoToken();
-    final KeyPair keypair = KeyTools.genKeys("1024", "RSA");
+    final KeyPair keypair = KeyUtil.genKeys("1024", "RSA");
     final X509CA ca = createTestCA(cryptoToken, "CN=foo");
     final EndEntityInformation user =
         new EndEntityInformation(
@@ -1426,7 +1426,7 @@ public class X509CATest {
   public void testCAPrivateKeyUsagePeriodRequest() throws Exception {
     // User keypair, generate first so it will not take any seconds from the
     // timing test below
-    final KeyPair keypair = KeyTools.genKeys("512", "RSA");
+    final KeyPair keypair = KeyUtil.genKeys("512", "RSA");
     // Create a new CA with private key usage period
     final CryptoToken cryptoToken = getNewCryptoToken();
     Calendar notBefore = Calendar.getInstance();
@@ -1623,7 +1623,7 @@ public class X509CATest {
     list.add(2);
     list.add(3);
     cp.setUsedCertificateExtensions(list);
-    final KeyPair keypair = KeyTools.genKeys("512", "RSA");
+    final KeyPair keypair = KeyUtil.genKeys("512", "RSA");
     X509Certificate cert =
         (X509Certificate)
             testCa.generateCertificate(
@@ -2093,7 +2093,7 @@ public class X509CATest {
 
     // Create a pkcs10 certificate request
     KeyPair keyPair =
-        KeyTools.genKeys("1024", AlgorithmConstants.KEYALGORITHM_RSA);
+        KeyUtil.genKeys("1024", AlgorithmConstants.KEYALGORITHM_RSA);
     X500Name x509dn =
         CertTools.stringToBcX500Name("CN=Override,O=PrimeKey,C=SE");
     PKCS10CertificationRequest req =
@@ -2196,7 +2196,7 @@ public class X509CATest {
     final X509CA x509ca = createTestCA(cryptoToken, CADN, algName, null, null);
 
     KeyPair keyPair =
-        KeyTools.genKeys("1024", AlgorithmConstants.KEYALGORITHM_RSA);
+        KeyUtil.genKeys("1024", AlgorithmConstants.KEYALGORITHM_RSA);
 
     EndEntityInformation user =
         new EndEntityInformation(
@@ -2260,7 +2260,7 @@ public class X509CATest {
     x509ca.setCaSerialNumberOctetSize(4);
 
     KeyPair keyPair =
-        KeyTools.genKeys("1024", AlgorithmConstants.KEYALGORITHM_RSA);
+        KeyUtil.genKeys("1024", AlgorithmConstants.KEYALGORITHM_RSA);
 
     EndEntityInformation user =
         new EndEntityInformation(
@@ -2321,7 +2321,7 @@ public class X509CATest {
 
     // Create a pkcs10 certificate request (this algorithm will be used)
     KeyPair keyPair =
-        KeyTools.genKeys("2048", AlgorithmConstants.KEYALGORITHM_RSA);
+        KeyUtil.genKeys("2048", AlgorithmConstants.KEYALGORITHM_RSA);
     X500Name x509dn =
         CertTools.stringToBcX500Name("CN=RequestMessageCn,O=PrimeKey,C=SE");
     PKCS10CertificationRequest certificationRequest =
@@ -2397,7 +2397,7 @@ public class X509CATest {
 
     // Create a pkcs10 certificate request (the algorithm will be overriden)
     KeyPair keyPair =
-        KeyTools.genKeys("1024", AlgorithmConstants.KEYALGORITHM_RSA);
+        KeyUtil.genKeys("1024", AlgorithmConstants.KEYALGORITHM_RSA);
     X500Name x509dn =
         CertTools.stringToBcX500Name("CN=RequestMessageCn,O=PrimeKey,C=SE");
     PKCS10CertificationRequest certificationRequest =
@@ -2430,7 +2430,7 @@ public class X509CATest {
     // Create separate key pair that is going to be enforced over one from
     // request message
     KeyPair keyPairEnforcedAlg =
-        KeyTools.genKeys("2048", AlgorithmConstants.KEYALGORITHM_RSA);
+        KeyUtil.genKeys("2048", AlgorithmConstants.KEYALGORITHM_RSA);
 
     // Create CP and generate certificate
     CertificateProfile cp =
@@ -2478,7 +2478,7 @@ public class X509CATest {
 
     // Create a pkcs10 certificate request (the algorithm will be overriden)
     KeyPair keyPair =
-        KeyTools.genKeys("1024", AlgorithmConstants.KEYALGORITHM_RSA);
+        KeyUtil.genKeys("1024", AlgorithmConstants.KEYALGORITHM_RSA);
     X500Name x509dn =
         CertTools.stringToBcX500Name("CN=RequestMessageCn,O=PrimeKey,C=SE");
     PKCS10CertificationRequest certificationRequest =
@@ -2498,7 +2498,7 @@ public class X509CATest {
     // Create a pkcs10 certificate request that will be enforced (put inside
     // endEntityInformation.extendedInformation)
     KeyPair keyPairEnforcedAlg =
-        KeyTools.genKeys("2048", AlgorithmConstants.KEYALGORITHM_RSA);
+        KeyUtil.genKeys("2048", AlgorithmConstants.KEYALGORITHM_RSA);
     X500Name nameEnforcedAlg =
         CertTools.stringToBcX500Name("CN=EnforcedAlgCn,O=PrimeKey,C=SE");
     PKCS10CertificationRequest certificationRequestEnforcedAlg =
@@ -2610,7 +2610,7 @@ public class X509CATest {
     // Set key sequence so that next sequence will be 00001 (this is the default
     // though so not really needed here)
     caToken.setKeySequence(CAToken.DEFAULT_KEYSEQUENCE);
-    caToken.setKeySequenceFormat(StringTools.KEY_SEQUENCE_FORMAT_NUMERIC);
+    caToken.setKeySequenceFormat(StringUtil.KEY_SEQUENCE_FORMAT_NUMERIC);
     caToken.setSignatureAlgorithm(sigAlg);
     caToken.setEncryptionAlgorithm(AlgorithmConstants.SIGALG_SHA256_WITH_RSA);
     // No extended services
@@ -2685,20 +2685,20 @@ public class X509CATest {
           InvalidAlgorithmParameterException {
     if (algName.equals(AlgorithmConstants.SIGALG_GOST3411_WITH_ECGOST3410)) {
       final String keyspec =
-          CesecoreConfiguration.getExtraAlgSubAlgName("gost3410", "B");
-      return KeyTools.genKeys(
+          CesecoreConfigurationHelper.getExtraAlgSubAlgName("gost3410", "B");
+      return KeyUtil.genKeys(
           keyspec, AlgorithmConstants.KEYALGORITHM_ECGOST3410);
     } else if (algName.equals(
         AlgorithmConstants.SIGALG_GOST3411_WITH_DSTU4145)) {
       final String keyspec =
-          CesecoreConfiguration.getExtraAlgSubAlgName("dstu4145", "233");
-      return KeyTools.genKeys(
+          CesecoreConfigurationHelper.getExtraAlgSubAlgName("dstu4145", "233");
+      return KeyUtil.genKeys(
           keyspec, AlgorithmConstants.KEYALGORITHM_DSTU4145);
     } else if (algName.equals(AlgorithmConstants.SIGALG_SHA224_WITH_ECDSA)) {
-      return KeyTools.genKeys(
+      return KeyUtil.genKeys(
           "brainpoolp224r1", AlgorithmConstants.KEYALGORITHM_ECDSA);
     } else {
-      return KeyTools.genKeys("512", "RSA");
+      return KeyUtil.genKeys("512", "RSA");
     }
   }
 
@@ -2720,10 +2720,10 @@ public class X509CATest {
 
   private static String getTestKeySpec(final String algName) {
     if (algName.equals(AlgorithmConstants.SIGALG_GOST3411_WITH_ECGOST3410)) {
-      return CesecoreConfiguration.getExtraAlgSubAlgName("gost3410", "B");
+      return CesecoreConfigurationHelper.getExtraAlgSubAlgName("gost3410", "B");
     } else if (algName.equals(
         AlgorithmConstants.SIGALG_GOST3411_WITH_DSTU4145)) {
-      return CesecoreConfiguration.getExtraAlgSubAlgName("dstu4145", "233");
+    return CesecoreConfigurationHelper.getExtraAlgSubAlgName("dstu4145", "233");
     } else if (algName.equals(AlgorithmConstants.SIGALG_SHA224_WITH_ECDSA)) {
       return "brainpoolp224r1";
     } else if (algName.equalsIgnoreCase(

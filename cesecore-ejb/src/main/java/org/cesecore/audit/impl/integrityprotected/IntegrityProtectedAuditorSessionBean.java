@@ -47,10 +47,10 @@ import org.cesecore.audit.enums.ModuleTypes;
 import org.cesecore.audit.enums.ServiceTypes;
 import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
 import org.cesecore.authentication.tokens.AuthenticationToken;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.dbprotection.DatabaseProtectionException;
 import org.cesecore.keys.token.CryptoToken;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.ValidityDateUtil;
 import org.cesecore.util.query.Criteria;
 import org.cesecore.util.query.QueryCriteria;
 import org.cesecore.util.query.QueryGenerator;
@@ -78,7 +78,7 @@ public class IntegrityProtectedAuditorSessionBean
       Logger.getLogger(IntegrityProtectedAuditorSessionBean.class);
 
   /** EM. */
-  @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+  @PersistenceContext(unitName = CesecoreConfigurationHelper.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
   /** Context. */
@@ -136,8 +136,8 @@ public class IntegrityProtectedAuditorSessionBean
         details.put("deleteAfterExport", deleteAfterExport);
         details.put(
             "timestamp",
-            ValidityDate.formatAsISO8601(
-                new Date(), ValidityDate.TIMEZONE_UTC));
+            ValidityDateUtil.formatAsISO8601(
+                new Date(), ValidityDateUtil.TIMEZONE_UTC));
         securityEventsLogger.log(
             EventTypes.LOG_EXPORT,
             EventStatus.SUCCESS,
@@ -183,7 +183,7 @@ public class IntegrityProtectedAuditorSessionBean
     detailsDelete.put(
         "timestamp",
         FastDateFormat.getInstance(
-                ValidityDate.ISO8601_DATE_FORMAT, TimeZone.getTimeZone("GMT"))
+              ValidityDateUtil.ISO8601_DATE_FORMAT, TimeZone.getTimeZone("GMT"))
             .format(timestamp));
     securityEventsLogger.log(
         EventTypes.LOG_DELETE,
@@ -457,7 +457,7 @@ public class IntegrityProtectedAuditorSessionBean
     details.put(
         "timestamp",
         FastDateFormat.getInstance(
-                ValidityDate.ISO8601_DATE_FORMAT, TimeZone.getTimeZone("GMT"))
+              ValidityDateUtil.ISO8601_DATE_FORMAT, TimeZone.getTimeZone("GMT"))
             .format(timestamp));
     EventStatus status = EventStatus.SUCCESS;
     if (errors > 0) {

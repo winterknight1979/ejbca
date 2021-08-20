@@ -41,10 +41,10 @@ import org.cesecore.certificates.crl.RevokedCertInfo;
  */
 public final class CrlExtensions {
 
-  private CrlExtensions() { }
-
     /** Logger. */
   private static Logger log = Logger.getLogger(CrlExtensions.class);
+
+  private CrlExtensions() { }
 
   /**
    * Returns the CRL number if it exists as a CRL extension.
@@ -191,7 +191,7 @@ public final class CrlExtensions {
    */
   @SuppressWarnings("unchecked")
   private static <T> T getAsn1ObjectFromBytes(
-      final byte[] bytes, final Class<T> clazz) {
+      final byte[] bytes, final Class<T> clazz) { // NOPMD:clazz is return type
     T ret = null;
     ASN1InputStream asn1InputStream = null;
     try {

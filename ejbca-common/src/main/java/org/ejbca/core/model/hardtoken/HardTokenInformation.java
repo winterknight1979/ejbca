@@ -16,7 +16,7 @@ package org.ejbca.core.model.hardtoken;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Date;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.core.model.hardtoken.types.HardToken;
 
 /**
@@ -56,7 +56,7 @@ public class HardTokenInformation
       final String aCopyof,
       final Collection<String> theCopies) {
     this.tokensn = aTokensn;
-    this.username = StringTools.stripUsername(aUsername);
+    this.username = StringUtil.stripUsername(aUsername);
     this.createtime = aCreatetime;
     this.modifytime = aModifytime;
     this.tokentype = aTokentype;
@@ -96,7 +96,7 @@ public class HardTokenInformation
    * @param aUsername user
    */
   public void setUsername(final String aUsername) {
-    this.username = StringTools.stripUsername(aUsername);
+    this.username = StringUtil.stripUsername(aUsername);
   }
 
   /**

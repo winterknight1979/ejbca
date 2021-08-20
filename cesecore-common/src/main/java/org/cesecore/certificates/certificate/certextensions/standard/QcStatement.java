@@ -87,24 +87,9 @@ public class QcStatement extends StandardCertificateExtension {
       final PublicKey caPublicKey,
       final CertificateValidity val)
       throws CertificateExtensionException {
-    DERSequence ret = null;
     final String names = certProfile.getQCStatementRAName();
     final GeneralNames san = CertTools.getGeneralNamesFromAltName(names);
-    SemanticsInformation si = null;
-    if (san != null) {
-      if (StringUtils.isNotEmpty(certProfile.getQCSemanticsId())) {
-        si =
-            new SemanticsInformation(
-                new ASN1ObjectIdentifier(certProfile.getQCSemanticsId()),
-                san.getNames());
-      } else {
-        si = new SemanticsInformation(san.getNames());
-      }
-    } else if (StringUtils.isNotEmpty(certProfile.getQCSemanticsId())) {
-      si =
-          new SemanticsInformation(
-              new ASN1ObjectIdentifier(certProfile.getQCSemanticsId()));
-    }
+    SemanticsInformation si = getSemanticInfo(certProfile, san);
     final ArrayList<QCStatement> qcs = new ArrayList<QCStatement>();
     QCStatement qc = null;
     // First the standard rfc3739 QCStatement with an optional
@@ -112,17 +97,7 @@ public class QcStatement extends StandardCertificateExtension {
     // We never add RFC3739QCObjectIdentifiers.id_qcs_pkixQCSyntax_v1. This is
     // so old so we think it has never been used in the wild basically.
     // That means no need to have code we have to maintain for that.
-    if (certProfile.getUsePkixQCSyntaxV2()) {
-      ASN1ObjectIdentifier pkixQcSyntax =
-          RFC3739QCObjectIdentifiers.id_qcs_pkixQCSyntax_v2;
-      if ((si != null)) {
-        qc = new QCStatement(pkixQcSyntax, si);
-        qcs.add(qc);
-      } else {
-        qc = new QCStatement(pkixQcSyntax);
-        qcs.add(qc);
-      }
-    }
+    doRfc3739(certProfile, si, qcs);
     // ETSI Statement that the certificate is a Qualified Certificate
     if (certProfile.getUseQCEtsiQCCompliance()) {
       qc = new QCStatement(ETSIQCObjectIdentifiers.id_etsi_qcs_QcCompliance);
@@ -130,32 +105,7 @@ public class QcStatement extends StandardCertificateExtension {
     }
     // ETSI Statement regarding limit on the value of transactions
     // Both value and currency must be available for this extension
-    if (certProfile.getUseQCEtsiValueLimit()
-        && (certProfile.getQCEtsiValueLimit() >= 0)
-        && (certProfile.getQCEtsiValueLimitCurrency() != null)) {
-      final int limit = certProfile.getQCEtsiValueLimit();
-      // The exponent should be default 0
-      final int exponent = certProfile.getQCEtsiValueLimitExp();
-      final MonetaryValue value =
-          new MonetaryValue(
-              new Iso4217CurrencyCode(
-                  certProfile.getQCEtsiValueLimitCurrency()),
-              limit,
-              exponent);
-      qc =
-          new QCStatement(
-              ETSIQCObjectIdentifiers.id_etsi_qcs_LimiteValue, value);
-      qcs.add(qc);
-    }
-
-    if (certProfile.getUseQCEtsiRetentionPeriod()) {
-      final ASN1Integer years =
-          new ASN1Integer(((Integer) certProfile.getQCEtsiRetentionPeriod()));
-      qc =
-          new QCStatement(
-              ETSIQCObjectIdentifiers.id_etsi_qcs_RetentionPeriod, years);
-      qcs.add(qc);
-    }
+    doEtsiTransactionLimit(certProfile, qcs);
 
     // ETSI Statement claiming that the private key resides in a Signature
     // Creation Device
@@ -211,6 +161,76 @@ public class QcStatement extends StandardCertificateExtension {
       qc = new QCStatement(oid, str);
       qcs.add(qc);
     }
+
+    DERSequence ret = getReturnValue(qcs);
+    return ret;
+  }
+
+/**
+ * @param certProfile Profile
+ * @param qcs QCs
+ */
+private void doEtsiTransactionLimit(final CertificateProfile certProfile,
+        final ArrayList<QCStatement> qcs) {
+    QCStatement qc;
+    if (certProfile.getUseQCEtsiValueLimit()
+        && certProfile.getQCEtsiValueLimit() >= 0
+        && certProfile.getQCEtsiValueLimitCurrency() != null) {
+      final int limit = certProfile.getQCEtsiValueLimit();
+      // The exponent should be default 0
+      final int exponent = certProfile.getQCEtsiValueLimitExp();
+      final MonetaryValue value =
+          new MonetaryValue(
+              new Iso4217CurrencyCode(
+                  certProfile.getQCEtsiValueLimitCurrency()),
+              limit,
+              exponent);
+      qc =
+          new QCStatement(
+              ETSIQCObjectIdentifiers.id_etsi_qcs_LimiteValue, value);
+      qcs.add(qc);
+    }
+
+    if (certProfile.getUseQCEtsiRetentionPeriod()) {
+      final ASN1Integer years =
+          new ASN1Integer((Integer) certProfile.getQCEtsiRetentionPeriod());
+      qc =
+          new QCStatement(
+              ETSIQCObjectIdentifiers.id_etsi_qcs_RetentionPeriod, years);
+      qcs.add(qc);
+    }
+}
+
+/**
+ * @param certProfile Profile
+ * @param si Info
+ * @param qcs QCs
+ */
+private void doRfc3739(final CertificateProfile certProfile,
+        final SemanticsInformation si,
+        final ArrayList<QCStatement> qcs) {
+    QCStatement qc;
+    if (certProfile.getUsePkixQCSyntaxV2()) {
+      ASN1ObjectIdentifier pkixQcSyntax =
+          RFC3739QCObjectIdentifiers.id_qcs_pkixQCSyntax_v2;
+      if (si != null) {
+        qc = new QCStatement(pkixQcSyntax, si);
+        qcs.add(qc);
+      } else {
+        qc = new QCStatement(pkixQcSyntax);
+        qcs.add(qc);
+      }
+    }
+}
+
+/**
+ * @param qcs QCS
+ * @return Value
+ * @throws CertificateExtensionException Fail
+ */
+private DERSequence getReturnValue(final ArrayList<QCStatement> qcs)
+        throws CertificateExtensionException {
+    DERSequence ret = null;
     if (!qcs.isEmpty()) {
       final ASN1EncodableVector vec = new ASN1EncodableVector();
       final Iterator<QCStatement> iter = qcs.iterator();
@@ -229,5 +249,30 @@ public class QcStatement extends StandardCertificateExtension {
               + " least one statement must be included!");
     }
     return ret;
-  }
+}
+
+/**
+ * @param certProfile profile
+ * @param san Names
+ * @return Info
+ */
+private SemanticsInformation getSemanticInfo(
+        final CertificateProfile certProfile, final GeneralNames san) {
+    SemanticsInformation si = null;
+    if (san != null) {
+      if (StringUtils.isNotEmpty(certProfile.getQCSemanticsId())) {
+        si =
+            new SemanticsInformation(
+                new ASN1ObjectIdentifier(certProfile.getQCSemanticsId()),
+                san.getNames());
+      } else {
+        si = new SemanticsInformation(san.getNames());
+      }
+    } else if (StringUtils.isNotEmpty(certProfile.getQCSemanticsId())) {
+      si =
+          new SemanticsInformation(
+              new ASN1ObjectIdentifier(certProfile.getQCSemanticsId()));
+    }
+    return si;
+}
 }

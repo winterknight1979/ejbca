@@ -27,9 +27,9 @@ import org.apache.commons.codec.binary.Base64OutputStream;
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
 import org.cesecore.certificates.endentity.EndEntityConstants;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -106,7 +106,7 @@ public class CertificateDataSerializationTest {
 /** Setup. */
   @BeforeClass
   public static void beforeClass() {
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
   }
 
   /**
@@ -118,7 +118,7 @@ public class CertificateDataSerializationTest {
   @Test
   public void testSerializeCurrent() throws Exception {
     LOG.trace(">testSerializeCurrent");
-    final KeyPair kp = KeyTools.genKeys("1024", "RSA");
+    final KeyPair kp = KeyUtil.genKeys("1024", "RSA");
     final Certificate cert =
         CertTools.genSelfCert(
             "CN=certuser",

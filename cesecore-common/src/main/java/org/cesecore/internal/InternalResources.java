@@ -21,7 +21,7 @@ import java.io.Serializable;
 import java.util.Locale;
 import java.util.Properties;
 import org.apache.log4j.Logger;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 
 /**
  * Class managing internal localization of texts such as notification messages
@@ -75,10 +75,10 @@ public class InternalResources implements Serializable {
 
   private void setupResources(final String resLocation) {
     final String primaryLanguage =
-        CesecoreConfiguration.getInternalResourcesPreferredLanguage()
+        CesecoreConfigurationHelper.getInternalResourcesPreferredLanguage()
             .toLowerCase(Locale.ENGLISH);
     final String secondaryLanguage =
-        CesecoreConfiguration.getInternalResourcesSecondaryLanguage()
+        CesecoreConfigurationHelper.getInternalResourcesSecondaryLanguage()
             .toLowerCase(Locale.ENGLISH);
     // The test flag is defined when called from test code (junit)
     InputStream primaryStream = null;

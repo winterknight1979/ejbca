@@ -28,15 +28,19 @@ public enum OcspRequestSignerStatusCache {
     /** Singleton instance. */
   INSTANCE;
 
+     /** Map. */
+      private final Map<String, OcspSignerStatus> cache =
+          new ConcurrentHashMap<String, OcspSignerStatus>();
+
   /**
    * Cache entry keeping track of a revocation status and when it was last
    * updated.
    */
   private class OcspSignerStatus {
       /** Last update. */
-    private long lastUpdate;
+    private long lastUpdate; // NOPMD
     /** Status. */
-    private final CertificateStatus certificateStatus;
+    private final CertificateStatus certificateStatus; // NOPMD
 
     OcspSignerStatus(
         final long aLastUpdate, final CertificateStatus aCertificateStatus) {
@@ -45,9 +49,6 @@ public enum OcspRequestSignerStatusCache {
     }
   }
 
-  /** Map. */
-  private final Map<String, OcspSignerStatus> cache =
-      new ConcurrentHashMap<String, OcspSignerStatus>();
 
   /**
    * Create a cache lookup key with very low probability of collision.

@@ -19,9 +19,9 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.util.Collection;
 import org.cesecore.certificates.certificate.request.RequestMessageUtils;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.cesecore.util.FileTools;
 import org.ejbca.cvc.CVCAuthenticatedRequest;
 import org.ejbca.cvc.CVCObject;
@@ -65,7 +65,7 @@ public class CvcPemCommand extends EJBCAWSRABaseCommand
         usage();
         System.exit(-1); // NOPMD, this is not a JEE app
       }
-      CryptoProviderTools.installBCProvider();
+      CryptoProviderUtil.installBCProvider();
       String inform = args[1];
       String infile = args[2];
       String outform = args[outIdx];
@@ -97,7 +97,7 @@ public class CvcPemCommand extends EJBCAWSRABaseCommand
         bytes = cvcert.getEncoded();
       }
       if ("pem".equalsIgnoreCase(outform)) {
-        byte[] b64 = Base64.encode(bytes);
+        byte[] b64 = Base64Util.encode(bytes);
         FileOutputStream fos = new FileOutputStream(outfile);
         String begin = CertTools.BEGIN_CERTIFICATE;
         String end = CertTools.END_CERTIFICATE;

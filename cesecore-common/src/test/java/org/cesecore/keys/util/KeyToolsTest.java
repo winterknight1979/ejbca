@@ -55,10 +55,10 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.Arrays;
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.certificates.util.AlgorithmTools;
-import org.cesecore.config.CesecoreConfiguration;
-import org.cesecore.util.Base64;
+import org.cesecore.config.CesecoreConfigurationHelper;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.ejbca.cvc.AuthorizationRoleEnum;
 import org.ejbca.cvc.CAReferenceField;
 import org.ejbca.cvc.CVCPublicKey;
@@ -80,7 +80,7 @@ public class KeyToolsTest {
 
   /** Key. */
   private static final byte[] KS3 =
-      Base64.decode(
+      Base64Util.decode(
           ("MIACAQMwgAYJKoZIhvcNAQcBoIAkgASCAyYwgDCABgkqhkiG9w0BBwGggCSABIID"
            + "DjCCAwowggMGBgsqhkiG9w0BDAoBAqCCAqkwggKlMCcGCiqGSIb3DQEMAQMwGQQU"
            + "/h0pQXq7ZVjYWlDvzEwwmiJ8O8oCAWQEggJ4MZ12+kTVGd1w7SP4ZWlq0bCc4MsJ"
@@ -148,7 +148,7 @@ public class KeyToolsTest {
               .getBytes());
 /** Key. */
   private static final byte[] KEYS_1024_BIT =
-      Base64.decode(
+      Base64Util.decode(
           ("MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBAKA5rNhYbPuVcArT"
            + "mkthfrW2tX1Z7SkCD01sDYrkiwOcodFmS1cSyz8eHM51iwHA7CW0WFvfUjomBT5y"
            + "gRQfIsf5M5DUtYcKM1hmGKSPzvmF4nYv+3UBUesCvBXVRN/wFZ44SZZ3CVvpQUYb"
@@ -167,7 +167,7 @@ public class KeyToolsTest {
 
   /** self signed cert done with above private key. */
   private static final byte[] CERT_BYTES =
-      Base64.decode(
+      Base64Util.decode(
           ("MIICNzCCAaCgAwIBAgIIIOqiVwJHz+8wDQYJKoZIhvcNAQEFBQAwKzENMAsGA1UE"
            + "AxMEVGVzdDENMAsGA1UEChMEVGVzdDELMAkGA1UEBhMCU0UwHhcNMDQwNTA4MDkx"
            + "ODMwWhcNMDUwNTA4MDkyODMwWjArMQ0wCwYDVQQDEwRUZXN0MQ0wCwYDVQQKEwRU"
@@ -191,7 +191,7 @@ public class KeyToolsTest {
   @BeforeClass
   public static void beforeClass() throws Exception {
     // Install BouncyCastle provider
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
   }
   /**
    * Test.
@@ -203,7 +203,7 @@ public class KeyToolsTest {
         KeyStore.getInstance("PKCS12", BouncyCastleProvider.PROVIDER_NAME);
     ByteArrayInputStream fis = new ByteArrayInputStream(KS3);
     store.load(fis, STORE_PWD.toCharArray());
-    Certificate[] certs = KeyTools.getCertChain(store, PK_ALIAS);
+    Certificate[] certs = KeyUtil.getCertChain(store, PK_ALIAS);
     LOG.debug("Number of certs: " + certs.length);
     assertEquals("Wrong number of certs returned", 3, certs.length);
     for (int i = 0; i < certs.length; i++) {
@@ -233,10 +233,10 @@ public class KeyToolsTest {
    */
   @Test
   public void testGenKeysRSA() throws Exception {
-    KeyPair keys = KeyTools.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
+    KeyPair keys = KeyUtil.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
     assertNotNull("keys must not be null", keys);
     String b64private =
-        new String(Base64.encode(keys.getPrivate().getEncoded()));
+        new String(Base64Util.encode(keys.getPrivate().getEncoded()));
     assertNotNull("b64private must not be null", b64private);
     // log.debug(b64private);
     X509Certificate cert =
@@ -249,10 +249,10 @@ public class KeyToolsTest {
             AlgorithmConstants.SIGALG_SHA1_WITH_RSA,
             true);
     assertNotNull("cert must not be null", cert);
-    String b64cert = new String(Base64.encode(cert.getEncoded()));
+    String b64cert = new String(Base64Util.encode(cert.getEncoded()));
     assertNotNull("b64cert cannot be null", b64cert);
     // log.debug(b64cert);
-    KeyTools.testKey(
+    KeyUtil.testKey(
         keys.getPrivate(),
         keys.getPublic(),
         BouncyCastleProvider.PROVIDER_NAME);
@@ -261,23 +261,23 @@ public class KeyToolsTest {
     KeyFactory keyFactory = KeyFactory.getInstance("RSA");
     PrivateKey pk = keyFactory.generatePrivate(pkKeySpec);
     try {
-      KeyTools.testKey(
+      KeyUtil.testKey(
           pk, keys.getPublic(), BouncyCastleProvider.PROVIDER_NAME);
       assertTrue(false);
     } catch (InvalidKeyException e) {
       assertEquals("Signature was not correctly verified.", e.getMessage());
     }
 
-    AlgorithmParameterSpec paramspec = KeyTools.getKeyGenSpec(keys.getPublic());
+    AlgorithmParameterSpec paramspec = KeyUtil.getKeyGenSpec(keys.getPublic());
     assertTrue((paramspec instanceof RSAKeyGenParameterSpec));
     RSAKeyGenParameterSpec rsaspec = (RSAKeyGenParameterSpec) paramspec;
     assertEquals(512, rsaspec.getKeysize());
 
-    assertTrue(KeyTools.isPrivateKeyExtractable(keys.getPrivate()));
+    assertTrue(KeyUtil.isPrivateKeyExtractable(keys.getPrivate()));
 
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     PrintStream ps = new PrintStream(out);
-    KeyTools.printPublicKeyInfo(keys.getPublic(), ps);
+    KeyUtil.printPublicKeyInfo(keys.getPublic(), ps);
     ps.close();
     String str = out.toString();
     assertTrue(str.contains("RSA key"));
@@ -293,7 +293,7 @@ public class KeyToolsTest {
     PKCS8EncodedKeySpec pkKeySpec = new PKCS8EncodedKeySpec(KEYS_1024_BIT);
     KeyFactory keyFactory = KeyFactory.getInstance("RSA");
     PrivateKey pk = keyFactory.generatePrivate(pkKeySpec);
-    KeyStore ks = KeyTools.createP12("Foo", pk, cert, (X509Certificate) null);
+    KeyStore ks = KeyUtil.createP12("Foo", pk, cert, (X509Certificate) null);
     assertNotNull("ks must not be null", ks);
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     // If password below is more than 7 chars, strong crypto is needed
@@ -302,7 +302,7 @@ public class KeyToolsTest {
     Certificate cert1 = ks.getCertificate("Foo");
     assertNotNull(cert1);
     byte[] bytes =
-        KeyTools.getSinglePemFromKeyStore(ks, "foo123".toCharArray());
+        KeyUtil.getSinglePemFromKeyStore(ks, "foo123".toCharArray());
     assertNotNull(bytes);
     String str = new String(bytes);
     assertTrue(str.contains("-----BEGIN PRIVATE KEY-----"));
@@ -320,12 +320,12 @@ public class KeyToolsTest {
     KeyFactory keyFactory = KeyFactory.getInstance("RSA");
     PrivateKey pk = keyFactory.generatePrivate(pkKeySpec);
     KeyStore ks =
-        KeyTools.createJKS("Foo", pk, "foo123", (X509Certificate) cert, null);
+        KeyUtil.createJKS("Foo", pk, "foo123", (X509Certificate) cert, null);
     assertNotNull("ks must not be null", ks);
     Certificate cert1 = ks.getCertificate("Foo");
     assertNotNull(cert1);
     byte[] bytes =
-        KeyTools.getSinglePemFromKeyStore(ks, "foo123".toCharArray());
+        KeyUtil.getSinglePemFromKeyStore(ks, "foo123".toCharArray());
     assertNotNull(bytes);
     String str = new String(bytes);
     assertTrue(str.contains("-----BEGIN PRIVATE KEY-----"));
@@ -338,7 +338,7 @@ public class KeyToolsTest {
   @Test
   public void testGenKeysECDSAx9() throws Exception {
     KeyPair keys =
-        KeyTools.genKeys("prime192v1", AlgorithmConstants.KEYALGORITHM_ECDSA);
+        KeyUtil.genKeys("prime192v1", AlgorithmConstants.KEYALGORITHM_ECDSA);
     // Verify that the keys are using maned curves, and not explicit parameters
     PrivateKeyInfo priv2 =
         PrivateKeyInfo.getInstance(keys.getPrivate().getEncoded());
@@ -358,7 +358,7 @@ public class KeyToolsTest {
 
     assertNotNull("keys must not be null", keys);
     String b64private =
-        new String(Base64.encode(keys.getPrivate().getEncoded()));
+        new String(Base64Util.encode(keys.getPrivate().getEncoded()));
     assertNotNull("b64private must not be null", b64private);
     // log.debug(b64private);
     X509Certificate cert =
@@ -372,18 +372,18 @@ public class KeyToolsTest {
             true);
     // log.debug(cert);
     assertNotNull("cert must not be null", cert);
-    String b64cert = new String(Base64.encode(cert.getEncoded()));
+    String b64cert = new String(Base64Util.encode(cert.getEncoded()));
     assertNotNull("b64cert cannot be null", b64cert);
     // log.debug(b64cert);
-    KeyTools.testKey(
+    KeyUtil.testKey(
         keys.getPrivate(),
         keys.getPublic(),
         BouncyCastleProvider.PROVIDER_NAME);
     // Test that fails
     KeyPair keys1 =
-        KeyTools.genKeys("prime192v1", AlgorithmConstants.KEYALGORITHM_ECDSA);
+        KeyUtil.genKeys("prime192v1", AlgorithmConstants.KEYALGORITHM_ECDSA);
     try {
-      KeyTools.testKey(
+      KeyUtil.testKey(
           keys1.getPrivate(),
           keys.getPublic(),
           BouncyCastleProvider.PROVIDER_NAME);
@@ -395,20 +395,20 @@ public class KeyToolsTest {
     // This will not do anything for a key which is not an
     // org.ejbca.cvc.PublicKeyEC
     PublicKey pk =
-        KeyTools.getECPublicKeyWithParams(keys.getPublic(), "prime192v1");
+        KeyUtil.getECPublicKeyWithParams(keys.getPublic(), "prime192v1");
     assertTrue(pk.equals(keys.getPublic()));
-    pk = KeyTools.getECPublicKeyWithParams(keys.getPublic(), pk);
+    pk = KeyUtil.getECPublicKeyWithParams(keys.getPublic(), pk);
     assertTrue(pk.equals(keys.getPublic()));
 
-    AlgorithmParameterSpec spec = KeyTools.getKeyGenSpec(keys.getPublic());
+    AlgorithmParameterSpec spec = KeyUtil.getKeyGenSpec(keys.getPublic());
     assertNotNull(spec);
     assertTrue((spec instanceof ECParameterSpec));
 
-    assertTrue(KeyTools.isPrivateKeyExtractable(keys.getPrivate()));
+    assertTrue(KeyUtil.isPrivateKeyExtractable(keys.getPrivate()));
 
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     PrintStream ps = new PrintStream(out);
-    KeyTools.printPublicKeyInfo(keys.getPublic(), ps);
+    KeyUtil.printPublicKeyInfo(keys.getPublic(), ps);
     ps.close();
     String str = out.toString();
     assertTrue(str.contains("Elliptic curve key"));
@@ -420,10 +420,10 @@ public class KeyToolsTest {
   @Test
   public void testGenKeysECDSANist() throws Exception {
     KeyPair keys =
-        KeyTools.genKeys("secp384r1", AlgorithmConstants.KEYALGORITHM_ECDSA);
+        KeyUtil.genKeys("secp384r1", AlgorithmConstants.KEYALGORITHM_ECDSA);
     assertNotNull("keys must not be null", keys);
     String b64private =
-        new String(Base64.encode(keys.getPrivate().getEncoded()));
+        new String(Base64Util.encode(keys.getPrivate().getEncoded()));
     assertNotNull("b64private must not be null", b64private);
     // log.debug(b64private);
     X509Certificate cert =
@@ -437,10 +437,10 @@ public class KeyToolsTest {
             true);
     // log.debug(cert);
     assertNotNull("cert must not be null", cert);
-    String b64cert = new String(Base64.encode(cert.getEncoded()));
+    String b64cert = new String(Base64Util.encode(cert.getEncoded()));
     assertNotNull("b64cert cannot be null", b64cert);
     // log.info(b64cert);
-    KeyTools.testKey(
+    KeyUtil.testKey(
         keys.getPrivate(),
         keys.getPublic(),
         BouncyCastleProvider.PROVIDER_NAME);
@@ -452,10 +452,10 @@ public class KeyToolsTest {
   @Test
   public void testGenKeysECDSAImplicitlyCA() throws Exception {
     KeyPair keys =
-        KeyTools.genKeys("implicitlyCA", AlgorithmConstants.KEYALGORITHM_ECDSA);
+        KeyUtil.genKeys("implicitlyCA", AlgorithmConstants.KEYALGORITHM_ECDSA);
     assertNotNull("keys must not be null", keys);
     String b64private =
-        new String(Base64.encode(keys.getPrivate().getEncoded()));
+        new String(Base64Util.encode(keys.getPrivate().getEncoded()));
     assertNotNull("b64private must not be null", b64private);
     // log.debug(b64private);
     X509Certificate cert =
@@ -469,10 +469,10 @@ public class KeyToolsTest {
             true);
     // log.debug(cert);
     assertNotNull("cert must not be null", cert);
-    String b64cert = new String(Base64.encode(cert.getEncoded()));
+    String b64cert = new String(Base64Util.encode(cert.getEncoded()));
     assertNotNull("b64cert cannot be null", b64cert);
     // log.info(b64cert);
-    KeyTools.testKey(
+    KeyUtil.testKey(
         keys.getPrivate(),
         keys.getPublic(),
         BouncyCastleProvider.PROVIDER_NAME);
@@ -484,12 +484,12 @@ public class KeyToolsTest {
   @Test
   public void testGenKeysECDSAFail() throws Exception {
     try {
-      KeyTools.genKeys("fooBar", AlgorithmConstants.KEYALGORITHM_ECDSA);
+      KeyUtil.genKeys("fooBar", AlgorithmConstants.KEYALGORITHM_ECDSA);
       assertTrue("This statement should throw", false);
     } catch (InvalidAlgorithmParameterException e) {
     }
     try {
-      KeyTools.genKeys(null, null, AlgorithmConstants.KEYALGORITHM_ECDSA);
+      KeyUtil.genKeys(null, null, AlgorithmConstants.KEYALGORITHM_ECDSA);
       assertTrue("This statement should throw", false);
     } catch (InvalidAlgorithmParameterException e) {
     }
@@ -500,12 +500,12 @@ public class KeyToolsTest {
    */
   @Test
   public void testGenKeysDSA() throws Exception {
-    KeyPair keys = KeyTools.genKeys("512", AlgorithmConstants.KEYALGORITHM_DSA);
+    KeyPair keys = KeyUtil.genKeys("512", AlgorithmConstants.KEYALGORITHM_DSA);
     assertNotNull("keys must not be null", keys);
     assertEquals(
-        "Length must be 512", 512, KeyTools.getKeyLength(keys.getPublic()));
+        "Length must be 512", 512, KeyUtil.getKeyLength(keys.getPublic()));
     String b64private =
-        new String(Base64.encode(keys.getPrivate().getEncoded()));
+        new String(Base64Util.encode(keys.getPrivate().getEncoded()));
     assertNotNull("b64private must not be null", b64private);
     // log.debug(b64private);
     X509Certificate cert =
@@ -518,18 +518,18 @@ public class KeyToolsTest {
             AlgorithmConstants.SIGALG_SHA1_WITH_DSA,
             true);
     assertNotNull("cert must not be null", cert);
-    String b64cert = new String(Base64.encode(cert.getEncoded()));
+    String b64cert = new String(Base64Util.encode(cert.getEncoded()));
     assertNotNull("b64cert cannot be null", b64cert);
     // log.debug(b64cert);
-    KeyTools.testKey(
+    KeyUtil.testKey(
         keys.getPrivate(),
         keys.getPublic(),
         BouncyCastleProvider.PROVIDER_NAME);
     // Test that fails
     KeyPair keys1 =
-        KeyTools.genKeys("512", AlgorithmConstants.KEYALGORITHM_DSA);
+        KeyUtil.genKeys("512", AlgorithmConstants.KEYALGORITHM_DSA);
     try {
-      KeyTools.testKey(
+      KeyUtil.testKey(
           keys1.getPrivate(),
           keys.getPublic(),
           BouncyCastleProvider.PROVIDER_NAME);
@@ -538,16 +538,16 @@ public class KeyToolsTest {
       assertEquals("Signature was not correctly verified.", e.getMessage());
     }
 
-    AlgorithmParameterSpec paramspec = KeyTools.getKeyGenSpec(keys.getPublic());
+    AlgorithmParameterSpec paramspec = KeyUtil.getKeyGenSpec(keys.getPublic());
     assertTrue((paramspec instanceof DSAParameterSpec));
     DSAParameterSpec dsaspec = (DSAParameterSpec) paramspec;
     assertEquals(512, dsaspec.getP().bitLength());
 
-    assertTrue(KeyTools.isPrivateKeyExtractable(keys.getPrivate()));
+    assertTrue(KeyUtil.isPrivateKeyExtractable(keys.getPrivate()));
 
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     PrintStream ps = new PrintStream(out);
-    KeyTools.printPublicKeyInfo(keys.getPublic(), ps);
+    KeyUtil.printPublicKeyInfo(keys.getPublic(), ps);
     ps.close();
     String str = out.toString();
     assertTrue(str.contains("DSA key"));
@@ -567,17 +567,17 @@ public class KeyToolsTest {
     assertEquals("EC", keys.getPublic().getAlgorithm());
     String spec = AlgorithmTools.getKeySpecification(keys.getPublic());
     assertEquals("secp256r1", spec);
-    AlgorithmParameterSpec paramspec = KeyTools.getKeyGenSpec(keys.getPublic());
+    AlgorithmParameterSpec paramspec = KeyUtil.getKeyGenSpec(keys.getPublic());
 
     KeyPair keys2 =
-        KeyTools.genKeys(
+        KeyUtil.genKeys(
             null, paramspec, AlgorithmConstants.KEYALGORITHM_ECDSA);
     assertEquals("ECDSA", keys2.getPublic().getAlgorithm());
     ECPublicKey pk1 = (ECPublicKey) keys.getPublic();
     ECPublicKey pk2 = (ECPublicKey) keys2.getPublic();
     // Verify that it's the same key size
-    int len1 = KeyTools.getKeyLength(pk1);
-    int len2 = KeyTools.getKeyLength(pk2);
+    int len1 = KeyUtil.getKeyLength(pk1);
+    int len2 = KeyUtil.getKeyLength(pk2);
     assertEquals(len1, len2);
     // Verify that the domain parameters are the same
     ECParameterSpec ecs1 = pk1.getParams();
@@ -587,7 +587,7 @@ public class KeyToolsTest {
     assertEquals(ecs1.getCurve(), ecs2.getCurve());
     // Verify that it is not the same key though
     assertFalse(pk1.getW().equals(pk2.getW()));
-    KeyTools.testKey(
+    KeyUtil.testKey(
         keys.getPrivate(),
         keys.getPublic(),
         BouncyCastleProvider.PROVIDER_NAME);
@@ -617,21 +617,21 @@ public class KeyToolsTest {
     ECParameterSpec spec2 = ecpk2.getParams();
     assertNull(spec2); // no parameters in IS cert
     ECPublicKey ecpk3 =
-        (ECPublicKey) KeyTools.getECPublicKeyWithParams(pk2, pk1);
+        (ECPublicKey) KeyUtil.getECPublicKeyWithParams(pk2, pk1);
     ECParameterSpec spec3 = ecpk3.getParams();
     assertNotNull(spec3);
 
     spec2 = ecpk2.getParams();
     assertNull(spec2); // no parameters in IS cert
     ECPublicKey ecpk4 =
-        (ECPublicKey) KeyTools.getECPublicKeyWithParams(ecpk2, "prime192v1");
+        (ECPublicKey) KeyUtil.getECPublicKeyWithParams(ecpk2, "prime192v1");
     ECParameterSpec spec4 = ecpk4.getParams();
     assertNotNull(spec4);
 
     // Trying to enrich with another public key with no params will give no
     // params in enriched key
     ECPublicKey ecpk5 =
-        (ECPublicKey) KeyTools.getECPublicKeyWithParams(ecpk2, ecpk2);
+        (ECPublicKey) KeyUtil.getECPublicKeyWithParams(ecpk2, ecpk2);
     ECParameterSpec spec5 = ecpk5.getParams();
     assertNull(spec5);
   }
@@ -641,7 +641,7 @@ public class KeyToolsTest {
           final AuthorizationRoleEnum role)
       throws Exception {
     KeyPair keyPair =
-        KeyTools.genKeys("prime192v1", AlgorithmConstants.KEYALGORITHM_ECDSA);
+        KeyUtil.genKeys("prime192v1", AlgorithmConstants.KEYALGORITHM_ECDSA);
     CAReferenceField caRef = new CAReferenceField("SE", "TEST001", "00001");
     HolderReferenceField holderRef =
         new HolderReferenceField("SE", "TEST002", "SE001");
@@ -667,7 +667,7 @@ public class KeyToolsTest {
             "ECGOST3410", BouncyCastleProvider.PROVIDER_NAME);
 
     final String keyspec =
-        CesecoreConfiguration.getExtraAlgSubAlgName("gost3410", "B");
+        CesecoreConfigurationHelper.getExtraAlgSubAlgName("gost3410", "B");
     AlgorithmParameterSpec ecSpec =
         ECGOST3410NamedCurveTable.getParameterSpec(keyspec);
     keygen.initialize(ecSpec);
@@ -686,13 +686,13 @@ public class KeyToolsTest {
 
     // Nothing to do here, the gost parameter seem to behave similarly to EC
     // parameter
-    AlgorithmParameterSpec paramspec = KeyTools.getKeyGenSpec(keys.getPublic());
+    AlgorithmParameterSpec paramspec = KeyUtil.getKeyGenSpec(keys.getPublic());
 
     KeyPair keys2 =
-        KeyTools.genKeys(
+        KeyUtil.genKeys(
             null, paramspec, AlgorithmConstants.KEYALGORITHM_ECGOST3410);
     KeyPair keys3 =
-        KeyTools.genKeys(keyspec, AlgorithmConstants.KEYALGORITHM_ECGOST3410);
+        KeyUtil.genKeys(keyspec, AlgorithmConstants.KEYALGORITHM_ECGOST3410);
 
     assertEquals(
         AlgorithmConstants.KEYALGORITHM_ECGOST3410,
@@ -706,9 +706,9 @@ public class KeyToolsTest {
     ECPublicKey pk3 = (ECPublicKey) keys3.getPublic();
 
     // Verify that it's the same key size
-    int len1 = KeyTools.getKeyLength(pk1);
-    int len2 = KeyTools.getKeyLength(pk2);
-    int len3 = KeyTools.getKeyLength(pk3);
+    int len1 = KeyUtil.getKeyLength(pk1);
+    int len2 = KeyUtil.getKeyLength(pk2);
+    int len3 = KeyUtil.getKeyLength(pk3);
 
     assertEquals(len1, len2);
     assertEquals(len1, len3);
@@ -730,19 +730,19 @@ public class KeyToolsTest {
     assertFalse(pk1.getW().equals(pk2.getW()));
     assertFalse(pk1.getW().equals(pk3.getW()));
 
-    KeyTools.testKey(
+    KeyUtil.testKey(
         keys.getPrivate(),
         keys.getPublic(),
         BouncyCastleProvider.PROVIDER_NAME);
 
     byte[] signature =
-        KeyTools.signData(
+        KeyUtil.signData(
             keys2.getPrivate(),
             AlgorithmConstants.KEYALGORITHM_ECGOST3410,
             "Hello world ! How cool is ejbca ??".getBytes());
 
     assertTrue(
-        KeyTools.verifyData(
+        KeyUtil.verifyData(
             keys2.getPublic(),
             AlgorithmConstants.KEYALGORITHM_ECGOST3410,
             "Hello world ! How cool is ejbca ??".getBytes(),
@@ -769,7 +769,7 @@ public class KeyToolsTest {
             "DSTU4145", BouncyCastleProvider.PROVIDER_NAME);
 
     final String keyspec =
-        CesecoreConfiguration.getExtraAlgSubAlgName("dstu4145", "233");
+        CesecoreConfigurationHelper.getExtraAlgSubAlgName("dstu4145", "233");
     AlgorithmParameterSpec ecSpec =
         ECGOST3410NamedCurveTable.getParameterSpec(keyspec);
     keygen.initialize(ecSpec);
@@ -788,13 +788,13 @@ public class KeyToolsTest {
 
     // Nothing to do here, the gost parameter seem to behave similarly to EC
     // parameter
-    AlgorithmParameterSpec paramspec = KeyTools.getKeyGenSpec(keys.getPublic());
+    AlgorithmParameterSpec paramspec = KeyUtil.getKeyGenSpec(keys.getPublic());
 
     KeyPair keys2 =
-        KeyTools.genKeys(
+        KeyUtil.genKeys(
             null, paramspec, AlgorithmConstants.KEYALGORITHM_DSTU4145);
     KeyPair keys3 =
-        KeyTools.genKeys(keyspec, AlgorithmConstants.KEYALGORITHM_DSTU4145);
+        KeyUtil.genKeys(keyspec, AlgorithmConstants.KEYALGORITHM_DSTU4145);
 
     assertEquals(
         AlgorithmConstants.KEYALGORITHM_DSTU4145,
@@ -808,9 +808,9 @@ public class KeyToolsTest {
     ECPublicKey pk3 = (ECPublicKey) keys3.getPublic();
 
     // Verify that it's the same key size
-    int len1 = KeyTools.getKeyLength(pk1);
-    int len2 = KeyTools.getKeyLength(pk2);
-    int len3 = KeyTools.getKeyLength(pk3);
+    int len1 = KeyUtil.getKeyLength(pk1);
+    int len2 = KeyUtil.getKeyLength(pk2);
+    int len3 = KeyUtil.getKeyLength(pk3);
 
     assertEquals(len1, len2);
     assertEquals(len1, len3);
@@ -832,19 +832,19 @@ public class KeyToolsTest {
     assertFalse(pk1.getW().equals(pk2.getW()));
     assertFalse(pk1.getW().equals(pk3.getW()));
 
-    KeyTools.testKey(
+    KeyUtil.testKey(
         keys.getPrivate(),
         keys.getPublic(),
         BouncyCastleProvider.PROVIDER_NAME);
 
     byte[] signature =
-        KeyTools.signData(
+        KeyUtil.signData(
             keys2.getPrivate(),
             AlgorithmConstants.KEYALGORITHM_DSTU4145,
             "Hello world ! How cool is ejbca ??".getBytes());
 
     assertTrue(
-        KeyTools.verifyData(
+        KeyUtil.verifyData(
             keys2.getPublic(),
             AlgorithmConstants.KEYALGORITHM_DSTU4145,
             "Hello world ! How cool is ejbca ??".getBytes(),
@@ -860,8 +860,8 @@ public class KeyToolsTest {
   }
 
   /**
-   * Tests {@link KeyTools#getBytesFromPEM} and {@link
-   * KeyTools#getBytesFromPublicKeyFile}.
+   * Tests {@link KeyUtil#getBytesFromPEM} and {@link
+   * KeyUtil#getBytesFromPublicKeyFile}.
    *
    * @throws Exception fail
    */
@@ -876,30 +876,30 @@ public class KeyToolsTest {
     // Test getting DER from PEM
     final String pemString = new String(pem, Charset.forName("ASCII"));
     byte[] result =
-        KeyTools.getBytesFromPEM(
+        KeyUtil.getBytesFromPEM(
             pemString, CertTools.BEGIN_PUBLIC_KEY, CertTools.END_PUBLIC_KEY);
     assertArrayEquals("getBytesFromPEM did not work.", der, result);
 
     final String badPem = pemString.substring(0, pemString.length() - 10);
     result =
-        KeyTools.getBytesFromPEM(
+        KeyUtil.getBytesFromPEM(
             badPem, CertTools.BEGIN_PUBLIC_KEY, CertTools.END_PUBLIC_KEY);
     assertNull("Result should be null on corrupt data", result);
 
     // Test getBytesFromPublicKeyFile
-    result = KeyTools.getBytesFromPublicKeyFile(der);
+    result = KeyUtil.getBytesFromPublicKeyFile(der);
     assertArrayEquals(
         "getBytesFromPublicKeyFile on a DER file should be a no-op.",
         der,
         result);
 
-    result = KeyTools.getBytesFromPublicKeyFile(pem);
+    result = KeyUtil.getBytesFromPublicKeyFile(pem);
     assertArrayEquals(
         "getBytesFromPublicKeyFile on a PEM should also work.", der, result);
 
     final byte[] invalid = Arrays.copyOf(der, der.length - 1);
     try {
-      result = KeyTools.getBytesFromPublicKeyFile(invalid);
+      result = KeyUtil.getBytesFromPublicKeyFile(invalid);
       fail("getBytesFromPublicKeyFile on corrupt data should throw");
     } catch (CertificateParsingException e) {
       // NOPMD expected
@@ -914,7 +914,7 @@ public class KeyToolsTest {
     for (final String blackListedEcCurve
         : AlgorithmConstants.BLACKLISTED_EC_CURVES) {
       try {
-        KeyTools.genKeys(
+        KeyUtil.genKeys(
             blackListedEcCurve, AlgorithmConstants.KEYALGORITHM_ECDSA);
         fail(
             "Black listed algorithm "
@@ -941,7 +941,7 @@ public class KeyToolsTest {
         continue;
       }
       try {
-        KeyTools.genKeys(namedEcCurve, AlgorithmConstants.KEYALGORITHM_ECDSA);
+        KeyUtil.genKeys(namedEcCurve, AlgorithmConstants.KEYALGORITHM_ECDSA);
         LOG.debug("Succeeded to generate EC key pair using " + namedEcCurve);
       } catch (InvalidAlgorithmParameterException
           | IllegalStateException

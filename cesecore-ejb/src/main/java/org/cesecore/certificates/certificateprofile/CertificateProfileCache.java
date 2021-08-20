@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.persistence.EntityManager;
 import org.apache.log4j.Logger;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 
 /**
  * Class Holding cache variable. Needed because EJB spec does not allow
@@ -159,7 +159,7 @@ public enum CertificateProfileCache {
       LOG.trace(">updateProfileCache");
     }
     final long cacheCertificateProfileTime =
-        CesecoreConfiguration.getCacheCertificateProfileTime();
+        CesecoreConfigurationHelper.getCacheCertificateProfileTime();
     final long now = System.currentTimeMillis();
     // Check before acquiring lock
     if (!force

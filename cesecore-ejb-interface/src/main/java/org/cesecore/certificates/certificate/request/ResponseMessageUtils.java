@@ -19,7 +19,7 @@ import java.security.cert.Certificate;
 import java.util.Collection;
 import java.util.Random;
 import org.apache.log4j.Logger;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 
 /**
  * @version $Id: ResponseMessageUtils.java 26080 2017-06-26 17:32:09Z anatom $
@@ -74,7 +74,7 @@ public abstract class ResponseMessageUtils {
     byte[] senderNonce = new byte[16];
     Random randomSource = new Random();
     randomSource.nextBytes(senderNonce);
-    ret.setSenderNonce(new String(Base64.encode(senderNonce)));
+    ret.setSenderNonce(new String(Base64Util.encode(senderNonce)));
     // If we have a specified request key info, use it in the reply
     if (req.getRequestKeyInfo() != null) {
       ret.setRecipientKeyInfo(req.getRequestKeyInfo());

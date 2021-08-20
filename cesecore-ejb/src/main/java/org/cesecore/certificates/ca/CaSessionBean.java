@@ -57,7 +57,7 @@ import org.cesecore.certificates.ca.internal.CaCache;
 import org.cesecore.certificates.ca.internal.CaIDCacheBean;
 import org.cesecore.certificates.certificate.CertificateWrapper;
 import org.cesecore.certificates.certificate.certextensions.AvailableCustomCertificateExtensionsConfiguration;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.configuration.GlobalConfigurationSessionLocal;
 import org.cesecore.internal.InternalResources;
 import org.cesecore.internal.UpgradeableDataHashMap;
@@ -70,8 +70,8 @@ import org.cesecore.keys.token.CryptoTokenSessionLocal;
 import org.cesecore.keys.token.PKCS11CryptoToken;
 import org.cesecore.keys.token.p11.exception.NoSuchSlotException;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
-import org.cesecore.util.EJBTools;
+import org.cesecore.util.CryptoProviderUtil;
+import org.cesecore.util.EJBUtil;
 import org.cesecore.util.QueryResultWrapper;
 
 /**
@@ -92,7 +92,7 @@ public class CaSessionBean implements CaSessionLocal, CaSessionRemote {
       InternalResources.getInstance();
 
   /** EM. */
-  @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+  @PersistenceContext(unitName = CesecoreConfigurationHelper.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
   /** Context. */
@@ -118,7 +118,7 @@ public class CaSessionBean implements CaSessionLocal, CaSessionRemote {
   @PostConstruct
   public void postConstruct() {
     // Install BouncyCastle provider if not available
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
     // It is not possible to @EJB-inject our self on all application servers so
     // we need to do a lookup
     caSession = sessionContext.getBusinessObject(CaSessionLocal.class);
@@ -616,7 +616,7 @@ public class CaSessionBean implements CaSessionLocal, CaSessionRemote {
     }
     final List<CertificateWrapper> result = new ArrayList<>();
     if (info.getStatus() != CAConstants.CA_WAITING_CERTIFICATE_RESPONSE) {
-      result.addAll(EJBTools.wrapCertCollection(info.getCertificateChain()));
+      result.addAll(EJBUtil.wrapCertCollection(info.getCertificateChain()));
     }
     if (LOG.isDebugEnabled()) {
       LOG.debug(
@@ -1222,7 +1222,7 @@ public class CaSessionBean implements CaSessionLocal, CaSessionRemote {
         (HashMap<String, String>) data.get(CA.CATOKENDATA);
     if (tokendata.get(CAToken.CRYPTOTOKENID) != null) {
       // Already upgraded
-      if (!CesecoreConfiguration.isKeepInternalCAKeystores()) {
+      if (!CesecoreConfigurationHelper.isKeepInternalCAKeystores()) {
         // All nodes in the cluster has been upgraded so we can remove any
         // internal CA keystore now
         if (tokendata.get(CAToken.KEYSTORE) != null) {

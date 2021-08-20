@@ -42,8 +42,17 @@ public class GlobalCesecoreConfiguration extends ConfigurationBase {
   private static final String MAXIMUM_QUERY_TIMEOUT_KEY =
       "maximum.query.timeout";
 
+
+  /** default max query count. */
+  private static final int DEFAULT_MAX_QUERIES = 500;
+  /** 10 seconds. */
+  private static final long TEN_SECONDS = 10000L;
+
+
   @Override
-  public void upgrade() { }
+  public void upgrade() {
+      //  NO-OP
+  }
 
   @Override
   public String getConfigurationId() {
@@ -60,8 +69,6 @@ public class GlobalCesecoreConfiguration extends ConfigurationBase {
     }
   }
 
-  /** default max query count. */
-  private static final int DEFAULT_MAX_QUERIES = 500;
 
   /**
    * Set's the maximum query count.
@@ -95,9 +102,6 @@ public class GlobalCesecoreConfiguration extends ConfigurationBase {
     final Object num = data.get(MAXIMUM_QUERY_TIMEOUT_KEY);
     return num == null ? TEN_SECONDS : ((Long) num).longValue();
   }
-
-  /** 10 seconds. */
-  private static final long TEN_SECONDS = 10000L;
 
   /**
    * Set's the database dependent query timeout hint in milliseconds or 0 if

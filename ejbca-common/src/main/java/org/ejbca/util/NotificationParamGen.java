@@ -16,7 +16,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.ValidityDateUtil;
 
 /**
  * Base class generating parameter data for email notifications. Derived classes
@@ -131,6 +131,7 @@ public class NotificationParamGen {
    * @return format
    */
   protected String fastDateFormat(final Date date) {
-    return ValidityDate.formatAsISO8601(date, ValidityDate.TIMEZONE_SERVER);
+    return ValidityDateUtil.formatAsISO8601(
+            date, ValidityDateUtil.TIMEZONE_SERVER);
   }
 }

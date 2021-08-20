@@ -19,7 +19,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.apache.log4j.Logger;
-import org.cesecore.config.ConfigurationHolder;
+import org.cesecore.config.ConfigurationHolderUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -38,7 +38,7 @@ public class KeyValidatorCacheTest {
   /** Setup. */
   @BeforeClass
   public static void beforeClass() {
-    ConfigurationHolder.instance();
+    ConfigurationHolderUtil.instance();
   }
 
   /**
@@ -49,7 +49,7 @@ public class KeyValidatorCacheTest {
   @Test
   public void disabledCacheBehavior() {
     LOG.trace(">" + Thread.currentThread().getStackTrace()[1].getMethodName());
-    ConfigurationHolder.updateConfiguration("validator.cachetime", "-1");
+    ConfigurationHolderUtil.updateConfiguration("validator.cachetime", "-1");
     final String name1 = KeyValidatorCacheTest.class.getSimpleName() + " Publ1";
     final String name2 = KeyValidatorCacheTest.class.getSimpleName() + " Publ2";
     final String name3 = KeyValidatorCacheTest.class.getSimpleName() + " Publ3";
@@ -171,7 +171,7 @@ public class KeyValidatorCacheTest {
   @Test
   public void enabledCacheBehavior() {
     LOG.trace(">" + Thread.currentThread().getStackTrace()[1].getMethodName());
-    ConfigurationHolder.updateConfiguration("validator.cachetime", "3000");
+    ConfigurationHolderUtil.updateConfiguration("validator.cachetime", "3000");
     final String name1 = KeyValidatorCacheTest.class.getSimpleName() + " Publ1";
     final String name2 = KeyValidatorCacheTest.class.getSimpleName() + " Publ2";
     final String name3 = KeyValidatorCacheTest.class.getSimpleName() + " Publ3";
@@ -340,7 +340,7 @@ public class KeyValidatorCacheTest {
   @Test
   public void cacheExpiration() throws InterruptedException {
     LOG.trace(">" + Thread.currentThread().getStackTrace()[1].getMethodName());
-    ConfigurationHolder.updateConfiguration("validator.cachetime", "2000");
+    ConfigurationHolderUtil.updateConfiguration("validator.cachetime", "2000");
     final String name1 = KeyValidatorCacheTest.class.getSimpleName() + " CA1";
     final String name2 = KeyValidatorCacheTest.class.getSimpleName() + " CA2";
     final String name3 = KeyValidatorCacheTest.class.getSimpleName() + " CA3";

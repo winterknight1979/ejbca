@@ -71,26 +71,6 @@ public final class CertificateProfileConstants {
   public static final int FIXED_CERTIFICATEPROFILE_BOUNDRY = 1000;
 
   /**
-   * @param profileId ID
-   * @return true is certificate profile identified by profileId is fixed
-   */
-  public static boolean isFixedCertificateProfile(final int profileId) {
-    return (profileId == CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER
-        || profileId == CertificateProfileConstants.CERTPROFILE_FIXED_SUBCA
-        || profileId == CertificateProfileConstants.CERTPROFILE_FIXED_ROOTCA
-        || profileId
-            == CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENAUTH
-        || profileId
-            == CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENAUTHENC
-        || profileId
-            == CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENENC
-        || profileId
-            == CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENSIGN
-        || profileId == CertificateProfileConstants.CERTPROFILE_FIXED_OCSPSIGNER
-        || profileId == CertificateProfileConstants.CERTPROFILE_FIXED_SERVER);
-  }
-
-  /**
    * Default key lengths. Users are allowed to choose from these key lengths
    * when lookup of available bit lengths fails.
    *
@@ -107,4 +87,24 @@ public final class CertificateProfileConstants {
 
   /** Prevents creation of new class. */
   private CertificateProfileConstants() { }
+
+  /**
+   * @param profileId ID
+   * @return true is certificate profile identified by profileId is fixed
+   */
+  public static boolean isFixedCertificateProfile(final int profileId) {
+    return profileId == CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER
+        || profileId == CertificateProfileConstants.CERTPROFILE_FIXED_SUBCA
+        || profileId == CertificateProfileConstants.CERTPROFILE_FIXED_ROOTCA
+        || profileId
+            == CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENAUTH
+        || profileId
+            == CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENAUTHENC
+        || profileId
+            == CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENENC
+        || profileId
+            == CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENSIGN
+        || profileId == CertificateProfileConstants.CERTPROFILE_FIXED_OCSPSIGNER
+        || profileId == CertificateProfileConstants.CERTPROFILE_FIXED_SERVER;
+  }
 }

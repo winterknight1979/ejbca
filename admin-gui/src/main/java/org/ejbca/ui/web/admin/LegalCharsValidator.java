@@ -20,7 +20,7 @@ import javax.faces.context.FacesContext;
 import javax.faces.validator.Validator;
 import javax.faces.validator.ValidatorException;
 import org.apache.log4j.Logger;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
 
 /**
@@ -53,7 +53,7 @@ public class LegalCharsValidator implements Validator {
     }
 
     Set<String> invalidCharacters =
-        StringTools.hasSqlStripChars(textFieldValue);
+        StringUtil.hasSqlStripChars(textFieldValue);
     if (!invalidCharacters.isEmpty()) {
       StringBuilder sb = new StringBuilder("");
       for (String error : invalidCharacters) {

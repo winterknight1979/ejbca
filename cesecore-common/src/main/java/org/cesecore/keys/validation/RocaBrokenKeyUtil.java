@@ -37,8 +37,7 @@ import java.math.BigInteger;
  *
  * @version $Id: RocaBrokenKey.java 26840 2017-10-19 06:26:00Z anatom $
  */
-public final class RocaBrokenKey {
-    private RocaBrokenKey() { }
+public final class RocaBrokenKeyUtil {
     /** Primes. */
   private static final int[] PRIMS =
       new int[] {
@@ -117,6 +116,9 @@ public final class RocaBrokenKey {
   //
   //        return true;
   //    }
+
+
+  private RocaBrokenKeyUtil() { }
 
   /**
    * @param modulus Mod

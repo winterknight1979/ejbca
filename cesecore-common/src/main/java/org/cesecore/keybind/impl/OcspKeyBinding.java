@@ -120,7 +120,9 @@ public class OcspKeyBinding extends InternalKeyBindingBase {
   /** Nonce. */
   public static final String PROPERTY_ENABLE_NONCE = "enableNonce";
 
-  {
+  /** Constructor. */
+   public OcspKeyBinding() {
+    super();
     addProperty(
         new DynamicUiProperty<Boolean>(
             PROPERTY_NON_EXISTING_GOOD, Boolean.FALSE));
@@ -352,26 +354,7 @@ public class OcspKeyBinding extends InternalKeyBindingBase {
     }
     try {
       final X509Certificate x509Certificate = (X509Certificate) certificate;
-      if (LOG.isDebugEnabled()) {
-        LOG.debug(
-            "SubjectDN: "
-                + CertTools.getSubjectDN(x509Certificate)
-                + " IssuerDN: "
-                + CertTools.getIssuerDN(x509Certificate));
-        final boolean[] ku = x509Certificate.getKeyUsage();
-        LOG.debug("Key usages: " + Arrays.toString(ku));
-        if (ku != null) {
-          LOG.debug(
-              "Key usage (digitalSignature): "
-                  + x509Certificate.getKeyUsage()[0]);
-          LOG.debug(
-              "Key usage (nonRepudiation):   "
-                  + x509Certificate.getKeyUsage()[1]);
-          LOG.debug(
-              "Key usage (keyEncipherment):  "
-                  + x509Certificate.getKeyUsage()[2]);
-        }
-      }
+      logDebug(x509Certificate);
       if (x509Certificate.getExtendedKeyUsage() == null) {
         throw new CertificateImportException(
             "No Extended Key Usage present in certificate.");
@@ -401,4 +384,30 @@ public class OcspKeyBinding extends InternalKeyBindingBase {
       throw new CertificateImportException(e.getMessage(), e);
     }
   }
+
+/**
+ * @param x509Certificate cert
+ */
+private static void logDebug(final X509Certificate x509Certificate) {
+    if (LOG.isDebugEnabled()) {
+        LOG.debug(
+            "SubjectDN: "
+                + CertTools.getSubjectDN(x509Certificate)
+                + " IssuerDN: "
+                + CertTools.getIssuerDN(x509Certificate));
+        final boolean[] ku = x509Certificate.getKeyUsage();
+        LOG.debug("Key usages: " + Arrays.toString(ku));
+        if (ku != null) {
+          LOG.debug(
+              "Key usage (digitalSignature): "
+                  + x509Certificate.getKeyUsage()[0]);
+          LOG.debug(
+              "Key usage (nonRepudiation):   "
+                  + x509Certificate.getKeyUsage()[1]);
+          LOG.debug(
+              "Key usage (keyEncipherment):  "
+                  + x509Certificate.getKeyUsage()[2]);
+        }
+      }
+}
 }

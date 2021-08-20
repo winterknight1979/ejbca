@@ -22,7 +22,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.cesecore.util.FileTools;
 import org.ejbca.core.protocol.ws.client.gen.EjbcaException_Exception;
 import org.ejbca.ui.cli.ErrorAdminCommandException;
@@ -83,7 +83,7 @@ public class CaCertRequestCommand extends EJBCAWSRABaseCommand
         System.exit(-1); // NOPMD, this is not a JEE app
       }
 
-      CryptoProviderTools.installBCProvider();
+      CryptoProviderUtil.installBCProvider();
 
       String caname = args[ARG_CANAME];
       String cachainfile = args[ARG_CACHAIN];

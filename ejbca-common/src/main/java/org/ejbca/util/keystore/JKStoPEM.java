@@ -30,10 +30,10 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
-import org.cesecore.keys.util.KeyTools;
-import org.cesecore.util.Base64;
+import org.cesecore.keys.util.KeyUtil;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 
 /**
  * JKStoPEM is used to export PEM files from a single jks file. The class
@@ -80,7 +80,7 @@ public class JKStoPEM {
   public static void main(final String[] args) {
 
     // Bouncy Castle security provider
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
 
     JKStoPEM jks = null;
     final int maxArgs = 4;
@@ -229,7 +229,7 @@ public class JKStoPEM {
     }
 
     // Certificate chain[] = ks.getCertificateChain((String) o);
-    Certificate[] chain = KeyTools.getCertChain(ks, (String) o);
+    Certificate[] chain = KeyUtil.getCertChain(ks, (String) o);
 
     X509Certificate userX509Certificate = (X509Certificate) chain[0];
 
@@ -256,7 +256,7 @@ public class JKStoPEM {
     out.write(beginCertificate);
     out.write(NL);
 
-    byte[] userCertB64 = Base64.encode(output);
+    byte[] userCertB64 = Base64Util.encode(output);
     out.write(userCertB64);
     out.write(NL);
     out.write(endCertificate);
@@ -277,7 +277,7 @@ public class JKStoPEM {
     out.write(beginPrivateKey);
     out.write(NL);
 
-    byte[] privKey = Base64.encode(privKeyEncoded);
+    byte[] privKey = Base64Util.encode(privKeyEncoded);
     out.write(privKey);
     out.write(NL);
     out.write(endPrivateKey);
@@ -307,7 +307,7 @@ public class JKStoPEM {
         out.write(beginCertificate);
         out.write(NL);
 
-        byte[] tmpCACertB64 = Base64.encode(tmpOutput);
+        byte[] tmpCACertB64 = Base64Util.encode(tmpOutput);
         out.write(tmpCACertB64);
         out.write(NL);
         out.write(endCertificate);

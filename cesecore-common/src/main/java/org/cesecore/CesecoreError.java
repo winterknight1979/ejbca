@@ -1,6 +1,6 @@
 package org.cesecore;
 
-public class CesecoreRuntimeException extends RuntimeException {
+public class CesecoreError extends Error {
     private static final long serialVersionUID = 1L;
      /** Constructs a new runtime exception with the specified cause and a
      * detail message of {@code (cause==null ? null : cause.toString())}
@@ -13,7 +13,7 @@ public class CesecoreRuntimeException extends RuntimeException {
      *         permitted, and indicates that the cause is nonexistent or
      *         unknown.)
      */
-    public CesecoreRuntimeException(final Throwable cause) {
+    public CesecoreError(final Throwable cause) {
         super(cause);
     }
 
@@ -21,13 +21,14 @@ public class CesecoreRuntimeException extends RuntimeException {
      * @param msg msg
      * @param cause cause
      */
-    public CesecoreRuntimeException(final String msg, final Throwable cause) {
+    public CesecoreError(final String msg, final Throwable cause) {
         super(msg, cause);
     }
+
     /**
      * @param msg msg
      */
-    public CesecoreRuntimeException(final String msg) {
+    public CesecoreError(final String msg) {
         super(msg);
     }
 

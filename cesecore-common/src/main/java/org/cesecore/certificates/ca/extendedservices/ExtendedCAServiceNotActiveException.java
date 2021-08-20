@@ -16,7 +16,7 @@ package org.cesecore.certificates.ca.extendedservices;
  * @version $Id: ExtendedCAServiceNotActiveException.java 17625 2013-09-20
  *     07:12:06Z netmackan $
  */
-public class ExtendedCAServiceNotActiveException extends java.lang.Exception {
+public class ExtendedCAServiceNotActiveException extends Exception {
 
   private static final long serialVersionUID = -4585542922703140980L;
 

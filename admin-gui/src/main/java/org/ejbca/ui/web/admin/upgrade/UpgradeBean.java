@@ -25,7 +25,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.spi.LoggingEvent;
 import org.apache.log4j.spi.ThrowableInformation;
 import org.cesecore.authorization.AuthorizationSessionLocal;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.ValidityDateUtil;
 import org.ejbca.core.ejb.upgrade.UpgradeSessionLocal;
 import org.ejbca.core.ejb.upgrade.UpgradeStatusSingletonLocal;
 import org.ejbca.ui.web.admin.BaseManagedBean;
@@ -84,7 +84,7 @@ public class UpgradeBean extends BaseManagedBean implements Serializable {
      * @return Time
      */
     public String getTime() {
-      return ValidityDate.formatAsISO8601ServerTZ(
+      return ValidityDateUtil.formatAsISO8601ServerTZ(
           loggingEvent.getTimeStamp(), TimeZone.getDefault());
     }
 
@@ -157,7 +157,7 @@ public class UpgradeBean extends BaseManagedBean implements Serializable {
 
   /** @return the date when a node began the cluster upgrade procedure */
   public String getPostUpgradeStartedInCluster() {
-    return ValidityDate.formatAsISO8601ServerTZ(
+    return ValidityDateUtil.formatAsISO8601ServerTZ(
         upgradeSession.getPostUpgradeStarted(), TimeZone.getDefault());
   }
 

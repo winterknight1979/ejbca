@@ -28,7 +28,7 @@ import org.apache.log4j.Logger;
  *
  * @version $Id: ValidityDate.java 26461 2017-08-29 23:09:05Z anatom $
  */
-public final class ValidityDate {
+public final class ValidityDateUtil {
   /**
    * The date and time format defined in ISO8601. The 'T' can be omitted (and we
    * do to save some parsing cycles).
@@ -40,7 +40,7 @@ public final class ValidityDate {
   public static final TimeZone TIMEZONE_SERVER = TimeZone.getDefault();
 
   /** Logger. */
-  private static final Logger LOG = Logger.getLogger(ValidityDate.class);
+  private static final Logger LOG = Logger.getLogger(ValidityDateUtil.class);
   /** Time format for human interactions. */
   private static final String[] IMPLIED_UTC_PATTERN = {"yyyy-MM-dd HH:mm"};
   /** Time format for human interactions. */
@@ -53,9 +53,12 @@ public final class ValidityDate {
     // date before parsing
     ISO8601_DATE_FORMAT, "yyyy-MM-dd HH:mmZZ", "yyyy-MM-ddZZ"
   };
-
+  /** One day in ms. */
+  private static final long ONE_DAY = 24 * 3600 * 1000;
+  /** Milliseconds. */
+  private static final long MS_PER_S = 1000L;
   // Can't be instantiated
-  private ValidityDate() { }
+  private ValidityDateUtil() { }
 
   /**
    * Parse a String in the format "yyyy-MM-dd HH:mm" as a date with implied
@@ -270,9 +273,6 @@ public final class ValidityDate {
     return new Date(lEncoded);
   }
 
-  /** One day in ms. */
-  private static final long ONE_DAY = 24 * 3600 * 1000;
-
   /**
    * Decodes encoded value to Date.
    *
@@ -281,7 +281,7 @@ public final class ValidityDate {
    * @param firstDate date to be used if encoded validity is a relative time.
    * @return the end date or null if a date or relative time could not be read.
    * @see org.cesecore.util.SimpleTime
-   * @see org.cesecore.util.ValidityDate
+   * @see org.cesecore.util.ValidityDateUtil
    */
   public static Date getDate(
       final String encodedValidity, final Date firstDate) {
@@ -364,8 +364,6 @@ public final class ValidityDate {
     return tooLateExpireDate;
   }
 
-  /** Milliseconds. */
-  private static final long MS_PER_S = 1000L;
 
   /**
    * Rolls the given date one day forward or backward, until a date with a day
@@ -391,12 +389,7 @@ public final class ValidityDate {
       throw new IllegalArgumentException(
           "Weekday restrictions cannot be null!");
     }
-    boolean allDaysExcluded = true;
-    for (boolean enabled : restrictionsForWeekdays) {
-      if (!enabled) {
-        allDaysExcluded = false;
-      }
-    }
+    boolean allDaysExcluded = getExcludedDays(restrictionsForWeekdays);
     if (allDaysExcluded) {
       throw new IllegalArgumentException(
           "Weekday restrictions cannot be applied if all weekdays are"
@@ -408,8 +401,8 @@ public final class ValidityDate {
     if (LOG.isDebugEnabled()) {
       LOG.debug(
           ">applyExpirationRestrictionForWeekdays for end date "
-              + ValidityDate.formatAsISO8601ServerTZ(
-                  date.getTime(), ValidityDate.TIMEZONE_SERVER)
+              + ValidityDateUtil.formatAsISO8601ServerTZ(
+                  date.getTime(), ValidityDateUtil.TIMEZONE_SERVER)
               + " with day "
               + endDay
               + " restrictions "
@@ -431,4 +424,19 @@ public final class ValidityDate {
     }
     return date;
   }
+
+/**
+ * @param restrictionsForWeekdays restrictions
+ * @return bool
+ */
+private static boolean getExcludedDays(
+        final boolean[] restrictionsForWeekdays) {
+    boolean allDaysExcluded = true;
+    for (boolean enabled : restrictionsForWeekdays) {
+      if (!enabled) {
+        allDaysExcluded = false;
+      }
+    }
+    return allDaysExcluded;
+}
 }

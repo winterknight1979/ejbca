@@ -51,10 +51,10 @@ import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLoc
 import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.cesecore.configuration.GlobalConfigurationSessionLocal;
 import org.cesecore.jndi.JndiConstants;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
-import org.cesecore.util.ProfileID;
+import org.cesecore.util.CryptoProviderUtil;
+import org.cesecore.util.ProfileIDUtil;
 import org.cesecore.util.ValueExtractor;
 import org.cesecore.util.ui.DynamicUiProperty;
 import org.cesecore.util.ui.MultiLineString;
@@ -136,7 +136,7 @@ public class ApprovalSessionBean
   @PostConstruct
   public void postConstruct() {
     // Install BouncyCastle provider if not available
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
     // It is not possible to @EJB-inject our self on all application servers so
     // we need to do a lookup
     approvalSession =
@@ -1179,14 +1179,14 @@ public class ApprovalSessionBean
   }
 
   private Integer findFreeApprovalId() {
-    final ProfileID.DB db =
-        new ProfileID.DB() {
+    final ProfileIDUtil.DB db =
+        new ProfileIDUtil.DB() {
           @Override
           public boolean isFree(final int i) {
             return findByApprovalId(i).size() == 0;
           }
         };
-    return Integer.valueOf(ProfileID.getNotUsedID(db));
+    return Integer.valueOf(ProfileIDUtil.getNotUsedID(db));
   }
 
   /**
@@ -1276,7 +1276,7 @@ public class ApprovalSessionBean
       oos.writeObject(approvalRequest);
       oos.flush();
       approvalData.setRequestdata(
-          new String(Base64.encode(baos.toByteArray(), false)));
+          new String(Base64Util.encode(baos.toByteArray(), false)));
     } catch (IOException e) {
       LOG.error("Error building approval request.", e);
       throw new IllegalStateException(e);
@@ -1298,7 +1298,7 @@ public class ApprovalSessionBean
       }
       oos.flush();
       approvalData.setApprovaldata(
-          new String(Base64.encode(baos.toByteArray(), false)));
+          new String(Base64Util.encode(baos.toByteArray(), false)));
     } catch (IOException e) {
       LOG.error("Error building approvals.", e);
       throw new IllegalStateException(e);

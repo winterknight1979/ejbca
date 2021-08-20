@@ -48,7 +48,7 @@ import org.cesecore.certificates.certificate.request.ResponseMessage;
 import org.cesecore.configuration.GlobalConfigurationSessionLocal;
 import org.cesecore.jndi.JndiConstants;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.ejbca.config.EjbcaConfiguration;
 import org.ejbca.config.ScepConfiguration;
 import org.ejbca.core.ejb.ca.sign.SignSessionLocal;
@@ -173,7 +173,7 @@ public class ScepMessageDispatcherSessionBean
     }
 
     if (operation.equals("PKIOperation")) {
-      byte[] scepmsg = Base64.decode(message.getBytes());
+      byte[] scepmsg = Base64Util.decode(message.getBytes());
       // Read the message and get the certificate, this also checks
       // authorization
       return scepCertRequest(

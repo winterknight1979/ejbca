@@ -37,11 +37,6 @@ public class NullCryptoToken extends BaseCryptoToken {
   /** ID. */
   private int id;
 
-  /** null. */
-  public NullCryptoToken() {
-    super();
-  }
-
   @Override
   public void init(
           final Properties properties, final byte[] data, final int anId)
@@ -75,23 +70,31 @@ public class NullCryptoToken extends BaseCryptoToken {
   @Override
   public void deleteEntry(final String alias)
       throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
-          IOException, CryptoTokenOfflineException { }
+          IOException, CryptoTokenOfflineException {
+      // NO-OP
+  }
 
   @Override
   public void generateKeyPair(final String keySpec, final String alias)
-      throws InvalidAlgorithmParameterException, CryptoTokenOfflineException { }
+      throws InvalidAlgorithmParameterException, CryptoTokenOfflineException {
+      // NO-OP
+  }
 
   @Override
   public void generateKeyPair(
       final AlgorithmParameterSpec spec, final String alias)
       throws InvalidAlgorithmParameterException, CertificateException,
-          IOException, CryptoTokenOfflineException { }
+          IOException, CryptoTokenOfflineException {
+      // NO-OP
+  }
 
   @Override
   public void generateKey(
       final String algorithm, final int keysize, final String alias)
       throws NoSuchAlgorithmException, NoSuchProviderException,
-          KeyStoreException, CryptoTokenOfflineException { }
+          KeyStoreException, CryptoTokenOfflineException {
+      // NO-OP
+  }
 
   @Override
   public void activate(final char[] authenticationcode)

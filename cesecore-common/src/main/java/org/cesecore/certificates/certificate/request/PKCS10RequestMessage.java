@@ -22,6 +22,8 @@ import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
+
 import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1Set;
@@ -58,7 +60,7 @@ public class PKCS10RequestMessage implements RequestMessage {
    * href=http://java.sun.com/products/jdk/1.1/docs/guide
    * /serialization/spec/version.doc.html> details. </a>
    */
-  static final long serialVersionUID = 3597275157018205137L;
+  private static final long serialVersionUID = 3597275157018205137L;
 
   /** Logger. */
   private static final Logger LOG =
@@ -143,9 +145,8 @@ public class PKCS10RequestMessage implements RequestMessage {
   }
 
   private void init() {
-    if (p10msg == null) {
-      throw new NullPointerException("Cannot initiate with p10msg == null");
-    }
+   Objects.requireNonNull(p10msg, "Cannot initiate with p10msg == null");
+
     try {
       pkcs10 = new JcaPKCS10CertificationRequest(p10msg);
     } catch (IOException e) {
@@ -189,7 +190,6 @@ public class PKCS10RequestMessage implements RequestMessage {
       return null;
     }
 
-    String ret = null;
     Attribute[] attributes =
         pkcs10.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_challengePassword);
     ASN1Encodable obj = null;
@@ -224,26 +224,36 @@ public class PKCS10RequestMessage implements RequestMessage {
       obj = values.getObjectAt(0);
     }
 
+    String ret = getReturnValue(obj);
+
+    return ret;
+  }
+
+/**
+ * @param obj object
+ * @return retval
+ */
+private String getReturnValue(final ASN1Encodable obj) {
+    String ret = null;
     if (obj != null) {
       ASN1String str = null;
       try {
         // Should be any DirectoryString according to RFC2985, preferably a
         // PrintableString or UTF8String
-        str = DirectoryString.getInstance((obj));
+        str = DirectoryString.getInstance(obj);
       } catch (IllegalArgumentException ie) {
         // This was not a DirectoryString type, it could then be IA5string,
         // breaking pkcs#9 v2.0
         // but some version of openssl have been known to produce IA5strings
-        str = DERIA5String.getInstance((obj));
+        str = DERIA5String.getInstance(obj);
       }
 
       if (str != null) {
         ret = str.getString();
       }
     }
-
     return ret;
-  }
+}
 
   /**
    * force a username, i.e. ignore the DN/username in the request

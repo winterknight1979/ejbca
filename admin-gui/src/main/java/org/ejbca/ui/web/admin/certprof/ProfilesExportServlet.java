@@ -42,7 +42,7 @@ import org.cesecore.certificates.endentity.EndEntityConstants;
 import org.cesecore.configuration.GlobalConfigurationSessionLocal;
 import org.cesecore.internal.UpgradeableDataHashMap;
 import org.cesecore.keys.validation.KeyValidatorSessionLocal;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.config.GlobalConfiguration;
 import org.ejbca.core.ejb.authentication.web.WebAuthenticationProviderSessionLocal;
 import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionLocal;
@@ -295,7 +295,7 @@ public class ProfilesExportServlet extends BaseAdminServlet {
     response.setHeader(
         "Content-disposition",
         " attachment; filename=\""
-            + StringTools.stripFilename(zipfilename)
+            + StringUtil.stripFilename(zipfilename)
             + "\"");
     response.getOutputStream().write(zipfile);
     response.flushBuffer();

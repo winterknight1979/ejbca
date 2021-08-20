@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import org.apache.log4j.Logger;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 
 /**
  * A class used to produce advanced queries from the user data and approval
@@ -167,7 +167,7 @@ public class Query implements Serializable {
             "Query type '" + type + "' is unknown.");
     }
     hasIllegalSqlChars |=
-        !StringTools.hasSqlStripCharsAssumingSingleQuoteEscape(matchvalue)
+        !StringUtil.hasSqlStripCharsAssumingSingleQuoteEscape(matchvalue)
             .isEmpty();
   }
 
@@ -242,7 +242,7 @@ public class Query implements Serializable {
   /**
    * @return true if any of the match values added so far contain illegal SQL
    *     string characters.
-   * @see org.cesecore.util.StringTools#hasSqlStripChars(String)
+   * @see org.cesecore.util.StringUtil#hasSqlStripChars(String)
    * @see org.ejbca.util.query.BasicMatch#escapeSql(String)
    */
   private boolean hasIllegalSqlChars() {

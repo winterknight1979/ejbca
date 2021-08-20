@@ -21,7 +21,7 @@ import org.cesecore.certificates.endentity.EndEntityType;
 import org.cesecore.certificates.endentity.EndEntityTypes;
 import org.cesecore.certificates.endentity.ExtendedInformation;
 import org.cesecore.certificates.util.DNFieldExtractor;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 
 /**
  * A class representing a web interface view of a user in the ra user database.
@@ -90,7 +90,7 @@ public class UserView implements Serializable, Comparable<UserView> {
    * @param user user
    */
   public void setUsername(final String user) {
-    userdata.setUsername(StringTools.stripUsername(user));
+    userdata.setUsername(StringUtil.stripUsername(user));
   }
 
   /**

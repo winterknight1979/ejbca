@@ -61,7 +61,7 @@ import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceNotActiveE
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceRequest;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceRequestException;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceResponse;
-import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypes;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypeConstants;
 import org.cesecore.certificates.ca.extendedservices.IllegalExtendedCAServiceRequestException;
 import org.cesecore.certificates.certificate.CertificateConstants;
 import org.cesecore.certificates.certificate.certextensions.AvailableCustomCertificateExtensionsConfiguration;
@@ -71,11 +71,11 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.cesecore.certificates.endentity.EndEntityType;
 import org.cesecore.certificates.util.AlgorithmTools;
 import org.cesecore.keys.token.CryptoToken;
-import org.cesecore.keys.util.KeyTools;
-import org.cesecore.util.Base64;
+import org.cesecore.keys.util.KeyUtil;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.CryptoProviderUtil;
+import org.cesecore.util.StringUtil;
 import org.ejbca.config.EjbcaConfiguration;
 import org.ejbca.core.model.InternalEjbcaResources;
 
@@ -143,7 +143,7 @@ public class CmsCAService extends ExtendedCAService
     if (LOG.isDebugEnabled()) {
       LOG.debug("CmsCAService : constructor " + serviceinfo.getStatus());
     }
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
     // Currently only RSA keys are supported
     final CmsCAServiceInfo theInfo = (CmsCAServiceInfo) serviceinfo;
     data = new LinkedHashMap<Object, Object>();
@@ -153,7 +153,7 @@ public class CmsCAService extends ExtendedCAService
     data.put(
         EXTENDEDCASERVICETYPE,
         Integer.valueOf(
-            ExtendedCAServiceTypes
+            ExtendedCAServiceTypeConstants
                 .TYPE_CMSEXTENDEDSERVICE)); // For current version of EJBCA
     data.put(KEYSPEC, theInfo.getKeySpec());
     data.put(KEYALGORITHM, theInfo.getKeyAlgorithm());
@@ -170,12 +170,12 @@ public class CmsCAService extends ExtendedCAService
   public CmsCAService(final HashMap<Object, Object> data)
       throws IllegalArgumentException {
     super(data);
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
     loadData(data);
     if (this.data.get(KEYSTORE) != null) {
       // lookup keystore passwords
       final String keystorepass =
-          StringTools.passwordDecryption(
+          StringUtil.passwordDecryption(
               EjbcaConfiguration.getCaCmsKeyStorePass(), "ca.cmskeystorepass");
       int status = ExtendedCAServiceInfo.STATUS_INACTIVE;
       try {
@@ -185,7 +185,7 @@ public class CmsCAService extends ExtendedCAService
         final KeyStore keystore = KeyStore.getInstance("PKCS12", "BC");
         keystore.load(
             new ByteArrayInputStream(
-                Base64.decode(((String) this.data.get(KEYSTORE)).getBytes())),
+              Base64Util.decode(((String) this.data.get(KEYSTORE)).getBytes())),
             keystorepass.toCharArray());
         if (LOG.isDebugEnabled()) {
           LOG.debug("Finished loading CMS keystore");
@@ -231,8 +231,8 @@ public class CmsCAService extends ExtendedCAService
                 this.certificatechain);
       }
       data.put(
-          EXTENDEDCASERVICETYPE,
-          Integer.valueOf(ExtendedCAServiceTypes.TYPE_CMSEXTENDEDSERVICE));
+       EXTENDEDCASERVICETYPE,
+       Integer.valueOf(ExtendedCAServiceTypeConstants.TYPE_CMSEXTENDEDSERVICE));
     } else {
       if (LOG.isDebugEnabled()) {
         LOG.debug("KEYSTORE is null when creating CmsCAService");
@@ -256,7 +256,7 @@ public class CmsCAService extends ExtendedCAService
     } else {
       // lookup keystore passwords
       final String keystorepass =
-          StringTools.passwordDecryption(
+          StringUtil.passwordDecryption(
               EjbcaConfiguration.getCaCmsKeyStorePass(), "ca.cmskeystorepass");
       // Currently only RSA keys are supported
       final CmsCAServiceInfo theInfo =
@@ -265,7 +265,7 @@ public class CmsCAService extends ExtendedCAService
       final KeyStore keystore = KeyStore.getInstance("PKCS12", "BC");
       keystore.load(null, null);
       final KeyPair cmskeys =
-          KeyTools.genKeys(theInfo.getKeySpec(), theInfo.getKeyAlgorithm());
+          KeyUtil.genKeys(theInfo.getKeySpec(), theInfo.getKeyAlgorithm());
       // A simple hard coded certificate profile that works for the CMS CA
       // service
       final CertificateProfile certProfile =
@@ -319,7 +319,7 @@ public class CmsCAService extends ExtendedCAService
                   new Certificate[certificatechain.size()]));
       final ByteArrayOutputStream baos = new ByteArrayOutputStream();
       keystore.store(baos, keystorepass.toCharArray());
-      data.put(KEYSTORE, new String(Base64.encode(baos.toByteArray())));
+      data.put(KEYSTORE, new String(Base64Util.encode(baos.toByteArray())));
     }
     setStatus(info.getStatus());
     this.info =
@@ -555,7 +555,7 @@ public class CmsCAService extends ExtendedCAService
     String ret = null;
     final String value = (String) data.get(key);
     try {
-      ret = new String(Base64.decode((value).getBytes("UTF-8")));
+      ret = new String(Base64Util.decode((value).getBytes("UTF-8")));
     } catch (UnsupportedEncodingException e) {
       LOG.error("Could not decode data from Base64", e);
     } catch (DecoderException e) {
@@ -570,7 +570,8 @@ public class CmsCAService extends ExtendedCAService
 
   private void setSubjectXName(final String key, final String value) {
     try {
-      data.put(key, new String(Base64.encode(value.getBytes("UTF-8"), false)));
+      data.put(key,
+              new String(Base64Util.encode(value.getBytes("UTF-8"), false)));
     } catch (UnsupportedEncodingException e) {
       LOG.error("Could not encode data to Base64", e);
     }

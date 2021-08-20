@@ -25,9 +25,6 @@ import java.util.List;
  */
 public final class EndEntityConstants {
 
-  /** don't instantiate. */
-  private EndEntityConstants() { }
-
   /** The id of a non-existing end entity profile. */
   public static final int NO_END_ENTITY_PROFILE = 0;
   /** The id for the built-in EMPTY end entity profile. */
@@ -100,6 +97,10 @@ public final class EndEntityConstants {
   private static final HashMap<Integer, String> STATUS_TEXT_TRANS =
       new HashMap<Integer, String>();
 
+  /** These string values maps a status code to a plain string. */
+  private static final HashMap<Integer, String> STATUS_TEXT =
+      new HashMap<Integer, String>();
+
   static {
     STATUS_TEXT_TRANS.put(Integer.valueOf(STATUS_NEW), "STATUSNEW");
     STATUS_TEXT_TRANS.put(Integer.valueOf(STATUS_FAILED), "STATUSFAILED");
@@ -117,6 +118,9 @@ public final class EndEntityConstants {
         "STATUSWAITINGFORADDAPPROVAL");
   }
 
+  /** don't instantiate. */
+  private EndEntityConstants() { }
+
   /**
    * @param status Status code
    * @return Translatable text
@@ -129,10 +133,6 @@ public final class EndEntityConstants {
     }
     return ret;
   }
-
-  /** These string values maps a status code to a plain string. */
-  private static final HashMap<Integer, String> STATUS_TEXT =
-      new HashMap<Integer, String>();
 
   static {
     STATUS_TEXT.put(Integer.valueOf(STATUS_NEW), "NEW");

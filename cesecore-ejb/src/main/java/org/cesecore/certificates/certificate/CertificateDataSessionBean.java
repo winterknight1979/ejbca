@@ -30,9 +30,9 @@ import javax.persistence.TypedQuery;
 import org.apache.commons.lang.time.FastDateFormat;
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.crl.RevokedCertInfo;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.util.QueryResultWrapper;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.ValidityDateUtil;
 import org.cesecore.util.ValueExtractor;
 
 /**
@@ -52,7 +52,7 @@ public class CertificateDataSessionBean extends BaseCertificateDataSessionBean
       Logger.getLogger(CertificateDataSessionBean.class);
 
   /** EM. */
-  @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+  @PersistenceContext(unitName = CesecoreConfigurationHelper.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
   @Override
@@ -327,7 +327,7 @@ public class CertificateDataSessionBean extends BaseCertificateDataSessionBean
               + issuerDN
               + "', Last Base CRL Date: "
               + FastDateFormat.getInstance(
-                      ValidityDate.ISO8601_DATE_FORMAT,
+                      ValidityDateUtil.ISO8601_DATE_FORMAT,
                       TimeZone.getTimeZone("GMT"))
                   .format(lastbasecrldate));
     }

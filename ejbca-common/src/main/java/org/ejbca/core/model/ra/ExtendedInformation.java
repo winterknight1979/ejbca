@@ -24,7 +24,7 @@ import org.apache.commons.lang.time.FastDateFormat;
 import org.apache.log4j.Logger;
 import org.bouncycastle.util.encoders.Base64;
 import org.cesecore.internal.UpgradeableDataHashMap;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.ValidityDateUtil;
 import org.ejbca.core.model.InternalEjbcaResources;
 
 /**
@@ -388,7 +388,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap
         if (!isEmptyOrRelative(oldStartTime)) {
           try {
             final String newStartTime =
-                ValidityDate.formatAsUTC(
+                ValidityDateUtil.formatAsUTC(
                     DateUtils.parseDateStrictly(oldStartTime, timePatterns));
             setCustomData(ExtendedInformation.CUSTOM_STARTTIME, newStartTime);
             if (LOG.isDebugEnabled()) {
@@ -416,7 +416,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap
           // We use an absolute time format, so we need to upgrade
           try {
             final String newEndTime =
-                ValidityDate.formatAsUTC(
+                ValidityDateUtil.formatAsUTC(
                     DateUtils.parseDateStrictly(oldEndTime, timePatterns));
             setCustomData(ExtendedInformation.CUSTOM_ENDTIME, newEndTime);
             if (LOG.isDebugEnabled()) {

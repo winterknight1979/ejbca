@@ -15,7 +15,7 @@ package org.cesecore.keys.validation;
 
 import java.util.List;
 import java.util.Map;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.internal.CommonCache;
 import org.cesecore.internal.CommonCacheBase;
 
@@ -35,7 +35,7 @@ public enum ValidatorCache implements CommonCache<Validator> {
         @Override
         protected long getCacheTime() {
           long time =
-              Math.max(CesecoreConfiguration.getCacheKeyValidatorTime(), -1);
+           Math.max(CesecoreConfigurationHelper.getCacheKeyValidatorTime(), -1);
           return time;
         }
 

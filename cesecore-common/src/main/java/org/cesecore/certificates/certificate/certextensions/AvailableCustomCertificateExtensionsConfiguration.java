@@ -256,7 +256,7 @@ public class AvailableCustomCertificateExtensionsConfiguration
    * @return Certificate extension
    * @throws CertificateExtentionConfigurationException on fail
    */
-  static CertificateExtension getCertificateExtensionFromFile(
+  static CertificateExtension getCertificateExtensionFromFile(// NOPMD: pp
       final int id, final Properties propertiesInFile)
       throws CertificateExtentionConfigurationException {
     String propertyId = "id";
@@ -357,17 +357,19 @@ public class AvailableCustomCertificateExtensionsConfiguration
     String matchString = "id" + id + ".property.";
     while (keyIter.hasNext()) {
       String nextKey = (String) keyIter.next();
-      if (nextKey.startsWith(matchString)) {
-        if (nextKey.length() > matchString.length()) {
+      if (nextKey.startsWith(matchString)
+        && nextKey.length() > matchString.length()) {
           extProps.put(
               nextKey.substring(matchString.length()),
               propertiesInFile.get(nextKey));
         }
       }
-    }
+
     return extProps;
   }
 
   @Override
-  public void upgrade() { }
+  public void upgrade() {
+      // NOPMD: no-op
+  }
 }

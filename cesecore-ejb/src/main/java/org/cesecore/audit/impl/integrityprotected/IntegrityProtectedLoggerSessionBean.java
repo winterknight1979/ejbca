@@ -24,9 +24,9 @@ import org.cesecore.audit.AuditLogger;
 import org.cesecore.audit.enums.ModuleType;
 import org.cesecore.audit.enums.ServiceType;
 import org.cesecore.audit.log.AuditRecordStorageException;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.time.TrustedTime;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.cesecore.util.QueryResultWrapper;
 
 /**
@@ -49,13 +49,13 @@ public class IntegrityProtectedLoggerSessionBean
       Logger.getLogger(IntegrityProtectedLoggerSessionBean.class);
 
   /** EM. */
-  @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+  @PersistenceContext(unitName = CesecoreConfigurationHelper.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
   /** Setup. */
   @PostConstruct
   public void postConstruct() {
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
   }
 
   /**
@@ -75,7 +75,7 @@ public class IntegrityProtectedLoggerSessionBean
       new NodeSequenceHolder.OnInitCallBack() {
         @Override
         public String getNodeId() {
-          return CesecoreConfiguration.getNodeIdentifier();
+          return CesecoreConfigurationHelper.getNodeIdentifier();
         }
 
         @Override

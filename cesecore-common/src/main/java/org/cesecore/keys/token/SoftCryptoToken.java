@@ -35,11 +35,11 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.encoders.Hex;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.internal.InternalResources;
 import org.cesecore.keys.util.KeyStoreTools;
-import org.cesecore.util.CryptoProviderTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.CryptoProviderUtil;
+import org.cesecore.util.StringUtil;
 
 /**
  * Handles maintenance of the soft devices producing signatures and handling the
@@ -104,10 +104,10 @@ public class SoftCryptoToken extends BaseCryptoToken {
     // If we don't have an auto activation password set, we try to use the
     // default one if it works to load the keystore with it
     String autoPwd = BaseCryptoToken.getAutoActivatePin(properties);
-    if ((autoPwd == null) && (properties.getProperty(NODEFAULTPWD) == null)) {
+    if (autoPwd == null && properties.getProperty(NODEFAULTPWD) == null) {
       final String keystorepass =
-          StringTools.passwordDecryption(
-              CesecoreConfiguration.getCaKeyStorePass(), "ca.keystorepass");
+          StringUtil.passwordDecryption(
+            CesecoreConfigurationHelper.getCaKeyStorePass(), "ca.keystorepass");
       // Test it first, don't set an incorrect password as autoactivate password
       boolean okPwd =
           checkSoftKeystorePassword(keystorepass.toCharArray(), cryptoTokenId);
@@ -231,8 +231,8 @@ public class SoftCryptoToken extends BaseCryptoToken {
     try {
       if (authCode == null || authCode.length == 0) {
         final String defaultpass =
-            StringTools.passwordDecryption(
-                CesecoreConfiguration.getCaKeyStorePass(), "ca.keystorepass");
+          StringUtil.passwordDecryption(
+            CesecoreConfigurationHelper.getCaKeyStorePass(), "ca.keystorepass");
         loadKeyStore(keystoreData, defaultpass.toCharArray());
       } else {
         loadKeyStore(keystoreData, authCode);
@@ -261,7 +261,7 @@ public class SoftCryptoToken extends BaseCryptoToken {
   private KeyStore loadKeyStore(final byte[] ksdata, final char[] keystorepass)
       throws NoSuchAlgorithmException, CertificateException, IOException,
           KeyStoreException, NoSuchProviderException {
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
     KeyStore keystore =
         KeyStore.getInstance("PKCS12", BouncyCastleProvider.PROVIDER_NAME);
     if (LOG.isDebugEnabled()) {
@@ -287,7 +287,7 @@ public class SoftCryptoToken extends BaseCryptoToken {
   }
 
   /** Store. */
-  void storeKeyStore() {
+  protected void storeKeyStore() {
     // Store keystore at data first so we can activate again
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     try {
@@ -331,7 +331,7 @@ public class SoftCryptoToken extends BaseCryptoToken {
         KeyStore keystore =
             KeyStore.getInstance("PKCS12", BouncyCastleProvider.PROVIDER_NAME);
         keystore.load(
-            new java.io.ByteArrayInputStream(keystoreData), authenticationCode);
+            new ByteArrayInputStream(keystoreData), authenticationCode);
       }
       return true;
     } catch (Exception e) {

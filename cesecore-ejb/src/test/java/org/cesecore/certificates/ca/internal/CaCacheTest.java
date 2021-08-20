@@ -26,7 +26,7 @@ import org.cesecore.certificates.ca.X509CA;
 import org.cesecore.certificates.ca.X509CAInfo;
 import org.cesecore.certificates.ca.catoken.CAToken;
 import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
-import org.cesecore.config.ConfigurationHolder;
+import org.cesecore.config.ConfigurationHolderUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -44,7 +44,7 @@ public class CaCacheTest {
   /** Setup. */
   @BeforeClass
   public static void beforeClass() {
-    ConfigurationHolder.instance();
+    ConfigurationHolderUtil.instance();
   }
 
   /**
@@ -55,7 +55,7 @@ public class CaCacheTest {
   @Test
   public void disabledCacheBehavior() {
     LOG.trace(">" + Thread.currentThread().getStackTrace()[1].getMethodName());
-    ConfigurationHolder.updateConfiguration("cainfo.cachetime", "-1");
+    ConfigurationHolderUtil.updateConfiguration("cainfo.cachetime", "-1");
     final String name1 = CaCacheTest.class.getSimpleName() + " CA1";
     final String name2 = CaCacheTest.class.getSimpleName() + " CA2";
     final String name3 = CaCacheTest.class.getSimpleName() + " CA3";
@@ -149,7 +149,7 @@ public class CaCacheTest {
   @Test
   public void enabledCacheBehavior() {
     LOG.trace(">" + Thread.currentThread().getStackTrace()[1].getMethodName());
-    ConfigurationHolder.updateConfiguration("cainfo.cachetime", "3000");
+    ConfigurationHolderUtil.updateConfiguration("cainfo.cachetime", "3000");
     final String name1 = CaCacheTest.class.getSimpleName() + " CA1";
     final String name2 = CaCacheTest.class.getSimpleName() + " CA2";
     final String name3 = CaCacheTest.class.getSimpleName() + " CA3";
@@ -288,7 +288,7 @@ public class CaCacheTest {
   @Test
   public void cacheExpiration() throws InterruptedException {
     LOG.trace(">" + Thread.currentThread().getStackTrace()[1].getMethodName());
-    ConfigurationHolder.updateConfiguration("cainfo.cachetime", "2000");
+    ConfigurationHolderUtil.updateConfiguration("cainfo.cachetime", "2000");
     final String name1 = CaCacheTest.class.getSimpleName() + " CA1";
     final String name2 = CaCacheTest.class.getSimpleName() + " CA2";
     final String name3 = CaCacheTest.class.getSimpleName() + " CA3";

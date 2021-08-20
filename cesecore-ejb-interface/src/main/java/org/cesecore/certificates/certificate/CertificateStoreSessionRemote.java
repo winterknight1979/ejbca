@@ -30,7 +30,7 @@ public interface CertificateStoreSessionRemote extends CertificateStoreSession {
    *
    * @param admin An authentication token to authorize the action
    * @param cert Wrapper of the certificate to be stored. Use {@link
-   *     org.cesecore.util.EJBTools#wrap} to construct to the wrapper.
+   *     org.cesecore.util.EJBUtil#wrap} to construct to the wrapper.
    * @param cafp Fingerprint (hex) of the CAs certificate.
    * @param username username of end entity owning the certificate.
    * @param status the status from the CertificateConstants.CERT_ constants
@@ -65,7 +65,7 @@ public interface CertificateStoreSessionRemote extends CertificateStoreSession {
    *
    * @param fingerprint Fingerprint of certificate
    * @return Wrapped certificate, or null if no certificate was found. Use
-   *     {@link org.cesecore.util.EJBTools#unwrap} to extract the certificate.
+   *     {@link org.cesecore.util.EJBUtil#unwrap} to extract the certificate.
    */
   CertificateWrapper findCertificateByFingerprintRemote(String fingerprint);
 }

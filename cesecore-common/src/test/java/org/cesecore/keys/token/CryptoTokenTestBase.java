@@ -38,7 +38,7 @@ import javax.crypto.spec.IvParameterSpec;
 import org.bouncycastle.util.encoders.Hex;
 import org.cesecore.internal.InternalResources;
 import org.cesecore.keys.token.p11.exception.NoSuchSlotException;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
 
 /**
@@ -105,8 +105,8 @@ public abstract class CryptoTokenTestBase {
     cryptoToken.generateKeyPair("1024", "rsatest00001");
     PrivateKey priv = cryptoToken.getPrivateKey("rsatest00001");
     PublicKey pub = cryptoToken.getPublicKey("rsatest00001");
-    KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-    assertEquals(1024, KeyTools.getKeyLength(pub));
+    KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+    assertEquals(1024, KeyUtil.getKeyLength(pub));
     String keyhash = CertTools.getFingerprintAsString(pub.getEncoded());
 
     // Make sure keys are or are not extractable, according to what is allowed
@@ -117,16 +117,16 @@ public abstract class CryptoTokenTestBase {
     cryptoToken.generateKeyPair("2048", "rsatest00002");
     priv = cryptoToken.getPrivateKey("rsatest00002");
     pub = cryptoToken.getPublicKey("rsatest00002");
-    KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-    assertEquals(2048, KeyTools.getKeyLength(pub));
+    KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+    assertEquals(2048, KeyUtil.getKeyLength(pub));
     String newkeyhash = CertTools.getFingerprintAsString(pub.getEncoded());
     assertFalse(
         "New keys are same as old keys, should not be...",
         keyhash.equals(newkeyhash));
     priv = cryptoToken.getPrivateKey("rsatest00001");
     pub = cryptoToken.getPublicKey("rsatest00001");
-    KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-    assertEquals(1024, KeyTools.getKeyLength(pub));
+    KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+    assertEquals(1024, KeyUtil.getKeyLength(pub));
     String previouskeyhash = CertTools.getFingerprintAsString(pub.getEncoded());
     assertEquals(keyhash, previouskeyhash);
 
@@ -148,18 +148,18 @@ public abstract class CryptoTokenTestBase {
       // the other keys should still be there
       priv = cryptoToken.getPrivateKey("rsatest00002");
       pub = cryptoToken.getPublicKey("rsatest00002");
-      KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-      assertEquals(2048, KeyTools.getKeyLength(pub));
+      KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+      assertEquals(2048, KeyUtil.getKeyLength(pub));
       String newkeyhash2 = CertTools.getFingerprintAsString(pub.getEncoded());
       assertEquals(newkeyhash, newkeyhash2);
 
       // Create keys using AlgorithmParameterSpec
-      AlgorithmParameterSpec paramspec = KeyTools.getKeyGenSpec(pub);
+      AlgorithmParameterSpec paramspec = KeyUtil.getKeyGenSpec(pub);
       cryptoToken.generateKeyPair(paramspec, "rsatest00003");
       priv = cryptoToken.getPrivateKey("rsatest00003");
       pub = cryptoToken.getPublicKey("rsatest00003");
-      KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-      assertEquals(2048, KeyTools.getKeyLength(pub));
+      KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+      assertEquals(2048, KeyUtil.getKeyLength(pub));
       String newkeyhash3 = CertTools.getFingerprintAsString(pub.getEncoded());
       // Make sure it's not the same key
       assertFalse(newkeyhash2.equals(newkeyhash3));
@@ -215,8 +215,8 @@ public abstract class CryptoTokenTestBase {
     cryptoToken.generateKeyPair("DSA1024", "dsatest00001");
     PrivateKey priv = cryptoToken.getPrivateKey("dsatest00001");
     PublicKey pub = cryptoToken.getPublicKey("dsatest00001");
-    KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-    assertEquals(1024, KeyTools.getKeyLength(pub));
+    KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+    assertEquals(1024, KeyUtil.getKeyLength(pub));
     String keyhash = CertTools.getFingerprintAsString(pub.getEncoded());
 
     // Make sure keys are or are not extractable, according to what is allowed
@@ -227,16 +227,16 @@ public abstract class CryptoTokenTestBase {
     cryptoToken.generateKeyPair("DSA1024", "dsatest00002");
     priv = cryptoToken.getPrivateKey("dsatest00002");
     pub = cryptoToken.getPublicKey("dsatest00002");
-    KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-    assertEquals(1024, KeyTools.getKeyLength(pub));
+    KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+    assertEquals(1024, KeyUtil.getKeyLength(pub));
     String newkeyhash = CertTools.getFingerprintAsString(pub.getEncoded());
     assertFalse(
         "New keys are same as old keys, should not be...",
         keyhash.equals(newkeyhash));
     priv = cryptoToken.getPrivateKey("dsatest00001");
     pub = cryptoToken.getPublicKey("dsatest00001");
-    KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-    assertEquals(1024, KeyTools.getKeyLength(pub));
+    KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+    assertEquals(1024, KeyUtil.getKeyLength(pub));
     String previouskeyhash = CertTools.getFingerprintAsString(pub.getEncoded());
     assertEquals(keyhash, previouskeyhash);
 
@@ -257,18 +257,18 @@ public abstract class CryptoTokenTestBase {
     // the other keys should still be there
     priv = cryptoToken.getPrivateKey("dsatest00002");
     pub = cryptoToken.getPublicKey("dsatest00002");
-    KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-    assertEquals(1024, KeyTools.getKeyLength(pub));
+    KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+    assertEquals(1024, KeyUtil.getKeyLength(pub));
     String newkeyhash2 = CertTools.getFingerprintAsString(pub.getEncoded());
     assertEquals(newkeyhash, newkeyhash2);
 
     // Create keys using AlgorithmParameterSpec
-    AlgorithmParameterSpec paramspec = KeyTools.getKeyGenSpec(pub);
+    AlgorithmParameterSpec paramspec = KeyUtil.getKeyGenSpec(pub);
     cryptoToken.generateKeyPair(paramspec, "dsatest00003");
     priv = cryptoToken.getPrivateKey("dsatest00003");
     pub = cryptoToken.getPublicKey("dsatest00003");
-    KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-    assertEquals(1024, KeyTools.getKeyLength(pub));
+    KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+    assertEquals(1024, KeyUtil.getKeyLength(pub));
     String newkeyhash3 = CertTools.getFingerprintAsString(pub.getEncoded());
     // Make sure it's not the same key
     assertFalse(newkeyhash2.equals(newkeyhash3));
@@ -332,8 +332,8 @@ public abstract class CryptoTokenTestBase {
     cryptoToken.generateKeyPair(curve1, "ecctest00001");
     PrivateKey priv = cryptoToken.getPrivateKey("ecctest00001");
     PublicKey pub = cryptoToken.getPublicKey("ecctest00001");
-    KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-    assertEquals(keyLen1, KeyTools.getKeyLength(pub));
+    KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+    assertEquals(keyLen1, KeyUtil.getKeyLength(pub));
     String keyhash = CertTools.getFingerprintAsString(pub.getEncoded());
 
     // Make sure keys are or are not extractable, according to what is allowed
@@ -344,16 +344,16 @@ public abstract class CryptoTokenTestBase {
     cryptoToken.generateKeyPair(curve2, "ecctest00002");
     priv = cryptoToken.getPrivateKey("ecctest00002");
     pub = cryptoToken.getPublicKey("ecctest00002");
-    KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-    assertEquals(keyLen2, KeyTools.getKeyLength(pub));
+    KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+    assertEquals(keyLen2, KeyUtil.getKeyLength(pub));
     String newkeyhash = CertTools.getFingerprintAsString(pub.getEncoded());
     assertFalse(
         "New keys are same as old keys, should not be...",
         keyhash.equals(newkeyhash));
     priv = cryptoToken.getPrivateKey("ecctest00001");
     pub = cryptoToken.getPublicKey("ecctest00001");
-    KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-    assertEquals(keyLen1, KeyTools.getKeyLength(pub));
+    KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+    assertEquals(keyLen1, KeyUtil.getKeyLength(pub));
     String previouskeyhash = CertTools.getFingerprintAsString(pub.getEncoded());
     assertEquals(keyhash, previouskeyhash);
 
@@ -374,18 +374,18 @@ public abstract class CryptoTokenTestBase {
     // the other keys should still be there
     priv = cryptoToken.getPrivateKey("ecctest00002");
     pub = cryptoToken.getPublicKey("ecctest00002");
-    KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-    assertEquals(keyLen2, KeyTools.getKeyLength(pub));
+    KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+    assertEquals(keyLen2, KeyUtil.getKeyLength(pub));
     String newkeyhash2 = CertTools.getFingerprintAsString(pub.getEncoded());
     assertEquals(newkeyhash, newkeyhash2);
 
     // Create keys using AlgorithmParameterSpec
-    AlgorithmParameterSpec paramspec = KeyTools.getKeyGenSpec(pub);
+    AlgorithmParameterSpec paramspec = KeyUtil.getKeyGenSpec(pub);
     cryptoToken.generateKeyPair(paramspec, "ecctest00003");
     priv = cryptoToken.getPrivateKey("ecctest00003");
     pub = cryptoToken.getPublicKey("ecctest00003");
-    KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-    assertEquals(keyLen2, KeyTools.getKeyLength(pub));
+    KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+    assertEquals(keyLen2, KeyUtil.getKeyLength(pub));
     String newkeyhash3 = CertTools.getFingerprintAsString(pub.getEncoded());
     // Make sure it's not the same key
     assertFalse(newkeyhash2.equals(newkeyhash3));
@@ -441,8 +441,8 @@ public abstract class CryptoTokenTestBase {
     cryptoToken.generateKeyPair("1024", "rsatest00001");
     PrivateKey priv = cryptoToken.getPrivateKey("rsatest00001");
     PublicKey pub = cryptoToken.getPublicKey("rsatest00001");
-    KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-    assertEquals(1024, KeyTools.getKeyLength(pub));
+    KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+    assertEquals(1024, KeyUtil.getKeyLength(pub));
 
     // Get a key that does not exist
     try {
@@ -486,8 +486,8 @@ public abstract class CryptoTokenTestBase {
     cryptoToken.activate(TOKEN_PIN.toCharArray());
     priv = cryptoToken.getPrivateKey("rsatest00001");
     pub = cryptoToken.getPublicKey("rsatest00001");
-    KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-    assertEquals(1024, KeyTools.getKeyLength(pub));
+    KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+    assertEquals(1024, KeyUtil.getKeyLength(pub));
 
     // End by deleting all old entries
     cryptoToken.deleteEntry("rsatest00001");
@@ -530,15 +530,15 @@ public abstract class CryptoTokenTestBase {
     cryptoToken.generateKeyPair("1024", "rsatest00001");
     PrivateKey priv = cryptoToken.getPrivateKey("rsatest00001");
     PublicKey pub = cryptoToken.getPublicKey("rsatest00001");
-    KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-    assertEquals(1024, KeyTools.getKeyLength(pub));
+    KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+    assertEquals(1024, KeyUtil.getKeyLength(pub));
     // Deactivate
     cryptoToken.deactivate();
     // It should autoactivate trying to get keys
     priv = cryptoToken.getPrivateKey("rsatest00001");
     pub = cryptoToken.getPublicKey("rsatest00001");
-    KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-    assertEquals(1024, KeyTools.getKeyLength(pub));
+    KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+    assertEquals(1024, KeyUtil.getKeyLength(pub));
 
     // End by deleting all old entries
     cryptoToken.deleteEntry("rsatest00001");
@@ -573,8 +573,8 @@ public abstract class CryptoTokenTestBase {
     cryptoToken.generateKeyPair("1024", "rsatest00001");
     PrivateKey priv = cryptoToken.getPrivateKey("rsatest00001");
     PublicKey pub = cryptoToken.getPublicKey("rsatest00001");
-    KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
-    assertEquals(1024, KeyTools.getKeyLength(pub));
+    KeyUtil.testKey(priv, pub, cryptoToken.getSignProviderName());
+    assertEquals(1024, KeyUtil.getKeyLength(pub));
     String pubKHash = CertTools.getFingerprintAsString(pub.getEncoded());
     assertEquals(
         111, cryptoToken.getId()); // What we set in "createCryptoToken"
@@ -595,8 +595,8 @@ public abstract class CryptoTokenTestBase {
     // Now we have a new crypto token, so lets do the same key test again
     priv = token2.getPrivateKey("rsatest00001");
     pub = token2.getPublicKey("rsatest00001");
-    KeyTools.testKey(priv, pub, token2.getSignProviderName());
-    assertEquals(1024, KeyTools.getKeyLength(pub));
+    KeyUtil.testKey(priv, pub, token2.getSignProviderName());
+    assertEquals(1024, KeyUtil.getKeyLength(pub));
     String pubKHash2 = CertTools.getFingerprintAsString(pub.getEncoded());
     assertEquals(pubKHash, pubKHash2);
     assertEquals(555, token2.getId()); // What we set in "createCryptoToken"

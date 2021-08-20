@@ -27,7 +27,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import org.apache.log4j.Logger;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.internal.InternalResources;
 import org.cesecore.util.QueryResultWrapper;
 
@@ -52,7 +52,7 @@ public class InternalKeyBindingDataSessionBean
   private static final Random RND = new SecureRandom();
 
   /** EM. */
-  @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+  @PersistenceContext(unitName = CesecoreConfigurationHelper.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
   /** Myself needs to be looked up in postConstruct. */

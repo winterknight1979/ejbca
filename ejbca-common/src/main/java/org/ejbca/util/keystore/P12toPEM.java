@@ -32,10 +32,10 @@ import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 import org.apache.log4j.Logger;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.cesecore.keys.util.KeyTools;
-import org.cesecore.util.Base64;
+import org.cesecore.keys.util.KeyUtil;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 
 /**
  * P12toPEM is used to export PEM files from a single p12 file. The class
@@ -79,7 +79,7 @@ public class P12toPEM {
    */
   public static void main(final String[] args) {
     // Bouncy Castle security provider
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
 
     P12toPEM p12 = null;
 
@@ -192,7 +192,7 @@ public class P12toPEM {
     if (serverPrivKey != null) {
       privKeyEncoded = serverPrivKey.getEncoded();
     }
-    Certificate[] chain = KeyTools.getCertChain(ks, (String) o);
+    Certificate[] chain = KeyUtil.getCertChain(ks, (String) o);
     if (log.isDebugEnabled()) {
       log.debug(
           "Loaded certificate chain with length "
@@ -216,7 +216,7 @@ public class P12toPEM {
       try {
         out.write(beginCertificate);
         out.write(NL);
-        byte[] userCertB64 = Base64.encode(output);
+        byte[] userCertB64 = Base64Util.encode(output);
         out.write(userCertB64);
         out.write(NL);
         out.write(endCertificate);
@@ -234,7 +234,7 @@ public class P12toPEM {
       try {
         out.write(beginPrivateKey);
         out.write(NL);
-        byte[] privKey = Base64.encode(privKeyEncoded);
+        byte[] privKey = Base64Util.encode(privKeyEncoded);
         out.write(privKey);
         out.write(NL);
         out.write(endPrivateKey);
@@ -261,7 +261,7 @@ public class P12toPEM {
             out.write(beginCertificate);
             out.write(NL);
 
-            byte[] tmpCACertB64 = Base64.encode(tmpOutput);
+            byte[] tmpCACertB64 = Base64Util.encode(tmpOutput);
 
             out.write(tmpCACertB64);
             out.write(NL);

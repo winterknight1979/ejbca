@@ -93,10 +93,7 @@ public final class FailInfo implements Serializable {
       return false;
     }
     final FailInfo scepResponseStatus = (FailInfo) o;
-    if (value != scepResponseStatus.value) {
-      return false;
-    }
-    return true;
+    return value == scepResponseStatus.value;
   }
 
   @Override

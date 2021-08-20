@@ -16,7 +16,7 @@ package org.ejbca.core.protocol.ws.client;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.ejbca.core.protocol.ws.client.gen.ApprovalException_Exception;
 import org.ejbca.core.protocol.ws.client.gen.AuthorizationDeniedException_Exception;
 import org.ejbca.core.protocol.ws.client.gen.CADoesntExistsException_Exception;
@@ -101,7 +101,8 @@ public class KeyRecoverEnrollCommand extends EJBCAWSRABaseCommand
           if (outputPath != null) {
             filepath = outputPath + "/" + filepath;
           }
-          final byte[] keyStoreBytes = Base64.decode(result.getKeystoreData());
+          final byte[] keyStoreBytes =
+                  Base64Util.decode(result.getKeystoreData());
           String keyStoreType;
           if (keyStoreBytes[0] == PKCS12_MAGIC) {
             keyStoreType = "PKCS12";

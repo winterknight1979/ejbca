@@ -53,10 +53,10 @@ public abstract class CertificateExtension implements Serializable {
   /** Properties. */
   private Properties properties;
 
-  /** Constructor for creating a Certificate Extension. */
+  /* * Constructor for creating a Certificate Extension. * /
   public CertificateExtension() {
     super();
-  }
+  } /**/
 
   /** @return the unique id of the extension */
   public int getId() {

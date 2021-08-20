@@ -41,9 +41,9 @@ import org.cesecore.keys.token.CryptoTokenManagementSessionRemote;
 import org.cesecore.keys.token.CryptoTokenNameInUseException;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
 import org.cesecore.keys.token.p11.exception.NoSuchSlotException;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.cesecore.util.EjbRemoteHelper;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.ValidityDateUtil;
 import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionRemote;
 import org.ejbca.cvc.CardVerifiableCertificate;
 import org.ejbca.ui.cli.infrastructure.command.CommandResult;
@@ -141,7 +141,7 @@ public class CaRenewCACommand extends BaseCaAdminCommand {
   public CommandResult execute(final ParameterContainer parameters) {
 
     // Bouncy Castle security provider
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
 
     // Get the CAs info and id
     final String caname = parameters.get(CA_NAME_KEY);
@@ -158,7 +158,7 @@ public class CaRenewCACommand extends BaseCaAdminCommand {
       if (parameters.get(CUSTOM_NOT_BEFORE_KEY) != null) {
         try {
           customNotBefore =
-              ValidityDate.parseAsIso8601(
+              ValidityDateUtil.parseAsIso8601(
                   parameters.get(CUSTOM_NOT_BEFORE_KEY));
           if (customNotBefore == null) {
             getLogger()

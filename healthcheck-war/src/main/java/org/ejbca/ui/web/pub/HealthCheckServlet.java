@@ -30,7 +30,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.ocsp.OcspResponseGeneratorSessionLocal;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.ejbca.config.EjbcaConfiguration;
 import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionLocal;
 import org.ejbca.core.ejb.ca.publisher.PublisherSessionLocal;
@@ -94,7 +94,7 @@ public class HealthCheckServlet extends HttpServlet {
   public void init(final ServletConfig config) throws ServletException {
     super.init(config);
     // Install BouncyCastle provider
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
     authIPs = EjbcaConfiguration.getHealthCheckAuthorizedIps().split(";");
     if (ArrayUtils.contains(authIPs, "ANY")) {
       LOG.info(INTRES.getLocalizedMessage("healthcheck.allipsauthorized"));

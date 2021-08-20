@@ -24,7 +24,7 @@ import org.bouncycastle.jcajce.provider.config.ConfigurableProvider;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.math.ec.ECCurve;
 import org.bouncycastle.util.encoders.Hex;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.ejbca.cvc.CVCProvider;
 
 /**
@@ -34,12 +34,10 @@ import org.ejbca.cvc.CVCProvider;
  *     $
  */
 @SuppressWarnings("deprecation")
-public final class CryptoProviderTools {
+public final class CryptoProviderUtil {
 
     /** Logger. */
-  private static final Logger LOG = Logger.getLogger(CryptoProviderTools.class);
-
-  private CryptoProviderTools() { } // Not for instantiation
+  private static final Logger LOG = Logger.getLogger(CryptoProviderUtil.class);
 
   /**
    * Parameters used when generating or verifying ECDSA keys/certs using the
@@ -47,19 +45,19 @@ public final class CryptoProviderTools {
    * of the key and configured in the BC provider.
    */
   private static final String IMPLICITLYCA_Q =
-      CesecoreConfiguration.getEcdsaImplicitlyCaQ();
+      CesecoreConfigurationHelper.getEcdsaImplicitlyCaQ();
   /** Config. */
   private static final String IMPLICITLYCA_A =
-      CesecoreConfiguration.getEcdsaImplicitlyCaA();
+      CesecoreConfigurationHelper.getEcdsaImplicitlyCaA();
   /** Config. */
   private static final String IMPLICITLYCA_B =
-      CesecoreConfiguration.getEcdsaImplicitlyCaB();
+      CesecoreConfigurationHelper.getEcdsaImplicitlyCaB();
   /** Config. */
   private static final String IMPLICITLYCA_G =
-      CesecoreConfiguration.getEcdsaImplicitlyCaG();
+      CesecoreConfigurationHelper.getEcdsaImplicitlyCaG();
   /** Config. */
   private static final String IMPLICITLYCA_N =
-      CesecoreConfiguration.getEcdsaImplicitlyCaN();
+      CesecoreConfigurationHelper.getEcdsaImplicitlyCaN();
 
   /**
    * System provider used to circumvent a bug in Glassfish. Should only be used
@@ -68,6 +66,7 @@ public final class CryptoProviderTools {
    */
   private static String systemSecurity = "SUN";
 
+  private CryptoProviderUtil() { } // Not for instantiation
   /**
    * Detect if "Unlimited Strength" Policy files has bean properly installed.
    *
@@ -83,8 +82,7 @@ public final class CryptoProviderTools {
       if (keylen == Integer.MAX_VALUE) {
         returnValue = false;
       }
-    } catch (NoSuchAlgorithmException e) {
-      // NOPMD
+    } catch (NoSuchAlgorithmException e) { // NOPMD
     }
     return returnValue;
   }
@@ -115,7 +113,7 @@ public final class CryptoProviderTools {
       // Nope, we ignore re-deploy on this level, because it can happen
       // that the BC-provider is uninstalled, in just the second another
       // thread tries to use the provider, and then that request will fail.
-      if (CesecoreConfiguration.isDevelopmentProviderInstallation()) {
+      if (CesecoreConfigurationHelper.isDevelopmentProviderInstallation()) {
         removeBCProvider();
         if (Security.addProvider(new BouncyCastleProvider()) < 0) {
           LOG.error("Cannot even install BC provider again!");

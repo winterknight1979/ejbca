@@ -25,11 +25,11 @@ import org.apache.log4j.Logger;
  *
  * @version $Id: CesecoreConfiguration.java 34415 2020-01-30 12:29:30Z aminkh $
  */
-public final class CesecoreConfiguration {
+public final class CesecoreConfigurationHelper {
 
     /** Logger. */
   private static final Logger LOG =
-      Logger.getLogger(CesecoreConfiguration.class);
+      Logger.getLogger(CesecoreConfigurationHelper.class);
 
   /** NOTE: diff between EJBCA and CESeCore. */
   public static final String PERSISTENCE_UNIT = "ejbca";
@@ -39,27 +39,44 @@ public final class CesecoreConfiguration {
   public static final String DEFAULT_SERIAL_NUMBER_OCTET_SIZE_NEWCA = "20";
   /** SN size. **/
   private static final String DEFAULT_SERIAL_NUMBER_OCTET_SIZE_EXISTINGCA = "8";
+  /** Boolean true. */
+  private static final String TRUE = "true";
+  /** Default fetch size. */
+  private static final long DEFAULT_FETCH = 500000L;
+  /**
+   * Used just in {@link #getForbiddenCharacters()}. The method is called very
+   * often so we declare this String in the class so it does not have to be each
+   * time the method is called.
+   */
+  private static final String FORBIDDEN_CARACTERS_KEY = "forbidden.characters";
+  /** Max number of supported suites. */
+  private static final int MAX_SUITES = 255;
+  /** Milliseconds. */
+  private static final long MS_PER_S = 1000L;
+  /** Ten seconds. */
+  private static final long TEN_SECONDS = 10L * MS_PER_S;
+  /** Thirty Seconds. */
+  private static final long THIRTY_SECONDS = 30L * MS_PER_S;
+  /** 100 seconds. */
+  private static final long HUNDRED_SECONDS = 100L * MS_PER_S;
 
   /**
    * This is a singleton so it's not allowed to create an instance explicitly.
    */
-  private CesecoreConfiguration() { }
-
-  /** Boolean true. */
-  private static final String TRUE = "true";
+  private CesecoreConfigurationHelper() { }
 
   /** @return Cesecore Datasource name */
   public static String getDataSourceJndiName() {
     String prefix =
-        ConfigurationHolder.getString("datasource.jndi-name-prefix");
-    String name = ConfigurationHolder.getString("datasource.jndi-name");
+        ConfigurationHolderUtil.getString("datasource.jndi-name-prefix");
+    String name = ConfigurationHolderUtil.getString("datasource.jndi-name");
 
     return prefix + name;
   }
 
   /** @return Password used to protect CA keystores in the database. */
   public static String getCaKeyStorePass() {
-    return ConfigurationHolder.getExpandedString("ca.keystorepass");
+    return ConfigurationHolderUtil.getExpandedString("ca.keystorepass");
   }
 
   /**
@@ -68,7 +85,7 @@ public final class CesecoreConfiguration {
    */
   public static int getSerialNumberOctetSizeForExistingCa() {
     String value =
-        ConfigurationHolder.getConfiguredString("ca.serialnumberoctetsize");
+        ConfigurationHolderUtil.getConfiguredString("ca.serialnumberoctetsize");
     if (value == null) {
       if (LOG.isDebugEnabled()) {
         LOG.debug(
@@ -87,7 +104,7 @@ public final class CesecoreConfiguration {
    */
   public static int getSerialNumberOctetSizeForNewCa() {
     String value =
-        ConfigurationHolder.getConfiguredString("ca.serialnumberoctetsize");
+        ConfigurationHolderUtil.getConfiguredString("ca.serialnumberoctetsize");
     if (value == null) {
       if (LOG.isDebugEnabled()) {
         LOG.debug(
@@ -105,7 +122,7 @@ public final class CesecoreConfiguration {
    *     (Random Number Generator Algorithm)
    */
   public static String getCaSerialNumberAlgorithm() {
-    return ConfigurationHolder.getString("ca.rngalgorithm");
+    return ConfigurationHolderUtil.getString("ca.rngalgorithm");
   }
 
   /**
@@ -113,7 +130,7 @@ public final class CesecoreConfiguration {
    *     be considered to be too far in the future.
    */
   public static String getCaTooLateExpireDate() {
-    return ConfigurationHolder.getExpandedString("ca.toolateexpiredate");
+    return ConfigurationHolderUtil.getExpandedString("ca.toolateexpiredate");
   }
 
   /**
@@ -129,7 +146,8 @@ public final class CesecoreConfiguration {
    * @return offset
    */
   public static String getCertificateValidityOffset() {
-    return ConfigurationHolder.getExpandedString("certificate.validityoffset");
+    return ConfigurationHolderUtil.getExpandedString(
+            "certificate.validityoffset");
   }
 
   /**
@@ -137,7 +155,7 @@ public final class CesecoreConfiguration {
    */
   public static boolean isPermitExtractablePrivateKeys() {
     final String value =
-        ConfigurationHolder.getString("ca.doPermitExtractablePrivateKeys");
+        ConfigurationHolderUtil.getString("ca.doPermitExtractablePrivateKeys");
     return value != null && value.trim().equalsIgnoreCase(TRUE);
   }
 
@@ -146,7 +164,7 @@ public final class CesecoreConfiguration {
    *     and approval notifications.
    */
   public static String getInternalResourcesPreferredLanguage() {
-    return ConfigurationHolder.getExpandedString(
+    return ConfigurationHolderUtil.getExpandedString(
         "intresources.preferredlanguage");
   }
 
@@ -155,7 +173,7 @@ public final class CesecoreConfiguration {
    *     preferred language
    */
   public static String getInternalResourcesSecondaryLanguage() {
-    return ConfigurationHolder.getExpandedString(
+    return ConfigurationHolderUtil.getExpandedString(
         "intresources.secondarylanguage");
   }
 
@@ -163,35 +181,35 @@ public final class CesecoreConfiguration {
    * @return Sets pre-defined EC curve parameters for the implicitlyCA facility.
    */
   public static String getEcdsaImplicitlyCaQ() {
-    return ConfigurationHolder.getExpandedString("ecdsa.implicitlyca.q");
+    return ConfigurationHolderUtil.getExpandedString("ecdsa.implicitlyca.q");
   }
 
   /**
    * @return Sets pre-defined EC curve parameters for the implicitlyCA facility.
    */
   public static String getEcdsaImplicitlyCaA() {
-    return ConfigurationHolder.getExpandedString("ecdsa.implicitlyca.a");
+    return ConfigurationHolderUtil.getExpandedString("ecdsa.implicitlyca.a");
   }
 
   /**
    * @return Sets pre-defined EC curve parameters for the implicitlyCA facility.
    */
   public static String getEcdsaImplicitlyCaB() {
-    return ConfigurationHolder.getExpandedString("ecdsa.implicitlyca.b");
+    return ConfigurationHolderUtil.getExpandedString("ecdsa.implicitlyca.b");
   }
 
   /**
    * @return Sets pre-defined EC curve parameters for the implicitlyCA facility.
    */
   public static String getEcdsaImplicitlyCaG() {
-    return ConfigurationHolder.getExpandedString("ecdsa.implicitlyca.g");
+    return ConfigurationHolderUtil.getExpandedString("ecdsa.implicitlyca.g");
   }
 
   /**
    * @return Sets pre-defined EC curve parameters for the implicitlyCA facility.
    */
   public static String getEcdsaImplicitlyCaN() {
-    return ConfigurationHolder.getExpandedString("ecdsa.implicitlyca.n");
+    return ConfigurationHolderUtil.getExpandedString("ecdsa.implicitlyca.n");
   }
 
   /**
@@ -205,7 +223,7 @@ public final class CesecoreConfiguration {
    */
   public static boolean isDevelopmentProviderInstallation() {
     return TRUE.equalsIgnoreCase(
-        ConfigurationHolder.getString("development.provider.installation"));
+        ConfigurationHolderUtil.getString("development.provider.installation"));
   }
 
   /**
@@ -305,7 +323,7 @@ public final class CesecoreConfiguration {
 
   private static long getLongValue(
       final String propertyName, final long defaultValue, final String unit) {
-    final String value = ConfigurationHolder.getString(propertyName);
+    final String value = ConfigurationHolderUtil.getString(propertyName);
     long time = defaultValue;
     try {
       if (value != null) {
@@ -331,7 +349,7 @@ public final class CesecoreConfiguration {
    */
   public static Class<?> getTrustedTimeProvider()
       throws ClassNotFoundException {
-    String providerClass = ConfigurationHolder.getString("time.provider");
+    String providerClass = ConfigurationHolderUtil.getString("time.provider");
     if (LOG.isDebugEnabled()) {
       LOG.debug("TrustedTimeProvider class: " + providerClass);
     }
@@ -343,7 +361,7 @@ public final class CesecoreConfiguration {
    *     output
    */
   public static Pattern getTrustedTimeNtpPattern() {
-    String regex = ConfigurationHolder.getString("time.ntp.pattern");
+    String regex = ConfigurationHolderUtil.getString("time.ntp.pattern");
     return Pattern.compile(regex);
   }
 
@@ -352,7 +370,7 @@ public final class CesecoreConfiguration {
    *     about the selected peers and their offsets
    */
   public static String getTrustedTimeNtpCommand() {
-    return ConfigurationHolder.getString("time.ntp.command");
+    return ConfigurationHolderUtil.getString("time.ntp.command");
   }
 
   /**
@@ -366,7 +384,7 @@ public final class CesecoreConfiguration {
    */
   public static boolean isKeepInternalCAKeystores() {
     final String value =
-        ConfigurationHolder.getString("db.keepinternalcakeystores");
+        ConfigurationHolderUtil.getString("db.keepinternalcakeystores");
     return value == null || !value.trim().equalsIgnoreCase("false");
   }
 
@@ -379,7 +397,7 @@ public final class CesecoreConfiguration {
   public static String getNodeIdentifier() {
     final String propertyName = "cluster.nodeid";
     final String propertyValue = "undefined";
-    String value = ConfigurationHolder.getString(propertyName);
+    String value = ConfigurationHolderUtil.getString(propertyName);
     if (value == null) {
       try {
         value = InetAddress.getLocalHost().getHostName();
@@ -394,7 +412,7 @@ public final class CesecoreConfiguration {
       }
       // Update configuration, so we don't have to make a hostname lookup each
       // time we call this method.
-      ConfigurationHolder.updateConfigurationWithoutBackup(
+      ConfigurationHolderUtil.updateConfigurationWithoutBackup(
           propertyName, value);
     }
     return value;
@@ -402,17 +420,17 @@ public final class CesecoreConfiguration {
 
   /** @return Oid tree for GOST32410 */
   public static String getOidGost3410() {
-    return ConfigurationHolder.getString("extraalgs.gost3410.oidtree");
+    return ConfigurationHolderUtil.getString("extraalgs.gost3410.oidtree");
   }
 
   /** @return Oid tree for DSTU4145 */
   public static String getOidDstu4145() {
-    return ConfigurationHolder.getString("extraalgs.dstu4145.oidtree");
+    return ConfigurationHolderUtil.getString("extraalgs.dstu4145.oidtree");
   }
 
   /** @return extraalgs such as GOST, DSTU */
   public static List<String> getExtraAlgs() {
-    return ConfigurationHolder.getPrefixedPropertyNames("extraalgs");
+    return ConfigurationHolderUtil.getPrefixedPropertyNames("extraalgs");
   }
 
   /**
@@ -420,7 +438,7 @@ public final class CesecoreConfiguration {
    * @return title of the algorithm
    */
   public static String getExtraAlgTitle(final String algName) {
-    return ConfigurationHolder.getString(
+    return ConfigurationHolderUtil.getString(
         "extraalgs." + algName.toLowerCase() + ".title");
   }
 
@@ -429,7 +447,7 @@ public final class CesecoreConfiguration {
    * @return "subalgorithms", e.g. different keylengths or curves
    */
   public static List<String> getExtraAlgSubAlgs(final String algName) {
-    return ConfigurationHolder.getPrefixedPropertyNames(
+    return ConfigurationHolderUtil.getPrefixedPropertyNames(
         "extraalgs." + algName + ".subalgs");
   }
 
@@ -441,19 +459,19 @@ public final class CesecoreConfiguration {
   public static String getExtraAlgSubAlgTitle(
           final String algName, final String subAlg) {
     String name =
-        ConfigurationHolder.getString(
+        ConfigurationHolderUtil.getString(
             "extraalgs." + algName + ".subalgs." + subAlg + ".title");
     if (name == null) {
       // Show the algorithm name, if it has one
       String end =
-          ConfigurationHolder.getString(
+          ConfigurationHolderUtil.getString(
               "extraalgs." + algName + ".subalgs." + subAlg + ".name");
       // Otherwise, show the key name in the configuration
       if (end == null) {
         end = subAlg;
       }
       name =
-          ConfigurationHolder.getString("extraalgs." + algName + ".title")
+          ConfigurationHolderUtil.getString("extraalgs." + algName + ".title")
               + " "
               + end;
     }
@@ -468,7 +486,7 @@ public final class CesecoreConfiguration {
   public static String getExtraAlgSubAlgName(
           final String algName, final String subAlg) {
     String name =
-        ConfigurationHolder.getString(
+        ConfigurationHolderUtil.getString(
             "extraalgs." + algName + ".subalgs." + subAlg + ".name");
     if (name == null) {
       // Not a named algorithm
@@ -485,9 +503,9 @@ public final class CesecoreConfiguration {
   public static String getExtraAlgSubAlgOid(
           final String algName, final String subAlg) {
     final String oidTree =
-        ConfigurationHolder.getString("extraalgs." + algName + ".oidtree");
+        ConfigurationHolderUtil.getString("extraalgs." + algName + ".oidtree");
     final String oidEnd =
-        ConfigurationHolder.getString(
+        ConfigurationHolderUtil.getString(
             "extraalgs." + algName + ".subalgs." + subAlg + ".oid");
 
     if (oidEnd != null && oidTree != null) {
@@ -506,7 +524,8 @@ public final class CesecoreConfiguration {
    */
   public static boolean useBase64CertTable() {
     final String value =
-        ConfigurationHolder.getString("database.useSeparateCertificateTable");
+        ConfigurationHolderUtil.getString(
+                "database.useSeparateCertificateTable");
     return value != null && Boolean.parseBoolean(value.trim());
   }
 
@@ -517,7 +536,7 @@ public final class CesecoreConfiguration {
   public static boolean useDatabaseIntegrityProtection(final String tableName) {
     // First check if we have explicit configuration for this entity
     final String enableProtect =
-        ConfigurationHolder.getString(
+        ConfigurationHolderUtil.getString(
             "databaseprotection.enablesign." + tableName);
     if (enableProtect != null) {
       return Boolean.TRUE.toString().equalsIgnoreCase(enableProtect);
@@ -526,7 +545,7 @@ public final class CesecoreConfiguration {
     return Boolean.TRUE
         .toString()
         .equalsIgnoreCase(
-            ConfigurationHolder.getString("databaseprotection.enablesign"));
+            ConfigurationHolderUtil.getString("databaseprotection.enablesign"));
   }
 
   /**
@@ -537,7 +556,7 @@ public final class CesecoreConfiguration {
       final String tableName) {
     // First check if we have explicit configuration for this entity
     final String enableVerify =
-        ConfigurationHolder.getString(
+        ConfigurationHolderUtil.getString(
             "databaseprotection.enableverify." + tableName);
     if (enableVerify != null) {
       return Boolean.TRUE.toString().equalsIgnoreCase(enableVerify);
@@ -546,7 +565,8 @@ public final class CesecoreConfiguration {
     return Boolean.TRUE
         .toString()
         .equalsIgnoreCase(
-            ConfigurationHolder.getString("databaseprotection.enableverify"));
+            ConfigurationHolderUtil.getString(
+                    "databaseprotection.enableverify"));
   }
 
   /**
@@ -554,7 +574,7 @@ public final class CesecoreConfiguration {
    */
   public static boolean getCaKeepOcspExtendedService() {
     return Boolean.valueOf(
-        ConfigurationHolder.getString("ca.keepocspextendedservice")
+        ConfigurationHolderUtil.getString("ca.keepocspextendedservice")
             .toLowerCase());
   }
 
@@ -568,15 +588,6 @@ public final class CesecoreConfiguration {
         .intValue();
   }
 
-  /** Default fetch size. */
-  private static final long DEFAULT_FETCH = 500000L;
-
-  /**
-   * Used just in {@link #getForbiddenCharacters()}. The method is called very
-   * often so we declare this String in the class so it does not have to be each
-   * time the method is called.
-   */
-  private static final String FORBIDDEN_CARACTERS_KEY = "forbidden.characters";
   /**
    * Characters forbidden in fields to be stored in the DB.
    *
@@ -587,9 +598,9 @@ public final class CesecoreConfiguration {
     // String (size 0) must be returned when the property is defined without
     // any value.
     final String s =
-        ConfigurationHolder.instance().getString(FORBIDDEN_CARACTERS_KEY);
+        ConfigurationHolderUtil.instance().getString(FORBIDDEN_CARACTERS_KEY);
     if (s == null) {
-      return ConfigurationHolder.getDefaultValue(FORBIDDEN_CARACTERS_KEY)
+      return ConfigurationHolderUtil.getDefaultValue(FORBIDDEN_CARACTERS_KEY)
           .toCharArray();
     }
     return s.toCharArray();
@@ -601,14 +612,15 @@ public final class CesecoreConfiguration {
    */
   public static boolean p11disableHashingSignMechanisms() {
     final String value =
-        ConfigurationHolder.getString("pkcs11.disableHashingSignMechanisms");
+        ConfigurationHolderUtil.getString(
+                "pkcs11.disableHashingSignMechanisms");
     return value == null || Boolean.parseBoolean(value.trim());
   }
 
   /** @return true key store content of Crypto Tokens should be cached. */
   public static boolean isKeyStoreCacheEnabled() {
     return Boolean.parseBoolean(
-        ConfigurationHolder.getString("cryptotoken.keystorecache"));
+        ConfigurationHolderUtil.getString("cryptotoken.keystorecache"));
   }
 
   /** Java 6: http://docs.oracle.com/javase/6/docs/technotes/guides/security/SunProviders.html#SunJSSEProvider
@@ -624,7 +636,7 @@ public final class CesecoreConfiguration {
     final List<String> availableCipherSuites = new ArrayList<String>();
     for (int i = 0; i < MAX_SUITES; i++) {
       final String key = "authkeybind.ciphersuite." + i;
-      final String value = ConfigurationHolder.getString(key);
+      final String value = ConfigurationHolderUtil.getString(key);
       if (value == null
           || value.indexOf(AVAILABLE_CIPHER_SUITES_SPLIT_CHAR) == -1) {
         continue;
@@ -633,9 +645,6 @@ public final class CesecoreConfiguration {
     }
     return availableCipherSuites.toArray(new String[0]);
   }
-
-  /** Max number of supported suites. */
-  private static final int MAX_SUITES = 255;
 
   /**
    * Gets the maximum number of entries in the CT cache. Each entry contains the
@@ -667,7 +676,7 @@ public final class CesecoreConfiguration {
 
   /** @return Whether caching of SCTs should be enabled. The default is true. */
   public static boolean getCTCacheEnabled() {
-    final String value = ConfigurationHolder.getString("ct.cache.enabled");
+    final String value = ConfigurationHolderUtil.getString("ct.cache.enabled");
     return value == null || !value.trim().equalsIgnoreCase("false");
   }
 
@@ -678,7 +687,8 @@ public final class CesecoreConfiguration {
    *     status to a request.
    */
   public static boolean getCTFastFailEnabled() {
-    final String value = ConfigurationHolder.getString("ct.fastfail.enabled");
+    final String value = ConfigurationHolderUtil.getString(
+            "ct.fastfail.enabled");
     return value != null && value.trim().equalsIgnoreCase(TRUE);
   }
 
@@ -690,19 +700,10 @@ public final class CesecoreConfiguration {
     return getLongValue("ct.fastfail.backoff", MS_PER_S, "milliseconds");
   }
 
-  /** Milliseconds. */
-  private static final long MS_PER_S = 1000L;
-  /** Ten seconds. */
-  private static final long TEN_SECONDS = 10L * MS_PER_S;
-  /** Thirty Seconds. */
-  private static final long THIRTY_SECONDS = 30L * MS_PER_S;
-  /** 100 seconds. */
-  private static final long HUNDRED_SECONDS = 100L * MS_PER_S;
-
   /** @return true if key should be unmodifiable after generation. */
   public static boolean makeKeyUnmodifiableAfterGeneration() {
     final String value =
-        ConfigurationHolder.getString(
+        ConfigurationHolderUtil.getString(
             "pkcs11.makeKeyUnmodifiableAfterGeneration");
     return value != null && Boolean.parseBoolean(value.trim());
   }

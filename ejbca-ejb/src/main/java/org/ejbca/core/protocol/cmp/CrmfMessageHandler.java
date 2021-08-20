@@ -54,9 +54,9 @@ import org.cesecore.certificates.endentity.EndEntityTypes;
 import org.cesecore.certificates.endentity.ExtendedInformation;
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.certificates.util.AlgorithmTools;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.config.CmpConfiguration;
 import org.ejbca.core.EjbcaException;
 import org.ejbca.core.ejb.EjbBridgeSessionLocal;
@@ -583,7 +583,7 @@ public class CrmfMessageHandler extends BaseCmpMessageHandler
         LOG.debug("Creating username from base dn: " + dnname.toString());
       }
       final String username =
-          StringTools.stripUsername(gen.generateUsername(dnname.toString()));
+          StringUtil.stripUsername(gen.generateUsername(dnname.toString()));
       final String pwd;
       if (StringUtils.equals(
           authenticationModule.getName(),
@@ -1007,7 +1007,7 @@ public class CrmfMessageHandler extends BaseCmpMessageHandler
           LOG.debug("Generating server generated keypair RSA " + sizes[0]);
         }
         keys =
-            KeyTools.genKeys(
+            KeyUtil.genKeys(
                 String.valueOf(sizes[0]), AlgorithmConstants.KEYALGORITHM_RSA);
       } else if (AlgorithmConstants.KEYALGORITHM_ECDSA.equals(algs.get(0))) {
         if (curves.size() > 1) {
@@ -1020,7 +1020,7 @@ public class CrmfMessageHandler extends BaseCmpMessageHandler
           throw new InvalidKeyException(msg);
         }
         keys =
-            KeyTools.genKeys(
+            KeyUtil.genKeys(
                 curves.get(0), AlgorithmConstants.KEYALGORITHM_ECDSA);
 
       } else {

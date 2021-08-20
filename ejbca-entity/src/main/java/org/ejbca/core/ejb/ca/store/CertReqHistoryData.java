@@ -39,7 +39,7 @@ import org.cesecore.dbprotection.ProtectedData;
 import org.cesecore.dbprotection.ProtectionStringBuilder;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.SecureXMLDecoder;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.core.model.ca.store.CertReqHistory;
 import org.ejbca.core.model.ra.UserDataVO;
 import org.ejbca.util.FixEndOfBrokenXML;
@@ -248,7 +248,7 @@ public class CertReqHistoryData extends ProtectedData implements Serializable {
    * @param ausername username
    */
   public void setUsername(final String ausername) {
-    this.username = StringTools.stripUsername(ausername);
+    this.username = StringUtil.stripUsername(ausername);
   }
 
   /**

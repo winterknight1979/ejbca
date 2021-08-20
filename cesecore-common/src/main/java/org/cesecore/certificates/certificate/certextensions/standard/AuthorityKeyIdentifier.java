@@ -78,8 +78,8 @@ public class AuthorityKeyIdentifier extends StandardCertificateExtension {
     // CA does not follow RFC3280 (guess if MS-CA follows RFC3280?)
     final X509Certificate cacert = getCACertificate(ca, caPublicKey);
     final boolean isRootCA =
-        (certProfile.getType() == CertificateConstants.CERTTYPE_ROOTCA);
-    if ((cacert != null) && (!isRootCA)) {
+        certProfile.getType() == CertificateConstants.CERTTYPE_ROOTCA;
+    if (cacert != null && !isRootCA) {
       byte[] akibytes;
       akibytes = CertTools.getSubjectKeyId(cacert);
       if (akibytes != null) {

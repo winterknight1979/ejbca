@@ -21,9 +21,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import org.apache.log4j.Logger;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.internal.InternalResources;
-import org.cesecore.util.ProfileID;
+import org.cesecore.util.ProfileIDUtil;
 
 /**
  * Basic CRUD bean for ProfileData objects.
@@ -39,7 +39,7 @@ public class ProfileSessionBean implements ProfileSessionLocal {
   private static final Logger LOG = Logger.getLogger(ProfileSessionBean.class);
 
   /** EM. */
-  @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+  @PersistenceContext(unitName = CesecoreConfigurationHelper.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
   /** Internal localization of logs and errors. */
@@ -162,13 +162,13 @@ public class ProfileSessionBean implements ProfileSessionLocal {
   }
 
   private int findFreeProfileId() {
-    final ProfileID.DB db =
-        new ProfileID.DB() {
+    final ProfileIDUtil.DB db =
+        new ProfileIDUtil.DB() {
           @Override
           public boolean isFree(final int i) {
             return findById(i) == null;
           }
         };
-    return ProfileID.getNotUsedID(db);
+    return ProfileIDUtil.getNotUsedID(db);
   }
 }

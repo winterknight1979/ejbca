@@ -19,9 +19,9 @@ import java.util.ArrayList;
 import org.apache.log4j.Logger;
 import org.bouncycastle.jce.spec.ECNamedCurveSpec;
 import org.cesecore.certificates.ca.CAInfo;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.ejbca.ui.cli.infrastructure.command.CommandResult;
 import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
 import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
@@ -60,7 +60,7 @@ public class CaInfoCommand extends BaseCaAdminCommand {
 
   @Override
   public CommandResult execute(final ParameterContainer parameters) {
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
     String caname = parameters.get(CA_NAME_KEY);
     CAInfo cainfo = getCAInfo(getAuthenticationToken(), caname);
     if (cainfo != null) {
@@ -99,7 +99,7 @@ public class CaInfoCommand extends BaseCaAdminCommand {
         getLogger()
             .info(
                 "Root CA key size: "
-                    + KeyTools.getKeyLength(rootcert.getPublicKey()));
+                    + KeyUtil.getKeyLength(rootcert.getPublicKey()));
         if (rootcert.getPublicKey() instanceof ECPublicKey) {
           if (((ECPublicKey) rootcert.getPublicKey()).getParams()
               instanceof ECNamedCurveSpec) {
@@ -126,7 +126,7 @@ public class CaInfoCommand extends BaseCaAdminCommand {
           getLogger()
               .info(
                   "CA key size: "
-                      + KeyTools.getKeyLength(cacert.getPublicKey()));
+                      + KeyUtil.getKeyLength(cacert.getPublicKey()));
           if (cacert.getPublicKey() instanceof ECPublicKey) {
             if (((ECPublicKey) cacert.getPublicKey()).getParams()
                 instanceof ECNamedCurveSpec) {

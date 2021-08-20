@@ -58,12 +58,12 @@ import org.cesecore.keys.token.CryptoTokenOfflineException;
 import org.cesecore.keys.token.PKCS11CryptoToken;
 import org.cesecore.keys.token.SoftCryptoToken;
 import org.cesecore.keys.token.p11.exception.NoSuchSlotException;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.cesecore.util.EjbRemoteHelper;
 import org.cesecore.util.SimpleTime;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionRemote;
 import org.ejbca.core.model.ca.caadmin.extendedcaservices.CmsCAServiceInfo;
 import org.ejbca.core.model.ca.caadmin.extendedcaservices.HardTokenEncryptCAServiceInfo;
@@ -365,7 +365,7 @@ public class CaInitCommand extends BaseCaAdminCommand {
   @Override
   public CommandResult execute(final ParameterContainer parameters) {
     // Install BC provider
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
 
     String profileName = parameters.get(CERTIFICATE_PROFILE_KEY);
     final String superAdminCN = parameters.get(SUPERADMIN_CN_KEY);
@@ -392,7 +392,7 @@ public class CaInitCommand extends BaseCaAdminCommand {
 
     final String caname = parameters.get(CA_NAME_KEY);
     final String dn =
-        CertTools.stringToBCDNString(StringTools.strip(parameters.get(DN_KEY)));
+        CertTools.stringToBCDNString(StringUtil.strip(parameters.get(DN_KEY)));
     final String subjectAltName = parameters.get(ALT_NAME_KEY);
     if (subjectAltName != null && !checkSubjectAltName(subjectAltName)) {
       LOG.error("Invalid Subject Alternative Name");
@@ -400,7 +400,7 @@ public class CaInitCommand extends BaseCaAdminCommand {
     }
     final String catokentype = parameters.get(TOKEN_TYPE_KEY);
     String catokenpassword =
-        StringTools.passwordDecryption(
+        StringUtil.passwordDecryption(
             parameters.get(TOKEN_PASSWORD_KEY), "ca.tokenpassword");
     if (StringUtils.equals(catokenpassword, "prompt")) {
       getLogger().info("Enter CA token password: ");
@@ -531,7 +531,7 @@ public class CaInitCommand extends BaseCaAdminCommand {
       }
     }
 
-    if (KeyTools.isUsingExportableCryptography()) {
+    if (KeyUtil.isUsingExportableCryptography()) {
       getLogger().warn("WARNING!");
       getLogger().warn("WARNING: Using exportable strength crypto!");
       getLogger().warn("WARNING!");
@@ -826,11 +826,11 @@ public class CaInitCommand extends BaseCaAdminCommand {
             if (StringUtils.isNumeric(keysequence)) {
               getLogger().info("CVC key sequence format is numeric.");
               caToken.setKeySequenceFormat(
-                  StringTools.KEY_SEQUENCE_FORMAT_NUMERIC);
+                  StringUtil.KEY_SEQUENCE_FORMAT_NUMERIC);
             } else {
               getLogger().info("CVC key sequence format is alphanumeric.");
               caToken.setKeySequenceFormat(
-                  StringTools.KEY_SEQUENCE_FORMAT_ALPHANUMERIC);
+                  StringUtil.KEY_SEQUENCE_FORMAT_ALPHANUMERIC);
             }
           }
           cainfo =

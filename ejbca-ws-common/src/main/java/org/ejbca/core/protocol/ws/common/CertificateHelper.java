@@ -15,7 +15,7 @@ package org.ejbca.core.protocol.ws.common;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import org.cesecore.certificates.certificate.CertificateConstants;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
 
 /**
@@ -67,7 +67,7 @@ public final class CertificateHelper {
       throws CertificateException {
     Certificate retval =
         CertTools.getCertfromByteArray(
-            Base64.decode(certificateData), Certificate.class);
+            Base64Util.decode(certificateData), Certificate.class);
     return retval;
   }
 
@@ -79,6 +79,6 @@ public final class CertificateHelper {
    * @return PKCS7
    */
   public static byte[] getPKCS7(final byte[] pkcs7Data) {
-    return Base64.decode(pkcs7Data);
+    return Base64Util.decode(pkcs7Data);
   }
 }

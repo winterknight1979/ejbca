@@ -39,9 +39,9 @@ import org.cesecore.certificates.certificate.request.ResponseMessage;
 import org.cesecore.certificates.certificate.request.X509ResponseMessage;
 import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.cesecore.certificates.util.AlgorithmConstants;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.easymock.EasyMock;
 import org.ejbca.core.ejb.ca.sign.SignSessionLocal;
 import org.junit.BeforeClass;
@@ -116,7 +116,7 @@ public class RequestHelperTest {
    */
   @BeforeClass
   public static void beforeClass() {
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
   }
 
   /**
@@ -131,7 +131,7 @@ public class RequestHelperTest {
     // Generate a self signed certificate to act as a CA cert, and a signed
     // certificate.
     KeyPair caKeys =
-        KeyTools.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
+        KeyUtil.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
     Certificate caCert =
         CertTools.genSelfCert(
             "CN=foo",
@@ -142,7 +142,7 @@ public class RequestHelperTest {
             AlgorithmConstants.SIGALG_SHA1_WITH_RSA,
             false);
     KeyPair replyKeys =
-        KeyTools.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
+        KeyUtil.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
     final SubjectPublicKeyInfo pkinfo =
         SubjectPublicKeyInfo.getInstance(replyKeys.getPublic().getEncoded());
     String signedCertDn = "CN=signedcert";

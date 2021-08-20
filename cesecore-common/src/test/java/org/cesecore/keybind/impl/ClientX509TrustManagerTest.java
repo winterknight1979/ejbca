@@ -28,9 +28,9 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.cesecore.certificates.util.AlgorithmConstants;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -69,7 +69,7 @@ public class ClientX509TrustManagerTest {
      * @throws Throwable fail*/
   @BeforeClass
   public static void beforeClass() throws Throwable {
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
   }
 
   /**
@@ -83,7 +83,7 @@ public class ClientX509TrustManagerTest {
       throws InvalidAlgorithmParameterException, OperatorCreationException,
           CertificateException {
     final KeyPair keyPair =
-        KeyTools.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
+        KeyUtil.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
     final X509Certificate x509Certificate1 =
         CertTools.genSelfCert(
             "CN=ClientX509TrustManagerTest1",

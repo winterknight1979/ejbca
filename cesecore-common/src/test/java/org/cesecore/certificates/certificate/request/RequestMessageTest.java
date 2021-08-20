@@ -37,10 +37,10 @@ import org.bouncycastle.asn1.x509.ExtensionsGenerator;
 import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
-import org.cesecore.keys.util.KeyTools;
-import org.cesecore.util.Base64;
+import org.cesecore.keys.util.KeyUtil;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -61,8 +61,8 @@ public class RequestMessageTest {
   public static void beforeClass()
       throws NoSuchAlgorithmException, NoSuchProviderException,
           InvalidAlgorithmParameterException {
-    CryptoProviderTools.installBCProviderIfNotAvailable();
-    keyPair = KeyTools.genKeys("512", null, "RSA");
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
+    keyPair = KeyUtil.genKeys("512", null, "RSA");
   }
 
   /**
@@ -97,7 +97,7 @@ public class RequestMessageTest {
 
     // Check public key
     PublicKey pk = msg.getRequestPublicKey();
-    KeyTools.testKey(keyPair.getPrivate(), pk, "BC");
+    KeyUtil.testKey(keyPair.getPrivate(), pk, "BC");
     PKCS10RequestMessage msgempty = new PKCS10RequestMessage();
     assertNull(msgempty.getRequestPublicKey());
 
@@ -105,7 +105,7 @@ public class RequestMessageTest {
     assertTrue(msg.verify());
     assertTrue(msg.verify(pk));
     try {
-      KeyPair otherkeys = KeyTools.genKeys("512", "RSA");
+      KeyPair otherkeys = KeyUtil.genKeys("512", "RSA");
       assertFalse(msg.verify(otherkeys.getPublic()));
     } catch (InvalidAlgorithmParameterException e) {
       assertTrue("Should not throw", false);
@@ -325,7 +325,7 @@ public class RequestMessageTest {
 
   /** a P10 with a PKCS#9 challengePassword encoded as UTF8String. */
   private static byte[] p10utf8StringPwd =
-      Base64.decode(
+      Base64Util.decode(
           ("MIIBITCBzAIBADBHMQswCQYDVQQGEwJTRTETMBEGA1UECAwKU29tZS1TdGF0ZTER"
            + "MA8GA1UECgwIUHJpbWVLZXkxEDAOBgNVBAMMB3AxMHRlc3QwXDANBgkqhkiG9w0B"
            + "AQEFAANLADBIAkEArE7GcTm9U3rEqTfldN+Ja3FnMhZXfq3Uq4AWi2VPVqEDmJzX"
@@ -337,7 +337,7 @@ public class RequestMessageTest {
 
   /** a P10 with a PKCS#9 challengePassword encoded as IA5String. */
   private static byte[] p10ia5StringPwd =
-      Base64.decode(
+      Base64Util.decode(
           ("MIICyzCCAbMCAQAwVzELMAkGA1UEBhMCTkwxDTALBgNVBAoTBEJDSUUxIzAhBgNV"
            + "BAsUGk1RX1F1ZXVlX01hbmFnZXItb250d2lra2VsMRQwEgYDVQQDEwtRT0xCTVdV"
            + "MzBPMzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANqGLzOMWBAFjbZ0"
@@ -357,7 +357,7 @@ public class RequestMessageTest {
 
   /** a P10 with a PKCS#9 challengePassword encoded as PrintableString.*/
   private static byte[] p10printableStringPwd =
-      Base64.decode(
+      Base64Util.decode(
           ("MIICyzCCAbMCAQAwVzELMAkGA1UEBhMCTkwxDTALBgNVBAoTBEJDSUUxIzAhBgNV"
            + "BAsUGk1RX1F1ZXVlX01hbmFnZXItb250d2lra2VsMRQwEgYDVQQDEwtRT0xCTVdV"
            + "MzBPMTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAN07joDr5Qe+DEIZ"

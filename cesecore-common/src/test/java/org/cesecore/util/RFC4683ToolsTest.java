@@ -45,7 +45,7 @@ public class RFC4683ToolsTest {
   @BeforeClass
   public static void beforeClass() throws Exception {
     // Install BouncyCastle provider
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
   }
   /**
    * Test.
@@ -54,7 +54,7 @@ public class RFC4683ToolsTest {
   @SuppressWarnings("unchecked")
   public void testGetAllowedHashAlgorithms() {
     assertEquals(
-        RFC4683Tools.getAllowedHashAlgorithms(),
+        RFC4683Util.getAllowedHashAlgorithms(),
         new ArrayList<ASN1ObjectIdentifier>(TSPAlgorithms.ALLOWED));
   }
   /**
@@ -63,12 +63,12 @@ public class RFC4683ToolsTest {
   @Test
   public void testGetAllowedHashAlgorithmOidStrings() {
     final List<ASN1ObjectIdentifier> identifiers =
-        RFC4683Tools.getAllowedHashAlgorithms();
+        RFC4683Util.getAllowedHashAlgorithms();
     final List<String> oids = new ArrayList<String>(identifiers.size());
     for (ASN1ObjectIdentifier identifier : identifiers) {
       oids.add(identifier.getId());
     }
-    assertEquals(RFC4683Tools.getAllowedHashAlgorithmOidStrings(), oids);
+    assertEquals(RFC4683Util.getAllowedHashAlgorithmOidStrings(), oids);
   }
   /**
    * Test.
@@ -81,14 +81,14 @@ public class RFC4683ToolsTest {
     // 1. Test SANs.
     // 1a. Test empty SAN -> nothing happens.
     String san = "";
-    assertEquals(RFC4683Tools.generateSimForInternalSanFormat(san), san);
+    assertEquals(RFC4683Util.generateSimForInternalSanFormat(san), san);
     // 1b. Test SAN without 'subjectIdentificationMethod' -> nothing happens.
     san = "DNSNAME=localhost";
-    assertEquals(RFC4683Tools.generateSimForInternalSanFormat(san), san);
+    assertEquals(RFC4683Util.generateSimForInternalSanFormat(san), san);
     // 1c. Test SAN with 'subjectIdentificationMethod' but without SIM
     // parameters -> nothing happens.
     san = "SUBJECTIDENTIFICATIONMETHOD=, DNSNAME=localhost";
-    assertEquals(RFC4683Tools.generateSimForInternalSanFormat(san), san);
+    assertEquals(RFC4683Util.generateSimForInternalSanFormat(san), san);
     // 1d: Test SAN with 'subjectIdentificationMethod' but with wrong number of
     // SIM parameters.
     san =
@@ -96,7 +96,7 @@ public class RFC4683ToolsTest {
         + ":SsiType::abc::abc,"
             + " DNSNAME=localhost";
     try {
-      RFC4683Tools.generateSimForInternalSanFormat(san);
+      RFC4683Util.generateSimForInternalSanFormat(san);
       fail(
           "An illegal number SIM parameters should throw an"
               + " IllegalArgumentException: "
@@ -109,14 +109,14 @@ public class RFC4683ToolsTest {
         "SUBJECTIDENTIFICATIONMETHOD=2.16.840.1.101.3.4.2.1::MyStrongPassword:"
         + ":SsiType::SsiValue,"
             + " DNSNAME=localhost";
-    RFC4683Tools.generateSimForInternalSanFormat(san);
+    RFC4683Util.generateSimForInternalSanFormat(san);
     // Calculated SIM (3 tokens) -> nothing happens
     san =
         "SUBJECTIDENTIFICATIONMETHOD=2.16.840.1.101.3.4.2.1:"
         + ":CB3AE7FBFFFD9C85A3FB234E51FFFD2190B1F8F161C0A2873B998EFAC067B03A:"
         + ":6D9E6264DDBD0FC997B9B40524247C8BC319D02A583F4B499DD3ECAF06C786DF,"
             + " DNSNAME=localhost";
-    assertEquals(RFC4683Tools.generateSimForInternalSanFormat(san), san);
+    assertEquals(RFC4683Util.generateSimForInternalSanFormat(san), san);
   }
   /**
    * Test.
@@ -198,7 +198,7 @@ public class RFC4683ToolsTest {
   private void assertIAEForGenerateInternalSimString(
       final String[] parameters, final String message) {
     try {
-      RFC4683Tools.generateInternalSimString(
+      RFC4683Util.generateInternalSimString(
           parameters[0], parameters[1], parameters[2], parameters[3]);
       fail("An IllegalArgumentException should have been thrown: " + message);
     } catch (IllegalArgumentException
@@ -224,7 +224,7 @@ public class RFC4683ToolsTest {
           "Sensitive identifier information"
         };
     final String internalSimString =
-        RFC4683Tools.generateInternalSimString(
+        RFC4683Util.generateInternalSimString(
             simParameters[0],
             simParameters[1],
             simParameters[2],
@@ -240,7 +240,7 @@ public class RFC4683ToolsTest {
       final String[] simParameters, final String[] simTokens)
       throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
     final ASN1Primitive generalName =
-        RFC4683Tools.createSimGeneralName(
+        RFC4683Util.createSimGeneralName(
             simTokens[0], simTokens[1], simTokens[2]);
     final DERSequence simSequence =
         ((DERSequence)
@@ -278,7 +278,7 @@ public class RFC4683ToolsTest {
         ASN1Sequence.getInstance(
             ((DERTaggedObject) generalName.toASN1Primitive()).getObject());
     final String simStringBySequence =
-        RFC4683Tools.getSimStringSequence(otherName);
+        RFC4683Util.getSimStringSequence(otherName);
     assertEquals(
         "The SIM string, extracted by its ASN.1 structure must match the"
             + " original.",

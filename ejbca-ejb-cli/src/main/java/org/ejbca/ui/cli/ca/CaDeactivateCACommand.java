@@ -20,7 +20,7 @@ import org.cesecore.certificates.ca.CADoesntExistsException;
 import org.cesecore.certificates.ca.CAInfo;
 import org.cesecore.certificates.ca.CaSessionRemote;
 import org.cesecore.keys.token.CryptoTokenManagementSessionRemote;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.cesecore.util.EjbRemoteHelper;
 import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionRemote;
 import org.ejbca.ui.cli.infrastructure.command.CommandResult;
@@ -67,7 +67,7 @@ public class CaDeactivateCACommand extends BaseCaAdminCommand {
 
     String caname = parameters.get(CA_NAME_KEY);
     try {
-      CryptoProviderTools.installBCProvider();
+      CryptoProviderUtil.installBCProvider();
       // Get the CAs info and id
       CAInfo cainfo =
           EjbRemoteHelper.INSTANCE

@@ -15,6 +15,7 @@ package org.cesecore.util;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import org.apache.log4j.Logger;
+import org.cesecore.CesecoreRuntimeException;
 
 /**
  * Helper object to convert from JDBC driver specific objects to a unified form.
@@ -48,7 +49,7 @@ public abstract class ValueExtractor {
     } catch (Exception e) {
       final Class<?> c = object.getClass();
       LOG.error(c.getName() + ", isPrimitive=" + c.isPrimitive(), e);
-      throw new RuntimeException(e);
+      throw new CesecoreRuntimeException(e);
     }
   }
 
@@ -68,7 +69,7 @@ public abstract class ValueExtractor {
     } catch (Exception e) {
       final Class<?> c = object.getClass();
       LOG.error(c.getName() + ", isPrimitive=" + c.isPrimitive(), e);
-      throw new RuntimeException(e);
+      throw new CesecoreRuntimeException(e);
     }
   }
 
@@ -110,7 +111,7 @@ public abstract class ValueExtractor {
         ret = objects[0];
       } else {
         if (objects.length > 1) {
-          throw new RuntimeException(
+          throw new CesecoreRuntimeException(
               "Unsupported object type to convert to "
                   + clazz.getSimpleName()
                   + ". Was: objects.length="
@@ -124,7 +125,7 @@ public abstract class ValueExtractor {
                   + ": "
                   + objects[1]);
         } else {
-          throw new RuntimeException(
+          throw new CesecoreRuntimeException(
               "Unsupported object type to convert to "
                   + clazz.getSimpleName()
                   + ". Was: objects.length="

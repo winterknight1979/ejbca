@@ -31,7 +31,7 @@ import org.cesecore.certificates.ca.CAInfo;
 import org.cesecore.certificates.ca.CaSessionLocal;
 import org.cesecore.certificates.certificateprofile.CertificateProfile;
 import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.core.ejb.approval.ApprovalProfileDoesNotExistException;
 import org.ejbca.core.ejb.approval.ApprovalProfileExistsException;
 import org.ejbca.core.ejb.approval.ApprovalProfileSessionLocal;
@@ -227,7 +227,7 @@ public class ApprovalProfilesMBean extends BaseManagedBean
    */
   public void setApprovalProfileName(final String oapprovalProfileName) {
     String anapprovalProfileName = oapprovalProfileName.trim();
-    if (StringTools.checkFieldForLegalChars(anapprovalProfileName)) {
+    if (StringUtil.checkFieldForLegalChars(anapprovalProfileName)) {
       addErrorMessage("ONLYCHARACTERS");
     } else {
       this.approvalProfileName = anapprovalProfileName;

@@ -24,9 +24,9 @@ import org.cesecore.certificates.ca.catoken.CAToken;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceInfo;
 import org.cesecore.certificates.certificate.CertificateWrapper;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.EJBTools;
+import org.cesecore.util.EJBUtil;
 import org.cesecore.util.SimpleTime;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 
 /**
  * Holds non sensitive information about a CA.
@@ -162,7 +162,7 @@ public abstract class CAInfo implements Serializable {
   /** @param aSubjectDn DN */
   public void setSubjectDN(final String aSubjectDn) {
     this.subjectdn =
-        CertTools.stringToBCDNString(StringTools.strip(aSubjectDn));
+        CertTools.stringToBCDNString(StringUtil.strip(aSubjectDn));
   }
 
   /** @return ID */
@@ -273,7 +273,7 @@ public abstract class CAInfo implements Serializable {
       return null;
     }
     if (certificatechainCached == null) {
-      certificatechainCached = EJBTools.unwrapCertCollection(certificatechain);
+      certificatechainCached = EJBUtil.unwrapCertCollection(certificatechain);
     }
     return certificatechainCached;
   }
@@ -281,7 +281,7 @@ public abstract class CAInfo implements Serializable {
   /** @param aCertificatechain chain */
   public void setCertificateChain(final List<Certificate> aCertificatechain) {
     this.certificatechainCached = aCertificatechain;
-    this.certificatechain = EJBTools.wrapCertCollection(aCertificatechain);
+    this.certificatechain = EJBUtil.wrapCertCollection(aCertificatechain);
   }
 
   /** @return chain */
@@ -291,7 +291,7 @@ public abstract class CAInfo implements Serializable {
     }
     if (renewedcertificatechainCached == null) {
       renewedcertificatechainCached =
-          EJBTools.unwrapCertCollection(renewedcertificatechain);
+          EJBUtil.unwrapCertCollection(renewedcertificatechain);
     }
     return renewedcertificatechainCached;
   }
@@ -301,7 +301,7 @@ public abstract class CAInfo implements Serializable {
      final Collection<Certificate> aCertificatechain) {
     this.renewedcertificatechainCached = aCertificatechain;
     this.renewedcertificatechain =
-        EJBTools.wrapCertCollection(aCertificatechain);
+        EJBUtil.wrapCertCollection(aCertificatechain);
   }
 
   /** @return token */

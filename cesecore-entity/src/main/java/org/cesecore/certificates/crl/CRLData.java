@@ -28,7 +28,7 @@ import javax.persistence.Transient;
 import org.apache.log4j.Logger;
 import org.cesecore.dbprotection.ProtectedData;
 import org.cesecore.dbprotection.ProtectionStringBuilder;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.QueryResultWrapper;
 
@@ -88,7 +88,7 @@ public class CRLData extends ProtectedData implements Serializable {
       final Date aNextUpdate,
       final String cafingerprint,
       final int aDeltaCRLIndicator) {
-    String b64Crl = new String(Base64.encode(incrl));
+    String b64Crl = new String(Base64Util.encode(incrl));
     setBase64Crl(b64Crl);
     String fp = CertTools.getFingerprintAsString(incrl);
     setFingerprint(fp);
@@ -280,7 +280,7 @@ public class CRLData extends ProtectedData implements Serializable {
     X509CRL crl = null;
     try {
       String b64Crl = getBase64Crl();
-      crl = CertTools.getCRLfromByteArray(Base64.decode(b64Crl.getBytes()));
+      crl = CertTools.getCRLfromByteArray(Base64Util.decode(b64Crl.getBytes()));
     } catch (CRLException ce) {
       LOG.error("Can't decode CRL.", ce);
       return null;
@@ -293,7 +293,7 @@ public class CRLData extends ProtectedData implements Serializable {
    */
   public void setCRL(final X509CRL incrl) {
     try {
-      String b64Crl = new String(Base64.encode((incrl).getEncoded()));
+      String b64Crl = new String(Base64Util.encode((incrl).getEncoded()));
       setBase64Crl(b64Crl);
     } catch (CRLException ce) {
       LOG.error("Can't extract DER encoded CRL.", ce);
@@ -307,7 +307,7 @@ public class CRLData extends ProtectedData implements Serializable {
   public byte[] getCRLBytes() {
     byte[] crl = null;
     String b64Crl = getBase64Crl();
-    crl = Base64.decode(b64Crl.getBytes());
+    crl = Base64Util.decode(b64Crl.getBytes());
     return crl;
   }
 

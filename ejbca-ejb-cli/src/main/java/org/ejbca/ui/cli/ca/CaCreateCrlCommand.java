@@ -16,7 +16,7 @@ package org.ejbca.ui.cli.ca;
 import org.apache.log4j.Logger;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.certificates.ca.CADoesntExistsException;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.ejbca.ui.cli.infrastructure.command.CommandResult;
 import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
 import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
@@ -71,7 +71,7 @@ public class CaCreateCrlCommand extends BaseCaAdminCommand {
     if (caName == null) {
       createCRL((String) null, deltaCrl);
     } else {
-      CryptoProviderTools.installBCProvider();
+      CryptoProviderUtil.installBCProvider();
       // createCRL prints info about crl generation
       try {
         String issuerDn = getIssuerDN(getAuthenticationToken(), caName);

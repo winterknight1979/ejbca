@@ -34,7 +34,7 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.SerializationUtils;
 import org.apache.commons.lang.StringUtils;
 import org.cesecore.authorization.user.AccessMatchType;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.LookAheadObjectInputStream;
 
 /**
@@ -43,7 +43,7 @@ import org.cesecore.util.LookAheadObjectInputStream;
  * @version $Id: DynamicUiProperty.java 34324 2020-01-17 12:22:39Z henriks $
  * @param <T> Type
  */
-public class DynamicUiProperty<T extends Serializable>
+public class DynamicUiProperty<T extends Serializable> // NOPMD
     implements Serializable, Cloneable {
 
   private static final long serialVersionUID = 1L;
@@ -692,7 +692,7 @@ public class DynamicUiProperty<T extends Serializable>
    * @return the base 64 encoded string.
    */
   public String getAsEncodedValue(final Serializable value) {
-    return new String(Base64.encode(getAsByteArray(value), false));
+    return new String(Base64Util.encode(getAsByteArray(value), false));
   }
 
   /**
@@ -704,7 +704,7 @@ public class DynamicUiProperty<T extends Serializable>
   private List<String> getAsEncodedValues(final List<T> list) {
     final List<String> result = new ArrayList<>();
     for (final Serializable value : list) {
-      result.add(new String(Base64.encode(getAsByteArray(value), false)));
+      result.add(new String(Base64Util.encode(getAsByteArray(value), false)));
     }
     return result;
   }
@@ -719,7 +719,7 @@ public class DynamicUiProperty<T extends Serializable>
   public void setEncodedValue(final String encodedValue) {
     try {
       setValue(
-          (T) getAsObject(Base64.decode(encodedValue.getBytes()), getType()));
+        (T) getAsObject(Base64Util.decode(encodedValue.getBytes()), getType()));
     } catch (PropertyValidationException e) {
       throw new IllegalArgumentException(
           "Invalid value was intercepted from an encoded source, which should"
@@ -742,7 +742,7 @@ public class DynamicUiProperty<T extends Serializable>
     List<T> decodedValues = new ArrayList<>();
     for (String encodedValue : encodedValues) {
       decodedValues.add(
-          (T) getAsObject(Base64.decode(encodedValue.getBytes()), getType()));
+        (T) getAsObject(Base64Util.decode(encodedValue.getBytes()), getType()));
     }
     setValues(decodedValues);
   }
@@ -866,7 +866,7 @@ public class DynamicUiProperty<T extends Serializable>
    */
   public static <T extends Serializable> T getAsObject(
       final String encodedValue, final Class<T> type) {
-    return getAsObject(Base64.decode(encodedValue.getBytes()), type);
+    return getAsObject(Base64Util.decode(encodedValue.getBytes()), type);
   }
 
   /**
@@ -1192,7 +1192,7 @@ public class DynamicUiProperty<T extends Serializable>
     if (getHasMultipleValues()) {
       result = RENDER_SELECT_MANY;
     } else {
-      if (!Boolean.class.equals(getType())) {
+      if (!Boolean.class.equals(getType())) { // NOPMD
         // NOOP
       } else {
         result = RENDER_CHECKBOX;

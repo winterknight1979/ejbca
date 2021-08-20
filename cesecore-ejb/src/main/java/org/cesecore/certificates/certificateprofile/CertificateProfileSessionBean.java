@@ -42,10 +42,10 @@ import org.cesecore.authorization.AuthorizationSessionLocal;
 import org.cesecore.authorization.control.StandardRules;
 import org.cesecore.certificates.ca.CaSessionLocal;
 import org.cesecore.certificates.certificate.CertificateConstants;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.internal.InternalResources;
 import org.cesecore.jndi.JndiConstants;
-import org.cesecore.util.ProfileID;
+import org.cesecore.util.ProfileIDUtil;
 
 /**
  * Bean managing certificate profiles, see CertificateProfileSession for
@@ -72,7 +72,7 @@ public class CertificateProfileSessionBean
       InternalResources.getInstance();
 
   /** EM. */
-  @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+  @PersistenceContext(unitName = CesecoreConfigurationHelper.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
   /** CA. */
@@ -701,8 +701,8 @@ public class CertificateProfileSessionBean
   }
 
   private int findFreeCertificateProfileId() {
-    final ProfileID.DB db =
-        new ProfileID.DB() {
+    final ProfileIDUtil.DB db =
+        new ProfileIDUtil.DB() {
           @Override
           public boolean isFree(final int i) {
             return CertificateProfileData.findById(
@@ -710,7 +710,7 @@ public class CertificateProfileSessionBean
                 == null;
           }
         };
-    return ProfileID.getNotUsedID(db);
+    return ProfileIDUtil.getNotUsedID(db);
   }
 
   private boolean isFreeCertificateProfileId(final int id) {

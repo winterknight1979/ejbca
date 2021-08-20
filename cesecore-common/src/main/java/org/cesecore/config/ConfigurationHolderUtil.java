@@ -46,10 +46,11 @@ import org.apache.log4j.Logger;
  * @version $Id: ConfigurationHolder.java 31725 2019-03-07 10:05:50Z
  *     tarmo_r_helmes $
  */
-public final class ConfigurationHolder {
+public final class ConfigurationHolderUtil {
 
     /** Logger. */
-  private static final Logger LOG = Logger.getLogger(ConfigurationHolder.class);
+  private static final Logger LOG = Logger.getLogger(
+          ConfigurationHolderUtil.class);
 
   /** defaults. */
   private static volatile CompositeConfiguration defaultValues;
@@ -87,7 +88,7 @@ public final class ConfigurationHolder {
   /**
    * This is a singleton so it's not allowed to create an instance explicitly.
    */
-  private ConfigurationHolder() { }
+  private ConfigurationHolderUtil() { }
 
   /**
    * @return config
@@ -97,24 +98,16 @@ public final class ConfigurationHolder {
       // Read in default values
       defaultValues = new CompositeConfiguration();
       final URL defaultConfigUrl =
-          ConfigurationHolder.class.getResource(DEFAULT_CONFIG_FILE);
-      try {
-        defaultValues.addConfiguration(
-            new PropertiesConfiguration(defaultConfigUrl));
-      } catch (ConfigurationException e) {
-        LOG.error(
-            "Error encountered when loading default properties. Could not load"
-                + " configuration from "
-                + defaultConfigUrl,
-            e);
-      }
+          ConfigurationHolderUtil.class.getResource(DEFAULT_CONFIG_FILE);
+      loadConfig(defaultConfigUrl);
 
       // read cesecore.properties, from config file built into jar, and see if
       // we allow configuration by external files
       boolean allowexternal = false;
       try {
         final URL url =
-            ConfigurationHolder.class.getResource("/conf/" + CONFIG_FILES[0]);
+            ConfigurationHolderUtil.class.getResource(
+                    "/conf/" + CONFIG_FILES[0]);
         if (url != null) {
           final PropertiesConfiguration pc = new PropertiesConfiguration(url);
           allowexternal =
@@ -179,7 +172,7 @@ public final class ConfigurationHolder {
       // Load internal.properties only from built in configuration file
       try {
         final URL url =
-            ConfigurationHolder.class.getResource("/internal.properties");
+            ConfigurationHolderUtil.class.getResource("/internal.properties");
         if (url != null) {
           final PropertiesConfiguration pc = new PropertiesConfiguration(url);
           config.addConfiguration(pc);
@@ -193,6 +186,22 @@ public final class ConfigurationHolder {
     }
     return config;
   }
+
+/**
+ * @param defaultConfigUrl url
+ */
+private static void loadConfig(final URL defaultConfigUrl) {
+    try {
+        defaultValues.addConfiguration(
+            new PropertiesConfiguration(defaultConfigUrl));
+      } catch (ConfigurationException e) {
+        LOG.error(
+            "Error encountered when loading default properties. Could not load"
+                + " configuration from "
+                + defaultConfigUrl,
+            e);
+      }
+}
 
   private static synchronized void addConfiguration(
       final PropertiesConfiguration pc) {
@@ -252,7 +261,7 @@ public final class ConfigurationHolder {
       LOG.debug("Add resource to configuration: " + resourcename);
     }
     try {
-      final URL url = ConfigurationHolder.class.getResource(resourcename);
+      final URL url = ConfigurationHolderUtil.class.getResource(resourcename);
       if (url != null) {
         final PropertiesConfiguration pc = new PropertiesConfiguration(url);
         addConfiguration(pc);

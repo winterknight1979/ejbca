@@ -68,10 +68,10 @@ import org.cesecore.config.GlobalCesecoreConfiguration;
 import org.cesecore.configuration.GlobalConfigurationSessionLocal;
 import org.cesecore.roles.Role;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.EJBTools;
+import org.cesecore.util.EJBUtil;
 import org.cesecore.util.FileTools;
 import org.cesecore.util.SecureXMLDecoder;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.config.GlobalConfiguration;
 import org.ejbca.config.WebConfiguration;
 import org.ejbca.core.ejb.hardtoken.HardTokenSessionLocal;
@@ -664,7 +664,7 @@ public class RAInterfaceBean implements Serializable {
       final String serialnumber, final int index, final int size)
       throws NumberFormatException {
     final BigInteger serno =
-        new BigInteger(StringTools.stripWhitespace(serialnumber), 16);
+        new BigInteger(StringUtil.stripWhitespace(serialnumber), 16);
     final List<CertificateDataWrapper> cdws =
         certificatesession.getCertificateDataBySerno(serno);
     final List<EndEntityInformation> userlist = new ArrayList<>();
@@ -1415,7 +1415,7 @@ public class RAInterfaceBean implements Serializable {
       }
     }
     return returnval
-        && keyrecoverysession.existsKeys(EJBTools.wrap(cert))
+        && keyrecoverysession.existsKeys(EJBUtil.wrap(cert))
         && !keyrecoverysession.isUserMarked(username);
   }
 

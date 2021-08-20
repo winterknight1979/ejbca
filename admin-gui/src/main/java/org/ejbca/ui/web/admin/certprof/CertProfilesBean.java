@@ -42,7 +42,7 @@ import org.cesecore.certificates.certificateprofile.CertificateProfileDoesNotExi
 import org.cesecore.certificates.certificateprofile.CertificateProfileExistsException;
 import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
 import org.cesecore.util.SecureXMLDecoder;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.core.model.ca.publisher.BasePublisher;
 import org.ejbca.ui.web.admin.BaseManagedBean;
 
@@ -616,7 +616,7 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
    */
   public void setCertProfileName(final String oacertProfileName) {
     String acertProfileName = oacertProfileName.trim();
-    if (StringTools.checkFieldForLegalChars(acertProfileName)) {
+    if (StringUtil.checkFieldForLegalChars(acertProfileName)) {
       addErrorMessage("ONLYCHARACTERS");
     } else {
       this.certProfileName = acertProfileName;

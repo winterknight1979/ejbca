@@ -20,7 +20,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CertTools;
 import org.junit.Test;
 
@@ -66,7 +66,7 @@ public class RocaBrokenKeyValidatorTest {
       throws NoSuchAlgorithmException, InvalidKeySpecException {
     X509EncodedKeySpec spec =
         new X509EncodedKeySpec(
-            KeyTools.getBytesFromPEM(
+            KeyUtil.getBytesFromPEM(
                 knownVulnerableKey,
                 CertTools.BEGIN_PUBLIC_KEY,
                 CertTools.END_PUBLIC_KEY));
@@ -74,7 +74,7 @@ public class RocaBrokenKeyValidatorTest {
     RSAPublicKey knownBadPublicKey = (RSAPublicKey) kf.generatePublic(spec);
     assertTrue(
         "Known vulnerable public key was not caught",
-        RocaBrokenKey.isAffected(knownBadPublicKey.getModulus()));
+        RocaBrokenKeyUtil.isAffected(knownBadPublicKey.getModulus()));
   }
 
   /**
@@ -88,7 +88,7 @@ public class RocaBrokenKeyValidatorTest {
       throws NoSuchAlgorithmException, InvalidKeySpecException {
     X509EncodedKeySpec spec =
         new X509EncodedKeySpec(
-            KeyTools.getBytesFromPEM(
+            KeyUtil.getBytesFromPEM(
                 knownGoodKey,
                 CertTools.BEGIN_PUBLIC_KEY,
                 CertTools.END_PUBLIC_KEY));
@@ -96,6 +96,6 @@ public class RocaBrokenKeyValidatorTest {
     RSAPublicKey knownBadPublicKey = (RSAPublicKey) kf.generatePublic(spec);
     assertFalse(
         "Known good public key was falsely caught",
-        RocaBrokenKey.isAffected(knownBadPublicKey.getModulus()));
+        RocaBrokenKeyUtil.isAffected(knownBadPublicKey.getModulus()));
   }
 }

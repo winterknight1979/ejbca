@@ -83,23 +83,26 @@ private static final String WARN_PREFIX = "log4j warning: ";
    * @return true if an error has happened, false if logging works fine.
    */
   public static boolean hasFailedSince(final Date date) {
-    if (lastFailure != null) {
-      if (lastFailure.after(date)) {
-        return true;
-      }
-    }
-    return false;
+    return lastFailure != null
+      && lastFailure.after(date);
   }
 
   /** Does not do anything. */
   @Override
-  public void setLogger(final Logger logger) { }
+  public void setLogger(final Logger logger) {
+      // NO-op
+  }
 
   /** Does not do anything. */
   @Override
-  public void setAppender(final Appender appender) { }
+  public void setAppender(final Appender appender) {
+      // No-op
+  }
 
   /** Does not do anything. */
   @Override
-  public void setBackupAppender(final Appender appender) { }
+  public void setBackupAppender(final Appender appender) {
+      // No-op
+  }
+
 }

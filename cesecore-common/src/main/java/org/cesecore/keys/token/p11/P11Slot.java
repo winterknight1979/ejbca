@@ -66,7 +66,7 @@ public final class P11Slot {
       final String aSlotLabel,
       final String aSharedLibrary,
       final String attributesFile,
-      final String friendlyName,
+      final String friendlyName, // NOPMD: leave this here for compat.
       final boolean addProvider)
       throws NoSuchSlotException {
     this.slotLabelType = aSlotLabelType;

@@ -14,7 +14,7 @@ package org.ejbca.core.protocol.ws.objects;
 
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 import org.cesecore.util.CertTools;
 
 /**
@@ -41,7 +41,7 @@ public class CertificateResponse {
    * @param thedata non-base64 encoded
    */
   public CertificateResponse(String aresponseType, byte[] thedata) {
-    this.data = Base64.encode(thedata);
+    this.data = Base64Util.encode(thedata);
     this.responseType = aresponseType;
   }
 
@@ -90,6 +90,6 @@ public class CertificateResponse {
    * @return fail
    */
   public byte[] getRawData() {
-    return Base64.decode(data);
+    return Base64Util.decode(data);
   }
 }

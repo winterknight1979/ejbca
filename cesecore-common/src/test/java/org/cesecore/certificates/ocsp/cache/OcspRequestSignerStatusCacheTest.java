@@ -18,7 +18,7 @@ import static org.junit.Assert.assertNull;
 
 import java.math.BigInteger;
 import org.cesecore.certificates.certificate.CertificateStatus;
-import org.cesecore.config.ConfigurationHolder;
+import org.cesecore.config.ConfigurationHolderUtil;
 import org.cesecore.config.OcspConfiguration;
 import org.junit.After;
 import org.junit.Before;
@@ -41,13 +41,13 @@ public class OcspRequestSignerStatusCacheTest {
   public void before() {
     OcspRequestSignerStatusCache.INSTANCE.flush();
     defaultConfigurationValue =
-        ConfigurationHolder.getString(
+        ConfigurationHolderUtil.getString(
             OcspConfiguration.REQUEST_SIGNING_CERT_REVOCATION_CACHE_TIME);
   }
  /** Teardown. */
   @After
   public void after() {
-    ConfigurationHolder.updateConfiguration(
+    ConfigurationHolderUtil.updateConfiguration(
         OcspConfiguration.REQUEST_SIGNING_CERT_REVOCATION_CACHE_TIME,
         defaultConfigurationValue);
   }
@@ -82,7 +82,7 @@ public class OcspRequestSignerStatusCacheTest {
    */
   @Test
   public void testCacheDisabled() throws Exception {
-    ConfigurationHolder.updateConfiguration(
+    ConfigurationHolderUtil.updateConfiguration(
         OcspConfiguration.REQUEST_SIGNING_CERT_REVOCATION_CACHE_TIME, "0");
     final String key1 =
         OcspRequestSignerStatusCache.INSTANCE.createCacheLookupKey(
@@ -112,7 +112,7 @@ public class OcspRequestSignerStatusCacheTest {
    */
   @Test
   public void testCacheExpired() throws Exception {
-    ConfigurationHolder.updateConfiguration(
+    ConfigurationHolderUtil.updateConfiguration(
         OcspConfiguration.REQUEST_SIGNING_CERT_REVOCATION_CACHE_TIME, "1000");
     final String key1 =
         OcspRequestSignerStatusCache.INSTANCE.createCacheLookupKey(
@@ -146,7 +146,7 @@ public class OcspRequestSignerStatusCacheTest {
    */
   @Test
   public void testCacheEnabled() throws Exception {
-    ConfigurationHolder.updateConfiguration(
+    ConfigurationHolderUtil.updateConfiguration(
         OcspConfiguration.REQUEST_SIGNING_CERT_REVOCATION_CACHE_TIME, "60000");
     final String key1 =
         OcspRequestSignerStatusCache.INSTANCE.createCacheLookupKey(

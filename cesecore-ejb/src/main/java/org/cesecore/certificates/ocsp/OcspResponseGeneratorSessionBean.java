@@ -139,7 +139,7 @@ import org.cesecore.certificates.ocsp.logging.PatternLogger;
 import org.cesecore.certificates.ocsp.logging.TransactionLogger;
 import org.cesecore.certificates.util.AlgorithmTools;
 import org.cesecore.config.AvailableExtendedKeyUsagesConfiguration;
-import org.cesecore.config.ConfigurationHolder;
+import org.cesecore.config.ConfigurationHolderUtil;
 import org.cesecore.config.GlobalOcspConfiguration;
 import org.cesecore.config.OcspConfiguration;
 import org.cesecore.configuration.GlobalConfigurationSessionLocal;
@@ -164,7 +164,7 @@ import org.cesecore.keys.token.CryptoTokenSessionLocal;
 import org.cesecore.keys.token.PKCS11CryptoToken;
 import org.cesecore.keys.token.SoftCryptoToken;
 import org.cesecore.keys.token.p11.Pkcs11SlotLabelType;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.util.CeSecoreNameStyle;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.log.ProbableErrorHandler;
@@ -2699,9 +2699,9 @@ public class OcspResponseGeneratorSessionBean
     //  if "ocsp.rekeying.swKeystorePath" isn't set, search the p11 slot later
     // on for an entry with an SSL certificate and use this
     final String swKeystorePath =
-        ConfigurationHolder.getString("ocsp.rekeying.swKeystorePath");
+        ConfigurationHolderUtil.getString("ocsp.rekeying.swKeystorePath");
     final String swKeystorePassword =
-        ConfigurationHolder.getString("ocsp.rekeying.swKeystorePassword");
+        ConfigurationHolderUtil.getString("ocsp.rekeying.swKeystorePassword");
     if (swKeystorePath != null
         && (swKeystorePassword != null || activationPassword != null)) {
       final String password =
@@ -3320,7 +3320,7 @@ public class OcspResponseGeneratorSessionBean
             try {
               final String providerName =
                   ocspSigningCacheEntry.getSignatureProviderName();
-              KeyTools.testKey(
+              KeyUtil.testKey(
                   privateKey,
                   ocspSigningCertificate.getPublicKey(),
                   providerName);

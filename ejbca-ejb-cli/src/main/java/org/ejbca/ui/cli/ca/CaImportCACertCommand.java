@@ -33,8 +33,8 @@ import org.cesecore.certificates.ca.CaSessionRemote;
 import org.cesecore.certificates.certificate.request.X509ResponseMessage;
 import org.cesecore.keys.token.IllegalCryptoTokenException;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.CryptoProviderTools;
-import org.cesecore.util.EJBTools;
+import org.cesecore.util.CryptoProviderUtil;
+import org.cesecore.util.EJBUtil;
 import org.cesecore.util.EjbRemoteHelper;
 import org.ejbca.core.EjbcaException;
 import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionRemote;
@@ -129,7 +129,7 @@ public class CaImportCACertCommand extends BaseCaAdminCommand {
       return CommandResult.FUNCTIONAL_FAILURE;
     }
     try {
-      CryptoProviderTools.installBCProviderIfNotAvailable();
+      CryptoProviderUtil.installBCProviderIfNotAvailable();
       Certificate certificate;
       Collection<Certificate> certs;
       try {
@@ -202,7 +202,7 @@ public class CaImportCACertCommand extends BaseCaAdminCommand {
         caAdminSession.importCACertificate(
             getAuthenticationToken(),
             caName,
-            EJBTools.wrapCertCollection(certs));
+            EJBUtil.wrapCertCollection(certs));
         LOG.info("Imported CA " + caName);
         return CommandResult.SUCCESS;
       }
@@ -244,7 +244,7 @@ public class CaImportCACertCommand extends BaseCaAdminCommand {
         caAdminSession.updateCACertificate(
             getAuthenticationToken(),
             cainfo.getCAId(),
-            EJBTools.wrapCertCollection(certs));
+            EJBUtil.wrapCertCollection(certs));
         LOG.info(
             "Updated certificate chain for imported external CA " + caName);
       } else {

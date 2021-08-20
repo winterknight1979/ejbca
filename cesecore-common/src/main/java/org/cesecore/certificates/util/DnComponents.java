@@ -45,7 +45,6 @@ import org.cesecore.util.CeSecoreNameStyle;
  */
 public final class DnComponents {
 
-    private DnComponents() { }
 
     /** Logger. */
   private static Logger log = Logger.getLogger(DnComponents.class);
@@ -335,6 +334,7 @@ public final class DnComponents {
     DnComponents.load();
   }
 
+  private DnComponents() { }
   /**
    * @param dnName name
    * @return id
@@ -622,7 +622,7 @@ public final class DnComponents {
    *
    * @param propertiesFile File
    */
-  private static void loadProfileMappingsFromFile(
+  private static void loadProfileMappingsFromFile(// NOPMD: length
           final String propertiesFile) {
     // Read the file to an array of lines
     String line;
@@ -644,7 +644,7 @@ public final class DnComponents {
         while ((line = in.readLine()) != null) {
           if (!line.startsWith("#")) { // # is a comment line
             splits = StringUtils.split(line, ';');
-            if ((splits != null) && (splits.length > 5)) {
+            if (splits != null && splits.length > 5) {
               String type = splits[0];
               String dnname = splits[1];
               Integer dnid = Integer.valueOf(splits[2]);
@@ -725,7 +725,7 @@ public final class DnComponents {
         if (in != null) {
           in.close();
         }
-      } catch (IOException e) {
+      } catch (IOException e) { // NOPMD: no-op
       }
     }
   }
@@ -756,7 +756,7 @@ public final class DnComponents {
         while ((line = in.readLine()) != null) {
           if (!line.startsWith("#")) { // # is a comment line
             splits = StringUtils.split(line, '=');
-            if ((splits != null) && (splits.length > 1)) {
+            if (splits != null && splits.length > 1) {
               String name = splits[0].toLowerCase(Locale.ROOT);
               ASN1ObjectIdentifier oid = new ASN1ObjectIdentifier(splits[1]);
               map.put(name, oid);
@@ -784,7 +784,7 @@ public final class DnComponents {
         if (in != null) {
           in.close();
         }
-      } catch (IOException e) {
+      } catch (IOException e) { // NOPMD: no-op
       }
     }
   }

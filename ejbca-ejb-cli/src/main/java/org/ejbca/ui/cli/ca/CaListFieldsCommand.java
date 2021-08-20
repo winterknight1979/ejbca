@@ -17,7 +17,7 @@ import org.apache.log4j.Logger;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.certificates.ca.CAInfo;
 import org.cesecore.certificates.ca.CaSessionRemote;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.cesecore.util.EjbRemoteHelper;
 import org.ejbca.ui.cli.FieldEditor;
 import org.ejbca.ui.cli.infrastructure.command.CommandResult;
@@ -60,7 +60,7 @@ public class CaListFieldsCommand extends BaseCaAdminCommand {
   @Override
   public CommandResult execute(final ParameterContainer parameters) {
     FieldEditor fieldEditor = new FieldEditor(LOG);
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
     final String name = parameters.get(CA_NAME_KEY);
     try {
       final CAInfo cainfo =

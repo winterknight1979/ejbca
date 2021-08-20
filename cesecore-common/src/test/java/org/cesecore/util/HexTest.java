@@ -80,7 +80,7 @@ public class HexTest {
   @Before
   public void setUp() throws Exception {
     LOG.trace(">setUp()");
-    CryptoProviderTools.installBCProviderIfNotAvailable();
+    CryptoProviderUtil.installBCProviderIfNotAvailable();
     LOG.trace("<setUp()");
   }
   /**
@@ -90,7 +90,7 @@ public class HexTest {
   @Test
   public void test01HexSmall() throws Exception {
     // Testcert is on long line of base 64 encoded stuff
-    byte[] certBytes = Base64.decode(testcertOneline.getBytes());
+    byte[] certBytes = Base64Util.decode(testcertOneline.getBytes());
     assertNotNull(certBytes);
     // This should be a cert
     Certificate cert =
@@ -98,8 +98,8 @@ public class HexTest {
     assertNotNull(cert);
     byte[] hexBytes = Hex.decode(hexCert.getBytes());
     assertEquals(
-        new String(Base64.encode(certBytes)),
-        new String(Base64.encode(hexBytes)));
+        new String(Base64Util.encode(certBytes)),
+        new String(Base64Util.encode(hexBytes)));
     Certificate cert1 =
         CertTools.getCertfromByteArray(hexBytes, Certificate.class);
     assertEquals(CertTools.getSubjectDN(cert), CertTools.getSubjectDN(cert1));

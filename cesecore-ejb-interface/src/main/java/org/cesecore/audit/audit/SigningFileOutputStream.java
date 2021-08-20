@@ -30,7 +30,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.cesecore.keys.token.CryptoToken;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
-import org.cesecore.util.Base64;
+import org.cesecore.util.Base64Util;
 
 /**
  * Wrapper of a FileOutputStream that also produces a signature for the same
@@ -160,7 +160,7 @@ public class SigningFileOutputStream extends FileOutputStream {
     }
     FileUtils.writeStringToFile(
         new File(signatureFilename),
-        new String(Base64.encode(signedData)),
+        new String(Base64Util.encode(signedData)),
         Charset.defaultCharset());
     return signatureFilename;
   }

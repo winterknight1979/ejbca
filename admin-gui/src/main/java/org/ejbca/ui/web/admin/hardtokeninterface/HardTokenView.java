@@ -15,7 +15,7 @@ package org.ejbca.ui.web.admin.hardtokeninterface;
 
 import java.util.Collection;
 import java.util.Date;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.core.model.hardtoken.HardTokenInformation;
 import org.ejbca.core.model.hardtoken.types.HardToken;
 
@@ -47,7 +47,7 @@ public class HardTokenView implements java.io.Serializable, Cloneable {
    * @param user User
    */
   public void setUsername(final String user) {
-    tokendata.setUsername(StringTools.stripUsername(user));
+    tokendata.setUsername(StringUtil.stripUsername(user));
   }
 
   /**

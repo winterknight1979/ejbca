@@ -47,7 +47,7 @@ import org.cesecore.certificates.util.DnComponents;
  *
  * @version $Id: RFC4683Tools.java 31882 2019-03-18 13:50:56Z anatom $
  */
-public final class RFC4683Tools {
+public final class RFC4683Util {
 
   /**
    * List separator to separate the SIM tokens in the internal storage format
@@ -64,7 +64,7 @@ public final class RFC4683Tools {
       "1.3.6.1.5.5.7.8.6";
 
   /** Logger. */
-  private static final Logger LOG = Logger.getLogger(RFC4683Tools.class);
+  private static final Logger LOG = Logger.getLogger(RFC4683Util.class);
 
   /**
    * Gets the allowed hash algorithm object identifiers (@see <a
@@ -95,7 +95,7 @@ public final class RFC4683Tools {
    * This method reads the internal storage format for SAN. If the SAN contains
    * SIM parameters (list of 4 tokens, separated by '::'), the parameters are
    * replaced by the generated SIM strings (list of 3 tokens, separated by '::')
-   * {@link RFC4683Tools#generateInternalSimString(String, String, String,
+   * {@link RFC4683Util#generateInternalSimString(String, String, String,
    * String)}
    *
    * @param osan the SAN string in internal storage format with SIM as user
@@ -132,7 +132,7 @@ public final class RFC4683Tools {
                     tokens[hashIdx], tokens[tokIdx],
                     tokens[typeIdx], tokens[ssiIdx]);
             san = san.replace(sim, newSim);
-          } else if (tokens.length == length - 1) {
+          } else if (tokens.length == length - 1) { // NOPMD
             // NOOP
           } else {
             throw new IllegalArgumentException(
@@ -175,12 +175,7 @@ public final class RFC4683Tools {
       final String ssi)
       throws IllegalArgumentException, NoSuchProviderException,
           NoSuchAlgorithmException {
-    if (StringUtils.isBlank(hashAlogrithmOidString)) {
-      throw new IllegalArgumentException(
-          "Hash algorithm OID string must not be null or empty: '"
-              + hashAlogrithmOidString
-              + "'.");
-    }
+    handleBlankAlgo(hashAlogrithmOidString);
     if (!getAllowedHashAlgorithmOidStrings().contains(hashAlogrithmOidString)) {
       throw new IllegalArgumentException(
           "Hash algorithm with OID '"
@@ -250,6 +245,20 @@ public final class RFC4683Tools {
     return result.toString();
   }
 
+/**
+ * @param hashAlogrithmOidString Algo
+ * @throws IllegalArgumentException fial
+ */
+private static void handleBlankAlgo(final String hashAlogrithmOidString)
+        throws IllegalArgumentException {
+    if (StringUtils.isBlank(hashAlogrithmOidString)) {
+      throw new IllegalArgumentException(
+          "Hash algorithm OID string must not be null or empty: '"
+              + hashAlogrithmOidString
+              + "'.");
+    }
+}
+
   /**
    * Creates a SIM GeneralName by the internal SIM storage format
    * ('hashAlgorithmOIDString::R::PEPSI') SIM ::= SEQUENCE { hashAlg
@@ -288,8 +297,8 @@ public final class RFC4683Tools {
         new AlgorithmIdentifier(
             new ASN1ObjectIdentifier(
                 hashAlgorithmIdentifier))); // new DERTaggedObject(true, 0,
-    simVector.add(new DEROctetString((authorityRandom).getBytes()));
-    simVector.add(new DEROctetString((pepsi).getBytes()));
+    simVector.add(new DEROctetString(authorityRandom.getBytes()));
+    simVector.add(new DEROctetString(pepsi.getBytes()));
     otherName.add(new DERTaggedObject(true, 0, new DERSequence(simVector)));
     final ASN1Primitive generalName =
         new DERTaggedObject(false, 0, new DERSequence(otherName));
@@ -377,5 +386,5 @@ public final class RFC4683Tools {
   }
 
   /** Avoid instantiation. */
-  private RFC4683Tools() { }
+  private RFC4683Util() { }
 }

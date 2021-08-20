@@ -31,9 +31,8 @@ import org.cesecore.util.CertTools;
  *
  * @version $Id: OcspConfiguration.java 28629 2018-04-04 11:32:55Z henriks $
  */
-public final class OcspConfiguration {
+public final class OcspConfiguration { // NOPMD
 
-    private OcspConfiguration() { }
 
 /** Logger. */
   private static final Logger LOG = Logger.getLogger(OcspConfiguration.class);
@@ -125,6 +124,15 @@ public final class OcspConfiguration {
   /** Algorithms. */
   private static Set<String> acceptedSignatureAlgorithms = new HashSet<>();
 
+  /** 1 year in seconds. */
+  private static final long DEFAULT_RETENTION = 365L * 24 * 3600;
+  /** 30s. */
+  private static final int HTTP_TIMEOUT = 30;
+  /** milliseconds. */
+  private static final long MS_PER_S = 1000L;
+
+  private OcspConfiguration() { }
+
   /**
  * @return the acceptedSignatureAlgorithms
  */
@@ -145,7 +153,7 @@ public final class OcspConfiguration {
    * @return Algorithm used by server to generate signature on OCSP responses
    */
   public static String getSignatureAlgorithm() {
-    return ConfigurationHolder.getString("ocsp.signaturealgorithm");
+    return ConfigurationHolderUtil.getString("ocsp.signaturealgorithm");
   }
 
   /**
@@ -182,7 +190,7 @@ public final class OcspConfiguration {
    */
   public static long getRekeyingUpdateTimeInSeconds() {
     return Long.parseLong(
-        ConfigurationHolder.getString(REKEYING_UPDATE_TIME_IN_SECONDS));
+        ConfigurationHolderUtil.getString(REKEYING_UPDATE_TIME_IN_SECONDS));
   }
 
   /**
@@ -191,7 +199,7 @@ public final class OcspConfiguration {
    */
   public static long getRekeyingSafetyMarginInSeconds() {
     return Long.parseLong(
-        ConfigurationHolder.getString(REKEYING_SAFETY_MARGIN_IN_SECONDS));
+        ConfigurationHolderUtil.getString(REKEYING_SAFETY_MARGIN_IN_SECONDS));
   }
 
   /**
@@ -204,7 +212,7 @@ public final class OcspConfiguration {
     try {
       timeInSeconds =
           Integer.parseInt(
-              ConfigurationHolder.getString(SIGNING_CERTD_VALID_TIME));
+              ConfigurationHolderUtil.getString(SIGNING_CERTD_VALID_TIME));
     } catch (NumberFormatException e) {
       timeInSeconds = defaultTimeInSeconds;
       LOG.warn(
@@ -224,7 +232,7 @@ public final class OcspConfiguration {
     try {
       timeInSeconds =
           Long.parseLong(
-              ConfigurationHolder.getString(
+              ConfigurationHolderUtil.getString(
                   REQUEST_SIGNING_CERT_REVOCATION_CACHE_TIME));
     } catch (NumberFormatException e) {
       timeInSeconds = defaultTimeInSeconds;
@@ -239,7 +247,7 @@ public final class OcspConfiguration {
 
   /** @return If set to true the responder will enforce OCSP request signing */
   public static boolean getEnforceRequestSigning() {
-    String value = ConfigurationHolder.getString(SIGNATUREREQUIRED);
+    String value = ConfigurationHolderUtil.getString(SIGNATUREREQUIRED);
     return "true".equalsIgnoreCase(value) || "yes".equalsIgnoreCase(value);
   }
 
@@ -247,7 +255,7 @@ public final class OcspConfiguration {
   @Deprecated // Remove this method once upgrading VAs to EJBCA 6 has been
               // dropped
   public static boolean getRestrictSignatures() {
-    String value = ConfigurationHolder.getString("ocsp.restrictsignatures");
+    String value = ConfigurationHolderUtil.getString("ocsp.restrictsignatures");
     return "true".equalsIgnoreCase(value) || "yes".equalsIgnoreCase(value);
   }
 
@@ -263,7 +271,7 @@ public final class OcspConfiguration {
   public static int getRestrictSignaturesByMethod() {
     if ("signer"
         .equalsIgnoreCase(
-            ConfigurationHolder.getString("ocsp.restrictsignaturesbymethod"))) {
+        ConfigurationHolderUtil.getString("ocsp.restrictsignaturesbymethod"))) {
       return RESTRICTONSIGNER;
     }
     return RESTRICTONISSUER;
@@ -276,7 +284,7 @@ public final class OcspConfiguration {
   @Deprecated // Remove this value once upgrading VAs to EJBCA 6 has been
               // dropped
   public static String getSignTrustDir() {
-    return ConfigurationHolder.getString("ocsp.signtrustdir");
+    return ConfigurationHolderUtil.getString("ocsp.signtrustdir");
   }
 
   /**
@@ -284,7 +292,7 @@ public final class OcspConfiguration {
    *     response.
    */
   public static boolean getIncludeCertChain() {
-    String value = ConfigurationHolder.getString(INCLUDE_CERT_CHAIN);
+    String value = ConfigurationHolderUtil.getString(INCLUDE_CERT_CHAIN);
     return "true".equalsIgnoreCase(value) || "yes".equalsIgnoreCase(value);
   }
 
@@ -293,7 +301,7 @@ public final class OcspConfiguration {
    *     response.
    */
   public static boolean getIncludeSignCert() {
-    String value = ConfigurationHolder.getString(INCLUDE_SIGNING_CERT);
+    String value = ConfigurationHolderUtil.getString(INCLUDE_SIGNING_CERT);
     return "true".equalsIgnoreCase(value) || "yes".equalsIgnoreCase(value);
   }
 
@@ -309,7 +317,7 @@ public final class OcspConfiguration {
   @Deprecated
   public static int getResponderIdType() {
     if ("name"
-        .equalsIgnoreCase(ConfigurationHolder.getString(RESPONDER_ID_TYPE))) {
+      .equalsIgnoreCase(ConfigurationHolderUtil.getString(RESPONDER_ID_TYPE))) {
       return RESPONDERIDTYPE_NAME;
     }
     return RESPONDERIDTYPE_KEYHASH;
@@ -320,7 +328,7 @@ public final class OcspConfiguration {
    *     issued by a CA the responder handles will be treated as not revoked.
    */
   public static boolean getNonExistingIsGood() {
-    String value = ConfigurationHolder.getString(NON_EXISTING_IS_GOOD);
+    String value = ConfigurationHolderUtil.getString(NON_EXISTING_IS_GOOD);
     return "true".equalsIgnoreCase(value) || "yes".equalsIgnoreCase(value);
   }
 
@@ -329,7 +337,7 @@ public final class OcspConfiguration {
    *     issued by a CA the responder handles will be treated as revoked.
    */
   public static boolean getNonExistingIsRevoked() {
-    String value = ConfigurationHolder.getString(NON_EXISTING_IS_REVOKED);
+    String value = ConfigurationHolderUtil.getString(NON_EXISTING_IS_REVOKED);
     return "true".equalsIgnoreCase(value) || "yes".equalsIgnoreCase(value);
   }
 
@@ -339,7 +347,7 @@ public final class OcspConfiguration {
    *     unsigned "Unauthorized" response.
    */
   public static boolean getNonExistingIsUnauthorized() {
-    String value = ConfigurationHolder.getString(NON_EXISTING_IS_UNAUTHORIZED);
+ String value = ConfigurationHolderUtil.getString(NON_EXISTING_IS_UNAUTHORIZED);
     return "true".equalsIgnoreCase(value) || "yes".equalsIgnoreCase(value);
   }
 
@@ -348,7 +356,7 @@ public final class OcspConfiguration {
     final StringBuffer regex = new StringBuffer();
     while (true) {
       final String key = prefix + i;
-      final String value = ConfigurationHolder.getString(key);
+      final String value = ConfigurationHolderUtil.getString(key);
       if (value == null) {
         break;
       }
@@ -410,7 +418,8 @@ public final class OcspConfiguration {
    */
   @Deprecated
   public static String getDefaultResponderId() {
-    final String ret = ConfigurationHolder.getExpandedString(DEFAULT_RESPONDER);
+    final String ret = ConfigurationHolderUtil.
+            getExpandedString(DEFAULT_RESPONDER);
     if (ret != null) {
       return CertTools.stringToBCDNString(ret);
     }
@@ -429,7 +438,7 @@ public final class OcspConfiguration {
    */
   @Deprecated
   public static List<String> getExtensionOids() {
-    String value = ConfigurationHolder.getString("ocsp.extensionoid");
+    String value = ConfigurationHolderUtil.getString("ocsp.extensionoid");
     if ("".equals(value)) {
       return new ArrayList<>();
     }
@@ -445,7 +454,7 @@ public final class OcspConfiguration {
    */
   @Deprecated
   public static List<String> getExtensionClasses() {
-    String value = ConfigurationHolder.getString("ocsp.extensionclass");
+    String value = ConfigurationHolderUtil.getString("ocsp.extensionclass");
     if ("".equals(value)) {
       return new ArrayList<>();
     }
@@ -458,7 +467,7 @@ public final class OcspConfiguration {
    * @return OID of extension to always respond with, even if not requested.
    */
   public static String getAlwaysSendCustomOCSPExtension() {
-    return ConfigurationHolder.getString("ocsp.alwayssendcustomextension");
+    return ConfigurationHolderUtil.getString("ocsp.alwayssendcustomextension");
   }
 
   /**
@@ -470,7 +479,7 @@ public final class OcspConfiguration {
    */
   @Deprecated
   public static String getUnidTrustDir() {
-    return ConfigurationHolder.getString("ocsp.unidtrustdir");
+    return ConfigurationHolderUtil.getString("ocsp.unidtrustdir");
   }
 
   /**
@@ -482,21 +491,18 @@ public final class OcspConfiguration {
    */
   @Deprecated
   public static String getUnidCaCert() {
-    return ConfigurationHolder.getString("ocsp.unidcacert");
+    return ConfigurationHolderUtil.getString("ocsp.unidcacert");
   }
 
   /** @return true if UnidFnr is enabled in ocsp.properties */
   public static boolean isUnidEnabled() {
-    if (ConfigurationHolder.getString("unidfnr.enabled") != null
-        && ConfigurationHolder.getString("unidfnr.enabled").equals("true")) {
-      return true;
-    }
-    return false;
+    return ConfigurationHolderUtil.getString("unidfnr.enabled") != null
+       && ConfigurationHolderUtil.getString("unidfnr.enabled").equals("true");
   }
 
   /** @return When true, an audit log will be created. */
   public static boolean getAuditLog() {
-    String value = ConfigurationHolder.getString("ocsp.audit-log");
+    String value = ConfigurationHolderUtil.getString("ocsp.audit-log");
     return "true".equalsIgnoreCase(value) || "yes".equalsIgnoreCase(value);
   }
 
@@ -504,12 +510,12 @@ public final class OcspConfiguration {
    * @return A format string for logging of dates in auditLog and accountLog.
    */
   public static String getLogDateFormat() {
-    return ConfigurationHolder.getString("ocsp.log-date");
+    return ConfigurationHolderUtil.getString("ocsp.log-date");
   }
 
   /** @return A format string for TimeZone auditLog and accountLog. */
   public static String getLogTimeZone() {
-    return ConfigurationHolder.getString("ocsp.log-timezone");
+    return ConfigurationHolderUtil.getString("ocsp.log-timezone");
   }
 
   /**
@@ -517,13 +523,13 @@ public final class OcspConfiguration {
    *     fails.
    */
   public static boolean getLogSafer() {
-    String value = ConfigurationHolder.getString("ocsp.log-safer");
+    String value = ConfigurationHolderUtil.getString("ocsp.log-safer");
     return "true".equalsIgnoreCase(value) || "yes".equalsIgnoreCase(value);
   }
 
   /** @return A String to create a java Pattern to format the audit Log */
   public static String getAuditLogPattern() {
-    return ConfigurationHolder.getString("ocsp.audit-log-pattern");
+    return ConfigurationHolderUtil.getString("ocsp.audit-log-pattern");
   }
 
   /**
@@ -531,7 +537,7 @@ public final class OcspConfiguration {
    *     auditLog output is formatted.
    */
   public static String getAuditLogOrder() {
-    String value = ConfigurationHolder.getString("ocsp.audit-log-order");
+    String value = ConfigurationHolderUtil.getString("ocsp.audit-log-order");
     value =
         value.replace(
             "\\\"",
@@ -542,7 +548,7 @@ public final class OcspConfiguration {
 
   /** @return All available signing keys should be tested. */
   public static boolean getHealthCheckSignTest() {
-    return ConfigurationHolder.getString("ocsphealthcheck.signtest")
+    return ConfigurationHolderUtil.getString("ocsphealthcheck.signtest")
             .toLowerCase()
             .indexOf("false")
         < 0;
@@ -553,7 +559,7 @@ public final class OcspConfiguration {
    *     tested by the healthcheck.
    */
   public static boolean getHealthCheckCertificateValidity() {
-    return ConfigurationHolder.getString(
+    return ConfigurationHolderUtil.getString(
                 "ocsphealthcheck.checkSigningCertificateValidity")
             .toLowerCase()
             .indexOf("false")
@@ -562,7 +568,7 @@ public final class OcspConfiguration {
 
   /** @return When true, a transaction log will be created. */
   public static boolean getTransactionLog() {
-    String value = ConfigurationHolder.getString("ocsp.trx-log");
+    String value = ConfigurationHolderUtil.getString("ocsp.trx-log");
     return "true".equalsIgnoreCase(value) || "yes".equalsIgnoreCase(value);
   }
 
@@ -570,7 +576,7 @@ public final class OcspConfiguration {
    * @return A String to create a java Pattern to format the transaction Log.
    */
   public static String getTransactionLogPattern() {
-    return ConfigurationHolder.getString("ocsp.trx-log-pattern");
+    return ConfigurationHolderUtil.getString("ocsp.trx-log-pattern");
   }
 
   /**
@@ -578,7 +584,7 @@ public final class OcspConfiguration {
    *     transaction Log output is formatted.
    */
   public static String getTransactionLogOrder() {
-    String value = ConfigurationHolder.getString("ocsp.trx-log-order");
+    String value = ConfigurationHolderUtil.getString("ocsp.trx-log-order");
     value =
         value.replace(
             "\\\"",
@@ -592,7 +598,7 @@ public final class OcspConfiguration {
    *     disable. See RFC5019.
    */
   public static long getExpiredArchiveCutoff() {
-    Configuration config = ConfigurationHolder.instance();
+    Configuration config = ConfigurationHolderUtil.instance();
 
     if (StringUtils.equals(
         config.getString(EXPIREDCERT_RETENTIONPERIOD), "-1")) {
@@ -612,9 +618,6 @@ public final class OcspConfiguration {
     return value;
   }
 
-  /** 1 year in seconds. */
-  private static final long DEFAULT_RETENTION = 365L * 24 * 3600;
-
   /**
    * @param certProfileId profile ID
    * @return The default number of milliseconds a response is valid, or 0 to
@@ -622,14 +625,14 @@ public final class OcspConfiguration {
    */
   public static long getUntilNextUpdate(final int certProfileId) {
     long value = 0;
-    Configuration config = ConfigurationHolder.instance();
+    Configuration config = ConfigurationHolderUtil.instance();
     String key = "ocsp." + certProfileId + ".untilNextUpdate";
-    if ((certProfileId == CertificateProfileConstants.CERTPROFILE_NO_PROFILE)
-        || (!config.containsKey(key))) {
+    if (certProfileId == CertificateProfileConstants.CERTPROFILE_NO_PROFILE
+        || !config.containsKey(key)) {
       key = UNTIL_NEXT_UPDATE;
     }
     try {
-      value = (config.getLong(key, value) * MS_PER_S);
+      value = config.getLong(key, value) * MS_PER_S;
     } catch (ConversionException e) {
       LOG.warn(
           "\"ocsp.untilNextUpdate\" is not a decimal integer. Using default"
@@ -648,9 +651,9 @@ public final class OcspConfiguration {
       final int certificateProfileId) {
     if (certificateProfileId
         == CertificateProfileConstants.CERTPROFILE_NO_PROFILE) {
-      return ConfigurationHolder.instance().containsKey(UNTIL_NEXT_UPDATE);
+      return ConfigurationHolderUtil.instance().containsKey(UNTIL_NEXT_UPDATE);
     } else {
-      return ConfigurationHolder.instance()
+      return ConfigurationHolderUtil.instance()
           .containsKey("ocsp." + certificateProfileId + ".untilNextUpdate");
     }
   }
@@ -662,14 +665,14 @@ public final class OcspConfiguration {
    */
   public static long getRevokedUntilNextUpdate(final int certProfileId) {
     long value = 0;
-    Configuration config = ConfigurationHolder.instance();
+    Configuration config = ConfigurationHolderUtil.instance();
     String key = "ocsp." + certProfileId + ".revoked.untilNextUpdate";
-    if ((certProfileId == CertificateProfileConstants.CERTPROFILE_NO_PROFILE)
-        || (!config.containsKey(key))) {
+    if (certProfileId == CertificateProfileConstants.CERTPROFILE_NO_PROFILE
+        || !config.containsKey(key)) {
       key = REVOKED_UNTIL_NEXT_UPDATE;
     }
     try {
-      value = (config.getLong(key, value) * MS_PER_S);
+      value = config.getLong(key, value) * MS_PER_S;
     } catch (ConversionException e) {
       LOG.warn(
           "\"ocsp.revoked.untilNextUpdate\" is not a decimal integer. Using"
@@ -688,10 +691,10 @@ public final class OcspConfiguration {
       final int certificateProfileId) {
     if (certificateProfileId
         == CertificateProfileConstants.CERTPROFILE_NO_PROFILE) {
-      return ConfigurationHolder.instance()
+      return ConfigurationHolderUtil.instance()
           .containsKey(REVOKED_UNTIL_NEXT_UPDATE);
     } else {
-      return ConfigurationHolder.instance()
+      return ConfigurationHolderUtil.instance()
           .containsKey(
               "ocsp." + certificateProfileId + ".revoked.untilNextUpdate");
     }
@@ -704,14 +707,14 @@ public final class OcspConfiguration {
    */
   public static long getMaxAge(final int certProfileId) {
     long value = HTTP_TIMEOUT;
-    Configuration config = ConfigurationHolder.instance();
+    Configuration config = ConfigurationHolderUtil.instance();
     String key = "ocsp." + certProfileId + ".maxAge";
-    if ((certProfileId == CertificateProfileConstants.CERTPROFILE_NO_PROFILE)
-        || (!config.containsKey(key))) {
+    if (certProfileId == CertificateProfileConstants.CERTPROFILE_NO_PROFILE
+        || !config.containsKey(key)) {
       key = MAX_AGE;
     }
     try {
-      value = (config.getLong(key, value) * MS_PER_S);
+      value = config.getLong(key, value) * MS_PER_S;
     } catch (ConversionException e) {
       // Convert default value to milliseconds
       value = value * MS_PER_S;
@@ -730,9 +733,9 @@ public final class OcspConfiguration {
   public static boolean isMaxAgeConfigured(final int certificateProfileId) {
     if (certificateProfileId
         == CertificateProfileConstants.CERTPROFILE_NO_PROFILE) {
-      return ConfigurationHolder.instance().containsKey(MAX_AGE);
+      return ConfigurationHolderUtil.instance().containsKey(MAX_AGE);
     } else {
-      return ConfigurationHolder.instance()
+      return ConfigurationHolderUtil.instance()
           .containsKey("ocsp." + certificateProfileId + ".maxAge");
     }
   }
@@ -744,14 +747,14 @@ public final class OcspConfiguration {
    */
   public static long getRevokedMaxAge(final int certProfileId) {
     long value = HTTP_TIMEOUT;
-    Configuration config = ConfigurationHolder.instance();
+    Configuration config = ConfigurationHolderUtil.instance();
     String key = "ocsp." + certProfileId + ".revoked.maxAge";
-    if ((certProfileId == CertificateProfileConstants.CERTPROFILE_NO_PROFILE)
-        || (!config.containsKey(key))) {
+    if (certProfileId == CertificateProfileConstants.CERTPROFILE_NO_PROFILE
+        || !config.containsKey(key)) {
       key = REVOKED_MAX_AGE;
     }
     try {
-      value = (config.getLong(key, value) * MS_PER_S);
+      value = config.getLong(key, value) * MS_PER_S;
     } catch (ConversionException e) {
       // Convert default value to milliseconds
       value = value * MS_PER_S;
@@ -763,9 +766,6 @@ public final class OcspConfiguration {
     return value;
   }
 
-  /** 30s. */
-  private static final int HTTP_TIMEOUT = 30;
-
   /**
    * @param certificateProfileId Profile ID
    * @return true if Until Next Update is explicitly configured for the
@@ -775,9 +775,9 @@ public final class OcspConfiguration {
       final int certificateProfileId) {
     if (certificateProfileId
         == CertificateProfileConstants.CERTPROFILE_NO_PROFILE) {
-      return ConfigurationHolder.instance().containsKey(REVOKED_MAX_AGE);
+      return ConfigurationHolderUtil.instance().containsKey(REVOKED_MAX_AGE);
     } else {
-      return ConfigurationHolder.instance()
+      return ConfigurationHolderUtil.instance()
           .containsKey("ocsp." + certificateProfileId + ".revoked.maxAge");
     }
   }
@@ -792,7 +792,7 @@ public final class OcspConfiguration {
   @Deprecated // Remove this method once upgrading VAs to EJBCA 6 has been
               // dropped
   public static String getSoftKeyDirectoryName() {
-    return ConfigurationHolder.getString("ocsp.keys.dir");
+    return ConfigurationHolderUtil.getString("ocsp.keys.dir");
   }
 
   /**
@@ -803,7 +803,8 @@ public final class OcspConfiguration {
   @Deprecated // Remove this method once upgrading VAs to EJBCA 6 has been
               // dropped
   public static String getKeyPassword() {
-    final String value = ConfigurationHolder.getString("ocsp.keys.keyPassword");
+    final String value = ConfigurationHolderUtil.
+            getString("ocsp.keys.keyPassword");
     if (value != null) {
       return value;
     }
@@ -818,24 +819,24 @@ public final class OcspConfiguration {
   @Deprecated // Remove this method once upgrading VAs to EJBCA 6 has been
               // dropped
   public static String getStorePassword() {
-    return ConfigurationHolder.getString("ocsp.keys.storePassword");
+    return ConfigurationHolderUtil.getString("ocsp.keys.storePassword");
   }
 
   /** @return The password for all keys stored on card. */
   public static String getCardPassword() {
-    return ConfigurationHolder.getString(CARD_PASSWORD);
+    return ConfigurationHolderUtil.getString(CARD_PASSWORD);
   }
 
   /** @return The class that implements card signing of the OCSP response. */
   public static String getHardTokenClassName() {
-    return ConfigurationHolder.getString("ocsp.hardToken.className");
+    return ConfigurationHolderUtil.getString("ocsp.hardToken.className");
   }
 
   /** @return Sun P11 configuration file name. */
   @Deprecated // Remove this method once upgrading VAs to EJBCA 6 has been
               // dropped
   public static String getSunP11ConfigurationFile() {
-    return ConfigurationHolder.getString("ocsp.p11.sunConfigurationFile");
+    return ConfigurationHolderUtil.getString("ocsp.p11.sunConfigurationFile");
   }
 
   /**
@@ -845,7 +846,7 @@ public final class OcspConfiguration {
    */
   public static Set<String> getRekeyingTriggingHosts() {
     final String sHosts =
-        ConfigurationHolder.getString(REKEYING_TRIGGERING_HOSTS);
+        ConfigurationHolderUtil.getString(REKEYING_TRIGGERING_HOSTS);
     if (sHosts == null) {
       return new HashSet<>();
     } else {
@@ -860,12 +861,12 @@ public final class OcspConfiguration {
    * @return the password
    */
   public static String getRekeyingTriggingPassword() {
-    return ConfigurationHolder.getString(REKEYING_TRIGGERING_PASSWORD);
+    return ConfigurationHolderUtil.getString(REKEYING_TRIGGERING_PASSWORD);
   }
 
   /** @return EJBCA web service URL */
   public static String getEjbcawsracliUrl() {
-    return ConfigurationHolder.getString(REKEYING_WSURL);
+    return ConfigurationHolderUtil.getString(REKEYING_WSURL);
   }
 
   /**
@@ -876,7 +877,7 @@ public final class OcspConfiguration {
   @Deprecated // Remove this method once upgrading VAs to EJBCA 6 has been
               // dropped
   public static String getP11SharedLibrary() {
-    return ConfigurationHolder.getString("ocsp.p11.sharedLibrary");
+    return ConfigurationHolderUtil.getString("ocsp.p11.sharedLibrary");
   }
 
   /**
@@ -887,7 +888,7 @@ public final class OcspConfiguration {
   @Deprecated // Remove this method once upgrading VAs to EJBCA 6 has been
               // dropped
   public static String getP11Password() {
-    return ConfigurationHolder.getString("ocsp.p11.p11password");
+    return ConfigurationHolderUtil.getString("ocsp.p11.p11password");
   }
 
   /**
@@ -898,7 +899,7 @@ public final class OcspConfiguration {
   @Deprecated // Remove this method once upgrading VAs to EJBCA 6 has been
               // dropped
   public static String getP11SlotIndex() {
-    return ConfigurationHolder.getString("ocsp.p11.slot");
+    return ConfigurationHolderUtil.getString("ocsp.p11.slot");
   }
 
   /**
@@ -912,14 +913,11 @@ public final class OcspConfiguration {
               // dropped
   public static boolean getDoNotStorePasswordsInMemory() {
     final String s =
-        ConfigurationHolder.getString(
+        ConfigurationHolderUtil.getString(
             "ocsp.activation.doNotStorePasswordsInMemory");
-    if (s == null
+    return !(s == null
         || s.toLowerCase().indexOf("false") >= 0
-        || s.toLowerCase().indexOf("no") >= 0) {
-      return false;
-    }
-    return true;
+        || s.toLowerCase().indexOf("no") >= 0);
   }
 
   /**
@@ -931,7 +929,7 @@ public final class OcspConfiguration {
     final int defaultTimeInSeconds = 604800; // 1 week 60*60*24*7
     try {
       String configValue =
-          ConfigurationHolder.getString(WARNING_BEFORE_EXPERATION_TIME);
+          ConfigurationHolderUtil.getString(WARNING_BEFORE_EXPERATION_TIME);
       if (configValue != null) {
         timeInSeconds = Integer.parseInt(configValue);
       } else {
@@ -947,6 +945,4 @@ public final class OcspConfiguration {
     return MS_PER_S * (long) timeInSeconds;
   }
 
-  /** milliseconds. */
-  private static final long MS_PER_S = 1000L;
 }

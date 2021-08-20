@@ -44,12 +44,12 @@ import org.cesecore.certificates.certificateprofile.CertificateProfile;
 import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
 import org.cesecore.certificates.crl.RevocationReasons;
 import org.cesecore.certificates.crl.RevokedCertInfo;
-import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.internal.InternalResources;
 import org.cesecore.jndi.JndiConstants;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.StringTools;
-import org.cesecore.util.ValidityDate;
+import org.cesecore.util.StringUtil;
+import org.cesecore.util.ValidityDateUtil;
 
 /**
  * These methods call CertificateStoreSession for certificates that are plain
@@ -82,7 +82,7 @@ public class NoConflictCertificateStoreSessionBean
       InternalResources.getInstance();
 
   /** EM. */
-  @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+  @PersistenceContext(unitName = CesecoreConfigurationHelper.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
   /** Auth. */
@@ -120,7 +120,7 @@ public class NoConflictCertificateStoreSessionBean
   @Override
   public boolean canRevokeNonExisting(final String issuerDN) {
     final int caid =
-        CertTools.stringToBCDNString(StringTools.strip(issuerDN)).hashCode();
+        CertTools.stringToBCDNString(StringUtil.strip(issuerDN)).hashCode();
     final CAInfo cainfo = caSession.getCAInfoInternal(caid);
     return canRevokeNonExisting(cainfo, issuerDN);
   }
@@ -132,7 +132,7 @@ public class NoConflictCertificateStoreSessionBean
    */
   private boolean canRevokeNonExisting(
       final CAInfo cainfo, final String issuerDN) {
-    String dn = CertTools.stringToBCDNString(StringTools.strip(issuerDN));
+    String dn = CertTools.stringToBCDNString(StringUtil.strip(issuerDN));
     if (cainfo == null
         || !cainfo.getSubjectDN().equals(dn)
         || !cainfo.isAcceptRevocationNonExistingEntry()) {
@@ -167,7 +167,7 @@ public class NoConflictCertificateStoreSessionBean
 
     // Throw away CA or missing certificate
     final int caid =
-        CertTools.stringToBCDNString(StringTools.strip(issuerdn)).hashCode();
+        CertTools.stringToBCDNString(StringUtil.strip(issuerdn)).hashCode();
     final CAInfo cainfo = caSession.getCAInfoInternal(caid);
     if (!canRevokeNonExisting(cainfo, issuerdn)) {
       if (cainfo == null && LOG.isDebugEnabled()) {
@@ -499,7 +499,8 @@ public class NoConflictCertificateStoreSessionBean
       LOG.info("Missing certificate profile ID: " + certProfId);
     } else {
       final String encodedValidity = certProf.getEncodedValidity();
-      final Date expireDate = ValidityDate.getDate(encodedValidity, new Date());
+      final Date expireDate = ValidityDateUtil
+              .getDate(encodedValidity, new Date());
       certificateData.setExpireDate(expireDate);
     }
   }

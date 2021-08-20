@@ -20,7 +20,7 @@ import org.cesecore.certificates.ca.CaSessionRemote;
 import org.cesecore.certificates.certificate.CertificateConstants;
 import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
 import org.cesecore.certificates.certificateprofile.CertificateProfileSessionRemote;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.CryptoProviderUtil;
 import org.cesecore.util.EjbRemoteHelper;
 import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionRemote;
 import org.ejbca.ui.cli.infrastructure.command.CommandResult;
@@ -74,7 +74,7 @@ public class CaChangeCertProfileCommand extends BaseCaAdminCommand {
   @Override
   public CommandResult execute(final ParameterContainer parameters) {
     LOG.trace(">execute()");
-    CryptoProviderTools.installBCProvider(); // need this for CVC certificate
+    CryptoProviderUtil.installBCProvider(); // need this for CVC certificate
 
     try {
       final String caName = parameters.get(CA_NAME_KEY);

@@ -208,7 +208,7 @@ public enum InternalKeyBindingFactory {
       aliasToImplementationMap.put(alias, c.getName());
       implementationToAliasMap.put(c.getName(), alias);
       implementationPropertiesMap.put(
-          alias, Collections.unmodifiableMap((implementationProperties)));
+          alias, Collections.unmodifiableMap(implementationProperties));
     }
   }
 

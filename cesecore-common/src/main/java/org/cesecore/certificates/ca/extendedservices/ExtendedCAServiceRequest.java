@@ -23,8 +23,6 @@ import java.io.Serializable;
 public abstract class ExtendedCAServiceRequest implements Serializable {
 
   private static final long serialVersionUID = 1361862486247861779L;
-  /** Constructor. */
-  public ExtendedCAServiceRequest() { }
 
   /**
    * Must return a value that can be used by the CA to retrieve the service.

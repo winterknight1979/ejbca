@@ -96,11 +96,11 @@ import org.cesecore.keybind.CertificateImportException;
 import org.cesecore.keys.token.CryptoTokenAuthenticationFailedException;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
 import org.cesecore.keys.token.p11.exception.NoSuchSlotException;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.roles.RoleNotFoundException;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.EJBTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.EJBUtil;
+import org.cesecore.util.StringUtil;
 import org.ejbca.config.AvailableProtocolsConfiguration;
 import org.ejbca.config.AvailableProtocolsConfiguration.AvailableProtocols;
 import org.ejbca.config.GlobalConfiguration;
@@ -387,7 +387,7 @@ public class EjbcaWS implements IEjbcaWS {
         TransactionTags.ADMIN_REMOTE_IP.toString(), request.getRemoteAddr());
     logger.paramPut(
         TransactionTags.ADMIN_FORWARDED_IP.toString(),
-        StringTools.getCleanXForwardedFor(
+        StringUtil.getCleanXForwardedFor(
             request.getHeader("X-Forwarded-For")));
   }
 
@@ -469,7 +469,7 @@ public class EjbcaWS implements IEjbcaWS {
       final long now = System.currentTimeMillis();
       try {
         final Collection<java.security.cert.Certificate> certs =
-            EJBTools.unwrapCertCollection(
+            EJBUtil.unwrapCertCollection(
                 raMasterApiProxyBean.getCertificatesByUsername(
                     admin, username, onlyValid, now));
         for (java.security.cert.Certificate cert : certs) {
@@ -811,7 +811,7 @@ public class EjbcaWS implements IEjbcaWS {
     int olduserStatus = EndEntityConstants.STATUS_GENERATED;
     try {
       final List<java.security.cert.Certificate> certificates =
-          EJBTools.unwrapCertCollection(
+          EJBUtil.unwrapCertCollection(
               raMasterApiProxyBean.processCardVerifiableCertificateRequest(
                   admin, username, password, cvcreq));
       final List<Certificate> result =
@@ -2259,7 +2259,7 @@ public class EjbcaWS implements IEjbcaWS {
                   null);
             }
             KeyPair keys =
-                KeyTools.genKeys(next.getKeyspec(), next.getKeyalg());
+                KeyUtil.genKeys(next.getKeyspec(), next.getKeyalg());
             userData.setCertificateProfileId(certificateProfileId);
             userData.setCAId(cAInfo.getCAId());
             userData.setPassword(password);
@@ -2303,7 +2303,7 @@ public class EjbcaWS implements IEjbcaWS {
               alias = userData.getUsername();
             }
             java.security.KeyStore pkcs12 =
-                KeyTools.createP12(alias, keys.getPrivate(), cert, chain);
+                KeyUtil.createP12(alias, keys.getPrivate(), cert, chain);
 
             retval.add(
                 new TokenCertificateResponseWS(

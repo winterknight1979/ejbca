@@ -28,6 +28,7 @@ import java.text.Collator;
 import java.util.Arrays;
 import java.util.Comparator;
 import org.apache.log4j.Logger;
+import org.cesecore.CesecoreRuntimeException;
 
 /**
  * Tools to handle some common file operations.
@@ -81,32 +82,26 @@ public abstract class FileTools {
 
     String temp;
 
-    while (((temp = bufRdr.readLine()) != null) && !temp.equals(beginKey)) {
-      continue;
+    while ((temp = bufRdr.readLine()) != null && !temp.equals(beginKey)) {
+      continue; // NOPMD: no-op loop
     }
 
-    if (temp == null) {
-      throw new IOException(
-          "Error in input buffer, missing " + beginKey + " boundary");
-    }
+    errorOnNull(beginKey, temp);
 
-    while (((temp = bufRdr.readLine()) != null) && !temp.equals(endKey)) {
+    while ((temp = bufRdr.readLine()) != null && !temp.equals(endKey)) {
       // Skip empty lines
       if (temp.trim().length() > 0) {
         opstr.print(temp);
       }
     }
 
-    if (temp == null) {
-      throw new IOException(
-          "Error in input buffer, missing " + endKey + " boundary");
-    }
+    errorOnNull(endKey, temp);
 
     opstr.close();
 
     final byte[] bytes;
     try {
-      bytes = Base64.decode(ostr.toByteArray());
+      bytes = Base64Util.decode(ostr.toByteArray());
     } catch (Exception e) {
       throw new IOException(
           "Malformed PEM encoding or PEM of unknown type: " + e.getMessage());
@@ -116,6 +111,19 @@ public abstract class FileTools {
     }
     return bytes;
   } // getBytesfromPEM
+
+/**
+ * @param beginKey key
+ * @param temp string
+ * @throws IOException fail
+ */
+private static void errorOnNull(final String beginKey,
+        final String temp) throws IOException {
+    if (temp == null) {
+      throw new IOException(
+          "Error in input buffer, missing " + beginKey + " boundary");
+    }
+}
 
   /**
    * Helpfunction to read a file to a byte array.
@@ -149,7 +157,8 @@ public abstract class FileTools {
       os.close();
       return os.toByteArray();
     } catch (IOException e) {
-      throw new RuntimeException("Caught IOException for unknown reason", e);
+      throw new CesecoreRuntimeException(
+              "Caught IOException for unknown reason", e);
     }
   }
 
@@ -171,7 +180,7 @@ public abstract class FileTools {
 
     @Override
     public int compare(final File f1, final File f2) {
-      if (f1 == f2) {
+      if (f1.equals(f2)) {
         return 0;
       }
       if (f1.isDirectory() && f2.isFile()) {

@@ -54,10 +54,10 @@ import org.cesecore.configuration.GlobalConfigurationSessionLocal;
 import org.cesecore.jndi.JndiConstants;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
 import org.cesecore.keys.util.KeyStoreTools;
-import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.util.KeyUtil;
 import org.cesecore.keys.util.PublicKeyWrapper;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.EJBTools;
+import org.cesecore.util.EJBUtil;
 import org.ejbca.config.GlobalConfiguration;
 import org.ejbca.core.EjbcaException;
 import org.ejbca.core.ejb.ca.auth.EndEntityAuthenticationSessionLocal;
@@ -377,7 +377,7 @@ public class KeyStoreCreateSessionBean
         }
       }
       // generate new keys.
-      rsaKeys = KeyTools.genKeys(keyspec, keyalg);
+      rsaKeys = KeyUtil.genKeys(keyspec, keyalg);
     }
     X509Certificate cert = null;
     if ((reusecertificate) && (keyData != null)) {
@@ -480,7 +480,7 @@ public class KeyStoreCreateSessionBean
         LOG.debug("Saving generated keys for recovery for user: " + username);
       }
       keyRecoverySession.addKeyRecoveryData(
-          administrator, EJBTools.wrap(cert), username, EJBTools.wrap(rsaKeys));
+          administrator, EJBUtil.wrap(cert), username, EJBUtil.wrap(rsaKeys));
     }
     //  Use CN if as alias in the keystore, if CN is not present use username
     String alias = CertTools.getPartFromDN(CertTools.getSubjectDN(cert), "CN");
@@ -494,13 +494,13 @@ public class KeyStoreCreateSessionBean
         LOG.debug("Generating JKS for user: " + username);
       }
       ks =
-          KeyTools.createJKS(
+          KeyUtil.createJKS(
               alias, rsaKeys.getPrivate(), password, cert, cachain);
     } else {
       if (LOG.isDebugEnabled()) {
         LOG.debug("Generating PKCS12 for user: " + username);
       }
-      ks = KeyTools.createP12(alias, rsaKeys.getPrivate(), cert, cachain);
+      ks = KeyUtil.createP12(alias, rsaKeys.getPrivate(), cert, cachain);
     }
     if (LOG.isTraceEnabled()) {
       LOG.trace("<generateOrKeyRecoverToken");

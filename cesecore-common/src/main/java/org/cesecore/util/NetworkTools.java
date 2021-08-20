@@ -43,7 +43,7 @@ public abstract class NetworkTools {
     } catch (MalformedURLException e) {
       return null;
     }
-    if (!"http".equals(url.getProtocol().toLowerCase())) {
+    if (!"http".equalsIgnoreCase(url.getProtocol())) {
       return null;
     }
     return url;

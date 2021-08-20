@@ -23,8 +23,8 @@ import java.util.Date;
 import java.util.List;
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.util.AlgorithmConstants;
-import org.cesecore.keys.util.KeyTools;
-import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.keys.util.KeyUtil;
+import org.cesecore.util.CryptoProviderUtil;
 import org.ejbca.core.ejb.ca.validation.BlacklistData;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -48,7 +48,7 @@ public class PublicKeyBlacklistKeyValidatorTest {
   @BeforeClass
   public static void setClassUp() throws Exception {
     LOG.trace("setClassUp()");
-    CryptoProviderTools.installBCProvider();
+    CryptoProviderUtil.installBCProvider();
     LOG.trace("setClassUp()");
   }
   /**
@@ -59,7 +59,7 @@ public class PublicKeyBlacklistKeyValidatorTest {
   public void testMatchBlacklistedPublicKeyRSA() throws Exception {
     LOG.trace(">testMatchBlacklistedPublicKeyRSA()");
 
-    KeyPair keyPair = KeyTools.genKeys("1024", "RSA");
+    KeyPair keyPair = KeyUtil.genKeys("1024", "RSA");
 
     // A: Test public key blacklist validation OK with empty blacklist.
     PublicKeyBlacklistKeyValidator keyValidator =
@@ -139,7 +139,7 @@ public class PublicKeyBlacklistKeyValidatorTest {
   @Test
   public void testMatchBlacklistedPublicKeyEC() throws Exception {
     KeyPair keyPair =
-        KeyTools.genKeys("secp256r1", AlgorithmConstants.KEYALGORITHM_EC);
+        KeyUtil.genKeys("secp256r1", AlgorithmConstants.KEYALGORITHM_EC);
     // Test public key blacklist validation OK with empty blacklist.
     PublicKeyBlacklistKeyValidator keyValidator =
         createKeyValidator(
@@ -225,7 +225,7 @@ public class PublicKeyBlacklistKeyValidatorTest {
     LOG.trace(">testMatchBlacklistedPublicKeyECDSA()");
 
     KeyPair keyPair =
-        KeyTools.genKeys("secp256r1", AlgorithmConstants.KEYALGORITHM_ECDSA);
+        KeyUtil.genKeys("secp256r1", AlgorithmConstants.KEYALGORITHM_ECDSA);
     // A: Test public key blacklist validation OK with empty blacklist.
     PublicKeyBlacklistKeyValidator keyValidator =
         createKeyValidator(

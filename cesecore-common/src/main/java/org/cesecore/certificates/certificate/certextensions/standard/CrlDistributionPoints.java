@@ -35,7 +35,7 @@ import org.cesecore.certificates.ca.internal.CertificateValidity;
 import org.cesecore.certificates.certificate.certextensions.CertificateExtensionException;
 import org.cesecore.certificates.certificateprofile.CertificateProfile;
 import org.cesecore.certificates.endentity.EndEntityInformation;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 
 /**
  * Class for standard X509 certificate extension. See rfc3280 or later for spec
@@ -76,7 +76,7 @@ public class CrlDistributionPoints extends StandardCertificateExtension {
         new ArrayList<DistributionPointName>();
     if (StringUtils.isNotEmpty(crldistpoint)) {
       final Iterator<String> it =
-          StringTools.splitURIs(crldistpoint).iterator();
+          StringUtil.splitURIs(crldistpoint).iterator();
       while (it.hasNext()) {
         // 6 is URI
         final String uri = (String) it.next();
@@ -115,7 +115,21 @@ public class CrlDistributionPoints extends StandardCertificateExtension {
     }
     final ArrayList<DistributionPoint> distpoints =
         new ArrayList<DistributionPoint>();
-    if ((!issuers.isEmpty()) || (!dpns.isEmpty())) {
+    addDistPointsFromDpns(dpns, issuers, distpoints);
+    CRLDistPoint ret = getReturnValue(distpoints);
+    return ret;
+  }
+
+/**
+ * @param dpns DPNs
+ * @param issuers Issuers
+ * @param distpoints Points
+ */
+private void addDistPointsFromDpns(
+        final ArrayList<DistributionPointName> dpns,
+        final ArrayList<GeneralNames> issuers,
+        final ArrayList<DistributionPoint> distpoints) {
+    if (!issuers.isEmpty() || !dpns.isEmpty()) {
       int i = dpns.size();
       if (issuers.size() > i) {
         i = issuers.size();
@@ -129,11 +143,19 @@ public class CrlDistributionPoints extends StandardCertificateExtension {
         if (issuers.size() > j) {
           issuer = (GeneralNames) issuers.get(j);
         }
-        if ((dpn != null) || (issuer != null)) {
+        if (dpn != null || issuer != null) {
           distpoints.add(new DistributionPoint(dpn, null, issuer));
         }
       }
     }
+}
+
+/**
+ * @param distpoints points
+ * @return point
+ */
+private CRLDistPoint getReturnValue(
+        final ArrayList<DistributionPoint> distpoints) {
     CRLDistPoint ret = null;
     if (!distpoints.isEmpty()) {
       ret =
@@ -147,5 +169,5 @@ public class CrlDistributionPoints extends StandardCertificateExtension {
               + " available.");
     }
     return ret;
-  }
+}
 }

@@ -48,7 +48,7 @@ public final class TimeUnitFormat {
   /** Pattern. */
   private final Pattern pattern;
   /** Defaults. */
-  private final Map<String, Long> defaultValues;
+  private final Map<String, Long> defaultValues; // NOPMD
   /** Factors. */
   private final Map<String, Long> factors;
   /** Units. */

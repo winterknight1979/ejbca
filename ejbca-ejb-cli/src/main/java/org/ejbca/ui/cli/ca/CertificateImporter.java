@@ -33,10 +33,10 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.cesecore.certificates.endentity.EndEntityType;
 import org.cesecore.certificates.endentity.EndEntityTypes;
 import org.cesecore.util.CertTools;
-import org.cesecore.util.EJBTools;
+import org.cesecore.util.EJBUtil;
 import org.cesecore.util.EjbRemoteHelper;
 import org.cesecore.util.FileTools;
-import org.cesecore.util.StringTools;
+import org.cesecore.util.StringUtil;
 import org.ejbca.core.ejb.ra.EndEntityAccessSessionRemote;
 import org.ejbca.core.ejb.ra.EndEntityManagementSessionRemote;
 import org.ejbca.core.model.SecConst;
@@ -301,7 +301,7 @@ class CertificateImporter implements Callable<CertificateImporter.Result> {
 
       // Strip the username of dangerous characters before using it.
       final String username =
-          StringTools.stripUsername(
+          StringUtil.stripUsername(
               getEndEntityUsername(
                   file.getName(), certificate, usernameFilter));
       final Date now = new Date();
@@ -353,7 +353,7 @@ class CertificateImporter implements Callable<CertificateImporter.Result> {
               CertificateStoreSessionRemote.class);
       certificateStoreSession.storeCertificateRemote(
           authenticationToken,
-          EJBTools.wrap(certificate),
+          EJBUtil.wrap(certificate),
           username,
           CertTools.getFingerprintAsString(caCertificate),
           CertificateConstants.CERT_ACTIVE,

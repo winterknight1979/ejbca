@@ -14,7 +14,7 @@ package org.cesecore.internal;
 
 import static org.junit.Assert.assertEquals;
 
-import org.cesecore.config.ConfigurationHolder;
+import org.cesecore.config.ConfigurationHolderUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,14 +32,14 @@ public class InternalResourcesTest {
   /** Setup. */
   @Before
   public void before() {
-    ConfigurationHolder.backupConfiguration();
-    ConfigurationHolder.updateConfiguration(
+    ConfigurationHolderUtil.backupConfiguration();
+    ConfigurationHolderUtil.updateConfiguration(
         "intresources.secondarylanguage", "sv");
   }
   /** Teardown. */
   @After
   public void after() {
-    ConfigurationHolder.restoreConfiguration();
+    ConfigurationHolderUtil.restoreConfiguration();
   }
   /**
    * Test.

@@ -33,7 +33,7 @@ import org.cesecore.dbprotection.ProtectedData;
 import org.cesecore.dbprotection.ProtectionStringBuilder;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.GUIDGenerator;
-import org.cesecore.util.XmlSerializer;
+import org.cesecore.util.XmlSerializerUtil;
 
 /**
  * This class represents an audit log record.
@@ -347,7 +347,7 @@ public class AuditRecordData extends ProtectedData
   public Map<String, Object> getMapAdditionalDetails() {
     // TODO: Decide on which implementation to use for serialization of the
     // additional details
-    return XmlSerializer.decode(getUnescapedRndValue());
+    return XmlSerializerUtil.decode(getUnescapedRndValue());
   }
 
   /** @param theAdditionalDetails additional details. */
@@ -356,7 +356,7 @@ public class AuditRecordData extends ProtectedData
       final Map<String, Object> theAdditionalDetails) {
     // TODO: Decide on which implementation to use for serialization of the
     // additional details
-    setAdditionalDetails(XmlSerializer.encode(theAdditionalDetails));
+    setAdditionalDetails(XmlSerializerUtil.encode(theAdditionalDetails));
     // setAdditionalDetails(JsonSerializer.toJSON(additionalDetails));
   }
 
