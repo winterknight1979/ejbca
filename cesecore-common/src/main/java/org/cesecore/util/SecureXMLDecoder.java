@@ -972,7 +972,7 @@ private void handleNullIndex(final String indexStr) throws IOException {
                         + ClassUtils.getShortClassName(value, "null")),
                 e);
           }
-        } catch (NoValueException e) {// NOPMD Ignore
+        } catch (NoValueException e) { // NOPMD Ignore
         }
       } else {
         // Empty = call getter and store by ID

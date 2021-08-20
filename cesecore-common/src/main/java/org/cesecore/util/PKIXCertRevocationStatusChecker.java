@@ -455,7 +455,7 @@ private void handleNull(final Certificate cacert)
    * @return The OCSP response, or null of no correct response could be
    *     obtained.
    */
-  private SingleResp getOCSPResponse( // NOPMD: irreducible
+  private SingleResp getOCSPResponse(// NOPMD: irreducible
       final String ocspurl,
       final OCSPReq ocspRequest,
       final Certificate cert,

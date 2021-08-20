@@ -760,7 +760,7 @@ public class RaSearchEesBean implements Serializable {
     if (value == defaultValue) {
       return stagedValue;
     }
-    return ValidityDateUtil.formatAsISO8601ServerTZ(value, TimeZone.getDefault());
+  return ValidityDateUtil.formatAsISO8601ServerTZ(value, TimeZone.getDefault());
   }
   /**
    * @param input Input

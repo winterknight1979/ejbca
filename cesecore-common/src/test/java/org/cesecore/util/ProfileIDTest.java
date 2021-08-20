@@ -106,8 +106,8 @@ public class ProfileIDTest {
     LOG.trace("<testReal()");
   }
   /**
-   * Test when {@link ProfileIDUtil#getNotUsedID(ProfileIDUtil.DB)} sometimes return
-   * false.
+   * Test when {@link ProfileIDUtil#getNotUsedID(ProfileIDUtil.DB)}
+   * sometimes return false.
    */
   @Test
   public void testSometimesFree() {

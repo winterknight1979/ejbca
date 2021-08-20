@@ -425,7 +425,7 @@ public class RaCertificateDetails {
     }
     this.expireDate = certificateData.getExpireDate();
     this.expires =
-        ValidityDateUtil.formatAsISO8601ServerTZ(expireDate, TimeZone.getDefault());
+    ValidityDateUtil.formatAsISO8601ServerTZ(expireDate, TimeZone.getDefault());
     if (status == CertificateConstants.CERT_ARCHIVED
         || status == CertificateConstants.CERT_REVOKED) {
       this.updated =

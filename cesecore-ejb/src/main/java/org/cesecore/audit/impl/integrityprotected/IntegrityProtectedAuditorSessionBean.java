@@ -183,7 +183,7 @@ public class IntegrityProtectedAuditorSessionBean
     detailsDelete.put(
         "timestamp",
         FastDateFormat.getInstance(
-                ValidityDateUtil.ISO8601_DATE_FORMAT, TimeZone.getTimeZone("GMT"))
+              ValidityDateUtil.ISO8601_DATE_FORMAT, TimeZone.getTimeZone("GMT"))
             .format(timestamp));
     securityEventsLogger.log(
         EventTypes.LOG_DELETE,
@@ -457,7 +457,7 @@ public class IntegrityProtectedAuditorSessionBean
     details.put(
         "timestamp",
         FastDateFormat.getInstance(
-                ValidityDateUtil.ISO8601_DATE_FORMAT, TimeZone.getTimeZone("GMT"))
+              ValidityDateUtil.ISO8601_DATE_FORMAT, TimeZone.getTimeZone("GMT"))
             .format(timestamp));
     EventStatus status = EventStatus.SUCCESS;
     if (errors > 0) {

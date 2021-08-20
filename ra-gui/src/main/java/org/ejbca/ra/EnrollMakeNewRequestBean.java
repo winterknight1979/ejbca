@@ -463,7 +463,7 @@ public class EnrollMakeNewRequestBean implements Serializable {
       return raLocaleBean.getMessage("enroll_validity_help_unparsable");
     }
     final Date maxDate =
-        ValidityDateUtil.getDate(getCertificateProfile().getEncodedValidity(), now);
+    ValidityDateUtil.getDate(getCertificateProfile().getEncodedValidity(), now);
     if (validityDate.after(maxDate)) {
       return raLocaleBean.getMessage("enroll_validity_help_too_long");
     }

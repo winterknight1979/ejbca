@@ -499,7 +499,8 @@ public class NoConflictCertificateStoreSessionBean
       LOG.info("Missing certificate profile ID: " + certProfId);
     } else {
       final String encodedValidity = certProf.getEncodedValidity();
-      final Date expireDate = ValidityDateUtil.getDate(encodedValidity, new Date());
+      final Date expireDate = ValidityDateUtil
+              .getDate(encodedValidity, new Date());
       certificateData.setExpireDate(expireDate);
     }
   }

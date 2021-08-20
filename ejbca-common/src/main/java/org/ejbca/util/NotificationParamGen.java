@@ -131,6 +131,7 @@ public class NotificationParamGen {
    * @return format
    */
   protected String fastDateFormat(final Date date) {
-    return ValidityDateUtil.formatAsISO8601(date, ValidityDateUtil.TIMEZONE_SERVER);
+    return ValidityDateUtil.formatAsISO8601(
+            date, ValidityDateUtil.TIMEZONE_SERVER);
   }
 }

@@ -1035,8 +1035,8 @@ private static int getEndOfPN(final String dn, final int i) {
         // If there is an unescaped and unquoted =-char we need to investigate
         // if it is a match for the sought after part
         if (!quoted && !escapeNext && current == '=' && dnPartLenght <= i
-                && i - dnPartLenght - 1 < 0
-              || !Character.isLetter(dn.charAt(i - dnPartLenght - 1))) {
+                && (i - dnPartLenght - 1 < 0
+              || !Character.isLetter(dn.charAt(i - dnPartLenght - 1)))) {
             boolean match = isMatch(dn, dnPartLowerCase, dnPartLenght, i);
             if (match) {
               currentStartPosition = i + 1;
@@ -3309,7 +3309,7 @@ private static PublicKey getRSAPK(final PublicKey pubKey,
    * @param seq asn.1 sequence
    * @return The extension values encoded as an permanentIdentifierString
    */
-  static String getPermanentIdentifierStringFromSequence( // NOPMD
+  static String getPermanentIdentifierStringFromSequence(// NOPMD
           final ASN1Sequence seq) {
     if (seq != null) {
       // First in sequence is the object identifier, that we must check
@@ -4438,13 +4438,13 @@ private static void gnSetUPN(final String altName,
       final BigInteger trustedCertSN = getSerialNumber(trustedCert);
       if (certSN.equals(trustedCertSN)
         && trustedCertChain.size() > 1) {
-            // If the serial number of the certificate matches the serial number of
-            // a certificate in the list, make sure that it in
-            // fact is the same certificate by verifying that they were issued by
-            // the same issuer.
-            // Removing this trusted certificate from the trustedCertChain will
-            // leave only the CA's certificate chain, which will be
-            // used to verify the issuer.
+        // If the serial number of the certificate matches the serial number of
+        // a certificate in the list, make sure that it in
+        // fact is the same certificate by verifying that they were issued by
+        // the same issuer.
+        // Removing this trusted certificate from the trustedCertChain will
+        // leave only the CA's certificate chain, which will be
+        // used to verify the issuer.
           trustedCertChain.remove(trustedCert);
 
       }

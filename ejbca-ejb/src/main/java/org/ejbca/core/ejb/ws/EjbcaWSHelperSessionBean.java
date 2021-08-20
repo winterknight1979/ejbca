@@ -409,7 +409,7 @@ public class EjbcaWSHelperSessionBean
             }
             customEndTime = newCustomStartTime;
           }
-          customEndTime = ValidityDateUtil.getImpliedUTCFromISO8601(customEndTime);
+       customEndTime = ValidityDateUtil.getImpliedUTCFromISO8601(customEndTime);
         }
         ei.setCustomData(ExtendedInformation.CUSTOM_ENDTIME, customEndTime);
         useEI = true;

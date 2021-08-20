@@ -104,7 +104,7 @@ public class UserNotificationParamGenTest {
             + " adminalt@foo.se "
             + new BigInteger(certificateSerialNumber).toString(16).toUpperCase()
             + " "
-            + ValidityDateUtil.formatAsISO8601(now, ValidityDateUtil.TIMEZONE_SERVER)
+       + ValidityDateUtil.formatAsISO8601(now, ValidityDateUtil.TIMEZONE_SERVER)
             + " CN=foo,O=Org,C=SE "
             + " CN=The CA,O=Org,C=NO Revoked certificateHold 123",
         msg);

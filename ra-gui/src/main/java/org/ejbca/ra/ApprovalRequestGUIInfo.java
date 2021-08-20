@@ -634,7 +634,7 @@ public class ApprovalRequestGUIInfo implements Serializable {
     editLogEntries = new ArrayList<>();
     for (final TimeAndAdmin entry : arequest.getEditedByAdmin()) {
       final String editDate =
-          ValidityDateUtil.formatAsISO8601(entry.getDate(), TimeZone.getDefault());
+       ValidityDateUtil.formatAsISO8601(entry.getDate(), TimeZone.getDefault());
       final String adminName;
       if (entry.getAdmin() instanceof X509CertificateAuthenticationToken) {
         final String adminDN =

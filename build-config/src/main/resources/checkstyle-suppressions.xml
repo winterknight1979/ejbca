@@ -91,11 +91,11 @@
 	<suppress checks="UnusedImportsCheck" files="Validator.java"
 		lines="17" /> <!-- Used in Jdoc. -->
 	<suppress checks="ParameterNumberCheck" files="CertTools.java"
-		lines="2307,2346,2377,2419,2464,2520,2586" />
+		lines="2449,2488,2519,2561,2606,2662,2728" />
 	<suppress checks="MagicNumberCheck" files="CertTools.java"
-		lines="3573-3583,3936-3947,4718-4730" />	<!-- Case labels. -->
+		lines="3717-3727,4288-4299,5070-5082" />	<!-- Case labels. -->
 	<suppress checks="MagicNumberCheck"
-		files="ConcurrentCache.java" lines="188,432,487" />	<!-- Arbitrary fudge factors. -->
+		files="ConcurrentCache.java" lines="75,463,518" />	<!-- Arbitrary fudge factors. -->
 	<suppress checks="ParameterNumberCheck"
 		files="ExternalProcessTools.java" lines="163" />
 	<suppress checks="MethodLengthCheck" files="CertTools.java"
@@ -103,11 +103,11 @@
 	<suppress checks="MethodLengthCheck"
 		files="ExternalProcessTools.java" lines="163" />
 	<suppress checks="MethodLengthCheck"
-		files="PKIXCertRevocationStatusChecker.java" lines="447" />
+		files="PKIXCertRevocationStatusChecker.java" lines="458" />
 	<suppress checks="MethodLengthCheck"
 		files="SecureXMLDecoder.java" lines="222" />
-	<suppress checks="MagicNumberCheck" files="StringTools.java"
-		lines="685,720,970,978" />	<!-- array-indices. -->
+	<suppress checks="MagicNumberCheck" files="StringUtil.java"
+		lines="693,728,970,978" />	<!-- array-indices. -->
 	<suppress checks="MethodLengthCheck"
 		files="CATokenTestBase.java" lines="528,74" />
 	<suppress checks="MethodLengthCheck"

@@ -53,7 +53,7 @@ public class ValidityDateTest {
     Assert.assertEquals(
         zero,
         ValidityDateUtil.parseAsIso8601(
-            ValidityDateUtil.formatAsISO8601(zero, ValidityDateUtil.TIMEZONE_SERVER)));
+     ValidityDateUtil.formatAsISO8601(zero, ValidityDateUtil.TIMEZONE_SERVER)));
     LOG.trace("<testParseFormat");
   }
   /**
@@ -180,7 +180,7 @@ public class ValidityDateTest {
             + " and "
             + subjectFromDate,
         result,
-        ValidityDateUtil.getDateBeforeVersion661(subjectLEncoded, subjectFromDate));
+    ValidityDateUtil.getDateBeforeVersion661(subjectLEncoded, subjectFromDate));
   }
   /**
    * Test.
@@ -237,7 +237,7 @@ public class ValidityDateTest {
         ValidityDateUtil.parseAsIso8601("2011-05-09 16:58:12"),
         ValidityDateUtil.parseAsIso8601(
             ValidityDateUtil.getStringBeforeVersion661(
-                ValidityDateUtil.encodeBeforeVersion661("2011-05-09 16:58:12"))));
+              ValidityDateUtil.encodeBeforeVersion661("2011-05-09 16:58:12"))));
     Assert.assertEquals(
         "",
         ValidityDateUtil.parseAsIso8601("2011-05-09 16:58"),
@@ -286,7 +286,7 @@ public class ValidityDateTest {
     LOG.info("now:        " + now);
     final String nowIso =
         FastDateFormat.getInstance(
-                ValidityDateUtil.ISO8601_DATE_FORMAT, TimeZone.getTimeZone("UTC"))
+              ValidityDateUtil.ISO8601_DATE_FORMAT, TimeZone.getTimeZone("UTC"))
             .format(now);
     LOG.info("nowIso:     " + nowIso);
     final Date nowIsoDate = ValidityDateUtil.parseCaLatestValidDateTime(nowIso);
