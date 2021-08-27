@@ -247,7 +247,7 @@ public class Role extends UpgradeableDataHashMap implements Comparable<Role> {
   }
 
   @Override
-  public boolean equals(final Object obj) {
+  public boolean equals(final Object obj) { // NOPMD
     if (this == obj) {
       return true;
     }

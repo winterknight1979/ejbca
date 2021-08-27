@@ -354,7 +354,7 @@ public class AccessUserAspectData extends ProtectedData
       final int seedValue, final int aggregateValue, final int[] values) {
     int hash = seedValue;
     for (int value : values) {
-      hash = (hash * aggregateValue) + value;
+      hash = hash * aggregateValue + value;
     }
     return hash;
   }
@@ -400,7 +400,7 @@ public class AccessUserAspectData extends ProtectedData
   }
 
   @Override
-  public boolean equals(final Object obj) {
+  public boolean equals(final Object obj) { // NOPMD: Irreducible
     if (this == obj) {
       return true;
     }
@@ -431,10 +431,7 @@ public class AccessUserAspectData extends ProtectedData
     if (matchWith.intValue() != other.matchWith.intValue()) {
       return false;
     }
-    if (primaryKey != other.primaryKey) {
-      return false;
-    }
-    return true;
+    return primaryKey == other.primaryKey;
   }
 
   @Override

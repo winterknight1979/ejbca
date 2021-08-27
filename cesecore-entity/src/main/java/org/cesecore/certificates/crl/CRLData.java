@@ -293,7 +293,7 @@ public class CRLData extends ProtectedData implements Serializable {
    */
   public void setCRL(final X509CRL incrl) {
     try {
-      String b64Crl = new String(Base64Util.encode((incrl).getEncoded()));
+      String b64Crl = new String(Base64Util.encode(incrl.getEncoded()));
       setBase64Crl(b64Crl);
     } catch (CRLException ce) {
       LOG.error("Can't extract DER encoded CRL.", ce);

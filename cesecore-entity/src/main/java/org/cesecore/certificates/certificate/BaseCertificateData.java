@@ -485,12 +485,9 @@ public abstract class BaseCertificateData extends ProtectedData {
                 == CertificateConstants.CERT_NOTIFIEDABOUTEXPIRATION)) {
       return true;
     }
-    if ((status == CertificateConstants.CERT_REVOKED
+    return (status == CertificateConstants.CERT_REVOKED
             || status == CertificateConstants.CERT_ARCHIVED)
         && (otherStatus == CertificateConstants.CERT_REVOKED
-            || otherStatus == CertificateConstants.CERT_ARCHIVED)) {
-      return true;
-    }
-    return false;
+            || otherStatus == CertificateConstants.CERT_ARCHIVED);
   }
 }

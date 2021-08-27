@@ -311,7 +311,7 @@ public class RoleData extends ProtectedData implements Serializable {
   }
 
   @Override
-  public boolean equals(final Object obj) {
+  public boolean equals(final Object obj) { // NOPMD
     if (this == obj) {
         return true;
     }

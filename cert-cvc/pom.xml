@@ -120,8 +120,42 @@
                     <rulesets>pmd-ruleset-java.xml</rulesets>
                 </configuration>
             </plugin>
+        
+        <plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-site-plugin</artifactId>
+					<version>3.7.1</version>
+					<dependencies>
+						<dependency>
+							<groupId>org.apache.velocity</groupId>
+							<artifactId>velocity</artifactId>
+							<version>1.7</version>
+						</dependency>
+						<dependency>
+							<groupId>lt.velykis.maven.skins</groupId>
+							<artifactId>reflow-velocity-tools</artifactId>
+							<version>1.1.1</version>
+						</dependency>
+						<dependency>
+							<groupId>org.apache.maven.doxia</groupId>
+							<artifactId>doxia-sitetools</artifactId>
+							<version>1.9.1</version>
+							<type>pom</type>
+						</dependency>
+						<dependency>
+							<groupId>org.apache.maven.doxia</groupId>
+							<artifactId>doxia-site-renderer</artifactId>
+							<version>1.9.1</version>
+						</dependency>
+					</dependencies>
+					
+				</plugin>
+
         </plugins>
-	</build>
-	
-</project>
+        	</build>
+ <parent>
+    <groupId>goldeneyes.ejbca</groupId>
+    <artifactId>ejbca</artifactId>
+    <version>1.0.1-beta-3-SNAPSHOT</version>
+  </parent></project>
 

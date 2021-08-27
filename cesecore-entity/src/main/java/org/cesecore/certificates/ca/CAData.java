@@ -27,6 +27,7 @@ import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import org.apache.log4j.Logger;
+import org.cesecore.CesecoreRuntimeException;
 import org.cesecore.dbprotection.ProtectedData;
 import org.cesecore.dbprotection.ProtectionStringBuilder;
 import org.cesecore.util.Base64GetHashMap;
@@ -360,7 +361,7 @@ public class CAData extends ProtectedData implements Serializable {
       setData(aData);
       setUpdateTime(System.currentTimeMillis());
     } catch (UnsupportedEncodingException e) {
-      throw new RuntimeException(e);
+      throw new CesecoreRuntimeException(e);
     }
   }
 
@@ -384,11 +385,9 @@ public class CAData extends ProtectedData implements Serializable {
         .append(getExpireTime())
         .append(getUpdateTime())
         .append(getData());
-    if (LOG.isDebugEnabled()) {
-      // Some profiling
-      if (build.length() > capacity) {
+    if (LOG.isDebugEnabled() && build.length() > capacity) {
         LOG.debug("CAData.getProtectString gives size: " + build.length());
-      }
+
     }
     return build.toString();
   }

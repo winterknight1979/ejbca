@@ -256,7 +256,7 @@ public class AdminGroupData extends ProtectedData
   }
 
   @Override
-  public boolean equals(final Object obj) {
+  public boolean equals(final Object obj) { // NOPMD
     if (this == obj) {
       return true;
     }

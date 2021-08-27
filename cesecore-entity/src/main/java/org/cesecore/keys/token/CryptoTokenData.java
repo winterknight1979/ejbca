@@ -24,6 +24,8 @@ import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+
+import org.cesecore.CesecoreRuntimeException;
 import org.cesecore.dbprotection.ProtectedData;
 import org.cesecore.dbprotection.ProtectionStringBuilder;
 import org.cesecore.util.Base64Util;
@@ -261,7 +263,7 @@ public class CryptoTokenData extends ProtectedData implements Serializable {
           new ByteArrayInputStream(
               Base64Util.decode(getTokenProps().getBytes("UTF8"))));
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new CesecoreRuntimeException(e);
     }
     return props;
   }
@@ -278,7 +280,7 @@ public class CryptoTokenData extends ProtectedData implements Serializable {
           new String(Base64Util.encode(baos.toByteArray(), false), "UTF8"));
       baos.close();
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new CesecoreRuntimeException(e);
     }
   }
 
@@ -294,7 +296,7 @@ public class CryptoTokenData extends ProtectedData implements Serializable {
       }
       return Base64Util.decode(data.getBytes("UTF8"));
     } catch (UnsupportedEncodingException e) {
-      throw new RuntimeException(e);
+      throw new CesecoreRuntimeException(e);
     }
   }
 
@@ -312,7 +314,7 @@ public class CryptoTokenData extends ProtectedData implements Serializable {
     try {
       setTokenData(new String(Base64Util.encode(data, false), "UTF8"));
     } catch (UnsupportedEncodingException e) {
-      throw new RuntimeException(e);
+      throw new CesecoreRuntimeException(e);
     }
   }
 }

@@ -97,65 +97,13 @@ public class AccessRulesMigrator {
     final Set<AccessRuleData> oldRules = new HashSet<>(oldAccessRules);
     // If there is entries with unknown, remove them first since they provide no
     // info
-    for (final AccessRuleData accessRuleData : new ArrayList<>(oldRules)) {
-      if (AccessTreeState.STATE_UNKNOWN.equals(accessRuleData.getTreeState())) {
-        oldRules.remove(accessRuleData);
-        if (LOG.isDebugEnabled()) {
-          LOG.debug(
-              "Ignoring STATE_UNKNOWN for resource '"
-                  + AccessRulesHelper.normalizeResource(
-                      accessRuleData.getAccessRuleName())
-                  + "'.");
-        }
-      }
-    }
+    handleUnknown(oldRules);
     // Any /rulea/:decline -> Remove all rules starting with /rulea/ and add
     // /rulea/:deny to new rules
-    for (final AccessRuleData accessRuleData : new ArrayList<>(oldRules)) {
-      if (AccessTreeState.STATE_DECLINE.equals(accessRuleData.getTreeState())) {
-        final String resource =
-            AccessRulesHelper.normalizeResource(
-                accessRuleData.getAccessRuleName());
-        for (final AccessRuleData current : new ArrayList<>(oldRules)) {
-          final String resourceCurrent =
-              AccessRulesHelper.normalizeResource(current.getAccessRuleName());
-          if (resourceCurrent.startsWith(resource)) {
-            oldRules.remove(current);
-            // Remove longer resource paths that might have been added in the
-            // previous iterations of the loop
-            ret.remove(resourceCurrent);
-          }
-        }
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Adding STATE_DENY for resource '" + resource + "'.");
-        }
-        ret.put(resource, Role.STATE_DENY);
-      }
-    }
+    handleDecline(ret, oldRules);
     // Any /ruleb/:accept+recursive -> Remove all rules starting with /ruleb/
     // and add /ruleb/:allow to new rules
-    for (final AccessRuleData accessRuleData : new ArrayList<>(oldRules)) {
-      if (AccessTreeState.STATE_ACCEPT_RECURSIVE.equals(
-          accessRuleData.getTreeState())) {
-        final String resource =
-            AccessRulesHelper.normalizeResource(
-                accessRuleData.getAccessRuleName());
-        for (final AccessRuleData current : new ArrayList<>(oldRules)) {
-          final String resourceCurrent =
-              AccessRulesHelper.normalizeResource(current.getAccessRuleName());
-          if (resourceCurrent.startsWith(resource)) {
-            oldRules.remove(current);
-            // Remove longer resource paths that might have been added in the
-            // previous iterations of the loop
-            ret.remove(resourceCurrent);
-          }
-        }
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Adding STATE_ALLOW for resource '" + resource + "'.");
-        }
-        ret.put(resource, Role.STATE_ALLOW);
-      }
-    }
+    handleAccept(ret, oldRules);
     // Any /rulec/:accept+nonRecursive where all currently existing sub-resource
     // are also accepted
     //  -> Add /rulec/:allow to new rules
@@ -164,14 +112,29 @@ public class AccessRulesMigrator {
     //  -> Add /rulec/:allow to new rules and a /rulec/sub/:deny for each
     // sub-resource
     final Set<String> acceptNonRecursiveRules = new HashSet<>();
-    for (final AccessRuleData accessRuleData : new ArrayList<>(oldRules)) {
-      if (AccessTreeState.STATE_ACCEPT.equals(accessRuleData.getTreeState())) {
-        acceptNonRecursiveRules.add(
-            AccessRulesHelper.normalizeResource(
-                accessRuleData.getAccessRuleName()));
-        oldRules.remove(accessRuleData);
-      }
+    getNonRecursiveRules(oldRules, acceptNonRecursiveRules);
+    handleNonRecursiveRules(roleNameForLogging, ret, acceptNonRecursiveRules);
+    // The unused rule '/ca_functionality/store_certificate/' was still added to
+    // roles before EJBCA 6.6.0 (clean it up now during conversion)
+    ret.remove("/ca_functionality/store_certificate/");
+    if (!oldRules.isEmpty()) {
+      throw new IllegalStateException(
+          "Failed to convert access rules from old to new format. "
+              + oldRules.size()
+              + " rules remained.");
     }
+    AccessRulesHelper.minimizeAccessRules(ret);
+    return ret;
+  }
+
+/**
+ * @param roleNameForLogging Name
+ * @param ret Ret
+ * @param acceptNonRecursiveRules Rules
+ */
+private void handleNonRecursiveRules(final String roleNameForLogging,
+        final HashMap<String, Boolean> ret,
+        final Set<String> acceptNonRecursiveRules) {
     final List<String> acceptNonRecursiveRulesList =
         new ArrayList<>(acceptNonRecursiveRules);
     // Sort the list copy of the rules so log is easier to follow
@@ -240,16 +203,98 @@ public class AccessRulesMigrator {
                 + " be denied.");
       }
     }
-    // The unused rule '/ca_functionality/store_certificate/' was still added to
-    // roles before EJBCA 6.6.0 (clean it up now during conversion)
-    ret.remove("/ca_functionality/store_certificate/");
-    if (!oldRules.isEmpty()) {
-      throw new IllegalStateException(
-          "Failed to convert access rules from old to new format. "
-              + oldRules.size()
-              + " rules remained.");
+}
+
+/**
+ * @param oldRules Rules
+ * @param acceptNonRecursiveRules Rules
+ */
+private void getNonRecursiveRules(final Set<AccessRuleData> oldRules,
+        final Set<String> acceptNonRecursiveRules) {
+    for (final AccessRuleData accessRuleData : new ArrayList<>(oldRules)) {
+      if (AccessTreeState.STATE_ACCEPT.equals(accessRuleData.getTreeState())) {
+        acceptNonRecursiveRules.add(
+            AccessRulesHelper.normalizeResource(
+                accessRuleData.getAccessRuleName()));
+        oldRules.remove(accessRuleData);
+      }
     }
-    AccessRulesHelper.minimizeAccessRules(ret);
-    return ret;
-  }
+}
+
+/**
+ * @param ret ret
+ * @param oldRules rules
+ */
+private void handleAccept(final HashMap<String, Boolean> ret,
+        final Set<AccessRuleData> oldRules) {
+    for (final AccessRuleData accessRuleData : new ArrayList<>(oldRules)) {
+      if (AccessTreeState.STATE_ACCEPT_RECURSIVE.equals(
+          accessRuleData.getTreeState())) {
+        final String resource =
+            AccessRulesHelper.normalizeResource(
+                accessRuleData.getAccessRuleName());
+        for (final AccessRuleData current : new ArrayList<>(oldRules)) {
+          final String resourceCurrent =
+              AccessRulesHelper.normalizeResource(current.getAccessRuleName());
+          if (resourceCurrent.startsWith(resource)) {
+            oldRules.remove(current);
+            // Remove longer resource paths that might have been added in the
+            // previous iterations of the loop
+            ret.remove(resourceCurrent);
+          }
+        }
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Adding STATE_ALLOW for resource '" + resource + "'.");
+        }
+        ret.put(resource, Role.STATE_ALLOW);
+      }
+    }
+}
+
+/**
+ * @param ret ret
+ * @param oldRules rules
+ */
+private void handleDecline(final HashMap<String, Boolean> ret,
+final Set<AccessRuleData> oldRules) {
+    for (final AccessRuleData accessRuleData : new ArrayList<>(oldRules)) {
+      if (AccessTreeState.STATE_DECLINE.equals(accessRuleData.getTreeState())) {
+        final String resource =
+            AccessRulesHelper.normalizeResource(
+                accessRuleData.getAccessRuleName());
+        for (final AccessRuleData current : new ArrayList<>(oldRules)) {
+          final String resourceCurrent =
+              AccessRulesHelper.normalizeResource(current.getAccessRuleName());
+          if (resourceCurrent.startsWith(resource)) {
+            oldRules.remove(current);
+            // Remove longer resource paths that might have been added in the
+            // previous iterations of the loop
+            ret.remove(resourceCurrent);
+          }
+        }
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Adding STATE_DENY for resource '" + resource + "'.");
+        }
+        ret.put(resource, Role.STATE_DENY);
+      }
+    }
+}
+
+/**
+ * @param oldRules rules
+ */
+private void handleUnknown(final Set<AccessRuleData> oldRules) {
+    for (final AccessRuleData accessRuleData : new ArrayList<>(oldRules)) {
+      if (AccessTreeState.STATE_UNKNOWN.equals(accessRuleData.getTreeState())) {
+        oldRules.remove(accessRuleData);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
+              "Ignoring STATE_UNKNOWN for resource '"
+                  + AccessRulesHelper.normalizeResource(
+                      accessRuleData.getAccessRuleName())
+                  + "'.");
+        }
+      }
+    }
+}
 }

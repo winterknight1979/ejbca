@@ -421,7 +421,7 @@ public class NoConflictCertificateData extends BaseCertificateData
   // input after upgrade. TODO: Verify if still true!
   @Override
   public void setUpdateTime(final Long anUpdateTime) {
-    this.updateTime = (anUpdateTime == null ? this.updateTime : anUpdateTime);
+    this.updateTime = anUpdateTime == null ? this.updateTime : anUpdateTime;
   }
 
   @Override
@@ -542,13 +542,10 @@ public class NoConflictCertificateData extends BaseCertificateData
     if (this.base64Cert == null || certificateData.base64Cert == null) {
       return false; // one is null and the other not null
     }
-    if (!this.base64Cert.equals(certificateData.base64Cert)) {
-      return false;
-    }
-    return true;
+    return this.base64Cert.equals(certificateData.base64Cert);
   }
 
-  private boolean equalsNonSensitive(
+  private boolean equalsNonSensitive(// NOPMD: irreducible
       final NoConflictCertificateData certificateData,
       final boolean strictStatus) {
 
@@ -712,12 +709,10 @@ public class NoConflictCertificateData extends BaseCertificateData
         build.append(String.valueOf(getSubjectAltName()));
       }
     }
-    if (LOG.isDebugEnabled()) {
-      // Some profiling
-      if (build.length() > cap) {
+    if (LOG.isDebugEnabled() && build.length() > cap) {
         LOG.debug(
             "CertificateData.getProtectString gives size: " + build.length());
-      }
+
     }
     return build.toString();
   }

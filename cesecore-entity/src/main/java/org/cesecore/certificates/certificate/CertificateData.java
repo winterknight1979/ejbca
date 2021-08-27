@@ -31,6 +31,7 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.cesecore.CesecoreRuntimeException;
 import org.cesecore.certificates.crl.RevokedCertInfo;
 import org.cesecore.dbprotection.ProtectionStringBuilder;
 import org.cesecore.keys.util.KeyUtil;
@@ -193,7 +194,7 @@ public class CertificateData extends BaseCertificateData
    * @param storeSubjectAltName true if the subjectAltName column should be
    *     populated with the Subject Alternative Name of the certificate
    */
-  public CertificateData(
+  public CertificateData(// NOPMD
       final Certificate certificate,
       final PublicKey enrichedpubkey,
       final String aUsername,
@@ -279,7 +280,7 @@ public class CertificateData extends BaseCertificateData
     } catch (CertificateEncodingException cee) {
       final String msg = "Can't extract DER encoded certificate information.";
       LOG.error(msg, cee);
-      throw new RuntimeException(msg);
+      throw new CesecoreRuntimeException(msg);
     }
   }
 
@@ -536,7 +537,7 @@ public class CertificateData extends BaseCertificateData
   // input after upgrade. TODO: Verify if still true!
   @Override
   public void setUpdateTime(final Long anUpdateTime) {
-    this.updateTime = (anUpdateTime == null ? this.updateTime : anUpdateTime);
+    this.updateTime = anUpdateTime == null ? this.updateTime : anUpdateTime;
   }
 
   @Override
@@ -661,13 +662,10 @@ public class CertificateData extends BaseCertificateData
     if (this.base64Cert == null || certificateData.base64Cert == null) {
       return false; // one is null and the other not null
     }
-    if (!this.base64Cert.equals(certificateData.base64Cert)) {
-      return false;
-    }
-    return true;
+    return this.base64Cert.equals(certificateData.base64Cert);
   }
 
-  private boolean equalsNonSensitive(
+  private boolean equalsNonSensitive(// NOPMD: Irreducible
       final CertificateData certificateData, final boolean strictStatus) {
     if (!issuerDN.equals(certificateData.issuerDN)) {
       return false;
@@ -734,10 +732,7 @@ public class CertificateData extends BaseCertificateData
     if (updateTime != certificateData.updateTime) {
       return false;
     }
-    if (!StringUtils.equals(subjectAltName, certificateData.subjectAltName)) {
-      return false;
-    }
-    return true;
+    return StringUtils.equals(subjectAltName, certificateData.subjectAltName);
   }
 
   @Override
@@ -895,12 +890,10 @@ public class CertificateData extends BaseCertificateData
         build.append(String.valueOf(getSubjectAltName()));
       }
     }
-    if (LOG.isDebugEnabled()) {
-      // Some profiling
-      if (build.length() > cap) {
+    if (LOG.isDebugEnabled() && build.length() > cap) {
         LOG.debug(
             "CertificateData.getProtectString gives size: " + build.length());
-      }
+
     }
     return build.toString();
   }
