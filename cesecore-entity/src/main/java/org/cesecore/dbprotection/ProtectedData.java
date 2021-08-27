@@ -103,7 +103,7 @@ public abstract class ProtectedData {
           // never end up here again (ClassNotFoundException)
           // and if the class exists we will never end up here again (it will
           // not be null)
-          implClass = Class.forName(IMPL_CLASS_NAME);
+          implClass = Class.forName(IMPL_CLASS_NAME); // NOPMD
           LOG.debug(
               "ProtectedDataIntegrityImpl is available, and used, in this"
                   + " version of EJBCA.");
@@ -113,7 +113,7 @@ public abstract class ProtectedData {
       } catch (ClassNotFoundException | NoSuchMethodException e) {
         // We only end up here once, if the class does not exist, we will never
         // end up here again
-        integrityExists = false;
+        integrityExists = false; // NOPMD
         LOG.info(
             "No database integrity protection available in this version of"
                 + " EJBCA.");

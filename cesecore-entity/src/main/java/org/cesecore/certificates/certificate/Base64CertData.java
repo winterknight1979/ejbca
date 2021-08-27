@@ -24,6 +24,7 @@ import javax.persistence.Query;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import org.apache.log4j.Logger;
+import org.cesecore.CesecoreRuntimeException;
 import org.cesecore.dbprotection.ProtectedData;
 import org.cesecore.dbprotection.ProtectionStringBuilder;
 import org.cesecore.util.Base64Util;
@@ -73,7 +74,7 @@ public class Base64CertData extends ProtectedData implements Serializable {
     } catch (CertificateEncodingException cee) {
       final String msg = "Can't extract DER encoded certificate information.";
       LOG.error(msg, cee);
-      throw new RuntimeException(msg);
+      throw new CesecoreRuntimeException(msg);
     }
   }
 
@@ -191,10 +192,7 @@ public class Base64CertData extends ProtectedData implements Serializable {
     if (rowProtection == null && other.rowProtection != null) {
       return false;
     }
-    if (rowVersion != other.rowVersion) {
-      return false;
-    }
-    return true;
+    return rowVersion != other.rowVersion;
   }
 
   @Override
@@ -241,12 +239,10 @@ public class Base64CertData extends ProtectedData implements Serializable {
     // rowVersion is automatically updated by JPA, so it's not important, it is
     // only used for optimistic locking
     build.append(getFingerprint()).append(getBase64Cert());
-    if (LOG.isDebugEnabled()) {
-      // Some profiling
-      if (build.length() > cap) {
+    if (LOG.isDebugEnabled() && build.length() > cap) {
         LOG.debug(
             "Base64CertData.getProtectString gives size: " + build.length());
-      }
+
     }
     return build.toString();
   }

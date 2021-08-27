@@ -99,7 +99,7 @@ public class AuditRecordData extends ProtectedData
    * @param theSearchDetail2 Search
    * @param theAdditionalDetails Details
    */
-  public AuditRecordData(
+  public AuditRecordData(// NOPMD
       final String aNodeId,
       final Long aSequenceNumber,
       final Long aTimeStamp,

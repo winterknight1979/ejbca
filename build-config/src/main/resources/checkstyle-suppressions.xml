@@ -206,11 +206,11 @@
 	<suppress checks="UnusedImportsCheck"
 		files="BaseCertificateData.java" lines="23" /> <!-- Used in JDOC -->
 	<suppress checks="MagicNumberCheck"
-		files="CertificateData.java" lines="890,865" /> <!-- Old versions -->
+		files="CertificateData.java" lines="860,885" /> <!-- Old versions -->
 	<suppress checks="ParameterNumberCheck"
-		files="CertificateData.java" lines="196" />
+		files="CertificateData.java" lines="197" />
 	<suppress checks="MagicNumberCheck"
-		files="NoConflictCertificateData.java" lines="682,707" /> <!-- Old versions -->
+		files="NoConflictCertificateData.java" lines="679,704" /> <!-- Old versions -->
 	<suppress checks="ParameterNumberCheck"
 		files="InternalKeyBindingData.java" lines="99" />
 	<suppress checks="MethodLengthCheck"

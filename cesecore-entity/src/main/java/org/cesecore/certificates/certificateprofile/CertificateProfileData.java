@@ -284,13 +284,11 @@ public class CertificateProfileData extends ProtectedData
     // rowVersion is automatically updated by JPA, so it's not important, it is
     // only used for optimistic locking
     build.append(getId()).append(getCertificateProfileName()).append(getData());
-    if (LOG.isDebugEnabled()) {
-      // Some profiling
-      if (build.length() > cap) {
+    if (LOG.isDebugEnabled() && build.length() > cap) {
         LOG.debug(
             "CertificateProfileData.getProtectString gives size: "
                 + build.length());
-      }
+
     }
     return build.toString();
   }

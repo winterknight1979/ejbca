@@ -21,6 +21,7 @@ import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import org.apache.commons.lang.builder.CompareToBuilder;
+import org.cesecore.CesecoreRuntimeException;
 import org.cesecore.authorization.access.AccessTreeState;
 import org.cesecore.dbprotection.ProtectedData;
 import org.cesecore.dbprotection.ProtectionStringBuilder;
@@ -196,7 +197,7 @@ public class AccessRuleData extends ProtectedData
     if (isRecI != null) {
       return isRecI.intValue() == 1;
     }
-    throw new RuntimeException(
+    throw new CesecoreRuntimeException(
         "Could not retreive AccessRulesData.recursive from database.");
   }
 
@@ -311,15 +312,16 @@ public class AccessRuleData extends ProtectedData
     switch (internalState) {
       case RULE_ACCEPT:
         result =
-            (getRecursive()
+            getRecursive()
                 ? AccessTreeState.STATE_ACCEPT_RECURSIVE
-                : AccessTreeState.STATE_ACCEPT);
+                : AccessTreeState.STATE_ACCEPT;
         break;
       case RULE_DECLINE:
         result = AccessTreeState.STATE_DECLINE;
         break;
       default:
         result = AccessTreeState.STATE_UNKNOWN;
+        break;
     }
 
     return result;
@@ -341,7 +343,7 @@ public class AccessRuleData extends ProtectedData
       final String roleName, final String accessRuleName) {
     final int roleNameHash = roleName == null ? 0 : roleName.hashCode();
     final int accessRuleHash =
-        accessRuleName == null ? 0 : (accessRuleName.trim()).hashCode();
+        accessRuleName == null ? 0 : accessRuleName.trim().hashCode();
     return roleNameHash ^ accessRuleHash;
   }
 
@@ -365,7 +367,7 @@ public class AccessRuleData extends ProtectedData
   }
 
   @Override
-  public boolean equals(final Object obj) {
+  public boolean equals(final Object obj) { // NOPMD: irreducible
     if (this == obj) {
       return true;
     }
@@ -396,10 +398,7 @@ public class AccessRuleData extends ProtectedData
     // We must compare the "combined" value of recursiveBool and recursiveInt
     // here, since only one of
     // the values are used depending on different databases
-    if (getRecursive() != other.getRecursive()) {
-      return false;
-    }
-    return true;
+    return getRecursive() == other.getRecursive();
   }
 
   @Override
