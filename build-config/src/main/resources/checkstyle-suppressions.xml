@@ -177,7 +177,7 @@
 	<suppress checks="ParameterNumberCheck"
 		files="SecurityEventsAuditorSession.java" lines="121" />
 	<suppress checks="MagicNumberCheck" files="AuditDevicesConfig"
-		lines="110" />
+		lines="93" />
 	<suppress checks="ParameterNumberCheck"
 		files="IntegrityProtectedDevice.java" lines="134" />
 	<suppress checks="ParameterNumberCheck"

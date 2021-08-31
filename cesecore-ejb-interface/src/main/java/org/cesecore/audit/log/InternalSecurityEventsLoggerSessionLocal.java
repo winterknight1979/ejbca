@@ -48,7 +48,7 @@ public interface InternalSecurityEventsLoggerSessionLocal {
    * @param additionalDetails Additional details to be logged.
    * @throws AuditRecordStorageException if unable to store the log record
    */
-  void log(
+  void log(// NOPMD
       TrustedTime trustedTime,
       EventType eventType,
       EventStatus eventStatus,

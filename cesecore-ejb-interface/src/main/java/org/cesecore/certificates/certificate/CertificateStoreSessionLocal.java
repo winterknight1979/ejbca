@@ -65,7 +65,7 @@ public interface CertificateStoreSessionLocal extends CertificateStoreSession {
    * @throws AuthorizationDeniedException if admin was not authorized to store
    *     certificate in database
    */
-  CertificateDataWrapper storeCertificate(
+  CertificateDataWrapper storeCertificate(// NOPMD
       AuthenticationToken admin,
       Certificate incert,
       String username,
@@ -100,7 +100,7 @@ public interface CertificateStoreSessionLocal extends CertificateStoreSession {
    * @return CertificateDataWrapper with the certificate just stored that can be
    *     used for further publishing
    */
-  CertificateDataWrapper storeCertificateNoAuth(
+  CertificateDataWrapper storeCertificateNoAuth(// NOPMD
       AuthenticationToken admin,
       Certificate incert,
       String username,
@@ -243,7 +243,7 @@ public interface CertificateStoreSessionLocal extends CertificateStoreSession {
    *     object
    * @throws AuthorizationDeniedException If access denied
    */
-  void checkForUniqueCertificateSerialNumberIndexInTransaction(
+  void checkForUniqueCertificateSerialNumberIndexInTransaction(// NOPMD
       AuthenticationToken admin,
       Certificate incert,
       String username,
@@ -311,7 +311,7 @@ public interface CertificateStoreSessionLocal extends CertificateStoreSession {
    * @param caFingerprint the SHA-1 of the CA Certificate that issued this entry
    * @throws AuthorizationDeniedException If access denied
    */
-  void updateLimitedCertificateDataStatus(
+  void updateLimitedCertificateDataStatus(// NOPMD
       AuthenticationToken admin,
       int caId,
       String issuerDn,

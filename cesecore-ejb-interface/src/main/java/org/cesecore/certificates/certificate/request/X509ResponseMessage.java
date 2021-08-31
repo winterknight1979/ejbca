@@ -20,6 +20,7 @@ import java.security.cert.CertificateException;
 import java.util.Collection;
 import java.util.List;
 import org.apache.log4j.Logger;
+import org.cesecore.CesecoreError;
 import org.cesecore.certificates.certificate.Base64CertData;
 import org.cesecore.certificates.certificate.CertificateData;
 import org.cesecore.util.CertTools;
@@ -41,7 +42,7 @@ public class X509ResponseMessage implements CertificateResponseMessage {
    * href=http://java.sun.com/products/jdk/1.1/docs/guide
    * /serialization/spec/version.doc.html> details. </a>
    */
-  static final long serialVersionUID = -2157072605987735913L;
+  private static final long serialVersionUID = -2157072605987735913L;
 
   /** Logger. */
   private static Logger log = Logger.getLogger(X509ResponseMessage.class);
@@ -105,7 +106,7 @@ public class X509ResponseMessage implements CertificateResponseMessage {
     try {
       this.certbytes = aCertificate.getEncoded();
     } catch (CertificateEncodingException e) {
-      throw new Error(
+      throw new CesecoreError(
           "Could not encode certificate. This should not happen", e);
     }
   }
@@ -121,7 +122,8 @@ public class X509ResponseMessage implements CertificateResponseMessage {
   }
 
   @Override
-  public void setCACert(final Certificate cACert) { }
+  public void setCACert(final Certificate cACert) { // NOPMD: no-op
+  }
 
   @Override
   public Certificate getCertificate() {
@@ -132,7 +134,7 @@ public class X509ResponseMessage implements CertificateResponseMessage {
         certificate =
             CertTools.getCertfromByteArray(certbytes, Certificate.class);
       } catch (CertificateException e) {
-        throw new Error(
+        throw new CesecoreError(
             "Response was created without containing valid certificate. This"
                 + " should not happen",
             e);
@@ -243,31 +245,42 @@ public class X509ResponseMessage implements CertificateResponseMessage {
   public void setSignKeyInfo(
       final Collection<Certificate> certs,
       final PrivateKey key,
-      final String provider) { }
+      final String provider) { // NOPMD: no-op
+  }
 
   @Override
-  public void setSenderNonce(final String senderNonce) { }
+  public void setSenderNonce(final String senderNonce) { // NOPMD: no-op
+  }
 
   @Override
-  public void setRecipientNonce(final String recipientNonce) { }
+  public void setRecipientNonce(final String recipientNonce) { // NOPMD: no-op
+  }
 
   @Override
-  public void setTransactionId(final String transactionId) { }
+  public void setTransactionId(final String transactionId) { // NOPMD: no-op
+  }
 
   @Override
-  public void setRecipientKeyInfo(final byte[] recipientKeyInfo) { }
+  public void setRecipientKeyInfo(
+          final byte[] recipientKeyInfo) { // NOPMD: no-op
+  }
 
   @Override
-  public void setPreferredDigestAlg(final String digest) { }
+  public void setPreferredDigestAlg(final String digest) { // NOPMD: no-op
+  }
 
   @Override
-  public void setRequestType(final int reqtype) { }
+  public void setRequestType(final int reqtype) { // NOPMD: no-op
+  }
 
   @Override
-  public void setRequestId(final int reqid) { }
+  public void setRequestId(final int reqid) { // NOPMD: no-op
+  }
 
   @Override
-  public void setProtectionParamsFromRequest(final RequestMessage reqMsg) { }
+  public void setProtectionParamsFromRequest(
+          final RequestMessage reqMsg) { // NOPMD: no-op
+  }
 
   @Override
   public void addAdditionalCaCertificates(

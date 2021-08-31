@@ -46,7 +46,7 @@ public interface CertificateStoreSessionRemote extends CertificateStoreSession {
    * @throws AuthorizationDeniedException if admin was not authorized to store
    *     certificate in database
    */
-  void storeCertificateRemote(
+  void storeCertificateRemote(// NOPMD
       AuthenticationToken admin,
       CertificateWrapper cert,
       String username,
