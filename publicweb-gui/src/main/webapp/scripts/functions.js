@@ -1,38 +1,38 @@
 
-	// Used in apply_exp.jspf
-	function showCSPActiveX() {
-		if (navigator.appName.indexOf("Explorer") != -1) {
-		    if ( navigator.userAgent.indexOf("Windows NT 6") != -1 ) {
-				document.writeln("<object classid=\"clsid:884e2049-217d-11da-b2a4-000e7bbb2b09\" id=\"g_objClassFactory\" height=\"0\" width=\"0\" ></object>");
-			} else {
-				document.writeln("<object classid=\"clsid:127698e4-e730-4e5c-a2b1-21490a70c8a1\" id=\"newencoder\" codebase=\"/CertControl/xenroll.cab#Version=5,131,3659,0\" height=\"0\" width=\"0\" ></object>");
-				document.writeln("<object classid=\"clsid:43F8F289-7A20-11D0-8F06-00C04FC295E1\" id=\"oldencoder\" height=\"0\" width=\"0\" ></object>");
-			}
-		}
-	}
+    // Used in apply_exp.jspf
+    function showCSPActiveX() {
+        if (navigator.appName.indexOf("Explorer") != -1) {
+            if ( navigator.userAgent.indexOf("Windows NT 6") != -1 ) {
+                document.writeln("<object classid=\"clsid:884e2049-217d-11da-b2a4-000e7bbb2b09\" id=\"g_objClassFactory\" height=\"0\" width=\"0\" ></object>");
+            } else {
+                document.writeln("<object classid=\"clsid:127698e4-e730-4e5c-a2b1-21490a70c8a1\" id=\"newencoder\" codebase=\"/CertControl/xenroll.cab#Version=5,131,3659,0\" height=\"0\" width=\"0\" ></object>");
+                document.writeln("<object classid=\"clsid:43F8F289-7A20-11D0-8F06-00C04FC295E1\" id=\"oldencoder\" height=\"0\" width=\"0\" ></object>");
+            }
+        }
+    }
 
     // Used by apply_nav.jspf, and cardCertApply.jsp
-	function myDeclare() {
-		if (navigator.appName.indexOf("Explorer") == -1) {
-			explorer = false;
-			plugin = navigator.mimeTypes["application/x-iid"];
-		} else {
-			explorer = true;
-			if ( navigator.userAgent.indexOf("Windows NT 6") == -1 ) {
-				plugin = ControlExists("IID.iIDCtl");
-			} else {
-				plugin = IsCSPInstalled("Net iD - CSP");
-			}
-		}
-		if (plugin) {
-			if (explorer) {
-				document.writeln("<object name=\"iID\" classid=\"CLSID:5BF56AD2-E297-416E-BC49-00B327C4426E\" width=\"0\" height=\"0\"></object>");
-			} else {
-				document.writeln("<object name=\"iID\" type=\"application/x-iid\" width=\"0\" height=\"0\"></object>");
-			}
-		}
-		// if the plugin is not available we silently ignore it.
-	}
+    function myDeclare() {
+        if (navigator.appName.indexOf("Explorer") == -1) {
+            explorer = false;
+            plugin = navigator.mimeTypes["application/x-iid"];
+        } else {
+            explorer = true;
+            if ( navigator.userAgent.indexOf("Windows NT 6") == -1 ) {
+                plugin = ControlExists("IID.iIDCtl");
+            } else {
+                plugin = IsCSPInstalled("Net iD - CSP");
+            }
+        }
+        if (plugin) {
+            if (explorer) {
+                document.writeln("<object name=\"iID\" classid=\"CLSID:5BF56AD2-E297-416E-BC49-00B327C4426E\" width=\"0\" height=\"0\"></object>");
+            } else {
+                document.writeln("<object name=\"iID\" type=\"application/x-iid\" width=\"0\" height=\"0\"></object>");
+            }
+        }
+        // if the plugin is not available we silently ignore it.
+    }
 
     function selectKey() {
        if ( plugin ) {
