@@ -28,9 +28,6 @@ public enum NodeSequenceHolder {
     /** INSTANCE. */
   INSTANCE;
 
-  // We only want to use this from IntegrityProtectedDevice
-  NodeSequenceHolder() { }
-
   /** Sequence. */
   private final AtomicLong lastSequenceNumberAtomic = new AtomicLong(-1);
   /** Update. */
@@ -38,6 +35,8 @@ public enum NodeSequenceHolder {
   /** ID. */
   private String nodeId = null;
 
+  // We only want to use this from IntegrityProtectedDevice
+  NodeSequenceHolder() { }
   /** Interface for callback of methods that is invoked once. */
   public interface OnInitCallBack {
     /** @return the current node identifier */

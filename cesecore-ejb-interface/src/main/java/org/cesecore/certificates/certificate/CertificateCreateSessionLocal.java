@@ -258,7 +258,7 @@ public interface CertificateCreateSessionLocal
    * @throws InvalidAlgorithmException if the signing algorithm in the
    *     certificate profile (or the CA Token if not found) was invalid.
    */
-  CertificateDataWrapper createCertificate(
+  CertificateDataWrapper createCertificate(// NOPMD
       AuthenticationToken admin,
       EndEntityInformation data,
       CA ca,

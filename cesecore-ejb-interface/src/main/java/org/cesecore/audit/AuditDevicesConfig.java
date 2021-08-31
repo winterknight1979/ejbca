@@ -43,7 +43,6 @@ import org.cesecore.util.ValidityDateUtil;
  */
 public final class AuditDevicesConfig {
 
-    private AuditDevicesConfig() { }
     /** Logger. */
   private static final Logger LOG = Logger.getLogger(AuditDevicesConfig.class);
   /** Thread lock. */
@@ -56,6 +55,12 @@ public final class AuditDevicesConfig {
   /** Props. */
   private static final Map<String, Properties> DEVICE_PROPERTIES =
       new HashMap<String, Properties>();
+  /** Size. */
+  private static final int FETCHSIZE = 1000;
+  /** Format. */
+  private static final String EXPORTFILE_DATE_FORMAT = "yyyy-MM-dd-HHmmss";
+
+  private AuditDevicesConfig() { }
 
   private static Map<String, AuditLogDevice> getLoggers() {
     setup();
@@ -83,29 +88,7 @@ public final class AuditDevicesConfig {
         final Iterator<String> iterator = conf.getKeys();
         while (iterator.hasNext()) {
           final String currentKey = iterator.next();
-          Pattern pattern = Pattern.compile(deviceProperty);
-          Matcher matcher = pattern.matcher(currentKey);
-          if (matcher.matches()) {
-            final Integer deviceConfId = Integer.parseInt(matcher.group(1));
-            Properties thedeviceProperties =
-                    allDeviceProperties.get(deviceConfId);
-            if (thedeviceProperties == null) {
-              thedeviceProperties = new Properties();
-            }
-            final String devicePropertyName = matcher.group(2);
-            final String devicePropertyValue = conf.getString(currentKey);
-            if (LOG.isDebugEnabled()) {
-              LOG.debug(
-                  "deviceConfId="
-                      + deviceConfId.toString()
-                      + " "
-                      + devicePropertyName
-                      + "="
-                      + devicePropertyValue);
-            }
-            thedeviceProperties.put(devicePropertyName, devicePropertyValue);
-            allDeviceProperties.put(deviceConfId, thedeviceProperties);
-          }
+          handleMatch(conf, deviceProperty, allDeviceProperties, currentKey);
         }
         for (int i = 0; i < 255; i++) {
           if (!checkNoDuplicateProperties(deviceClassRoot + i)) {
@@ -113,8 +96,8 @@ public final class AuditDevicesConfig {
           }
           final String deviceClass =
               ConfigurationHolderUtil.getString(deviceClassRoot + i);
-          if ((deviceClass != null)
-              && (!"null".equalsIgnoreCase(deviceClass))) {
+          if (deviceClass != null
+              && !"null".equalsIgnoreCase(deviceClass)) {
             if (LOG.isDebugEnabled()) {
               LOG.debug(
                   "Trying to register audit device using implementation: "
@@ -182,6 +165,53 @@ public final class AuditDevicesConfig {
       LOCK.unlock();
     }
   }
+
+/**
+ * @param conf Config
+ * @param deviceProperty Prop
+ * @param allDeviceProperties MAp
+ * @param currentKey Key
+ * @throws NumberFormatException fail
+ */
+private static void handleMatch(final Configuration conf,
+        final String deviceProperty,
+        final Map<Integer, Properties> allDeviceProperties,
+        final String currentKey) throws NumberFormatException {
+    Pattern pattern = Pattern.compile(deviceProperty);
+      Matcher matcher = pattern.matcher(currentKey);
+      if (matcher.matches()) {
+        final Integer deviceConfId = Integer.parseInt(matcher.group(1));
+        Properties thedeviceProperties =
+                allDeviceProperties.get(deviceConfId);
+        if (thedeviceProperties == null) {
+          thedeviceProperties = new Properties();
+        }
+        final String devicePropertyName = matcher.group(2);
+        final String devicePropertyValue = conf.getString(currentKey);
+        logConfig(deviceConfId, devicePropertyName, devicePropertyValue);
+        thedeviceProperties.put(devicePropertyName, devicePropertyValue);
+        allDeviceProperties.put(deviceConfId, thedeviceProperties);
+      }
+}
+
+/**
+ * @param deviceConfId ID
+ * @param devicePropertyName Name
+ * @param devicePropertyValue Val
+ */
+private static void logConfig(final Integer deviceConfId,
+        final String devicePropertyName,
+        final String devicePropertyValue) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
+          "deviceConfId="
+              + deviceConfId.toString()
+              + " "
+              + devicePropertyName
+              + "="
+              + devicePropertyValue);
+    }
+}
 
   /**
    * Checks that there are no duplicate properties in the configuration.
@@ -254,9 +284,6 @@ public final class AuditDevicesConfig {
     return DEVICE_PROPERTIES.get(id);
   }
 
-  /** Format. */
-  private static final String EXPORTFILE_DATE_FORMAT = "yyyy-MM-dd-HHmmss";
-
   /**
    * @param properties Properties
    * @param exportDate Date exported
@@ -282,9 +309,6 @@ public final class AuditDevicesConfig {
     }
     return ret;
   }
-
-  /** Size. */
-  private static final int FETCHSIZE = 1000;
 
   /**
    * Parameter to specify the number of logs to be fetched in each validation

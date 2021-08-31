@@ -128,7 +128,7 @@ public interface InternalKeyBindingMgmtSession {
    * @throws InvalidAlgorithmException if the requested signature algorithm is
    *     not available
    */
-  int createInternalKeyBinding(
+  int createInternalKeyBinding(// NOPMD
       AuthenticationToken authenticationToken,
       String type,
       int id,
@@ -175,7 +175,7 @@ public interface InternalKeyBindingMgmtSession {
    *     not available
    * @see #createInternalKeyBinding
    */
-  int createInternalKeyBinding(
+  int createInternalKeyBinding(// NOPMD
       AuthenticationToken authenticationToken,
       String type,
       int id,
@@ -220,7 +220,7 @@ public interface InternalKeyBindingMgmtSession {
    *     not available
    * @see #createInternalKeyBinding
    */
-  int createInternalKeyBinding(
+  int createInternalKeyBinding(// NOPMD
       AuthenticationToken authenticationToken,
       String type,
       String name,

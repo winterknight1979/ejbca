@@ -24,29 +24,37 @@ import org.cesecore.audit.audit.AuditExporter;
 public class AuditExporterDummy implements AuditExporter {
 
   @Override
-  public void close() throws IOException { }
+  public void close() throws IOException { // NOPMD: no-op
+  }
 
   @Override
   public void setOutputStream(final OutputStream outputStream)
-      throws IOException { }
+      throws IOException { // NOPMD: no-op
+  }
 
   @Override
-  public void writeEndObject() throws IOException { }
+  public void writeEndObject() throws IOException { // NOPMD: no-op
+  }
 
   @Override
   public void writeField(final String key, final long value)
-      throws IOException { }
+      throws IOException { // NOPMD: no-op
+  }
 
   @Override
-  public void writeStartObject() throws IOException { }
-
+  public void writeStartObject() throws IOException { // NOPMD: no-op
+  }
   @Override
   public void writeField(final String key, final String value)
-      throws IOException { }
+      throws IOException { // NOPMD: no-op
+  }
 
   @Override
-  public void startObjectLabel(final String label) throws IOException { }
+  public void startObjectLabel(final String label)
+          throws IOException { // NOPMD: no-op
+  }
 
   @Override
-  public void endObjectLabel() throws IOException { }
+  public void endObjectLabel() throws IOException { // NOPMD: no-op
+  }
 }
