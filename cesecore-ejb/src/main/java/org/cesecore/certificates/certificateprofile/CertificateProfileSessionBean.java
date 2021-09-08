@@ -316,6 +316,47 @@ public class CertificateProfileSessionBean
     final HashSet<Integer> allcaids =
         new HashSet<Integer>(caSession.getAllCaIds());
 
+    setConstants(certprofiletype, returnval);
+    final boolean rootAccess =
+        authorizationSession.isAuthorizedNoLogging(
+            admin, StandardRules.ROLE_ROOT.resource());
+    for (final Entry<Integer, CertificateProfile> cpEntry
+        : CertificateProfileCache.INSTANCE
+            .getProfileCache(entityManager)
+            .entrySet()) {
+      final CertificateProfile profile = cpEntry.getValue();
+      // Check if all profiles available CAs exists in authorizedcaids.
+      if (certprofiletype == 0
+          || certprofiletype == profile.getType()
+          || profile.getType() == CertificateConstants.CERTTYPE_ENDENTITY
+              && certprofiletype == CertificateConstants.CERTTYPE_HARDTOKEN) {
+        boolean allexists = true;
+        for (final Integer nextcaid : profile.getAvailableCAs()) {
+          if (nextcaid.intValue() == CertificateProfile.ANYCA) {
+            allexists = true;
+            break;
+          }
+          // superadmin should be able to access profiles with missing CA Ids
+          if (!authorizedcaids.contains(nextcaid)
+              && (!rootAccess || allcaids.contains(nextcaid))) {
+            allexists = false;
+            break;
+          }
+        }
+        if (allexists) {
+          returnval.add(cpEntry.getKey());
+        }
+      }
+    }
+    return returnval;
+  }
+
+/**
+ * @param certprofiletype profile
+ * @param returnval ret
+ */
+private void setConstants(final int certprofiletype,
+        final ArrayList<Integer> returnval) {
     // Add fixed certificate profiles.
     if (certprofiletype == CertificateConstants.CERTTYPE_UNKNOWN
         || certprofiletype == CertificateConstants.CERTTYPE_ENDENTITY
@@ -356,39 +397,7 @@ public class CertificateProfileSessionBean
           Integer.valueOf(
               CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENSIGN));
     }
-    final boolean rootAccess =
-        authorizationSession.isAuthorizedNoLogging(
-            admin, StandardRules.ROLE_ROOT.resource());
-    for (final Entry<Integer, CertificateProfile> cpEntry
-        : CertificateProfileCache.INSTANCE
-            .getProfileCache(entityManager)
-            .entrySet()) {
-      final CertificateProfile profile = cpEntry.getValue();
-      // Check if all profiles available CAs exists in authorizedcaids.
-      if (certprofiletype == 0
-          || certprofiletype == profile.getType()
-          || (profile.getType() == CertificateConstants.CERTTYPE_ENDENTITY
-              && certprofiletype == CertificateConstants.CERTTYPE_HARDTOKEN)) {
-        boolean allexists = true;
-        for (final Integer nextcaid : profile.getAvailableCAs()) {
-          if (nextcaid.intValue() == CertificateProfile.ANYCA) {
-            allexists = true;
-            break;
-          }
-          // superadmin should be able to access profiles with missing CA Ids
-          if (!authorizedcaids.contains(nextcaid)
-              && (!rootAccess || allcaids.contains(nextcaid))) {
-            allexists = false;
-            break;
-          }
-        }
-        if (allexists) {
-          returnval.add(cpEntry.getKey());
-        }
-      }
-    }
-    return returnval;
-  }
+}
 
   @Override
   public List<Integer> getAuthorizedCertificateProfileWithMissingCAs(
@@ -694,10 +703,7 @@ public class CertificateProfileSessionBean
   }
 
   private boolean isCertificateProfileNameFixed(final String profilename) {
-    if (CertificateProfile.FIXED_PROFILENAMES.contains(profilename)) {
-      return true;
-    }
-    return false;
+    return CertificateProfile.FIXED_PROFILENAMES.contains(profilename);
   }
 
   private int findFreeCertificateProfileId() {
@@ -715,9 +721,9 @@ public class CertificateProfileSessionBean
 
   private boolean isFreeCertificateProfileId(final int id) {
     boolean foundfree = false;
-    if ((id > CertificateProfileConstants.FIXED_CERTIFICATEPROFILE_BOUNDRY)
-        && (CertificateProfileData.findById(entityManager, Integer.valueOf(id))
-            == null)) {
+    if (id > CertificateProfileConstants.FIXED_CERTIFICATEPROFILE_BOUNDRY
+        && CertificateProfileData.findById(entityManager, Integer.valueOf(id))
+            == null) {
       foundfree = true;
     }
     return foundfree;

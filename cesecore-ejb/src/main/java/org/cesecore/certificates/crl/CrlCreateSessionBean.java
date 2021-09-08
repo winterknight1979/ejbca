@@ -27,6 +27,7 @@ import org.cesecore.audit.enums.EventStatus;
 import org.cesecore.audit.enums.EventTypes;
 import org.cesecore.audit.enums.ModuleTypes;
 import org.cesecore.audit.enums.ServiceTypes;
+import org.cesecore.audit.log.AuditRecordStorageException;
 import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authorization.AuthorizationDeniedException;
@@ -97,24 +98,14 @@ public class CrlCreateSessionBean
     authorizedToCreateCRL(admin, caid);
 
     try {
-      if ((ca.getStatus() != CAConstants.CA_ACTIVE)
-          && (ca.getStatus() != CAConstants.CA_WAITING_CERTIFICATE_RESPONSE)) {
-        String msg =
-            INTRES.getLocalizedMessage(
-                "createcert.canotactive", ca.getSubjectDN());
-        throw new CryptoTokenOfflineException(msg);
-      }
+      assertActiveCA(ca);
       final X509CRLHolder crl;
 
-      boolean deltaCRL = (basecrlnumber > -1);
+      boolean deltaCRL = basecrlnumber > -1;
       final CryptoToken cryptoToken =
           cryptoTokenManagementSession.getCryptoToken(
               ca.getCAToken().getCryptoTokenId());
-      if (cryptoToken == null) {
-        throw new CryptoTokenOfflineException(
-            "Could not find CryptoToken with id "
-                + ca.getCAToken().getCryptoTokenId());
-      }
+      assertTokenNotNull(ca, cryptoToken);
       if (deltaCRL) {
         // Workaround if transaction handling fails so that crlNumber for
         // deltaCRL would happen to be the same
@@ -151,7 +142,7 @@ public class CrlCreateSessionBean
             crl.getIssuer().toString(),
             crl.toASN1Structure().getThisUpdate().getDate(),
             crl.toASN1Structure().getNextUpdate().getDate(),
-            (deltaCRL ? 1 : -1));
+            deltaCRL ? 1 : -1);
         String msg =
             INTRES.getLocalizedMessage(
                 "createcrl.createdcrl",
@@ -174,28 +165,43 @@ public class CrlCreateSessionBean
         // set the return value
         crlBytes = tmpcrlBytes;
       }
-    } catch (CryptoTokenOfflineException ctoe) {
-      String msg =
-          INTRES.getLocalizedMessage("error.catokenoffline", ca.getSubjectDN());
-      LOG.info(msg, ctoe);
-      String auditmsg =
-          INTRES.getLocalizedMessage(
-              "createcrl.errorcreate", ca.getName(), ctoe.getMessage());
-      Map<String, Object> details = new LinkedHashMap<String, Object>();
-      details.put("msg", auditmsg);
-      logSession.log(
-          EventTypes.CRL_CREATION,
-          EventStatus.FAILURE,
-          ModuleTypes.CRL,
-          ServiceTypes.CORE,
-          admin.toString(),
-          String.valueOf(caid),
-          null,
-          null,
-          details);
-      throw ctoe;
     } catch (Exception e) {
-      LOG.info("Error generating CRL: ", e);
+      handleCRLException(admin, ca, caid, e);
+    }
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<createCRL(Collection)");
+    }
+    return crlBytes;
+  }
+
+/**
+ * @param ca CA
+ * @param cryptoToken Token
+ * @throws CryptoTokenOfflineException Fail
+ */
+private void assertTokenNotNull(final CA ca, final CryptoToken cryptoToken)
+        throws CryptoTokenOfflineException {
+    if (cryptoToken == null) {
+        throw new CryptoTokenOfflineException(
+            "Could not find CryptoToken with id "
+                + ca.getCAToken().getCryptoTokenId());
+      }
+}
+
+/**
+ * @param admin Admin
+ * @param ca CA
+ * @param caid ID
+ * @param e Exception
+ * @throws AuditRecordStorageException Fail
+ * @throws EJBException Fail
+ * @throws CryptoTokenOfflineException fail
+ */
+private void handleCRLException(final AuthenticationToken admin,
+        final CA ca, final int caid, final Exception e)
+        throws AuditRecordStorageException, EJBException,
+        CryptoTokenOfflineException {
+    LOG.info("Error generating CRL: ", e);
       String msg =
           INTRES.getLocalizedMessage(
               "createcrl.errorcreate", ca.getName(), e.getMessage());
@@ -211,16 +217,28 @@ public class CrlCreateSessionBean
           null,
           null,
           details);
-      if (e instanceof EJBException) {
+      if (e instanceof CryptoTokenOfflineException) { // NOPMD
+          throw (CryptoTokenOfflineException) e;
+      }
+      if (e instanceof EJBException) { // NOPMD: no point in creating a new one
         throw (EJBException) e;
       }
       throw new EJBException(msg, e);
-    }
-    if (LOG.isTraceEnabled()) {
-      LOG.trace("<createCRL(Collection)");
-    }
-    return crlBytes;
-  }
+}
+
+/**
+ * @param ca CA
+ * @throws CryptoTokenOfflineException fail
+ */
+private void assertActiveCA(final CA ca) throws CryptoTokenOfflineException {
+    if (ca.getStatus() != CAConstants.CA_ACTIVE
+          && ca.getStatus() != CAConstants.CA_WAITING_CERTIFICATE_RESPONSE) {
+        String msg =
+            INTRES.getLocalizedMessage(
+                "createcert.canotactive", ca.getSubjectDN());
+        throw new CryptoTokenOfflineException(msg);
+      }
+}
 
   private void authorizedToCreateCRL(
       final AuthenticationToken admin, final int caid)

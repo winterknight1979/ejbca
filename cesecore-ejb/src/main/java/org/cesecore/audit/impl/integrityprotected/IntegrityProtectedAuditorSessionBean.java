@@ -267,10 +267,10 @@ public class IntegrityProtectedAuditorSessionBean
       final QueryCriteria queryCriteria =
           QueryCriteria.create()
               .add(
-                  (Criteria.and(
+                  Criteria.and(
                       Criteria.eq(AuditLogEntry.FIELD_NODEID, nodeId),
                       Criteria.leq(
-                          AuditLogEntry.FIELD_TIMESTAMP, timestamp.getTime()))))
+                          AuditLogEntry.FIELD_TIMESTAMP, timestamp.getTime())))
               .add(Criteria.orderAsc(AuditLogEntry.FIELD_SEQUENCENUMBER));
       int startIndex = 1;
       final Holder<Long> lastSeqNumber = new Holder<Long>(Long.valueOf(-1L));

@@ -227,7 +227,7 @@ public class CrlStoreSessionBean
                 data.getThisUpdate(),
                 data.getNextUpdate());
       } else {
-        if (deltaCRL && (crlnumber == 0)) {
+        if (deltaCRL && crlnumber == 0) {
           if (LOG.isDebugEnabled()) {
             LOG.debug("No delta CRL exists for CA with dn '" + issuerdn + "'");
           }

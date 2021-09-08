@@ -153,7 +153,7 @@ public enum CertificateProfileCache {
    * @param force if true, this will force an update even if the cache is not
    *     yet invalid
    */
-  public void updateProfileCache(
+  public void updateProfileCache(// NOPMD: irreducible
       final EntityManager entityManager, final boolean force) {
     if (LOG.isTraceEnabled()) {
       LOG.trace(">updateProfileCache");

@@ -46,6 +46,7 @@ import org.cesecore.audit.enums.EventStatus;
 import org.cesecore.audit.enums.EventTypes;
 import org.cesecore.audit.enums.ModuleTypes;
 import org.cesecore.audit.enums.ServiceTypes;
+import org.cesecore.audit.log.AuditRecordStorageException;
 import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authorization.AuthorizationDeniedException;
@@ -107,7 +108,7 @@ import org.cesecore.util.CryptoProviderUtil;
     mappedName =
         JndiConstants.APP_JNDI_PREFIX + "CertificateCreateSessionRemote")
 @TransactionAttribute(TransactionAttributeType.REQUIRED)
-public class CertificateCreateSessionBean
+public class CertificateCreateSessionBean // NOPMD
     implements CertificateCreateSessionLocal, CertificateCreateSessionRemote {
 
     /** Logger. */
@@ -171,8 +172,7 @@ public class CertificateCreateSessionBean
       final Collection<Certificate> cachain;
       final Certificate cacert;
       if (ca.getUseNextCACert(requestMessage)) {
-        alias =
-            catoken.getAliasFromPurpose(
+        alias = catoken.getAliasFromPurpose(
                 CATokenConstants.CAKEYPURPOSE_CERTSIGN_NEXT);
         cachain = ca.getRolloverCertificateChain();
         cacert = cachain.iterator().next();
@@ -191,26 +191,7 @@ public class CertificateCreateSessionBean
             cryptoToken.getEncProviderName());
       }
       // Verify the request
-      final PublicKey reqpk;
-      try {
-        if (!requestMessage.verify()) {
-          throw new SignRequestSignatureException(
-              INTRES.getLocalizedMessage("createcert.popverificationfailed"));
-        }
-        reqpk = requestMessage.getRequestPublicKey();
-        if (reqpk == null) {
-          final String msg =
-              INTRES.getLocalizedMessage("createcert.nokeyinrequest");
-          throw new InvalidKeyException(msg);
-        }
-      } catch (InvalidKeyException e) {
-        // If we get an invalid key exception here, we should throw an
-        // IllegalKeyException to the caller
-        // The catch of InvalidKeyException in the end of this method, catches
-        // error from the CA crypto token
-        throw new IllegalKeyException(e);
-      }
-
+      final PublicKey reqpk = getReqPK(requestMessage);
       final Date notBefore =
           requestMessage
               .getRequestValidityNotBefore(); // Optionally requested validity
@@ -221,37 +202,9 @@ public class CertificateCreateSessionBean
           requestMessage
               .getRequestExtensions(); // Optionally requested extensions
       int keyusage = -1;
-      if (exts != null) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug(
-              "we have extensions, see if we can override KeyUsage by looking"
-                  + " for a KeyUsage extension in request");
-        }
-        final KeyUsage keyUsage = KeyUsage.fromExtensions(exts);
-        if (keyUsage != null) {
-          final DERBitString bitString =
-              (DERBitString) keyUsage.toASN1Primitive();
-          keyusage = bitString.intValue();
-          if (LOG.isDebugEnabled()) {
-            LOG.debug("We have a key usage request extension: " + keyusage);
-          }
-        }
-      }
-      String sequence = null;
-      byte[] ki = requestMessage.getRequestKeyInfo();
-      // CVC sequence is only 5 characters, don't fill with a lot of garbage
-      // here, it must be a readable string
-      if ((ki != null) && (ki.length > 0) && (ki.length < 10)) {
-        final String str = new String(ki);
-        // A cvc sequence must be ascii printable, otherwise it's some binary
-        // data
-        if (StringUtils.isAsciiPrintable(str)) {
-          sequence = new String(ki);
-        }
-      }
-
-      CertificateDataWrapper certWrapper =
-          createCertificate(
+      keyusage = handleNullKey(exts, keyusage);
+      String sequence = getSequence(requestMessage);
+      CertificateDataWrapper certWrapper = createCertificate(
               admin,
               endEntityInformation,
               ca,
@@ -265,17 +218,46 @@ public class CertificateCreateSessionBean
               certGenParams,
               updateTime);
       // Create the response message with all nonces and checks etc
-      ret =
-          ResponseMessageUtils.createResponseMessage(
+      ret = ResponseMessageUtils.createResponseMessage(
               responseClass,
               requestMessage,
               cachain,
               cryptoToken.getPrivateKey(alias),
               cryptoToken.getEncProviderName());
-      ResponseStatus status = ResponseStatus.SUCCESS;
+      setReturnValues(requestMessage, ret, cacert, certWrapper);
+      ret.create();
+    } catch (InvalidKeyException e) {
+      throw new CertificateCreateException(ErrorCode.INVALID_KEY, e);
+    } catch (NoSuchAlgorithmException e) {
+      throw new CertificateCreateException(ErrorCode.BAD_REQUEST_SIGNATURE, e);
+    } catch (NoSuchProviderException e) {
+      throw new CertificateCreateException(ErrorCode.INTERNAL_ERROR, e);
+    } catch (CertificateEncodingException e) {
+      throw new CertificateCreateException(
+          ErrorCode.CERT_COULD_NOT_BE_PARSED, e);
+    } catch (CRLException e) {
+      throw new CertificateCreateException(
+          ErrorCode.CERT_COULD_NOT_BE_PARSED, e);
+    }
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<createCertificate(IRequestMessage, CA)");
+    }
+    return ret;
+  }
+
+/**
+ * @param requestMessage Message
+ * @param ret Cert
+ * @param cacert CA
+ * @param certWrapper Wrapper
+ */
+private void setReturnValues(final RequestMessage requestMessage,
+        final CertificateResponseMessage ret,
+        final Certificate cacert, final CertificateDataWrapper certWrapper) {
+    ResponseStatus status = ResponseStatus.SUCCESS;
       FailInfo failInfo = null;
       String failText = null;
-      if ((certWrapper == null) && (status == ResponseStatus.SUCCESS)) {
+      if (certWrapper == null && status == ResponseStatus.SUCCESS) {
         status = ResponseStatus.FAILURE;
         failInfo = FailInfo.BAD_REQUEST;
       } else {
@@ -295,26 +277,86 @@ public class CertificateCreateSessionBean
         ret.setFailInfo(failInfo);
         ret.setFailText(failText);
       }
-      ret.create();
-    } catch (InvalidKeyException e) {
-      throw new CertificateCreateException(ErrorCode.INVALID_KEY, e);
-    } catch (NoSuchAlgorithmException e) {
-      throw new CertificateCreateException(ErrorCode.BAD_REQUEST_SIGNATURE, e);
-    } catch (NoSuchProviderException e) {
-      throw new CertificateCreateException(ErrorCode.INTERNAL_ERROR, e);
-    } catch (CertificateEncodingException e) {
-      throw new CertificateCreateException(
-          ErrorCode.CERT_COULD_NOT_BE_PARSED, e);
-    } catch (CRLException e) {
-      throw new CertificateCreateException(
-          ErrorCode.CERT_COULD_NOT_BE_PARSED, e);
-    }
+}
 
-    if (LOG.isTraceEnabled()) {
-      LOG.trace("<createCertificate(IRequestMessage, CA)");
-    }
-    return ret;
-  }
+/**
+ * @param requestMessage Message
+ * @return Seq
+ */
+private String getSequence(final RequestMessage requestMessage) {
+    String sequence = null;
+      byte[] ki = requestMessage.getRequestKeyInfo();
+      // CVC sequence is only 5 characters, don't fill with a lot of garbage
+      // here, it must be a readable string
+      if (ki != null && ki.length > 0 && ki.length < 10) {
+        final String str = new String(ki);
+        // A cvc sequence must be ascii printable, otherwise it's some binary
+        // data
+        if (StringUtils.isAsciiPrintable(str)) {
+          sequence = new String(ki);
+        }
+      }
+    return sequence;
+}
+
+/**
+ * @param exts Extensions
+ * @param k Usage
+ * @return Usage
+ */
+private int handleNullKey(final Extensions exts, final int k) {
+    int keyusage = k;
+    if (exts != null) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
+              "we have extensions, see if we can override KeyUsage by looking"
+                  + " for a KeyUsage extension in request");
+        }
+        final KeyUsage keyUsage = KeyUsage.fromExtensions(exts);
+        if (keyUsage != null) {
+          final DERBitString bitString =
+              (DERBitString) keyUsage.toASN1Primitive();
+          keyusage = bitString.intValue();
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("We have a key usage request extension: " + keyusage);
+          }
+        }
+      }
+    return keyusage;
+}
+
+/**
+ * @param requestMessage Message
+ * @return PK
+ * @throws NoSuchAlgorithmException Fail
+ * @throws NoSuchProviderException Fail
+ * @throws SignRequestSignatureException Fail
+ * @throws IllegalKeyException Fail
+ */
+private PublicKey getReqPK(final RequestMessage requestMessage)
+        throws NoSuchAlgorithmException, NoSuchProviderException,
+        SignRequestSignatureException, IllegalKeyException {
+    final PublicKey reqpk;
+      try {
+        if (!requestMessage.verify()) {
+          throw new SignRequestSignatureException(
+              INTRES.getLocalizedMessage("createcert.popverificationfailed"));
+        }
+        reqpk = requestMessage.getRequestPublicKey();
+        if (reqpk == null) {
+          final String msg =
+              INTRES.getLocalizedMessage("createcert.nokeyinrequest");
+          throw new InvalidKeyException(msg);
+        }
+      } catch (InvalidKeyException e) {
+        // If we get an invalid key exception here, we should throw an
+        // IllegalKeyException to the caller
+        // The catch of InvalidKeyException in the end of this method, catches
+        // error from the CA crypto token
+        throw new IllegalKeyException(e);
+      }
+    return reqpk;
+}
 
   @Override
   public CertificateResponseMessage createCertificate(
@@ -355,7 +397,7 @@ public class CertificateCreateSessionBean
     }
     final CA ca;
     // First find the CA, this checks authorization and that the CA exists
-    if ((userData == null) || (userData.getCAId() == 0)) {
+    if (userData == null || userData.getCAId() == 0) {
       // If no CAid in the supplied userdata
       ca = getCAFromRequest(admin, req);
     } else {
@@ -411,7 +453,7 @@ public class CertificateCreateSessionBean
   }
 
   @Override
-  public CertificateDataWrapper createCertificate(
+  public CertificateDataWrapper createCertificate(// NOPMD: can't be reduced
       final AuthenticationToken admin,
       final EndEntityInformation endEntityInformation,
       final CA ca,
@@ -441,45 +483,11 @@ public class CertificateCreateSessionBean
     // To make sure we properly log authorization checks needed to issue a cert.
     // We need to check that admin have rights to create certificates, and have
     // access to the CA
-    if (!authorizationSession.isAuthorized(
-        admin,
-        StandardRules.CREATECERT.resource(),
-        StandardRules.CAACCESS.resource() + ca.getCAId())) {
-      final String msg =
-          INTRES.getLocalizedMessage(
-              "createcert.notauthorized", admin.toString(), ca.getCAId());
-      throw new AuthorizationDeniedException(msg);
-    }
+    failIfUnauthorized(admin, ca);
 
     // Audit log that we received the request
-    final Map<String, Object> details = new LinkedHashMap<String, Object>();
-    details.put("subjectdn", endEntityInformation.getDN());
-    details.put(
-        "requestX500name",
-        (request == null || request.getRequestX500Name() == null)
-            ? "null"
-            : request.getRequestX500Name().toString());
-    details.put("subjectaltname", endEntityInformation.getSubjectAltName());
-    if (null != request) {
-      details.put("requestaltname", request.getRequestAltNames());
-    }
-    details.put("certprofile", endEntityInformation.getCertificateProfileId());
-    details.put("keyusage", keyusage);
-    details.put("notbefore", notBefore);
-    details.put("notafter", notAfter);
-    details.put("sequence", sequence);
-    details.put("publickey", new String(
-            Base64Util.encode(pk.getEncoded(), false)));
-    logSession.log(
-        EventTypes.CERT_REQUEST,
-        EventStatus.SUCCESS,
-        ModuleTypes.CERTIFICATE,
-        ServiceTypes.CORE,
-        admin.toString(),
-        String.valueOf(ca.getCAId()),
-        null,
-        endEntityInformation.getUsername(),
-        details);
+    populateDetails(admin, endEntityInformation, ca, request,
+            pk, keyusage, notBefore, notAfter, sequence);
 
     // Retrieve the certificate profile this user should have, checking for
     // authorization to the profile
@@ -488,32 +496,9 @@ public class CertificateCreateSessionBean
         getCertificateProfile(certProfileId, ca.getCAId());
 
     // Validate ValidatorPhase.DATA_VALIDATION
-    try {
-      // Which public key to validate follows the criteria established in
-      // RequestAndPublicKeySelector, which is the same as used in the CA.
-      final ExtendedInformation ei =
-          endEntityInformation.getExtendedInformation();
-      final RequestAndPublicKeySelector pkSelector =
-          new RequestAndPublicKeySelector(request, pk, ei);
-      keyValidatorSession.validatePublicKey(
-          admin,
-          ca,
-          endEntityInformation,
-          certProfile,
-          notBefore,
-          notAfter,
-          pkSelector.getPublicKey());
-    } catch (ValidationException e) {
-      throw new CertificateCreateException(ErrorCode.ILLEGAL_KEY, e);
-    }
-    try {
-      keyValidatorSession.validateDnsNames(
-          admin, ca, endEntityInformation, request);
-    } catch (ValidationException e) {
-      // Re-factor: ErrorCode could be specified more precisely.
-      throw new CertificateCreateException(
-          ErrorCode.NOT_AUTHORIZED, e.getLocalizedMessage());
-    }
+    validatePK(admin, endEntityInformation, ca, request, pk,
+            notBefore, notAfter, certProfile);
+    validateDnsNames(admin, endEntityInformation, ca, request);
 
     // Set up audit logging of CT pre-certificate
     addCTLoggingCallback(certGenParams, admin.toString());
@@ -522,13 +507,7 @@ public class CertificateCreateSessionBean
       CertificateDataWrapper result = null;
       // If the user is of type USER_INVALID, it cannot have any other type (in
       // the mask)
-      if (endEntityInformation.getType().isType(EndEntityTypes.INVALID)) {
-        final String msg =
-            INTRES.getLocalizedMessage(
-                "createcert.usertypeinvalid",
-                endEntityInformation.getUsername());
-        throw new CertificateCreateException(ErrorCode.INTERNAL_ERROR, msg);
-      }
+      assertValidEEI(endEntityInformation);
 
       assertSubjectEnforcements(ca.getCAInfo(), endEntityInformation);
       assertSubjectKeyIdEnforcements(ca.getCAInfo(), endEntityInformation, pk);
@@ -547,97 +526,21 @@ public class CertificateCreateSessionBean
             endEntityInformation.getExtendedInformation();
         useCustomSN = ei != null && ei.certificateSerialNumber() != null;
 
-      final int maxRetrys;
-      if (useCustomSN) {
-        if (ca.isUseCertificateStorage()
-            && !isUniqueCertificateSerialNumberIndex()) {
-          final String msg =
-              INTRES.getLocalizedMessage(
-                  "createcert.not_unique_certserialnumberindex");
-          LOG.error(msg);
-          throw new CustomCertificateSerialNumberException(msg);
-        }
-        if (!certProfile.getAllowCertSerialNumberOverride()) {
-          final String msg =
-              INTRES.getLocalizedMessage(
-                  "createcert.certprof_not_allowing_cert_sn_override",
-                  Integer.valueOf(certProfileId));
-          LOG.info(msg);
-          throw new CustomCertificateSerialNumberException(msg);
-        }
-        maxRetrys = 1;
-      } else {
-        maxRetrys = 5;
-      }
+      final int maxRetrys = getMaxRetrys(ca, certProfileId, certProfile,
+              useCustomSN);
 
       // Before storing the new certificate, check if single active certificate
       // constraint is active, and if so let's revoke all active and unexpired
       // certificates
-      if (certProfile.isSingleActiveCertificateConstraint()) {
-        // Only get not yet expired certificates with status CERT_ACTIVE,
-        // CERT_NOTIFIEDABOUTEXPIRATION, CERT_REVOKED
-        final List<CertificateDataWrapper> cdws =
-            certificateStoreSession.getCertificateDataByUsername(
-                endEntityInformation.getUsername(),
-                true,
-                Arrays.asList(
-                    CertificateConstants.CERT_ARCHIVED,
-                    CertificateConstants.CERT_INACTIVE,
-                    CertificateConstants.CERT_ROLLOVERPENDING,
-                    CertificateConstants.CERT_UNASSIGNED));
-        if (LOG.isDebugEnabled()) {
-          LOG.debug(
-              "SingleActiveCertificateConstraint, found "
-                  + cdws.size()
-                  + " old (non expired, active) certificates.");
-        }
-        for (final CertificateDataWrapper cdw : cdws) {
-          final CertificateData certificateData = cdw.getCertificateData();
-          if (certificateData.getStatus() == CertificateConstants.CERT_REVOKED
-              && certificateData.getRevocationReason()
-                  != RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD) {
-            // It's possible that revocation may have been already called from a
-            // higher level bean (such as SignSession) which had to
-            // perform operations (such as publishing) which are out of scope of
-            // this method. This check is performed twice in order
-            // to ensure that operations entirely contained within CESeCore
-            // follow this constraint as well.
-            continue;
-          }
-          // Authorization to the CA was already checked at the head of this
-          // method, so no need to do so now
-          certificateStoreSession.setRevokeStatusNoAuth(
-              admin,
-              certificateData,
-              new Date(),
-              RevokedCertInfo.REVOCATION_REASON_SUPERSEDED);
-        }
-      }
+      handleSingleConstraint(admin, endEntityInformation, certProfile);
 
       CertificateSerialNumberException storeEx =
           null; // this will not be null if stored == false after the below
                 // passage
       String serialNo = "unknown";
       for (int retrycounter = 0; retrycounter < maxRetrys; retrycounter++) {
-        final CryptoToken cryptoToken =
-            cryptoTokenManagementSession.getCryptoToken(
-                ca.getCAToken().getCryptoTokenId());
-        if (cryptoToken == null) {
-          final String msg =
-              INTRES.getLocalizedMessage("error.catokenoffline", ca.getCAId());
-          LOG.info(msg);
-          CryptoTokenOfflineException exception =
-              new CryptoTokenOfflineException("CA's CryptoToken not found.");
-          auditFailure(
-              admin,
-              exception,
-              exception.getMessage(),
-              "<createCertificate(EndEntityInformation, CA, X500Name, pk, ku,"
-                  + " notBefore, notAfter, extesions, sequence)",
-              ca.getCAId(),
-              endEntityInformation.getUsername());
-          throw exception;
-        }
+        final CryptoToken cryptoToken = getCryptoToken(admin,
+                endEntityInformation, ca);
         final AvailableCustomCertificateExtensionsConfiguration cceConfig =
             (AvailableCustomCertificateExtensionsConfiguration)
                 globalConfigurationSession.getCachedConfiguration(
@@ -650,37 +553,16 @@ public class CertificateCreateSessionBean
         // Validate ValidatorPhase.PRE_CERTIFICATE_VALIDATION (X.509 CA only)
         cert =
             ca.generateCertificate(
-                cryptoToken,
-                endEntityInformation,
-                request,
-                pk,
-                keyusage,
-                new CA.CaCertValidity(
-                notBefore,
-                notAfter),
-                new CA.CaCertConfig(
-                certProfile,
-                extensions,
-                sequence,
-                certGenParams,
-                cceConfig));
+                cryptoToken, endEntityInformation, request,
+                pk, keyusage,
+                new CA.CaCertValidity(notBefore, notAfter),
+                new CA.CaCertConfig(certProfile, extensions,
+                        sequence, certGenParams, cceConfig));
         // Set null required here?
         certGenParams.setCertificateValidationDomainService(null);
 
         // Validate ValidatorPhase.CERTIFICATE_VALIDATION (X.509 CA only)
-        if (CAInfo.CATYPE_X509 == ca.getCAType()) {
-          try {
-            keyValidatorSession.validateCertificate(
-                admin,
-                IssuancePhase.CERTIFICATE_VALIDATION,
-                ca,
-                endEntityInformation,
-                (X509Certificate) cert);
-          } catch (ValidationException e) {
-            throw new CertificateCreateException(
-                ErrorCode.INVALID_CERTIFICATE, e);
-          }
-        }
+        validateCaType(admin, endEntityInformation, ca, cert);
 
         cafingerprint = CertTools.getFingerprintAsString(ca.getCACertificate());
         serialNo = CertTools.getSerialNumberAsString(cert);
@@ -690,17 +572,13 @@ public class CertificateCreateSessionBean
           // We still need to return a CertificateData object for publishers
           final CertificateData throwAwayCertData =
               new CertificateData(
-                  cert,
-                  cert.getPublicKey(),
+                  cert, cert.getPublicKey(),
                   endEntityInformation.getUsername(),
                   cafingerprint,
                   CertificateConstants.CERT_ACTIVE,
-                  certProfile.getType(),
-                  certProfileId,
+                  certProfile.getType(), certProfileId,
                   endEntityInformation.getEndEntityProfileId(),
-                  null,
-                  updateTime,
-                  false,
+                  null, updateTime, false,
                   certProfile.getStoreSubjectAlternativeName());
           result = new CertificateDataWrapper(cert, throwAwayCertData, null);
           // Always Store full certificate for OCSP signing certificates.
@@ -756,53 +634,214 @@ public class CertificateCreateSessionBean
           storeEx = e;
         }
       }
-      if (storeEx != null) {
-        if (useCustomSN) {
-          final String msg =
-              INTRES.getLocalizedMessage(
-                  "createcert.cert_serial_number_already_in_database",
-                  serialNo);
-          LOG.info(msg);
-          throw new CustomCertificateSerialNumberException(msg);
-        }
-        LOG.error(
-            "Can not store certificate in database in 5 tries, aborting: ",
-            storeEx);
-        throw storeEx;
-      }
+      checkException(useCustomSN, storeEx, serialNo);
 
       // Finally we check if this certificate should not be issued as active,
       // but revoked directly upon issuance
-      int revreason = RevokedCertInfo.NOT_REVOKED;
-      ei = endEntityInformation.getExtendedInformation();
-      if (ei != null) {
-        revreason = ei.getIssuanceRevocationReason();
-        if (revreason != RevokedCertInfo.NOT_REVOKED) {
-          // If we don't store the certificate in the database, we wont support
-          // revocation/reactivation so issuing revoked certificates would be
-          // really strange.
-          if (ca.isUseCertificateStorage()
-              && certProfile.getUseCertificateStorage()) {
-            certificateStoreSession.setRevokeStatus(
-                admin, result, new Date(), revreason);
-          } else {
-            LOG.warn(
-                "CA configured to revoke issued certificates directly, but not"
-                    + " to store issued the certificates. Revocation will be"
-                    + " ignored. Please verify your configuration.");
-          }
-        }
+      doAuditLog(admin, endEntityInformation, ca, certProfile,
+              result, cert, serialNo);
+      return result;
+      // We need to catch and re-throw all of these exception just because we
+      // need to audit log all failures
+    } catch (CustomCertificateSerialNumberException
+            | AuthorizationDeniedException | CertificateCreateException e) {
+      LOG.info(e.getMessage());
+      auditFailure(
+          admin,
+          e,
+          null,
+          "<createCertificate(EndEntityInformation, CA, X500Name, pk, ku,"
+              + " notBefore, notAfter, extesions, sequence)",
+          ca.getCAId(),
+          endEntityInformation.getUsername());
+      throw e;
+    } catch (CryptoTokenOfflineException e) {
+      final String msg =
+          INTRES.getLocalizedMessage("error.catokenoffline", ca.getCAId());
+      LOG.info(msg);
+      auditFailure(
+          admin,
+          e,
+          e.getMessage(),
+          "<createCertificate(EndEntityInformation, CA, X500Name, pk, ku,"
+              + " notBefore, notAfter, extesions, sequence)",
+          ca.getCAId(),
+          endEntityInformation.getUsername());
+      throw e;
+    } catch (CAOfflineException | InvalidAlgorithmException
+            | IllegalValidityException | CertificateExtensionException e) {
+      LOG.error("Error creating certificate", e);
+      auditFailure(
+          admin,
+          e,
+          null,
+          "<createCertificate(EndEntityInformation, CA, X500Name, pk, ku,"
+              + " notBefore, notAfter, extesions, sequence)",
+          ca.getCAId(),
+          endEntityInformation.getUsername());
+      throw e;
+    } catch (OperatorCreationException
+            | SignatureException e) {
+      LOG.error("Error creating certificate", e);
+      auditFailure(
+          admin,
+          e,
+          null,
+          "<createCertificate(EndEntityInformation, CA, X500Name, pk, ku,"
+              + " notBefore, notAfter, extesions, sequence)",
+          ca.getCAId(),
+          endEntityInformation.getUsername());
+      // Rollback
+      throw new CertificateCreateException(e);
+    }
+  }
+
+/**
+ * @param admin Token
+ * @param endEntityInformation EEI
+ * @param ca CA
+ * @param request Req
+ * @param pk PK
+ * @param notBefore Date
+ * @param notAfter Date
+ * @param certProfile Profile
+ * @throws IllegalValidityException Fail
+ * @throws CertificateCreateException Fail
+ */
+private void validatePK(final AuthenticationToken admin,
+        final EndEntityInformation endEntityInformation, final CA ca,
+        final RequestMessage request, final PublicKey pk,
+        final Date notBefore, final Date notAfter,
+        final CertificateProfile certProfile)
+                throws IllegalValidityException, CertificateCreateException {
+    try {
+      // Which public key to validate follows the criteria established in
+      // RequestAndPublicKeySelector, which is the same as used in the CA.
+      final ExtendedInformation ei =
+          endEntityInformation.getExtendedInformation();
+      final RequestAndPublicKeySelector pkSelector =
+          new RequestAndPublicKeySelector(request, pk, ei);
+      keyValidatorSession.validatePublicKey(
+          admin,
+          ca,
+          endEntityInformation,
+          certProfile,
+          notBefore,
+          notAfter,
+          pkSelector.getPublicKey());
+    } catch (ValidationException e) {
+      throw new CertificateCreateException(ErrorCode.ILLEGAL_KEY, e);
+    }
+}
+
+/**
+ * @param admin Admin
+ * @param endEntityInformation EEI
+ * @param ca CA
+ * @param request Req
+ * @throws CertificateCreateException Fail
+ */
+private void validateDnsNames(final AuthenticationToken admin,
+        final EndEntityInformation endEntityInformation,
+        final CA ca, final RequestMessage request)
+                throws CertificateCreateException {
+    try {
+      keyValidatorSession.validateDnsNames(
+          admin, ca, endEntityInformation, request);
+    } catch (ValidationException e) {
+      // Re-factor: ErrorCode could be specified more precisely.
+      throw new CertificateCreateException(
+          ErrorCode.NOT_AUTHORIZED, e.getLocalizedMessage());
+    }
+}
+
+/**
+ * @param admin token
+ * @param endEntityInformation EEI
+ * @param ca CA
+ * @param request Req
+ * @param pk PK
+ * @param keyusage Usage
+ * @param notBefore Date
+ * @param notAfter Date
+ * @param sequence Seq
+ * @throws AuditRecordStorageException fail
+ */
+private void populateDetails(final AuthenticationToken admin,
+        final EndEntityInformation endEntityInformation,
+        final CA ca, final RequestMessage request, final PublicKey pk,
+        final int keyusage, final Date notBefore,
+        final Date notAfter, final String sequence)
+                throws AuditRecordStorageException {
+    final Map<String, Object> details = new LinkedHashMap<String, Object>();
+    details.put("subjectdn", endEntityInformation.getDN());
+    details.put(
+        "requestX500name",
+        request == null || request.getRequestX500Name() == null
+            ? "null"
+            : request.getRequestX500Name().toString());
+    details.put("subjectaltname", endEntityInformation.getSubjectAltName());
+    if (null != request) {
+      details.put("requestaltname", request.getRequestAltNames());
+    }
+    details.put("certprofile", endEntityInformation.getCertificateProfileId());
+    details.put("keyusage", keyusage);
+    details.put("notbefore", notBefore);
+    details.put("notafter", notAfter);
+    details.put("sequence", sequence);
+    details.put("publickey", new String(
+            Base64Util.encode(pk.getEncoded(), false)));
+    logSession.log(
+        EventTypes.CERT_REQUEST,
+        EventStatus.SUCCESS,
+        ModuleTypes.CERTIFICATE,
+        ServiceTypes.CORE,
+        admin.toString(),
+        String.valueOf(ca.getCAId()),
+        null,
+        endEntityInformation.getUsername(),
+        details);
+}
+
+/**
+ * @param endEntityInformation EEI
+ * @throws CertificateCreateException Fail
+ */
+private void assertValidEEI(final EndEntityInformation endEntityInformation)
+        throws CertificateCreateException {
+    if (endEntityInformation.getType().isType(EndEntityTypes.INVALID)) {
+        final String msg =
+            INTRES.getLocalizedMessage(
+                "createcert.usertypeinvalid",
+                endEntityInformation.getUsername());
+        throw new CertificateCreateException(ErrorCode.INTERNAL_ERROR, msg);
       }
-      if (LOG.isDebugEnabled()) {
-        LOG.debug(
-            "Generated certificate with SerialNumber '"
-                + serialNo
-                + "' for user '"
-                + endEntityInformation.getUsername()
-                + "', with revocation reason="
-                + revreason);
-        LOG.debug(cert.toString());
-      }
+}
+
+/**
+ * @param admin token
+ * @param endEntityInformation EEI
+ * @param ca CA
+ * @param certProfile Profile
+ * @param result Result
+ * @param cert Cert
+ * @param serialNo SN
+ * @throws CertificateRevokeException Fail
+ * @throws AuthorizationDeniedException Fail
+ * @throws IllegalStateException Fail
+ * @throws AuditRecordStorageException Fail
+ */
+private void doAuditLog(final AuthenticationToken admin,
+        final EndEntityInformation endEntityInformation,
+        final CA ca,
+        final CertificateProfile certProfile,
+        final CertificateDataWrapper result,
+        final Certificate cert, final String serialNo)
+        throws CertificateRevokeException,
+        AuthorizationDeniedException, IllegalStateException,
+        AuditRecordStorageException {
+    int revreason = checkRevocation(admin, endEntityInformation, ca,
+              certProfile, result, cert, serialNo);
 
       // Audit log that we issued the certificate
       final Map<String, Object> issuedetails =
@@ -834,126 +873,252 @@ public class CertificateCreateSessionBean
             "<createCertificate(EndEntityInformation, CA, X500Name, pk, ku,"
                 + " notBefore, notAfter, extesions, sequence)");
       }
-      return result;
-      // We need to catch and re-throw all of these exception just because we
-      // need to audit log all failures
-    } catch (CustomCertificateSerialNumberException e) {
-      LOG.info(e.getMessage());
-      auditFailure(
-          admin,
-          e,
-          null,
-          "<createCertificate(EndEntityInformation, CA, X500Name, pk, ku,"
-              + " notBefore, notAfter, extesions, sequence)",
-          ca.getCAId(),
-          endEntityInformation.getUsername());
-      throw e;
-    } catch (AuthorizationDeniedException e) {
-      LOG.info(e.getMessage());
-      auditFailure(
-          admin,
-          e,
-          null,
-          "<createCertificate(EndEntityInformation, CA, X500Name, pk, ku,"
-              + " notBefore, notAfter, extesions, sequence)",
-          ca.getCAId(),
-          endEntityInformation.getUsername());
-      throw e;
-    } catch (CertificateCreateException e) {
-      LOG.info(e.getMessage());
-      auditFailure(
-          admin,
-          e,
-          null,
-          "<createCertificate(EndEntityInformation, CA, X500Name, pk, ku,"
-              + " notBefore, notAfter, extesions, sequence)",
-          ca.getCAId(),
-          endEntityInformation.getUsername());
-      // Rollback
-      throw e;
-    } catch (CryptoTokenOfflineException e) {
+}
+
+/**
+ * @param admin Token
+ * @param endEntityInformation EEI
+ * @param ca CA
+ * @return Token
+ * @throws CryptoTokenOfflineException Fail
+ */
+private CryptoToken getCryptoToken(final AuthenticationToken admin,
+        final EndEntityInformation endEntityInformation,
+        final CA ca) throws CryptoTokenOfflineException {
+    final CryptoToken cryptoToken =
+        cryptoTokenManagementSession.getCryptoToken(
+            ca.getCAToken().getCryptoTokenId());
+    if (cryptoToken == null) {
       final String msg =
           INTRES.getLocalizedMessage("error.catokenoffline", ca.getCAId());
       LOG.info(msg);
+      CryptoTokenOfflineException exception =
+          new CryptoTokenOfflineException("CA's CryptoToken not found.");
       auditFailure(
           admin,
-          e,
-          e.getMessage(),
+          exception,
+          exception.getMessage(),
           "<createCertificate(EndEntityInformation, CA, X500Name, pk, ku,"
               + " notBefore, notAfter, extesions, sequence)",
           ca.getCAId(),
           endEntityInformation.getUsername());
-      throw e;
-    } catch (CAOfflineException e) {
-      LOG.error("Error creating certificate", e);
-      auditFailure(
-          admin,
-          e,
-          null,
-          "<createCertificate(EndEntityInformation, CA, X500Name, pk, ku,"
-              + " notBefore, notAfter, extesions, sequence)",
-          ca.getCAId(),
-          endEntityInformation.getUsername());
-      throw e;
-    } catch (InvalidAlgorithmException e) {
-      LOG.error("Error creating certificate", e);
-      auditFailure(
-          admin,
-          e,
-          null,
-          "<createCertificate(EndEntityInformation, CA, X500Name, pk, ku,"
-              + " notBefore, notAfter, extesions, sequence)",
-          ca.getCAId(),
-          endEntityInformation.getUsername());
-      throw e;
-    } catch (IllegalValidityException e) {
-      LOG.error("Error creating certificate", e);
-      auditFailure(
-          admin,
-          e,
-          null,
-          "<createCertificate(EndEntityInformation, CA, X500Name, pk, ku,"
-              + " notBefore, notAfter, extesions, sequence)",
-          ca.getCAId(),
-          endEntityInformation.getUsername());
-      throw e;
-    } catch (OperatorCreationException e) {
-      LOG.error("Error creating certificate", e);
-      auditFailure(
-          admin,
-          e,
-          null,
-          "<createCertificate(EndEntityInformation, CA, X500Name, pk, ku,"
-              + " notBefore, notAfter, extesions, sequence)",
-          ca.getCAId(),
-          endEntityInformation.getUsername());
-      // Rollback
-      throw new CertificateCreateException(e);
-    } catch (SignatureException e) {
-      LOG.error("Error creating certificate", e);
-      auditFailure(
-          admin,
-          e,
-          null,
-          "<createCertificate(EndEntityInformation, CA, X500Name, pk, ku,"
-              + " notBefore, notAfter, extesions, sequence)",
-          ca.getCAId(),
-          endEntityInformation.getUsername());
-      // Rollback
-      throw new CertificateCreateException(e);
-    } catch (CertificateExtensionException e) {
-      LOG.error("Error creating certificate", e);
-      auditFailure(
-          admin,
-          e,
-          null,
-          "<createCertificate(EndEntityInformation, CA, X500Name, pk, ku,"
-              + " notBefore, notAfter, extesions, sequence)",
-          ca.getCAId(),
-          endEntityInformation.getUsername());
-      throw e;
+      throw exception;
     }
-  }
+    return cryptoToken;
+}
+
+/**
+ * @param admin Token
+ * @param endEntityInformation EEI
+ * @param certProfile Profile
+ * @throws CertificateRevokeException Fail
+ */
+private void handleSingleConstraint(final AuthenticationToken admin,
+        final EndEntityInformation endEntityInformation,
+        final CertificateProfile certProfile)
+                throws CertificateRevokeException {
+    if (certProfile.isSingleActiveCertificateConstraint()) {
+        // Only get not yet expired certificates with status CERT_ACTIVE,
+        // CERT_NOTIFIEDABOUTEXPIRATION, CERT_REVOKED
+        final List<CertificateDataWrapper> cdws =
+            certificateStoreSession.getCertificateDataByUsername(
+                endEntityInformation.getUsername(),
+                true,
+                Arrays.asList(
+                    CertificateConstants.CERT_ARCHIVED,
+                    CertificateConstants.CERT_INACTIVE,
+                    CertificateConstants.CERT_ROLLOVERPENDING,
+                    CertificateConstants.CERT_UNASSIGNED));
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
+              "SingleActiveCertificateConstraint, found "
+                  + cdws.size()
+                  + " old (non expired, active) certificates.");
+        }
+        for (final CertificateDataWrapper cdw : cdws) {
+          final CertificateData certificateData = cdw.getCertificateData();
+          if (certificateData.getStatus() == CertificateConstants.CERT_REVOKED
+              && certificateData.getRevocationReason()
+                  != RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD) {
+            // It's possible that revocation may have been already called from a
+            // higher level bean (such as SignSession) which had to
+            // perform operations (such as publishing) which are out of scope of
+            // this method. This check is performed twice in order
+            // to ensure that operations entirely contained within CESeCore
+            // follow this constraint as well.
+            continue;
+          }
+          // Authorization to the CA was already checked at the head of this
+          // method, so no need to do so now
+          certificateStoreSession.setRevokeStatusNoAuth(
+              admin,
+              certificateData,
+              new Date(),
+              RevokedCertInfo.REVOCATION_REASON_SUPERSEDED);
+        }
+      }
+}
+
+/**
+ * @param ca CA
+ * @param certProfileId IF
+ * @param certProfile Progile
+ * @param useCustomSN bool
+ * @return retrys
+ * @throws CustomCertificateSerialNumberException fail
+ */
+private int getMaxRetrys(final CA ca, final int certProfileId,
+        final CertificateProfile certProfile,
+        final boolean useCustomSN)
+                throws CustomCertificateSerialNumberException {
+    final int maxRetrys;
+      if (useCustomSN) {
+        if (ca.isUseCertificateStorage()
+            && !isUniqueCertificateSerialNumberIndex()) {
+          final String msg =
+              INTRES.getLocalizedMessage(
+                  "createcert.not_unique_certserialnumberindex");
+          LOG.error(msg);
+          throw new CustomCertificateSerialNumberException(msg);
+        }
+        if (!certProfile.getAllowCertSerialNumberOverride()) {
+          final String msg =
+              INTRES.getLocalizedMessage(
+                  "createcert.certprof_not_allowing_cert_sn_override",
+                  Integer.valueOf(certProfileId));
+          LOG.info(msg);
+          throw new CustomCertificateSerialNumberException(msg);
+        }
+        maxRetrys = 1;
+      } else {
+        maxRetrys = 5;
+      }
+    return maxRetrys;
+}
+
+/**
+ * @param admin Admin
+ * @param endEntityInformation EEI
+ * @param ca CA
+ * @param certProfile Profile
+ * @param result Result
+ * @param cert Cert
+ * @param serialNo SN
+ * @return Reason
+ * @throws CertificateRevokeException fail
+ * @throws AuthorizationDeniedException fail
+ */
+private int checkRevocation(final AuthenticationToken admin,
+        final EndEntityInformation endEntityInformation,
+        final CA ca, final CertificateProfile certProfile,
+        final CertificateDataWrapper result, final Certificate cert,
+        final String serialNo)
+                throws CertificateRevokeException,
+                AuthorizationDeniedException {
+    ExtendedInformation ei;
+    int revreason = RevokedCertInfo.NOT_REVOKED;
+      ei = endEntityInformation.getExtendedInformation();
+      if (ei != null) {
+        revreason = ei.getIssuanceRevocationReason();
+        if (revreason != RevokedCertInfo.NOT_REVOKED) {
+          // If we don't store the certificate in the database, we wont support
+          // revocation/reactivation so issuing revoked certificates would be
+          // really strange.
+          if (ca.isUseCertificateStorage()
+              && certProfile.getUseCertificateStorage()) {
+            certificateStoreSession.setRevokeStatus(
+                admin, result, new Date(), revreason);
+          } else {
+            LOG.warn(
+                "CA configured to revoke issued certificates directly, but not"
+                    + " to store issued the certificates. Revocation will be"
+                    + " ignored. Please verify your configuration.");
+          }
+        }
+      }
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
+            "Generated certificate with SerialNumber '"
+                + serialNo
+                + "' for user '"
+                + endEntityInformation.getUsername()
+                + "', with revocation reason="
+                + revreason);
+        LOG.debug(cert.toString());
+      }
+    return revreason;
+}
+
+/**
+ * @param useCustomSN bool
+ * @param storeEx exception
+ * @param serialNo SN
+ * @throws CustomCertificateSerialNumberException Fail
+ * @throws CertificateSerialNumberException Fail
+ */
+private void checkException(final boolean useCustomSN,
+        final CertificateSerialNumberException storeEx,
+        final String serialNo)
+        throws CustomCertificateSerialNumberException,
+        CertificateSerialNumberException {
+    if (storeEx != null) {
+        if (useCustomSN) {
+          final String msg =
+              INTRES.getLocalizedMessage(
+                  "createcert.cert_serial_number_already_in_database",
+                  serialNo);
+          LOG.info(msg);
+          throw new CustomCertificateSerialNumberException(msg);
+        }
+        LOG.error(
+            "Can not store certificate in database in 5 tries, aborting: ",
+            storeEx);
+        throw storeEx;
+      }
+}
+
+/**
+ * @param admin Admin
+ * @param endEntityInformation EEI
+ * @param ca CA
+ * @param cert Cert
+ * @throws CertificateCreateException Fail
+ */
+private void validateCaType(final AuthenticationToken admin,
+        final EndEntityInformation endEntityInformation,
+        final CA ca, final Certificate cert) throws CertificateCreateException {
+    if (CAInfo.CATYPE_X509 == ca.getCAType()) {
+      try {
+        keyValidatorSession.validateCertificate(
+            admin,
+            IssuancePhase.CERTIFICATE_VALIDATION,
+            ca,
+            endEntityInformation,
+            (X509Certificate) cert);
+      } catch (ValidationException e) {
+        throw new CertificateCreateException(
+            ErrorCode.INVALID_CERTIFICATE, e);
+      }
+    }
+}
+
+/**
+ * @param admin Admin
+ * @param ca CA
+ * @throws AuthorizationDeniedException Fail
+ */
+private void failIfUnauthorized(final AuthenticationToken admin, final CA ca)
+        throws AuthorizationDeniedException {
+    if (!authorizationSession.isAuthorized(
+        admin,
+        StandardRules.CREATECERT.resource(),
+        StandardRules.CAACCESS.resource() + ca.getCAId())) {
+      final String msg =
+          INTRES.getLocalizedMessage(
+              "createcert.notauthorized", admin.toString(), ca.getCAId());
+      throw new AuthorizationDeniedException(msg);
+    }
+}
 
   private void addCTLoggingCallback(
       final CertificateGenerationParams certGenParams,
@@ -1211,11 +1376,11 @@ public class CertificateCreateSessionBean
         null,
         username,
         details);
-    if (LOG.isTraceEnabled()) {
-      if (tracelog != null) {
+    if (LOG.isTraceEnabled()
+      && tracelog != null) {
         LOG.trace(tracelog);
       }
-    }
+
   }
 
   /**

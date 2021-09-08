@@ -18,6 +18,8 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
+import org.cesecore.CesecoreRuntimeException;
+
 /**
  * This class only exists in order to avoid having static non-final variables in
  * CertificateStoreSessionBean (not allowed according to EJB spec). This class
@@ -87,12 +89,12 @@ public final class UniqueSernoHelper {
           (X509Certificate)
               cf.generateCertificate(new ByteArrayInputStream(certEncoded1));
     } catch (CertificateException e) {
-      throw new RuntimeException(
+      throw new CesecoreRuntimeException(
           "Not possible to generate predefined dummy certificate. Should never"
               + " happen",
           e);
     } catch (NoSuchProviderException e) {
-      throw new RuntimeException(
+      throw new CesecoreRuntimeException(
           "Not possible to generate predefined dummy certificate. Should never"
               + " happen",
           e);
