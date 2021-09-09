@@ -346,7 +346,9 @@ public class RoleMemberDataSessionBean
       }
 
       @Override
-      public void setMatchWith(final Integer matchWith) { }
+      public void setMatchWith(final Integer matchWith) {
+          // NOPMD: no-op
+      }
 
       @Override
       public int getMatchType() {
@@ -354,7 +356,9 @@ public class RoleMemberDataSessionBean
       }
 
       @Override
-      public void setMatchType(final Integer matchType) { }
+      public void setMatchType(final Integer matchType) {
+          // NOPMD: no-op
+      }
 
       @Override
       public AccessMatchType getMatchTypeAsType() {
@@ -363,7 +367,9 @@ public class RoleMemberDataSessionBean
       }
 
       @Override
-      public void setMatchTypeAsValue(final AccessMatchType matchType)  { }
+      public void setMatchTypeAsValue(final AccessMatchType matchType)  {
+          // NOPMD: no-op
+      }
 
       @Override
       public String getMatchValue() {
@@ -371,7 +377,9 @@ public class RoleMemberDataSessionBean
       }
 
       @Override
-      public void setMatchValue(final String matchValue) { }
+      public void setMatchValue(final String matchValue) {
+          // NOPMD: no-op
+      }
 
       @Override
       public Integer getCaId() {
@@ -379,15 +387,19 @@ public class RoleMemberDataSessionBean
       }
 
       @Override
-      public void setCaId(final Integer caId) { }
-
-      @Override
-      public String getTokenType() {
-        return (roleMember == null ? null : roleMember.getTokenType());
+      public void setCaId(final Integer caId) {
+          // NOPMD: no-op
       }
 
       @Override
-      public void setTokenType(final String tokenType) { }
+      public String getTokenType() {
+        return roleMember == null ? null : roleMember.getTokenType();
+      }
+
+      @Override
+      public void setTokenType(final String tokenType) {
+          // NOPMD: no-op
+      }
     };
   }
 

@@ -85,7 +85,7 @@ public class AuthenticationTokenCacheKey {
   }
 
   @Override
-  public boolean equals(final Object obj) {
+  public boolean equals(final Object obj) { // NOPMD: irreducible
     if (this == obj) {
       return true;
     }

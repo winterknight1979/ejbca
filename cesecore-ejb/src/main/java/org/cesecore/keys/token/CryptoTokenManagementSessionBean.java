@@ -33,13 +33,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
+
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.bouncycastle.util.encoders.Hex;
+import org.cesecore.CesecoreRuntimeException;
 import org.cesecore.audit.enums.EventStatus;
 import org.cesecore.audit.enums.EventTypes;
 import org.cesecore.audit.enums.ModuleTypes;
@@ -207,45 +210,21 @@ public class CryptoTokenManagementSessionBean
             cryptoTokenSession.getCryptoToken(cti.getCryptoTokenId());
         final String ctiProviderName = token.getSignProviderName();
         providers.add(ctiProviderName);
-        if (token != null) {
-          if (isP11SlotSame(
+        if (token != null
+                && isP11SlotSame(
               tokenP11Lib,
               providerNameToCheck,
               ctiP11lib,
-              ctiProviderName,
-              cti.getName())) {
+              ctiProviderName)) {
             ret.add(ctiProviderName);
-          }
+
         }
       }
       // Check for database protection crypto tokens as well, these are not
       // stored as crypto tokens in the database, but only
       // as parameters in databaseprotection.properties, and thus requires
       // special handling
-      Provider[] installedProviders = Security.getProviders();
-      if (installedProviders != null) {
-        for (int i = 0; i < installedProviders.length; i++) {
-          final String installedProviderName = installedProviders[i].getName();
-          if (LOG.isDebugEnabled()) {
-            LOG.debug(
-                "isCryptoTokenUsed: Checking installed provider: "
-                    + installedProviderName);
-          }
-          if (StringUtils.equals(providerNameToCheck, installedProviderName)) {
-            // We found a match, but don't add duplicates
-            if (!providers.contains(installedProviderName)) {
-              LOG.debug(
-                  "isCryptoTokenUsed: Found a match between "
-                      + providerNameToCheck
-                      + " and installed provider "
-                      + installedProviderName
-                      + ", which was not already listed, must be a database"
-                      + " protection token.");
-              ret.add(installedProviderName + " (database protection?)");
-            }
-          }
-        }
-      }
+      handleProviders(providers, providerNameToCheck, ret);
     }
     if (LOG.isTraceEnabled()) {
       LOG.trace(
@@ -259,16 +238,47 @@ public class CryptoTokenManagementSessionBean
     return ret;
   }
 
+/**
+ * @param providers providers
+ * @param providerNameToCheck name
+ * @param ret Names
+ */
+private void handleProviders(final List<String> providers,
+        final String providerNameToCheck, final List<String> ret) {
+    Provider[] installedProviders = Security.getProviders();
+      if (installedProviders != null) {
+        for (int i = 0; i < installedProviders.length; i++) {
+          final String installedProviderName = installedProviders[i].getName();
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
+                "isCryptoTokenUsed: Checking installed provider: "
+                    + installedProviderName);
+          }
+          if (StringUtils.equals(providerNameToCheck, installedProviderName)
+                  && !providers.contains(installedProviderName)) {
+              LOG.debug(
+                  "isCryptoTokenUsed: Found a match between "
+                      + providerNameToCheck
+                      + " and installed provider "
+                      + installedProviderName
+                      + ", which was not already listed, must be a database"
+                      + " protection token.");
+              ret.add(installedProviderName + " (database protection?)");
+
+          }
+        }
+      }
+}
+
   private boolean isP11SlotSame(
       final String tokenP11Lib,
       final String providerNameToCheck,
       final String ctiP11lib,
-      final String ctiProviderName,
-      final String ctiName)
+      final String ctiProviderName)
       throws NoSuchSlotException {
     boolean ret = false;
-    if (StringUtils.isNotEmpty(ctiP11lib)) {
-      if (StringUtils.equalsIgnoreCase(tokenP11Lib, ctiP11lib)) {
+    if (StringUtils.isNotEmpty(ctiP11lib)
+            && StringUtils.equalsIgnoreCase(tokenP11Lib, ctiP11lib)) {
         // We have a match on the library, watch out...check if we are using the
         // same slot as well
         // Now it gets exciting, since you can address the slot through
@@ -287,7 +297,7 @@ public class CryptoTokenManagementSessionBean
           // We had a match, the caller knows the crypto token name
           ret = true;
         }
-      }
+
     }
     return ret;
   }
@@ -471,8 +481,7 @@ public class CryptoTokenManagementSessionBean
     final byte[] tokendata = currentCryptoToken.getTokenData();
     // Handle presence of auto-activation indicators
     boolean keepAutoActivateIfPresent =
-        Boolean.valueOf(
-            String.valueOf(
+        Boolean.valueOf(String.valueOf(
                 properties.get(
                     CryptoTokenManagementSession.KEEP_AUTO_ACTIVATION_PIN)));
     properties.remove(CryptoTokenManagementSession.KEEP_AUTO_ACTIVATION_PIN);
@@ -503,29 +512,9 @@ public class CryptoTokenManagementSessionBean
     // used to activate it and activate the new one as well..
     // For SoftCryptoTokens, a new secret means that we should change it and it
     // can only be done if the token is active
-    CryptoToken newCryptoToken;
-    try {
-      newCryptoToken =
-          CryptoTokenFactory.createCryptoToken(
-              className, properties, tokendata, cryptoTokenId, tokenName);
-      // If a new authenticationCode is provided we should verify it before we
-      // go ahead and merge
-      if (authenticationCode != null && authenticationCode.length > 0) {
-        newCryptoToken.deactivate();
-        newCryptoToken.activate(authenticationCode);
-      }
-    } catch (CryptoTokenOfflineException e) {
-      // If the crypto token can not be initialized, we have a problem and can
-      // not even disable auto-activation.
-      // Go ahead and ignore this
-      LOG.info(
-          "CryptoTokenOfflineException getting new crypto token for saving,"
-              + " ignoring this error and saving anyway: ",
-          e);
-      newCryptoToken = currentCryptoToken;
-      newCryptoToken.setProperties(properties);
-      newCryptoToken.setTokenName(tokenName);
-    }
+    CryptoToken newCryptoToken = getNewToken(cryptoTokenId, tokenName,
+            properties, authenticationCode,
+            currentCryptoToken, className, tokendata);
     final Map<String, Object> details = new LinkedHashMap<String, Object>();
     details.put("msg", "Modified CryptoToken with id " + cryptoTokenId);
     putDelta(
@@ -562,6 +551,49 @@ public class CryptoTokenManagementSessionBean
       LOG.trace("<saveCryptoToken: " + tokenName + ", " + cryptoTokenId);
     }
   }
+
+/**
+ * @param cryptoTokenId ID
+ * @param tokenName Name
+ * @param properties Props
+ * @param authenticationCode Code
+ * @param currentCryptoToken Token
+ * @param className Name
+ * @param tokendata Data
+ * @return Token
+ * @throws NoSuchSlotException fail
+ * @throws CryptoTokenAuthenticationFailedException fail
+ */
+private CryptoToken getNewToken(final int cryptoTokenId, final String tokenName,
+        final Properties properties,
+        final char[] authenticationCode, final CryptoToken currentCryptoToken,
+        final String className, final byte[] tokendata)
+        throws NoSuchSlotException, CryptoTokenAuthenticationFailedException {
+    CryptoToken newCryptoToken;
+    try {
+      newCryptoToken =
+          CryptoTokenFactory.createCryptoToken(
+              className, properties, tokendata, cryptoTokenId, tokenName);
+      // If a new authenticationCode is provided we should verify it before we
+      // go ahead and merge
+      if (authenticationCode != null && authenticationCode.length > 0) {
+        newCryptoToken.deactivate();
+        newCryptoToken.activate(authenticationCode);
+      }
+    } catch (CryptoTokenOfflineException e) {
+      // If the crypto token can not be initialized, we have a problem and can
+      // not even disable auto-activation.
+      // Go ahead and ignore this
+      LOG.info(
+          "CryptoTokenOfflineException getting new crypto token for saving,"
+              + " ignoring this error and saving anyway: ",
+          e);
+      newCryptoToken = currentCryptoToken;
+      newCryptoToken.setProperties(properties);
+      newCryptoToken.setTokenName(tokenName);
+    }
+    return newCryptoToken;
+}
 
   @Override
   public void saveCryptoToken(
@@ -661,7 +693,6 @@ public class CryptoTokenManagementSessionBean
       throws AuthorizationDeniedException {
     assertAuthorizationNoLog(
         authenticationToken,
-        cryptoTokenId,
         CryptoTokenRules.VIEW.resource() + "/" + cryptoTokenId);
     return isCryptoTokenStatusActive(cryptoTokenId);
   }
@@ -682,7 +713,6 @@ public class CryptoTokenManagementSessionBean
       throws AuthorizationDeniedException {
     assertAuthorizationNoLog(
         authenticationToken,
-        cryptoTokenId,
         CryptoTokenRules.VIEW.resource() + "/" + cryptoTokenId);
     final CryptoToken cryptoToken =
         cryptoTokenSession.getCryptoToken(cryptoTokenId);
@@ -699,7 +729,6 @@ public class CryptoTokenManagementSessionBean
           CryptoTokenAuthenticationFailedException {
     assertAuthorization(
         authenticationToken,
-        cryptoTokenId,
         CryptoTokenRules.ACTIVATE.resource() + "/" + cryptoTokenId);
     final CryptoToken cryptoToken =
         getCryptoTokenAndAssertExistence(cryptoTokenId);
@@ -726,7 +755,6 @@ public class CryptoTokenManagementSessionBean
       throws AuthorizationDeniedException {
     assertAuthorization(
         authenticationToken,
-        cryptoTokenId,
         CryptoTokenRules.DEACTIVATE.resource() + "/" + cryptoTokenId);
     final CryptoToken cryptoToken =
         getCryptoTokenAndAssertExistence(cryptoTokenId);
@@ -801,17 +829,8 @@ public class CryptoTokenManagementSessionBean
         .getName()
         .equals(cryptoToken.getClass().getName())) {
       CryptoProviderUtil.installBCProviderIfNotAvailable();
-      final KeyStore keystore;
-      try {
-        keystore = KeyStore.getInstance("PKCS12", "BC");
-        keystore.load(
-            new ByteArrayInputStream(cryptoToken.getTokenData()),
-            currentAuthenticationCode);
-      } catch (Exception e) {
-        final String msg = "Failed to use supplied current PIN." + " " + e;
-        LOG.info(msg);
-        throw new CryptoTokenAuthenticationFailedException(msg);
-      }
+      final KeyStore keystore = loadKeyStore(currentAuthenticationCode,
+              cryptoToken);
       if (newAuthenticationCode == null) {
         // When no new pin is supplied, we will not modify the key-store and
         // just remove the current auto-activation pin
@@ -821,30 +840,9 @@ public class CryptoTokenManagementSessionBean
             SoftCryptoToken.NODEFAULTPWD, Boolean.TRUE.toString());
         cryptoToken.setProperties(cryptoTokenProperties);
       } else {
-        try {
-          final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-          keystore.store(baos, newAuthenticationCode);
-          baos.close();
-          if (oldAutoActivationPin != null || !updateOnly) {
-            BaseCryptoToken.setAutoActivatePin(
-                cryptoTokenProperties, new String(newAuthenticationCode), true);
-          } else {
-            LOG.debug(
-                "Auto-activation will not be used. Only changing pin for soft"
-                    + " CryptoToken keystore.");
-          }
-          cryptoToken =
-              CryptoTokenFactory.createCryptoToken(
-                  SoftCryptoToken.class.getName(),
-                  cryptoTokenProperties,
-                  baos.toByteArray(),
-                  cryptoTokenId,
-                  cryptoToken.getTokenName());
-        } catch (Exception e) {
-          LOG.info("Unable to store soft keystore with new PIN: " + e);
-          throw new CryptoTokenAuthenticationFailedException(
-              "Unable to store soft keystore with new PIN");
-        }
+        cryptoToken = storeAuthCode(cryptoTokenId, newAuthenticationCode,
+                updateOnly, cryptoToken,
+                cryptoTokenProperties, oldAutoActivationPin, keystore);
       }
     } else {
       if (oldAutoActivationPin != null) {
@@ -883,11 +881,27 @@ public class CryptoTokenManagementSessionBean
       cryptoToken.setProperties(cryptoTokenProperties);
     }
     // Save the modified CryptoToken
+    saveToken(authenticationToken, cryptoTokenId, cryptoToken);
+    // Return the current auto-activation state
+    return BaseCryptoToken.getAutoActivatePin(cryptoTokenProperties) != null;
+  }
+
+/**
+ * @param authenticationToken Token
+ * @param cryptoTokenId ID
+ * @param cryptoToken Token
+ * @throws CesecoreRuntimeException Fail
+ * @throws AuditRecordStorageException Fail
+ */
+private void saveToken(final AuthenticationToken authenticationToken,
+        final Integer cryptoTokenId,
+        final CryptoToken cryptoToken)
+                throws CesecoreRuntimeException, AuditRecordStorageException {
     try {
       cryptoTokenSession.mergeCryptoToken(cryptoToken);
     } catch (CryptoTokenNameInUseException e) {
       // This should not happen here since we use the same name and id
-      throw new RuntimeException(e);
+      throw new CesecoreRuntimeException(e);
     }
     securityEventsLoggerSession.log(
         EventTypes.CRYPTOTOKEN_UPDATEPIN,
@@ -902,9 +916,77 @@ public class CryptoTokenManagementSessionBean
             + cryptoToken.getTokenName()
             + "' with id "
             + cryptoTokenId);
-    // Return the current auto-activation state
-    return BaseCryptoToken.getAutoActivatePin(cryptoTokenProperties) != null;
-  }
+}
+
+/**
+ * @param currentAuthenticationCode Code
+ * @param cryptoToken Token
+ * @return Keystore
+ * @throws CryptoTokenAuthenticationFailedException Fail
+ */
+private KeyStore loadKeyStore(final char[] currentAuthenticationCode,
+        final CryptoToken cryptoToken)
+        throws CryptoTokenAuthenticationFailedException {
+    final KeyStore keystore;
+      try {
+        keystore = KeyStore.getInstance("PKCS12", "BC");
+        keystore.load(
+            new ByteArrayInputStream(cryptoToken.getTokenData()),
+            currentAuthenticationCode);
+      } catch (Exception e) {
+        final String msg = "Failed to use supplied current PIN." + " " + e;
+        LOG.info(msg);
+        throw new CryptoTokenAuthenticationFailedException(msg);
+      }
+    return keystore;
+}
+
+/**
+ * @param cryptoTokenId ID
+ * @param newAuthenticationCode Code
+ * @param updateOnly Bool
+ * @param c Token
+ * @param cryptoTokenProperties Props
+ * @param oldAutoActivationPin Pin
+ * @param keystore Store
+ * @return Token
+ * @throws CryptoTokenAuthenticationFailedException fail
+ */
+private CryptoToken storeAuthCode(final Integer cryptoTokenId,
+        final char[] newAuthenticationCode,
+        final boolean updateOnly,
+        final CryptoToken c,
+        final Properties cryptoTokenProperties,
+        final String oldAutoActivationPin,
+        final KeyStore keystore)
+        throws CryptoTokenAuthenticationFailedException {
+    CryptoToken cryptoToken = c;
+    try {
+      final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      keystore.store(baos, newAuthenticationCode);
+      baos.close();
+      if (oldAutoActivationPin != null || !updateOnly) {
+        BaseCryptoToken.setAutoActivatePin(
+            cryptoTokenProperties, new String(newAuthenticationCode), true);
+      } else {
+        LOG.debug(
+            "Auto-activation will not be used. Only changing pin for soft"
+                + " CryptoToken keystore.");
+      }
+      cryptoToken =
+          CryptoTokenFactory.createCryptoToken(
+              SoftCryptoToken.class.getName(),
+              cryptoTokenProperties,
+              baos.toByteArray(),
+              cryptoTokenId,
+              cryptoToken.getTokenName());
+    } catch (Exception e) {
+      LOG.info("Unable to store soft keystore with new PIN: " + e);
+      throw new CryptoTokenAuthenticationFailedException(
+          "Unable to store soft keystore with new PIN");
+    }
+    return cryptoToken;
+}
 
   @Override
   public List<KeyPairInfo> getKeyPairInfos(
@@ -912,7 +994,6 @@ public class CryptoTokenManagementSessionBean
       throws CryptoTokenOfflineException, AuthorizationDeniedException {
     assertAuthorizationNoLog(
         authenticationToken,
-        cryptoTokenId,
         CryptoTokenRules.VIEW.resource() + "/" + cryptoTokenId);
     final CryptoToken cryptoToken =
         getCryptoTokenAndAssertExistence(cryptoTokenId);
@@ -940,7 +1021,6 @@ public class CryptoTokenManagementSessionBean
       throws CryptoTokenOfflineException, AuthorizationDeniedException {
     assertAuthorizationNoLog(
         authenticationToken,
-        cryptoTokenId,
         CryptoTokenRules.VIEW.resource() + "/" + cryptoTokenId);
     final CryptoToken cryptoToken =
         getCryptoTokenAndAssertExistence(cryptoTokenId);
@@ -966,7 +1046,6 @@ public class CryptoTokenManagementSessionBean
       throws AuthorizationDeniedException, CryptoTokenOfflineException {
     assertAuthorizationNoLog(
         authenticationToken,
-        cryptoTokenId,
         CryptoTokenRules.VIEW.resource() + "/" + cryptoTokenId);
     return new PublicKeyWrapper(
         getCryptoTokenAndAssertExistence(cryptoTokenId).getPublicKey(alias));
@@ -1009,7 +1088,6 @@ public class CryptoTokenManagementSessionBean
       throws AuthorizationDeniedException, CryptoTokenOfflineException {
     assertAuthorizationNoLog(
         authenticationToken,
-        cryptoTokenId,
         CryptoTokenRules.VIEW.resource() + "/" + cryptoTokenId);
     final CryptoToken cryptoToken =
         getCryptoTokenAndAssertExistence(cryptoTokenId);
@@ -1057,7 +1135,6 @@ public class CryptoTokenManagementSessionBean
           InvalidKeyException, InvalidAlgorithmParameterException {
     assertAuthorization(
         authenticationToken,
-        cryptoTokenId,
         CryptoTokenRules.GENERATE_KEYS.resource() + "/" + cryptoTokenId);
     final CryptoToken cryptoToken =
         getCryptoTokenAndAssertExistence(cryptoTokenId);
@@ -1088,7 +1165,7 @@ public class CryptoTokenManagementSessionBean
     try {
       cryptoTokenSession.mergeCryptoToken(cryptoToken);
     } catch (CryptoTokenNameInUseException e) {
-      throw new RuntimeException(
+      throw new CesecoreRuntimeException(
           e); // We have not changed the name of the CrytpoToken here, so this
               // should never happen
     }
@@ -1115,7 +1192,6 @@ public class CryptoTokenManagementSessionBean
           InvalidKeyException, InvalidAlgorithmParameterException {
     assertAuthorization(
         authenticationToken,
-        cryptoTokenId,
         CryptoTokenRules.GENERATE_KEYS.resource() + "/" + cryptoTokenId);
     final CryptoToken cryptoToken =
         getCryptoTokenAndAssertExistence(cryptoTokenId);
@@ -1140,7 +1216,7 @@ public class CryptoTokenManagementSessionBean
     try {
       cryptoTokenSession.mergeCryptoToken(cryptoToken);
     } catch (CryptoTokenNameInUseException e) {
-      throw new RuntimeException(
+      throw new CesecoreRuntimeException(
           e); // We have not changed the name of the CrytpoToken here, so this
               // should never happen
     }
@@ -1198,7 +1274,6 @@ public class CryptoTokenManagementSessionBean
           InvalidKeyException {
     assertAuthorization(
         authenticationToken,
-        cryptoTokenId,
         CryptoTokenRules.REMOVE_KEYS.resource() + "/" + cryptoTokenId);
     final CryptoToken cryptoToken =
         getCryptoTokenAndAssertExistence(cryptoTokenId);
@@ -1252,7 +1327,6 @@ public class CryptoTokenManagementSessionBean
       throws AuthorizationDeniedException, InvalidKeyException {
     assertAuthorization(
         authenticationToken,
-        cryptoTokenId,
         CryptoTokenRules.REMOVE_KEYS.resource() + "/" + cryptoTokenId);
     final CryptoToken cryptoToken =
         getCryptoTokenAndAssertExistence(cryptoTokenId);
@@ -1324,7 +1398,6 @@ public class CryptoTokenManagementSessionBean
           InvalidKeyException {
     assertAuthorization(
         authenticationToken,
-        cryptoTokenId,
         CryptoTokenRules.TEST_KEYS.resource() + "/" + cryptoTokenId);
     final CryptoToken cryptoToken =
         getCryptoTokenAndAssertExistence(cryptoTokenId);
@@ -1333,7 +1406,6 @@ public class CryptoTokenManagementSessionBean
 
   private void assertAuthorization(
       final AuthenticationToken authenticationToken,
-      final int cryptoTokenId,
       final String resource)
       throws AuthorizationDeniedException {
     if (!authorizationSession.isAuthorized(authenticationToken, resource)) {
@@ -1348,7 +1420,6 @@ public class CryptoTokenManagementSessionBean
 
   private void assertAuthorizationNoLog(
       final AuthenticationToken authenticationToken,
-      final int cryptoTokenId,
       final String resource)
       throws AuthorizationDeniedException {
     if (!authorizationSession.isAuthorizedNoLogging(
@@ -1371,7 +1442,8 @@ public class CryptoTokenManagementSessionBean
     final CryptoToken cryptoToken =
         cryptoTokenSession.getCryptoToken(cryptoTokenId);
     if (cryptoToken == null) {
-      throw new RuntimeException("No such CryptoToken for id " + cryptoTokenId);
+      throw new CesecoreRuntimeException(
+              "No such CryptoToken for id " + cryptoTokenId);
     }
     return cryptoToken;
   }
@@ -1418,8 +1490,7 @@ public class CryptoTokenManagementSessionBean
       final Map<String, Object> details) {
     // Treat the auto-activation pin with care
     if (BaseCryptoToken.AUTOACTIVATE_PIN_PROPERTY.equals(key)) {
-      if (oldValue == null && newValue == null) {
-        // NOP
+      if (oldValue == null && newValue == null) { // NOPMD
       } else if (oldValue == null && newValue != null) {
         details.put("autoActivation", "added");
         details.put(
@@ -1434,8 +1505,7 @@ public class CryptoTokenManagementSessionBean
             StringUtil.getEncryptVersionFromString(newValue));
       }
     } else {
-      if (oldValue == null && newValue == null) {
-        // NOP
+      if (oldValue == null && newValue == null) { // NOPMD
       } else if (oldValue == null && newValue != null) {
         details.put("added:" + key, newValue);
       } else if (oldValue != null && newValue == null) {

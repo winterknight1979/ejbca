@@ -30,6 +30,7 @@ import org.cesecore.audit.enums.EventStatus;
 import org.cesecore.audit.enums.EventTypes;
 import org.cesecore.audit.enums.ModuleTypes;
 import org.cesecore.audit.enums.ServiceTypes;
+import org.cesecore.audit.log.AuditRecordStorageException;
 import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
 import org.cesecore.authentication.tokens.AlwaysAllowLocalAuthenticationToken;
 import org.cesecore.authentication.tokens.AuthenticationToken;
@@ -350,38 +351,7 @@ public class RoleSessionBean implements RoleSessionLocal, RoleSessionRemote {
     final Role roleByName =
         roleDataSession.getRole(role.getNameSpace(), role.getRoleName());
     if (roleById == null) {
-      if (roleByName != null) {
-        throw new RoleExistsException(
-            InternalResources.getInstance()
-                .getLocalizedMessage(
-                    "authorization.erroraddroleexists",
-                    role.getRoleNameFull()));
-      }
-      // Enforce a non-empty role name
-      if (StringUtils.isEmpty(role.getRoleName())) {
-        throw new IllegalArgumentException("Role name cannot be empty.");
-      }
-      // Persist new role
-      role.setRoleId(roleDataSession.persistRole(role).getRoleId());
-      final String msg =
-          InternalResources.getInstance()
-              .getLocalizedMessage(
-                  "authorization.roleadded", role.getRoleName());
-      final Map<String, Object> details = new LinkedHashMap<>();
-      details.put("msg", msg);
-      details.put("roleId", role.getRoleId());
-      details.put("roleName", role.getRoleName());
-      details.put("nameSpace", role.getNameSpace());
-      securityEventsLoggerSession.log(
-          EventTypes.ROLE_CREATION,
-          EventStatus.SUCCESS,
-          ModuleTypes.ROLES,
-          ServiceTypes.CORE,
-          authenticationToken.toString(),
-          null,
-          null,
-          null,
-          details);
+      handleNullID(authenticationToken, role, roleByName);
     } else {
       // Save to existing role
       if (roleByName == null) {
@@ -423,27 +393,16 @@ public class RoleSessionBean implements RoleSessionLocal, RoleSessionRemote {
         roleById == null
             ? new HashMap<String, Boolean>()
             : roleById.getAccessRules();
-    final Map<Object, Object> oldAuditMap = new HashMap<>();
-    for (final Entry<String, Boolean> entry : oldAccessRules.entrySet()) {
-      oldAuditMap.put(
-          entry.getKey(), entry.getValue().booleanValue() ? "allow" : "deny");
-    }
-    final Map<Object, Object> newAuditMap = new HashMap<>();
-    for (final Entry<String, Boolean> entry : newAccessRules.entrySet()) {
-      newAuditMap.put(
-          entry.getKey(), entry.getValue().booleanValue() ? "allow" : "deny");
-    }
+    final Map<Object, Object> oldAuditMap = getOldAuditMap(oldAccessRules);
+    final Map<Object, Object> newAuditMap = getNewAuditMap(newAccessRules);
     final Map<Object, Object> auditLogDiffMap =
         UpgradeableDataHashMap.diffMaps(oldAuditMap, newAuditMap);
     if (!auditLogDiffMap.isEmpty()) {
       final StringBuilder rulesMsg = new StringBuilder();
       for (Map.Entry<Object, Object> entry : auditLogDiffMap.entrySet()) {
         rulesMsg.append(
-            "["
-                + entry.getKey().toString()
-                + ":"
-                + entry.getValue().toString()
-                + "]");
+            "[" + entry.getKey().toString()
+                + ":" + entry.getValue().toString() + "]");
       }
       final String msg =
           InternalResources.getInstance()
@@ -462,13 +421,70 @@ public class RoleSessionBean implements RoleSessionLocal, RoleSessionRemote {
           ModuleTypes.ROLES,
           ServiceTypes.CORE,
           authenticationToken.toString(),
+          null, null, null, details);
+    }
+    return role;
+  }
+
+
+private Map<Object, Object> getNewAuditMap(
+        final HashMap<String, Boolean> newAccessRules) {
+    final Map<Object, Object> newAuditMap = new HashMap<>();
+    for (final Entry<String, Boolean> entry : newAccessRules.entrySet()) {
+      newAuditMap.put(
+          entry.getKey(), entry.getValue().booleanValue() ? "allow" : "deny");
+    }
+    return newAuditMap;
+}
+
+private Map<Object, Object> getOldAuditMap(
+        final HashMap<String, Boolean> oldAccessRules) {
+    final Map<Object, Object> oldAuditMap = new HashMap<>();
+    for (final Entry<String, Boolean> entry : oldAccessRules.entrySet()) {
+      oldAuditMap.put(
+          entry.getKey(), entry.getValue().booleanValue() ? "allow" : "deny");
+    }
+    return oldAuditMap;
+}
+
+
+private void handleNullID(final AuthenticationToken authenticationToken,
+        final Role role, final Role roleByName)
+        throws RoleExistsException, IllegalArgumentException,
+        AuditRecordStorageException {
+    if (roleByName != null) {
+        throw new RoleExistsException(
+            InternalResources.getInstance()
+                .getLocalizedMessage(
+                    "authorization.erroraddroleexists",
+                    role.getRoleNameFull()));
+      }
+      // Enforce a non-empty role name
+      if (StringUtils.isEmpty(role.getRoleName())) {
+        throw new IllegalArgumentException("Role name cannot be empty.");
+      }
+      // Persist new role
+      role.setRoleId(roleDataSession.persistRole(role).getRoleId());
+      final String msg =
+          InternalResources.getInstance()
+              .getLocalizedMessage(
+                  "authorization.roleadded", role.getRoleName());
+      final Map<String, Object> details = new LinkedHashMap<>();
+      details.put("msg", msg);
+      details.put("roleId", role.getRoleId());
+      details.put("roleName", role.getRoleName());
+      details.put("nameSpace", role.getNameSpace());
+      securityEventsLoggerSession.log(
+          EventTypes.ROLE_CREATION,
+          EventStatus.SUCCESS,
+          ModuleTypes.ROLES,
+          ServiceTypes.CORE,
+          authenticationToken.toString(),
           null,
           null,
           null,
           details);
-    }
-    return role;
-  }
+}
 
   /**
    * Asserts that authentication token is authorized to edit roles in general.
@@ -544,13 +560,13 @@ public class RoleSessionBean implements RoleSessionLocal, RoleSessionRemote {
     // access rule
     for (final Entry<String, Boolean> entry
         : role.getAccessRules().entrySet()) {
-      if (entry.getValue().booleanValue()) {
-        if (!authorizationSession.isAuthorizedNoLogging(
+      if (entry.getValue().booleanValue()
+              && !authorizationSession.isAuthorizedNoLogging(
             authenticationToken, entry.getKey())) {
           // Role would allow what is is not granted to current
           // authenticationToken
           return false;
-        }
+
       }
     }
     // Verify that role does not have access to any rule that is denied to this
@@ -563,11 +579,11 @@ public class RoleSessionBean implements RoleSessionLocal, RoleSessionRemote {
               roleDataSession.getRole(roleId).getAccessRules());
     }
     for (final Entry<String, Boolean> entry : totalAccessRules.entrySet()) {
-      if (!entry.getValue().booleanValue()) {
-        if (role.hasAccessToResource(entry.getKey())) {
+      if (!entry.getValue().booleanValue()
+              && role.hasAccessToResource(entry.getKey())) {
           // Role would allow what is denied to current authenticationToken
           return false;
-        }
+
       }
     }
     return true;

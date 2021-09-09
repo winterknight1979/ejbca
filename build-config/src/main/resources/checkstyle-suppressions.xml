@@ -163,7 +163,7 @@
 		files="CrlStoreSessionBean.java" lines="69" />
 	<suppress checks="MethodLengthCheck"
 		files="OcspResponseGeneratorSessionBean.java"
-		lines="279,1003,1528,2666" />
+		lines="1797" />
 	<suppress checks="LineLengthCheck"
 		files="OcspResponseGeneratorSessionBean.java" lines="2340" /> <!-- URL in comment -->
 	<suppress checks="ParameterNumberCheck"
