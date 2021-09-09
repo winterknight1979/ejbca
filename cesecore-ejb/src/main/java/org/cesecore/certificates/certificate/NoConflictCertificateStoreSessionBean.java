@@ -301,7 +301,7 @@ public class NoConflictCertificateStoreSessionBean
    * @return NoConflictCertificateData entry, or null if not found. Entity is
    *     append-only, so do not modify it.
    */
-  private NoConflictCertificateData filterMostRecentCertData(
+  private NoConflictCertificateData filterMostRecentCertData(// NOPMD: irred
       final Collection<NoConflictCertificateData> certDatas) {
     if (CollectionUtils.isEmpty(certDatas)) {
       LOG.trace("<findMostRecentCertData(): no certificates found");
@@ -319,16 +319,13 @@ public class NoConflictCertificateStoreSessionBean
           mostRecentData.getUpdateTime() != null
               ? mostRecentData.getUpdateTime()
               : 0;
-      if (RevokedCertInfo.isPermanentlyRevoked(data.getRevocationReason())) {
-        // Permanently revoked certificate always takes precedence over
-        // non-permanently revoked one.
-        // Older permanent revocations take precedence over newer ones.
-        if (!RevokedCertInfo.isPermanentlyRevoked(
+      if (RevokedCertInfo.isPermanentlyRevoked(data.getRevocationReason())
+              && (!RevokedCertInfo.isPermanentlyRevoked(
                 mostRecentData.getRevocationReason())
-            || timestampRecent > timestampThis) {
+            || timestampRecent > timestampThis)) {
           mostRecentData = data;
           continue;
-        }
+
       }
       // Permanent revocations take precedence over temporary ones
       if (RevokedCertInfo.isPermanentlyRevoked(
@@ -351,12 +348,12 @@ public class NoConflictCertificateStoreSessionBean
       final Date revokedDate,
       final int reason)
       throws CertificateRevokeException, AuthorizationDeniedException {
-    if (cdw.getBaseCertificateData() instanceof NoConflictCertificateData) {
-      if (entityManager.contains(cdw.getBaseCertificateData())) {
+    if (cdw.getBaseCertificateData() instanceof NoConflictCertificateData
+            && entityManager.contains(cdw.getBaseCertificateData())) {
         throw new IllegalStateException(
             "Cannot update existing row in NoConflictCertificateData. It is"
                 + " append-only.");
-      }
+
     }
     return certificateStoreSession.setRevokeStatus(
         admin, cdw, revokedDate, reason);

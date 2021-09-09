@@ -47,6 +47,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.cesecore.CesecoreRuntimeException;
 import org.cesecore.audit.enums.EventStatus;
 import org.cesecore.audit.enums.EventTypes;
 import org.cesecore.audit.enums.ModuleTypes;
@@ -87,7 +88,7 @@ import org.ejbca.cvc.PublicKeyEC;
     mappedName =
         JndiConstants.APP_JNDI_PREFIX + "CertificateStoreSessionRemote")
 @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-public class CertificateStoreSessionBean
+public class CertificateStoreSessionBean // NOPMD
     implements CertificateStoreSessionRemote, CertificateStoreSessionLocal {
 
     /**Log. */
@@ -161,7 +162,7 @@ public class CertificateStoreSessionBean
 
   @Override
   @TransactionAttribute(TransactionAttributeType.REQUIRED)
-  public CertificateDataWrapper storeCertificate(
+  public CertificateDataWrapper storeCertificate(// NOPMD
       final AuthenticationToken admin,
       final Certificate incert,
       final String username,
@@ -191,7 +192,7 @@ public class CertificateStoreSessionBean
 
   @Override
   @TransactionAttribute(TransactionAttributeType.REQUIRED)
-  public void storeCertificateRemote(
+  public void storeCertificateRemote(// NOPMD
       final AuthenticationToken admin,
       final CertificateWrapper wrappedCert,
       final String username,
@@ -223,7 +224,7 @@ public class CertificateStoreSessionBean
   /** Local interface only. */
   @Override
   @TransactionAttribute(TransactionAttributeType.REQUIRED)
-  public CertificateDataWrapper storeCertificateNoAuth(
+  public CertificateDataWrapper storeCertificateNoAuth(// NOPMD
       final AuthenticationToken adminForLogging,
       final Certificate incert,
       final String username,
@@ -290,7 +291,7 @@ public class CertificateStoreSessionBean
    *     certificates for checking unique database index.
    * @return data
    */
-  private CertificateDataWrapper storeCertificateNoAuthInternal(
+  private CertificateDataWrapper storeCertificateNoAuthInternal(// NOPMD
       final AuthenticationToken adminForLogging,
       final Certificate incert,
       final String username,
@@ -396,7 +397,7 @@ public class CertificateStoreSessionBean
   private PublicKey enrichEcPublicKey(final PublicKey pubk, final String cafp) {
     final int max = 5;
       PublicKey ret = pubk;
-    if ((pubk instanceof PublicKeyEC)) {
+    if (pubk instanceof PublicKeyEC) {
       PublicKeyEC pkec = (PublicKeyEC) pubk;
       // The public key of IS and DV certificate (CVC) do not have any
       // parameters so we have to do some magic to get a complete EC public key
@@ -415,8 +416,8 @@ public class CertificateStoreSessionBean
                      // things can exist in the CAFingerprint column, make sure
                      // we
               // never get stuck here
-              while ((!StringUtils.equals(cafingerp, nextcafp))
-                  && (bar++ < max)) {
+              while (!StringUtils.equals(cafingerp, nextcafp)
+                  && bar++ < max) {
                 cacert = certificateDataSession.findByFingerprint(cafp);
                 if (cacert == null) {
                   break;
@@ -727,7 +728,7 @@ public class CertificateStoreSessionBean
           certificateDataSession.findUsernamesBySubjectKeyIdOrDnAndIssuer(
               transformedIssuerDN, sSubjectKeyId, transformedSubjectDN);
       return usernames.size() == 0
-          || (usernames.size() == 1 && usernames.contains(username));
+          || usernames.size() == 1 && usernames.contains(username);
     } finally {
       if (LOG.isTraceEnabled()) {
         LOG.trace(
@@ -821,8 +822,7 @@ public class CertificateStoreSessionBean
                 trustedChain,
                 CertTools.getNotBefore(x509Certificate));
             signedByRolloverCAKey = true;
-          } catch (CertPathValidatorException e) {
-            // NOPMD
+          } catch (CertPathValidatorException e) { // NOPMD
           }
           // Check that the EE roll-over certificate validity starts equal to or
           // after the roll-over CA certificates validity
@@ -1529,13 +1529,7 @@ public class CertificateStoreSessionBean
     if (LOG.isTraceEnabled()) {
       LOG.trace(">findCertificatesByType()");
     }
-    if (type <= 0
-        || type
-            > CertificateConstants.CERTTYPE_SUBCA
-                + CertificateConstants.CERTTYPE_ENDENTITY
-                + CertificateConstants.CERTTYPE_ROOTCA) {
-      throw new IllegalArgumentException();
-    }
+    assertValidType(type);
     Collection<Integer> ctypes = new ArrayList<>();
     if ((type & CertificateConstants.CERTTYPE_SUBCA) > 0) {
       ctypes.add(CertificateConstants.CERTTYPE_SUBCA);
@@ -1561,6 +1555,20 @@ public class CertificateStoreSessionBean
     }
     return EJBUtil.wrapCertCollection(ret);
   }
+
+/**
+ * @param type type
+ * @throws IllegalArgumentException fail
+ */
+private void assertValidType(final int type) throws IllegalArgumentException {
+    if (type <= 0
+        || type
+            > CertificateConstants.CERTTYPE_SUBCA
+                + CertificateConstants.CERTTYPE_ENDENTITY
+                + CertificateConstants.CERTTYPE_ROOTCA) {
+      throw new IllegalArgumentException();
+    }
+}
 
   @Override
   public List<Certificate> getCertificateChain(final CertificateInfo certinfo) {
@@ -1610,16 +1618,7 @@ public class CertificateStoreSessionBean
       final Date revokeDate,
       final int reason)
       throws CertificateRevokeException {
-    String serialNumber = "unknown";
-    try {
-      // This will work for X.509
-      serialNumber =
-          new BigInteger(certificateData.getSerialNumber(), 10)
-              .toString(16)
-              .toUpperCase();
-    } catch (NumberFormatException e) {
-      serialNumber = certificateData.getSerialNumber();
-    }
+    String serialNumber = getSN(certificateData);
     final String issuerDn = certificateData.getIssuerDN();
     final int caid = issuerDn.hashCode();
     final String username = certificateData.getUsername();
@@ -1662,10 +1661,10 @@ public class CertificateStoreSessionBean
           username,
           details);
       returnVal = true; // we did change status
-    } else if (((reason == RevokedCertInfo.NOT_REVOKED)
-            || (reason == RevokedCertInfo.REVOCATION_REASON_REMOVEFROMCRL))
-        && (certificateData.getRevocationReason()
-            == RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD)) {
+    } else if ((reason == RevokedCertInfo.NOT_REVOKED
+            || reason == RevokedCertInfo.REVOCATION_REASON_REMOVEFROMCRL)
+        && certificateData.getRevocationReason()
+            == RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD) {
       // Unrevoke, can only be done when the certificate was previously revoked
       // with reason CertificateHold
       // Only allow unrevocation if the certificate is revoked and the
@@ -1708,6 +1707,37 @@ public class CertificateStoreSessionBean
       LOG.info(msg);
       returnVal = false; // we did _not_ change status in the database
     }
+    persistChanges(certificateData, serialNumber, issuerDn, returnVal);
+    return returnVal;
+  }
+
+/**
+ * @param certificateData Data
+ * @return SN
+ */
+private String getSN(final BaseCertificateData certificateData) {
+    String serialNumber = "unknown";
+    try {
+      // This will work for X.509
+      serialNumber =
+          new BigInteger(certificateData.getSerialNumber(), 10)
+              .toString(16)
+              .toUpperCase();
+    } catch (NumberFormatException e) {
+      serialNumber = certificateData.getSerialNumber();
+    }
+    return serialNumber;
+}
+
+/**
+ * @param certificateData Data
+ * @param serialNumber SN
+ * @param issuerDn DN
+ * @param returnVal bool
+ */
+private void persistChanges(final BaseCertificateData certificateData,
+        final String serialNumber, final String issuerDn,
+        final boolean returnVal) {
     if (returnVal) {
       // Persist changes
       if (certificateData instanceof NoConflictCertificateData) {
@@ -1723,8 +1753,7 @@ public class CertificateStoreSessionBean
               + ", serno="
               + serialNumber);
     }
-    return returnVal;
-  }
+}
 
   @Override
   @TransactionAttribute(TransactionAttributeType.REQUIRED)
@@ -1891,7 +1920,7 @@ public class CertificateStoreSessionBean
                   + " for cert number "
                   + serno.toString(16));
         }
-        return result;
+        return result; // NOPMD
       }
       if (LOG.isTraceEnabled()) {
         LOG.trace(
@@ -1936,7 +1965,7 @@ public class CertificateStoreSessionBean
                 + " for cert number "
                 + serno.toString(16));
       }
-      return new CertificateStatusHolder(
+      return new CertificateStatusHolder(// NOPMD
           data.getCertificate(entityManager), result);
     }
     if (LOG.isTraceEnabled()) {
@@ -2042,7 +2071,7 @@ public class CertificateStoreSessionBean
         LOG.debug(msg);
       }
     }
-    return (certificateData != null);
+    return certificateData != null;
   }
 
   @Override
@@ -2191,7 +2220,7 @@ public class CertificateStoreSessionBean
           findCertificateByFingerprint(CertTools.getFingerprintAsString(cert1));
       final Certificate c2 =
           findCertificateByFingerprint(CertTools.getFingerprintAsString(cert2));
-      if ((c1 != null) && (c2 != null)) {
+      if (c1 != null && c2 != null) {
         // already proved that not checking index for serial number.
         UniqueSernoHelper.setIsUniqueCertificateSerialNumberIndex(
             Boolean.FALSE);
@@ -2199,34 +2228,48 @@ public class CertificateStoreSessionBean
       final AuthenticationToken admin =
           new AlwaysAllowLocalAuthenticationToken(
               new UsernamePrincipal("Internal database constraint test"));
-      if (c1
-          == null) { // storing initial certificate if no test certificate
-                     // created.
-        try {
-          // needs to call using "certificateStoreSession." in order to honor
-          // the transaction annotations
-          certificateStoreSession
-              .checkForUniqueCertificateSerialNumberIndexInTransaction(
-                  admin,
-                  cert1,
-                  userName,
-                  "abcdef0123456789",
-                  CertificateConstants.CERT_INACTIVE,
-                  0,
-                  CertificateProfileConstants.NO_CERTIFICATE_PROFILE,
-                  EndEntityConstants.NO_END_ENTITY_PROFILE,
-                  "",
-                  new Date().getTime());
-        } catch (
-            Throwable e) { // NOPMD, we really need to catch all, never crash
-          throw new RuntimeException(
-              "It should always be possible to store initial dummy"
-                  + " certificate.",
-              e);
-        }
-      }
+      handleNullC1(userName, cert1, c1, admin);
       UniqueSernoHelper.setIsUniqueCertificateSerialNumberIndex(Boolean.FALSE);
-      if (c2 == null) { // storing a second certificate with same issuer
+      handleNullC2(userName, cert2, c2, admin);
+      if (!UniqueSernoHelper.getIsUniqueCertificateSerialNumberIndex()
+          .booleanValue()) {
+        // It was possible to store a second certificate with same serial
+        // number. Unique number not working.
+        LOG.info(
+            INTRES.getLocalizedMessage(
+                "createcert.not_unique_certserialnumberindex"));
+      }
+      // Remove potentially stored certificates so anyone can create the unique
+      // index if wanted
+      try {
+        certificateStoreSession
+            .removeUniqueCertificateSerialNumberTestCertificates();
+        LOG.info(
+            "Removed rows used during test for unique certificate serial"
+                + " number database constraint.");
+      } catch (Throwable e) { // NOPMD, we really need to catch all, never crash
+        LOG.debug(
+            "Unable to clean up database rows used during test for unique"
+                + " certificate serial number. This is expected if DELETE is"
+                + " not granted to the EJBCA database user.",
+            e);
+      }
+    }
+    return UniqueSernoHelper.getIsUniqueCertificateSerialNumberIndex() != null
+        && UniqueSernoHelper.getIsUniqueCertificateSerialNumberIndex()
+            .booleanValue();
+  }
+
+/**
+ * @param userName user
+ * @param cert2 C2
+ * @param c2 C2
+ * @param admin token
+ */
+private void handleNullC2(final String userName, final X509Certificate cert2,
+        final Certificate c2,
+        final AuthenticationToken admin) {
+    if (c2 == null) { // storing a second certificate with same issuer
         try {
           // needs to call using "certificateStoreSession." in order to honor
           // the transaction annotations
@@ -2259,40 +2302,50 @@ public class CertificateStoreSessionBean
               Boolean.TRUE);
         }
       }
-      if (!UniqueSernoHelper.getIsUniqueCertificateSerialNumberIndex()
-          .booleanValue()) {
-        // It was possible to store a second certificate with same serial
-        // number. Unique number not working.
-        LOG.info(
-            INTRES.getLocalizedMessage(
-                "createcert.not_unique_certserialnumberindex"));
+}
+
+/**
+ * @param userName user
+ * @param cert1 Cert 1
+ * @param c1 C1
+ * @param admin admin
+ * @throws CesecoreRuntimeException fail
+ */
+private void handleNullC1(final String userName, final X509Certificate cert1,
+        final Certificate c1,
+        final AuthenticationToken admin) throws CesecoreRuntimeException {
+    if (c1 == null) { // storing initial certificate if no test certificate
+                     // created.
+        try {
+          // needs to call using "certificateStoreSession." in order to honor
+          // the transaction annotations
+          certificateStoreSession
+              .checkForUniqueCertificateSerialNumberIndexInTransaction(
+                  admin,
+                  cert1,
+                  userName,
+                  "abcdef0123456789",
+                  CertificateConstants.CERT_INACTIVE,
+                  0,
+                  CertificateProfileConstants.NO_CERTIFICATE_PROFILE,
+                  EndEntityConstants.NO_END_ENTITY_PROFILE,
+                  "",
+                  new Date().getTime());
+        } catch (
+            Throwable e) { // NOPMD, we really need to catch all, never crash
+          throw new CesecoreRuntimeException(
+              "It should always be possible to store initial dummy"
+                  + " certificate.",
+              e);
+        }
       }
-      // Remove potentially stored certificates so anyone can create the unique
-      // index if wanted
-      try {
-        certificateStoreSession
-            .removeUniqueCertificateSerialNumberTestCertificates();
-        LOG.info(
-            "Removed rows used during test for unique certificate serial"
-                + " number database constraint.");
-      } catch (Throwable e) { // NOPMD, we really need to catch all, never crash
-        LOG.debug(
-            "Unable to clean up database rows used during test for unique"
-                + " certificate serial number. This is expected if DELETE is"
-                + " not granted to the EJBCA database user.",
-            e);
-      }
-    }
-    return UniqueSernoHelper.getIsUniqueCertificateSerialNumberIndex() != null
-        && UniqueSernoHelper.getIsUniqueCertificateSerialNumberIndex()
-            .booleanValue();
-  }
+}
 
   // We want each storage of a certificate to run in a new transactions, so we
   // can catch errors as they happen..
   @Override
   @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-  public void checkForUniqueCertificateSerialNumberIndexInTransaction(
+  public void checkForUniqueCertificateSerialNumberIndexInTransaction(// NOPMD
       final AuthenticationToken admin,
       final Certificate incert,
       final String username,
@@ -2376,7 +2429,7 @@ public class CertificateStoreSessionBean
 
   @Override
   @TransactionAttribute(TransactionAttributeType.REQUIRED)
-  public void updateLimitedCertificateDataStatus(
+  public void updateLimitedCertificateDataStatus(// NOPMD
       final AuthenticationToken admin,
       final int caId,
       final String issuerDn,

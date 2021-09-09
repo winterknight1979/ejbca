@@ -41,6 +41,7 @@ import javax.persistence.TypedQuery;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.bouncycastle.util.encoders.Base64;
+import org.cesecore.CesecoreRuntimeException;
 import org.cesecore.audit.enums.EventStatus;
 import org.cesecore.audit.enums.EventTypes;
 import org.cesecore.audit.enums.ModuleTypes;
@@ -82,7 +83,8 @@ import org.cesecore.util.QueryResultWrapper;
  */
 @Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + "CaSessionRemote")
 @TransactionAttribute(TransactionAttributeType.REQUIRED)
-public class CaSessionBean implements CaSessionLocal, CaSessionRemote {
+public class CaSessionBean // NOPMD
+    implements CaSessionLocal, CaSessionRemote {
 
     /** Logger. */
   private static final Logger LOG = Logger.getLogger(CaSessionBean.class);
@@ -197,7 +199,7 @@ public class CaSessionBean implements CaSessionLocal, CaSessionRemote {
       }
       CAInfo cainfo = ca.getCAInfo();
       // The CA needs a name and a subject DN in order to store it
-      if ((ca.getName() == null) || (ca.getSubjectDN() == null)) {
+      if (ca.getName() == null || ca.getSubjectDN() == null) {
         throw new CAExistsException(
             "Null CA name or SubjectDN. Name: '"
                 + ca.getName()
@@ -506,13 +508,13 @@ public class CaSessionBean implements CaSessionLocal, CaSessionRemote {
   public CA getCA(final AuthenticationToken admin, final String name)
       throws AuthorizationDeniedException {
     CA ca = getCAInternal(-1, name, true);
-    if (ca != null) {
-      if (!authorizedToCA(admin, ca.getCAId())) {
+    if (ca != null
+      && !authorizedToCA(admin, ca.getCAId())) {
         String msg =
             INTRES.getLocalizedMessage(
                 "caadmin.notauthorizedtoca", admin.toString(), name);
         throw new AuthorizationDeniedException(msg);
-      }
+
     }
     return ca;
   }
@@ -537,15 +539,15 @@ public class CaSessionBean implements CaSessionLocal, CaSessionRemote {
   public CA getCAForEdit(final AuthenticationToken admin, final int caid)
       throws AuthorizationDeniedException {
     CA ca = getCAInternal(caid, null, false);
-    if (ca != null) {
-      if (!authorizedToCA(admin, ca.getCAId())) {
+    if (ca != null
+      && !authorizedToCA(admin, ca.getCAId())) {
         String msg =
             INTRES.getLocalizedMessage(
                 "caadmin.notauthorizedtoca",
                 admin.toString(),
                 Integer.valueOf(caid));
         throw new AuthorizationDeniedException(msg);
-      }
+
     }
     return ca;
   }
@@ -992,13 +994,7 @@ public class CaSessionBean implements CaSessionLocal, CaSessionRemote {
         // hash by a previous call?
         if (oRealCAId != null) {
           // yes, using cached value of real caid.
-          if (LOG.isDebugEnabled()) {
-            LOG.debug(
-                "Found a mapping from caid "
-                    + caid
-                    + " to realCaid "
-                    + oRealCAId);
-          }
+          logMapping(caid, oRealCAId);
           cadata = findById(oRealCAId);
         } else {
           // no, we have to search for it among all CA certs
@@ -1011,13 +1007,7 @@ public class CaSessionBean implements CaSessionLocal, CaSessionRemote {
                 && caid == CertTools.getSubjectDN(caCert).hashCode()) {
               cadata = currentUpgradedCaData; // found.
               // Do also cache it if someone else is needing it later
-              if (LOG.isDebugEnabled()) {
-                LOG.debug(
-                    "Adding a mapping from caid "
-                        + caid
-                        + " to realCaid "
-                        + cadata.getCaId());
-              }
+              logMapping(caid, cadata.getCaId());
               CACacheHelper.putCaCertHash(
                   Integer.valueOf(caid), Integer.valueOf(cadata.getCaId()));
             }
@@ -1041,6 +1031,20 @@ public class CaSessionBean implements CaSessionLocal, CaSessionRemote {
     }
     return cadata;
   }
+
+/**
+ * @param caid ID
+ * @param oRealCAId ID
+ */
+private void logMapping(final int caid, final Integer oRealCAId) {
+    if (LOG.isDebugEnabled()) {
+        LOG.debug(
+            "Found a mapping from caid "
+                + caid
+                + " to realCaid "
+                + oRealCAId);
+      }
+}
 
   @Override
   public boolean authorizedToCANoLogging(
@@ -1178,7 +1182,7 @@ public class CaSessionBean implements CaSessionLocal, CaSessionRemote {
       // Compare old version with current version and save the data if there has
       // been a change
       final boolean upgradeCA =
-          (Float.compare(oldversion, ca.getVersion()) != 0);
+          Float.compare(oldversion, ca.getVersion()) != 0;
       if (adhocUpgrade || upgradedExtendedService || upgradeCA || expired) {
         if (LOG.isDebugEnabled()) {
           LOG.debug(
@@ -1221,32 +1225,7 @@ public class CaSessionBean implements CaSessionLocal, CaSessionRemote {
     HashMap<String, String> tokendata =
         (HashMap<String, String>) data.get(CA.CATOKENDATA);
     if (tokendata.get(CAToken.CRYPTOTOKENID) != null) {
-      // Already upgraded
-      if (!CesecoreConfigurationHelper.isKeepInternalCAKeystores()) {
-        // All nodes in the cluster has been upgraded so we can remove any
-        // internal CA keystore now
-        if (tokendata.get(CAToken.KEYSTORE) != null) {
-          tokendata.remove(CAToken.KEYSTORE);
-          tokendata.remove(CAToken.CLASSPATH);
-          LOG.info(
-              "Removed duplicate of upgraded CA's internal keystore for CA '"
-                  + caName
-                  + "' with id: "
-                  + caid);
-          return true;
-        }
-      } else {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug(
-              "CA '"
-                  + caName
-                  + "' already has cryptoTokenId and will not have it's token"
-                  + " split of to a different db table because"
-                  + " db.keepinternalcakeystores=true: "
-                  + caid);
-        }
-      }
-      return false;
+      return handleInternalKeyStores(caid, caName, tokendata);
     }
     // Perform pre-upgrade of CATokenData to correct classpath changes
     // (org.ejbca.core.model.ca.catoken.SoftCAToken)
@@ -1298,7 +1277,34 @@ public class CaSessionBean implements CaSessionLocal, CaSessionRemote {
                 + " properties.");
         return false;
       }
-      for (final Integer currentCryptoTokenId
+      cryptoTokenId = handleP11Token(upgradedProperties, cryptoTokenId);
+    }
+    cryptoTokenId = handleZeroToken(caid, caName, keyStoreData,
+            classpath, upgradedProperties, cryptoTokenId);
+    // Mark this CA as upgraded by setting a reference to the CryptoToken if the
+    // merge was successful
+    tokendata.put(CAToken.CRYPTOTOKENID, String.valueOf(cryptoTokenId));
+    // Note: We did not remove the keystore in the CA properties here, so old
+    // versions running in parallel will still work
+    LOG.info(
+        "CA '"
+            + caName
+            + "' with id "
+            + caid
+            + " is now using CryptoToken with cryptoTokenId "
+            + cryptoTokenId);
+    return true;
+  }
+
+/**
+ * @param upgradedProperties props
+ * @param oid id
+ * @return id
+ */
+private int handleP11Token(final Properties upgradedProperties,
+        final int oid) {
+    int cryptoTokenId = oid;
+    for (final Integer currentCryptoTokenId
           : cryptoTokenSession.getCryptoTokenIds()) {
         final CryptoToken cryptoToken =
             cryptoTokenSession.getCryptoToken(currentCryptoTokenId.intValue());
@@ -1329,11 +1335,28 @@ public class CaSessionBean implements CaSessionLocal, CaSessionRemote {
           break;
         }
       }
-    }
-    if (cryptoTokenId == 0) {
+    return cryptoTokenId;
+}
+
+/**
+ * @param caid ID
+ * @param caName Name
+ * @param keyStoreData Data
+ * @param classpath CP
+ * @param upgradedProperties Props
+ * @param oid ID
+ * @return ID
+ * @throws RuntimeException Fail
+ */
+private int handleZeroToken(final int caid, final String caName,
+        final byte[] keyStoreData, final String classpath,
+        final Properties upgradedProperties,
+        final int oid) throws RuntimeException {
+    int id = oid;
+    if (id == 0) {
       final String cryptoTokenName = "Upgraded CA CryptoToken for " + caName;
       try {
-        cryptoTokenId =
+        id =
             cryptoTokenSession.mergeCryptoToken(
                 CryptoTokenFactory.createCryptoToken(
                     classpath,
@@ -1351,7 +1374,7 @@ public class CaSessionBean implements CaSessionLocal, CaSessionRemote {
                 + cryptoTokenName
                 + "'.";
         LOG.info(msg, e);
-        throw new RuntimeException(
+        throw new CesecoreRuntimeException(
             msg,
             e); // Since we have a constraint on CA names to be unique, this
                 // should never happen
@@ -1364,23 +1387,48 @@ public class CaSessionBean implements CaSessionLocal, CaSessionRemote {
                 + caName
                 + "' could not be found.";
         LOG.error(msg, e);
-        throw new RuntimeException(msg, e);
+        throw new CesecoreRuntimeException(msg, e);
       }
     }
-    // Mark this CA as upgraded by setting a reference to the CryptoToken if the
-    // merge was successful
-    tokendata.put(CAToken.CRYPTOTOKENID, String.valueOf(cryptoTokenId));
-    // Note: We did not remove the keystore in the CA properties here, so old
-    // versions running in parallel will still work
-    LOG.info(
-        "CA '"
-            + caName
-            + "' with id "
-            + caid
-            + " is now using CryptoToken with cryptoTokenId "
-            + cryptoTokenId);
-    return true;
-  }
+    return id;
+}
+
+/**
+ * @param caid ID
+ * @param caName Name
+ * @param tokendata Data
+ * @return Bool
+ */
+@SuppressWarnings("deprecation")
+private boolean handleInternalKeyStores(final int caid, final String caName,
+        final HashMap<String, String> tokendata) {
+    // Already upgraded
+      if (!CesecoreConfigurationHelper.isKeepInternalCAKeystores()) {
+        // All nodes in the cluster has been upgraded so we can remove any
+        // internal CA keystore now
+        if (tokendata.get(CAToken.KEYSTORE) != null) {
+          tokendata.remove(CAToken.KEYSTORE);
+          tokendata.remove(CAToken.CLASSPATH);
+          LOG.info(
+              "Removed duplicate of upgraded CA's internal keystore for CA '"
+                  + caName
+                  + "' with id: "
+                  + caid);
+          return true;
+        }
+      } else {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
+              "CA '"
+                  + caName
+                  + "' already has cryptoTokenId and will not have it's token"
+                  + " split of to a different db table because"
+                  + " db.keepinternalcakeystores=true: "
+                  + caid);
+        }
+      }
+      return false;
+}
 
   @Override
   public Certificate getFutureRolloverCertificate(final int caid)

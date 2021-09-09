@@ -149,21 +149,21 @@
 	<suppress checks="MagicNumberCheck"
 		files="BaseCertificateDataSessionBean.java" lines="168-169" /> <!-- Array indices -->
 	<suppress checks="MethodLengthCheck"
-		files="CertificateCreateSessionBean.java" lines="145,413" />
+		files="CertificateCreateSessionBean.java" lines="145,455" />
 	<suppress checks="ParameterNumberCheck"
-		files="CertificateCreateSessionBean.java" lines="414" />
+		files="CertificateCreateSessionBean.java" lines="456,711,770" />
 	<suppress checks="MagicNumberCheck"
-		files="CertificateCreateSessionBean.java" lines="570" /> <!-- This is actually setting final -->
+		files="CertificateCreateSessionBean.java" lines="994" /> <!-- This is actually setting final -->
 	<suppress checks="MagicNumberCheck"
 		files="CertificateDataSessionBean.java" lines="155-183,516-545" /> <!-- Array indices -->
 	<suppress checks="ParameterNumberCheck"
 		files="CertificateStoreSessionBean.java"
-		lines="164,194,226,293,2295,2379" />
+		lines="165,195,227,294,2348,2432" />
 	<suppress checks="ParameterNumberCheck"
 		files="CrlStoreSessionBean.java" lines="69" />
 	<suppress checks="MethodLengthCheck"
 		files="OcspResponseGeneratorSessionBean.java"
-		lines="279,1003,1528,2666" />
+		lines="1797" />
 	<suppress checks="LineLengthCheck"
 		files="OcspResponseGeneratorSessionBean.java" lines="2340" /> <!-- URL in comment -->
 	<suppress checks="ParameterNumberCheck"

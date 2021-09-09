@@ -30,100 +30,100 @@
 
     /** Create a file input element with id "newElementId" as child to the "appendToElementId". */
     var createInputFileElement = function(newElementId, appendToElementId, onUploadFinishedCallback) {
-    	if (document.getElementById(newElementId)) {
-    		console.log("ejbca.ra.createFileUploadInput: Element '" + newElementId + "' already exists.");
-    		return;
-    	}
-    	if (!document.getElementById(appendToElementId)) {
-    		console.log("ejbca.ra.createFileUploadInput: Element '" + appendToElementId + "' does not exist.");
-    		return;
-    	}
-    	var inputFileElement = document.createElement("input");
-    	inputFileElement.type = "file";
-    	inputFileElement.id = newElementId;
-    	inputFileElement.onchange = function() {
-    		if (inputFileElement.files.length != 0) {
-    			var fileReader = new FileReader();
-    			fileReader.onloadend = function(event) {
-    				if (event.target.readyState == FileReader.DONE) {
-    					if (onUploadFinishedCallback) {
-    						onUploadFinishedCallback(event.target.result);
-    					}
-    					inputFileElement.value = '';
-    				}
-    			};
-    			fileReader.readAsText(inputFileElement.files[0]);
-    		};
-    	};
-    	document.getElementById(appendToElementId).appendChild(inputFileElement);
+        if (document.getElementById(newElementId)) {
+            console.log("ejbca.ra.createFileUploadInput: Element '" + newElementId + "' already exists.");
+            return;
+        }
+        if (!document.getElementById(appendToElementId)) {
+            console.log("ejbca.ra.createFileUploadInput: Element '" + appendToElementId + "' does not exist.");
+            return;
+        }
+        var inputFileElement = document.createElement("input");
+        inputFileElement.type = "file";
+        inputFileElement.id = newElementId;
+        inputFileElement.onchange = function() {
+            if (inputFileElement.files.length != 0) {
+                var fileReader = new FileReader();
+                fileReader.onloadend = function(event) {
+                    if (event.target.readyState == FileReader.DONE) {
+                        if (onUploadFinishedCallback) {
+                            onUploadFinishedCallback(event.target.result);
+                        }
+                        inputFileElement.value = '';
+                    }
+                };
+                fileReader.readAsText(inputFileElement.files[0]);
+            };
+        };
+        document.getElementById(appendToElementId).appendChild(inputFileElement);
     };
 
     /** Looked for tagged objects and make the page nicer when JS is available */
     var touchUpDocument = function() {
         // Hide elements that should not be shown when JS is enabled
-    	forEachInputElementByTagNameAndStyleClass(["input", "label", "select"], "jsHide", function(inputField) { inputField.style.display = "none"; });
+        forEachInputElementByTagNameAndStyleClass(["input", "label", "select"], "jsHide", function(inputField) { inputField.style.display = "none"; });
         // Show elements that should not be hidden when JS is disabled
-    	forEachInputElementByTagNameAndStyleClass(["input", "label", "select"], "jsShow", function(inputField) { inputField.style.display = "inherit"; });
-    	// Use title as HTML5 placeholder for elements marked with the style class (JSF2.0 does not support HTML5 attributes)
-    	forEachInputElementByTagNameAndStyleClass(["input", "textarea"], "jsTitleAsPlaceHolder", function(inputField) {
-    		inputField.placeholder = inputField.title;
-    		inputField.title = "";
-    	});
-    	// Delay "keyup" events for input elements marked with the provided styleClassName. (JSF2.0 AJAX work around.)
-    	forEachInputElementByTagNameAndStyleClass(["input"], "jsDelayKeyUp", function(inputField) {
-    		new KeyUpEventDelay(inputField, 400);
-    	});
+        forEachInputElementByTagNameAndStyleClass(["input", "label", "select"], "jsShow", function(inputField) { inputField.style.display = "inherit"; });
+        // Use title as HTML5 placeholder for elements marked with the style class (JSF2.0 does not support HTML5 attributes)
+        forEachInputElementByTagNameAndStyleClass(["input", "textarea"], "jsTitleAsPlaceHolder", function(inputField) {
+            inputField.placeholder = inputField.title;
+            inputField.title = "";
+        });
+        // Delay "keyup" events for input elements marked with the provided styleClassName. (JSF2.0 AJAX work around.)
+        forEachInputElementByTagNameAndStyleClass(["input"], "jsDelayKeyUp", function(inputField) {
+            new KeyUpEventDelay(inputField, 400);
+        });
     };
 
     /** Set focus to component by class names (JSF2.0 does not support HTML5 attributes like autofocus) */
     var handleAutoFocus = function() {
-    	var focusElementTypes = ["a", "input", "textarea", "select"];
+        var focusElementTypes = ["a", "input", "textarea", "select"];
         // Auto focus last found element tagged "jsAutoFocusLast"
-    	forEachInputElementByTagNameAndStyleClass(focusElementTypes, "jsAutoFocusLast", function(inputField) {
-    		inputField.focus();
-    		return true;
-    	}, true);
+        forEachInputElementByTagNameAndStyleClass(focusElementTypes, "jsAutoFocusLast", function(inputField) {
+            inputField.focus();
+            return true;
+        }, true);
         // Auto focus last found element tagged "jsAutoFocusFirst" (overriding previously set focus)
-    	forEachInputElementByTagNameAndStyleClass(focusElementTypes, "jsAutoFocusFirst", function(inputField) {
-    		inputField.focus();
-    		return true;
-    	});
-    	// Auto focus last found element tagged "jsAutoFocusJsf" (overriding previously set focus)
-    	forEachInputElementByTagNameAndStyleClass(focusElementTypes, "jsAutoFocusJsf", function(inputField) {
-    		inputField.focus();
-    		return true;
-    	});
+        forEachInputElementByTagNameAndStyleClass(focusElementTypes, "jsAutoFocusFirst", function(inputField) {
+            inputField.focus();
+            return true;
+        });
+        // Auto focus last found element tagged "jsAutoFocusJsf" (overriding previously set focus)
+        forEachInputElementByTagNameAndStyleClass(focusElementTypes, "jsAutoFocusJsf", function(inputField) {
+            inputField.focus();
+            return true;
+        });
         // Auto focus first found element tagged "jsAutoFocusError" (overriding previously set focus)
-    	forEachInputElementByTagNameAndStyleClass(focusElementTypes, "jsAutoFocusError", function(inputField) {
-    		inputField.focus();
-    		return true;
-    	});
+        forEachInputElementByTagNameAndStyleClass(focusElementTypes, "jsAutoFocusError", function(inputField) {
+            inputField.focus();
+            return true;
+        });
     };
 
     /** Process the callback on each input element that matches the provided style class. */
     function forEachInputElementByTagNameAndStyleClass(elementTagNames, styleClassName, callback, reverse) {
-    	for (var k=0; k<elementTagNames.length; k++) {
-    		var elementTagName = elementTagNames[k];
-    		var inputFields = document.getElementsByTagName(elementTagName);
-    		for (var i = (reverse?inputFields.length-1:0); (reverse?i>=0:i<inputFields.length); (reverse?i--:i++)) {
-    			if (inputFields[i].className) {
-    				var styleClasses = inputFields[i].className.split(' ');
-    				for (var j = 0; j<styleClasses.length; j++) {
-    					if (styleClasses[j]==styleClassName) {
-    						//console.log("forEachInputElementByStyleClass: " + styleClassName + " → will invoke callback for '" + inputFields[i].id + "'");
-    						if (callback(inputFields[i])) {
-    							return;
-    						}
-    						//console.log("forEachInputElementByStyleClass: return was not false, will remove the class and process next one");
-    						// Remove the class name to avoid processing it multiple times if this method is invoked again
-    						inputFields[i].className = inputFields[i].className.replace(styleClassName, "").trim();
-    						// Invoke the callback with the matching element. If it returns true we stop looking for more elements.
-    						break;
-    					}
-    				}
-    			}
-    		}
-    	}
+        for (var k=0; k<elementTagNames.length; k++) {
+            var elementTagName = elementTagNames[k];
+            var inputFields = document.getElementsByTagName(elementTagName);
+            for (var i = (reverse?inputFields.length-1:0); (reverse?i>=0:i<inputFields.length); (reverse?i--:i++)) {
+                if (inputFields[i].className) {
+                    var styleClasses = inputFields[i].className.split(' ');
+                    for (var j = 0; j<styleClasses.length; j++) {
+                        if (styleClasses[j]==styleClassName) {
+                            //console.log("forEachInputElementByStyleClass: " + styleClassName + " → will invoke callback for '" + inputFields[i].id + "'");
+                            if (callback(inputFields[i])) {
+                                return;
+                            }
+                            //console.log("forEachInputElementByStyleClass: return was not false, will remove the class and process next one");
+                            // Remove the class name to avoid processing it multiple times if this method is invoked again
+                            inputFields[i].className = inputFields[i].className.replace(styleClassName, "").trim();
+                            // Invoke the callback with the matching element. If it returns true we stop looking for more elements.
+                            break;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -144,21 +144,21 @@
                 if (instance.xmlHttpReq.status == 200) {
                     instance.timeToNextCheckInMs = instance.xmlHttpReq.responseText;
                     window.setTimeout(instance.poll, instance.timeToNextCheckInMs);
-            	} else {
+                } else {
                     console.log("SessionKeepAlive failed with HTTP status code " + instance.xmlHttpReq.status);
-            	}
+                }
             }
         };
         this.poll = function() {
-        	instance.xmlHttpReq.open("GET", instance.link, true);
+            instance.xmlHttpReq.open("GET", instance.link, true);
             try {
-            	instance.xmlHttpReq.send();
+                instance.xmlHttpReq.send();
             } catch (exception) {
                 console.log("SessionKeepAlive failed: " + exception);
             }
         };
         if (this.link) {
-        	window.setTimeout(this.poll, this.timeToNextCheckInMs);
+            window.setTimeout(this.poll, this.timeToNextCheckInMs);
         } else {
             console.log("Unable to find link element with ID '" + linkElementId + "'. SessionKeepAlive will not be enabled.");
         }
@@ -178,13 +178,13 @@
         this.timer = 0;
 
         this.delay = function(event) {
-        	// Reschedule (prevent) any existing timeout to the original handler and schedule a new one
+            // Reschedule (prevent) any existing timeout to the original handler and schedule a new one
             window.clearTimeout(instance.timer);
             instance.timer = window.setTimeout(function() { instance.originalHandler.call(instance.component, event); }, instance.timeout);
         };
         
         if (this.originalHandler) {
-        	this.component.onkeyup = this.delay;
+            this.component.onkeyup = this.delay;
         }
     };
 
@@ -198,7 +198,7 @@
     };
     /** Can be invoked on AJAX requests to indicate that an error has occurred. */
     var onAjaxError = function(data, elementId) {
-    	console.log("onAjaxError: " + data.errorMessage);
+        console.log("onAjaxError: " + data.errorMessage);
         document.getElementById(elementId).style.opacity = "0.2";
     };
     

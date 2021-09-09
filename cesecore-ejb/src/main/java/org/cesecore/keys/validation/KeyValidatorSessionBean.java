@@ -41,6 +41,7 @@ import org.cesecore.audit.enums.EventStatus;
 import org.cesecore.audit.enums.EventTypes;
 import org.cesecore.audit.enums.ModuleTypes;
 import org.cesecore.audit.enums.ServiceTypes;
+import org.cesecore.audit.log.AuditRecordStorageException;
 import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authorization.AuthorizationDeniedException;
@@ -475,8 +476,8 @@ public class KeyValidatorSessionBean
       // Cast is safe since we know we retrieved the correct implementation
       try {
         result.put(data.getId(), (Validator) data.getProfile());
-      } catch (IllegalStateException e) {
-        // NOPMD: Implementation not available in this version if EJBCA
+      } catch (IllegalStateException e) { // NOPMD:
+          // Implementation not available in this version if EJBCA
       }
     }
     if (LOG.isDebugEnabled()) {
@@ -580,27 +581,7 @@ public class KeyValidatorSessionBean
           }
           // If the certificate profile allows extension override, there may be
           // SANs mixed in among the extensions in the request message
-          if (certificateProfile.getAllowExtensionOverride()
-              && requestMessage != null) {
-            Extensions extensions = requestMessage.getRequestExtensions();
-            if (extensions != null) {
-              Extension extension =
-                  extensions.getExtension(Extension.subjectAlternativeName);
-              if (extension != null) {
-                String extendedSubjectAltName =
-                    CertTools.getAltNameStringFromExtension(extension);
-                for (String split : extendedSubjectAltName.split(",")) {
-                  if (split
-                      .trim()
-                      .toLowerCase()
-                      .startsWith(CertTools.DNS.toLowerCase())) {
-                    dnsNames.add(
-                        split.trim().substring(CertTools.DNS.length() + 1));
-                  }
-                }
-              }
-            }
-          }
+          handleSANs(requestMessage, certificateProfile, dnsNames);
 
           Entry<Boolean, List<String>> result =
               validator.validate(
@@ -635,25 +616,8 @@ public class KeyValidatorSessionBean
             // Validation succeeded, this can be considered a security audit
             // event because CAs may be asked to present this as evidence to an
             // auditor
-            final String message =
-                INTRES.getLocalizedMessage(
-                    "validator.caa.validation_successful",
-                    validatorName,
-                    validator.getIssuer(),
-                    messages);
-            final Map<String, Object> details =
-                new LinkedHashMap<String, Object>();
-            details.put("msg", message);
-            auditSession.log(
-                EventTypes.VALIDATOR_VALIDATION_SUCCESS,
-                EventStatus.SUCCESS,
-                ModuleTypes.VALIDATOR,
-                ServiceTypes.CORE,
-                authenticationToken.toString(),
-                String.valueOf(ca.getCAId()),
-                null,
-                endEntityInformation.getUsername(),
-                details);
+            validationSucess(authenticationToken, ca, endEntityInformation,
+                    validator, validatorName, messages);
           }
         }
       }
@@ -669,6 +633,59 @@ public class KeyValidatorSessionBean
     }
   }
 
+
+private void handleSANs(final RequestMessage requestMessage,
+        final CertificateProfile certificateProfile,
+        final List<String> dnsNames) {
+    if (certificateProfile.getAllowExtensionOverride()
+          && requestMessage != null) {
+        Extensions extensions = requestMessage.getRequestExtensions();
+        if (extensions != null) {
+          Extension extension =
+              extensions.getExtension(Extension.subjectAlternativeName);
+          if (extension != null) {
+            String extendedSubjectAltName =
+                CertTools.getAltNameStringFromExtension(extension);
+            for (String split : extendedSubjectAltName.split(",")) {
+              if (split
+                  .trim()
+                  .toLowerCase()
+                  .startsWith(CertTools.DNS.toLowerCase())) {
+                dnsNames.add(
+                    split.trim().substring(CertTools.DNS.length() + 1));
+              }
+            }
+          }
+        }
+      }
+}
+
+private void validationSucess(final AuthenticationToken authenticationToken,
+        final CA ca,
+        final EndEntityInformation endEntityInformation,
+        final DnsNameValidator validator, final String validatorName,
+        final List<String> messages) throws AuditRecordStorageException {
+    final String message =
+        INTRES.getLocalizedMessage(
+            "validator.caa.validation_successful",
+            validatorName,
+            validator.getIssuer(),
+            messages);
+    final Map<String, Object> details =
+        new LinkedHashMap<String, Object>();
+    details.put("msg", message);
+    auditSession.log(
+        EventTypes.VALIDATOR_VALIDATION_SUCCESS,
+        EventStatus.SUCCESS,
+        ModuleTypes.VALIDATOR,
+        ServiceTypes.CORE,
+        authenticationToken.toString(),
+        String.valueOf(ca.getCAId()),
+        null,
+        endEntityInformation.getUsername(),
+        details);
+}
+
   @Override
   public boolean validatePublicKey(
       final AuthenticationToken admin,
@@ -680,32 +697,17 @@ public class KeyValidatorSessionBean
       final PublicKey publicKey)
       throws ValidationException, IllegalValidityException {
     boolean result = true;
-    if (ca != null
-        && !CollectionUtils.isEmpty(
-            ca
-                .getValidators())) { // || certificateProfile.isTypeRootCA() ||
+    if (ca != null && !CollectionUtils.isEmpty(
+            ca.getValidators())) { // || certificateProfile.isTypeRootCA() ||
                                      // certificateProfile.isTypeSubCA()
       final CertificateValidity certificateValidity =
           new CertificateValidity(
               endEntityInformation,
               certificateProfile,
-              notBefore,
-              notAfter,
+              notBefore, notAfter,
               ca.getCACertificate(),
-              false,
-              false);
-      if (LOG.isDebugEnabled()) {
-        LOG.debug(
-            "Validate "
-                + publicKey.getAlgorithm()
-                + " public key with "
-                + publicKey.getFormat()
-                + " format.");
-        LOG.debug(
-            "Certificate 'notBefore' " + certificateValidity.getNotBefore());
-        LOG.debug(
-            "Certificate 'notAfter' " + certificateValidity.getNotAfter());
-      }
+              false, false);
+      logSetup(publicKey, certificateValidity);
       Validator baseValidator;
       KeyValidator validator;
       String name;
@@ -755,40 +757,15 @@ public class KeyValidatorSessionBean
               details.put("msg", message);
               auditSession.log(
                   EventTypes.VALIDATOR_VALIDATION_FAILED,
-                  EventStatus.FAILURE,
-                  ModuleTypes.VALIDATOR,
-                  ServiceTypes.CORE,
-                  admin.toString(),
+                  EventStatus.FAILURE, ModuleTypes.VALIDATOR,
+                  ServiceTypes.CORE, admin.toString(),
                   String.valueOf(ca.getCAId()),
-                  fingerprint,
-                  endEntityInformation.getUsername(),
+                  fingerprint, endEntityInformation.getUsername(),
                   details);
               performValidationFailedActions(index, message);
             } else {
-              final byte[] keyBytes = publicKey.getEncoded();
-              final String publicKeyEncoded =
-                  (keyBytes != null
-                      ? new String(Base64.encode(keyBytes))
-                      : "null");
-              final String message =
-                  INTRES.getLocalizedMessage(
-                      "validator.key.validation_successful",
-                      name,
-                      publicKeyEncoded);
-              LOG.info(message);
-              final Map<String, Object> details =
-                  new LinkedHashMap<String, Object>();
-              details.put("msg", message);
-              auditSession.log(
-                  EventTypes.VALIDATOR_VALIDATION_SUCCESS,
-                  EventStatus.SUCCESS,
-                  ModuleTypes.VALIDATOR,
-                  ServiceTypes.CORE,
-                  admin.toString(),
-                  String.valueOf(ca.getCAId()),
-                  null,
-                  endEntityInformation.getUsername(),
-                  details);
+              logValidationResult(admin, ca, endEntityInformation,
+                      publicKey, name);
             }
           } catch (ValidatorNotApplicableException e) {
             // This methods either throws a KeyValidationException, or just logs
@@ -804,16 +781,62 @@ public class KeyValidatorSessionBean
       }
     } else {
       if (LOG.isDebugEnabled()) {
-        LOG.debug(
-            "No key validator configured for CA "
-                + ca.getName()
-                + " (ID="
-                + ca.getCAId()
-                + ").");
+        LOG.debug("No key validator configured for CA "
+                + ca.getName() + " (ID=" + ca.getCAId() + ").");
       }
     }
     return result;
   }
+
+/**
+ * @param publicKey Key
+ * @param certificateValidity Val
+ */
+private void logSetup(final PublicKey publicKey,
+        final CertificateValidity certificateValidity) {
+    if (LOG.isDebugEnabled()) {
+        LOG.debug(
+            "Validate "
+                + publicKey.getAlgorithm()
+                + " public key with "
+                + publicKey.getFormat()
+                + " format.");
+        LOG.debug(
+            "Certificate 'notBefore' " + certificateValidity.getNotBefore());
+        LOG.debug(
+            "Certificate 'notAfter' " + certificateValidity.getNotAfter());
+      }
+}
+
+private void logValidationResult(final AuthenticationToken admin, final CA ca,
+        final EndEntityInformation endEntityInformation,
+        final PublicKey publicKey, final String name)
+        throws AuditRecordStorageException {
+    final byte[] keyBytes = publicKey.getEncoded();
+      final String publicKeyEncoded =
+          keyBytes != null
+              ? new String(Base64.encode(keyBytes))
+              : "null";
+      final String message =
+          INTRES.getLocalizedMessage(
+              "validator.key.validation_successful",
+              name,
+              publicKeyEncoded);
+      LOG.info(message);
+      final Map<String, Object> details =
+          new LinkedHashMap<String, Object>();
+      details.put("msg", message);
+      auditSession.log(
+          EventTypes.VALIDATOR_VALIDATION_SUCCESS,
+          EventStatus.SUCCESS,
+          ModuleTypes.VALIDATOR,
+          ServiceTypes.CORE,
+          admin.toString(),
+          String.valueOf(ca.getCAId()),
+          null,
+          endEntityInformation.getUsername(),
+          details);
+}
 
   @Override
   public void validateCertificate(
@@ -872,50 +895,9 @@ public class KeyValidatorSessionBean
                     externalScriptsConfiguration.getExternalScriptsWhitelist(),
                     externalScriptsConfiguration
                         .getIsExternalScriptsWhitelistEnabled());
-            final List<String> messages =
-                validator.validate(ca, certificate, externalScriptsWhitelist);
-            if (messages.size() > 0) { // Evaluation has failed.
-              final String message =
-                  INTRES.getLocalizedMessage(
-                      "validator.certificate.validation_failed",
-                      name,
-                      messages);
-              final Map<String, Object> details =
-                  new LinkedHashMap<String, Object>();
-              details.put("msg", message);
-              auditSession.log(
-                  EventTypes.VALIDATOR_VALIDATION_FAILED,
-                  EventStatus.FAILURE,
-                  ModuleTypes.VALIDATOR,
-                  ServiceTypes.CORE,
-                  authenticationToken.toString(),
-                  String.valueOf(ca.getCAId()),
-                  fingerprint,
-                  endEntityInformation.getUsername(),
-                  details);
-              performValidationFailedActions(
-                  validator.getFailedAction(), message);
-            } else {
-              final String message =
-                  INTRES.getLocalizedMessage(
-                      "validator.certificate.validation_successful",
-                      name,
-                      fingerprint);
-              LOG.info(message);
-              final Map<String, Object> details =
-                  new LinkedHashMap<String, Object>();
-              details.put("msg", message);
-              auditSession.log(
-                  EventTypes.VALIDATOR_VALIDATION_SUCCESS,
-                  EventStatus.SUCCESS,
-                  ModuleTypes.VALIDATOR,
-                  ServiceTypes.CORE,
-                  authenticationToken.toString(),
-                  String.valueOf(ca.getCAId()),
-                  null,
-                  endEntityInformation.getUsername(),
-                  details);
-            }
+            checkMessages(authenticationToken, ca, endEntityInformation,
+                    certificate, validator, name, fingerprint,
+                    externalScriptsWhitelist);
           } catch (ValidatorNotApplicableException e) {
             // This methods either throws a KeyValidationException, or just logs
             // a message and validation should be considered successful
@@ -933,6 +915,75 @@ public class KeyValidatorSessionBean
       }
     }
   }
+
+/**
+ * @param authenticationToken token
+ * @param ca CA
+ * @param endEntityInformation EEI
+ * @param certificate Cert
+ * @param validator Val
+ * @param name Name
+ * @param fingerprint FP
+ * @param externalScriptsWhitelist WL
+ * @throws ValidatorNotApplicableException Fail
+ * @throws ValidationException Fail
+ * @throws CertificateException Fail
+ * @throws AuditRecordStorageException Fail
+ */
+private void checkMessages(final AuthenticationToken authenticationToken,
+        final CA ca,
+        final EndEntityInformation endEntityInformation,
+        final X509Certificate certificate,
+        final CertificateValidator validator,
+        final String name, final String fingerprint,
+        final ExternalScriptsWhitelist externalScriptsWhitelist)
+        throws ValidatorNotApplicableException, ValidationException,
+        CertificateException, AuditRecordStorageException {
+    final List<String> messages =
+        validator.validate(ca, certificate, externalScriptsWhitelist);
+    if (messages.size() > 0) { // Evaluation has failed.
+      final String message =
+          INTRES.getLocalizedMessage(
+              "validator.certificate.validation_failed",
+              name,
+              messages);
+      final Map<String, Object> details =
+          new LinkedHashMap<String, Object>();
+      details.put("msg", message);
+      auditSession.log(
+          EventTypes.VALIDATOR_VALIDATION_FAILED,
+          EventStatus.FAILURE,
+          ModuleTypes.VALIDATOR,
+          ServiceTypes.CORE,
+          authenticationToken.toString(),
+          String.valueOf(ca.getCAId()),
+          fingerprint,
+          endEntityInformation.getUsername(),
+          details);
+      performValidationFailedActions(
+          validator.getFailedAction(), message);
+    } else {
+      final String message =
+          INTRES.getLocalizedMessage(
+              "validator.certificate.validation_successful",
+              name,
+              fingerprint);
+      LOG.info(message);
+      final Map<String, Object> details =
+          new LinkedHashMap<String, Object>();
+      details.put("msg", message);
+      auditSession.log(
+          EventTypes.VALIDATOR_VALIDATION_SUCCESS,
+          EventStatus.SUCCESS,
+          ModuleTypes.VALIDATOR,
+          ServiceTypes.CORE,
+          authenticationToken.toString(),
+          String.valueOf(ca.getCAId()),
+          null,
+          endEntityInformation.getUsername(),
+          details);
+    }
+}
 
   /** Method is never called.
    *
@@ -1006,7 +1057,7 @@ public class KeyValidatorSessionBean
             break;
           }
           // superadmin should be able to access profiles with missing CA Ids
-          if (!authorizedCPIDs.contains(nextcpid) && (!rootAccess)) {
+          if (!authorizedCPIDs.contains(nextcpid) && !rootAccess) {
             if (LOG.isDebugEnabled()) {
               LOG.debug(
                   "Validator have certificate profile "

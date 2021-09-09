@@ -215,8 +215,8 @@ function checkfieldforgender(thetextfield, alerttext) {
     return false;  
   }
   else{
-  	return true;
-  }	
+      return true;
+  }    
   
 }
 
@@ -227,27 +227,27 @@ function checkFieldForCrlSimpleTime(thetextfield, alerttext) {
   re = /\s*(([+-]?\d+)\s*([m][o]|[y]|[d]|[h]|[m]))\s*/ig;
   tokens = text.match(re);
   if (null != tokens && tokens.length > 0 && tokens.join("").valueOf() == text.valueOf()) {
-	  var result = 0;
-	  for (i=0;i<tokens.length;i++) {
-	    if (tokens[i].toLowerCase().indexOf('mo') > 0) {
-			result=result+parseInt(tokens[i])*30*24*60*60*1000;
-		}
-		if (tokens[i].toLowerCase().indexOf('y') > 0) {
-			result=result+parseInt(tokens[i])*365*24*60*60*1000;
-		}
-		if (tokens[i].toLowerCase().indexOf('d') > 0) {
-		    result=result+parseInt(tokens[i])*24*60*60*1000;
-		}
-		if (tokens[i].toLowerCase().indexOf('h') > 0) {
-		    result=result+parseInt(tokens[i])*60*60*1000;
-		}
-		if (tokens[i].toLowerCase().indexOf('m') > 0) {
-		    result=result+parseInt(tokens[i])*60*1000;
-		}
-	  }
-	  if (result > -1) {
-		return true;
-	  }
+      var result = 0;
+      for (i=0;i<tokens.length;i++) {
+        if (tokens[i].toLowerCase().indexOf('mo') > 0) {
+            result=result+parseInt(tokens[i])*30*24*60*60*1000;
+        }
+        if (tokens[i].toLowerCase().indexOf('y') > 0) {
+            result=result+parseInt(tokens[i])*365*24*60*60*1000;
+        }
+        if (tokens[i].toLowerCase().indexOf('d') > 0) {
+            result=result+parseInt(tokens[i])*24*60*60*1000;
+        }
+        if (tokens[i].toLowerCase().indexOf('h') > 0) {
+            result=result+parseInt(tokens[i])*60*60*1000;
+        }
+        if (tokens[i].toLowerCase().indexOf('m') > 0) {
+            result=result+parseInt(tokens[i])*60*1000;
+        }
+      }
+      if (result > -1) {
+        return true;
+      }
   }
   alert(alerttext);
   return false;
@@ -259,7 +259,7 @@ function checkFieldForYearsMonthsDays(thetextfield , alerttext) {
   var text = new String(field.value);
   re = /^\s*((\d+\s*[yY])?\s*(\d+\s*[mM][oO])?\s*(\d+\s*[dD])?)\s*$|^\s*[0-9]+\s*$/;
   if (re.exec(text)) {
-	  return true;
+      return true;
   }
   alert(alerttext);
   return false;
@@ -267,16 +267,16 @@ function checkFieldForYearsMonthsDays(thetextfield , alerttext) {
 
 /** Verify that the field is of format 'YYYYMMDD' */
 function checkFieldForDate(thetextfield, alerttext) {
-	field = eval(thetextfield);
-	var text = new String(field.value);
-	re = /(19|20)[0-9]{2}(0[1-9]|1[012])(0[1-9]|[12][0-9]|3[01])/;
-	if ( (text.length > 0) && ((!re.exec(text) || (text.length != 8))) ) {
-		alert(alerttext);
-		return false;
-	}
-	else {
-		return true;
-	}
+    field = eval(thetextfield);
+    var text = new String(field.value);
+    re = /(19|20)[0-9]{2}(0[1-9]|1[012])(0[1-9]|[12][0-9]|3[01])/;
+    if ( (text.length > 0) && ((!re.exec(text) || (text.length != 8))) ) {
+        alert(alerttext);
+        return false;
+    }
+    else {
+        return true;
+    }
 }
 
 function checkfieldforhexadecimalnumbers(thetextfield , alerttext){
@@ -294,18 +294,18 @@ function checkfieldforhexadecimalnumbers(thetextfield , alerttext){
 }
 
 function checkfieldfornumbers(thetextfield, alerttext) {
-	  // remove all spaces
-	  field = eval(thetextfield);
-	  var text = new String(field.value);
-	  
-	  re = /[^0-9 ]/g;
-	  if(text.length === 0 || re.exec(text) || text < 4 || text > 20) {
-	    alert(alerttext);
-	    return false;
-	  }
-	  else{
-	    return true;
-	  }
+      // remove all spaces
+      field = eval(thetextfield);
+      var text = new String(field.value);
+      
+      re = /[^0-9 ]/g;
+      if(text.length === 0 || re.exec(text) || text < 4 || text > 20) {
+        alert(alerttext);
+        return false;
+      }
+      else{
+        return true;
+      }
 }
 
 function checkfieldforlegalresourcechars(thetextfield , alerttext){
@@ -333,26 +333,26 @@ function trim(s) {
 
 // Prompt user for input, validate it for illegal chars and write it to a field
 function getInputToField(fieldname, infotext, infovalidchars) {
-	var input = prompt(infotext,"");
-	if ( input != null && "" != input) {
-		document.getElementById(fieldname).value = input;
-		if (checkfieldforlegalchars(document.getElementById(fieldname), infovalidchars)) {
-			return true;
-		}
-		document.getElementById(fieldname).value = '';
-	}
-	return false;
+    var input = prompt(infotext,"");
+    if ( input != null && "" != input) {
+        document.getElementById(fieldname).value = input;
+        if (checkfieldforlegalchars(document.getElementById(fieldname), infovalidchars)) {
+            return true;
+        }
+        document.getElementById(fieldname).value = '';
+    }
+    return false;
 }
 
 // Validate and write the 'input' to a field
 function getInsertIntoField(fieldname, input, infovalidchars) {
-	if ( input != null && "" != input) {
-		document.getElementById(fieldname).value = input;
-		if (checkfieldforlegalchars(document.getElementById(fieldname), infovalidchars)) {
-			return true;
-		}
-	}
-	return false;
+    if ( input != null && "" != input) {
+        document.getElementById(fieldname).value = input;
+        if (checkfieldforlegalchars(document.getElementById(fieldname), infovalidchars)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /* JS library functions used by EJBCA 6.8.0+ JSF pages */
@@ -362,16 +362,16 @@ function getInsertIntoField(fieldname, input, infovalidchars) {
     /** Scroll the element with elementId into view on AJAX requests success. */
     var onAjaxSuccessScrollTo = function(data, elementId) {
         if (data.status == "success") {
-        	var y = 0;
-        	if (elementId) {
-            	var element = document.getElementById(elementId);
-            	while (element && !isNaN(element.offsetTop) ) {
-            		y += element.offsetTop - element.scrollTop;
-            		element = element.offsetParent;
-            	}
-        	}
-        	//console.log("Scrolling element '" + elementId + "' into view using coordinates (0, " + y + ").");
-        	window.scroll(0, y);
+            var y = 0;
+            if (elementId) {
+                var element = document.getElementById(elementId);
+                while (element && !isNaN(element.offsetTop) ) {
+                    y += element.offsetTop - element.scrollTop;
+                    element = element.offsetParent;
+                }
+            }
+            //console.log("Scrolling element '" + elementId + "' into view using coordinates (0, " + y + ").");
+            window.scroll(0, y);
         }
     };
 

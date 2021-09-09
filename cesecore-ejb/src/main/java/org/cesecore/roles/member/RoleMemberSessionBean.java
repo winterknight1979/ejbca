@@ -63,7 +63,7 @@ public class RoleMemberSessionBean
   /** Session. */
   @EJB private RoleSessionLocal roleSession;
   /** Session. */
-  @EJB private RoleDataSessionLocal roleDataSession;
+  @EJB private RoleDataSessionLocal roleDataSession; // NOPMD: ejb
   /** Session. */
   @EJB private RoleMemberDataSessionLocal roleMemberDataSession;
   /** Session. */
@@ -161,7 +161,7 @@ public class RoleMemberSessionBean
     normalizeRoleMember(roleMember);
     final RoleMember persistedRoleMember =
         roleMemberDataSession.persistRoleMember(roleMember);
-    final boolean addedRoleMember = (oldRoleMember == null);
+    final boolean addedRoleMember = oldRoleMember == null;
     final String tokenType = persistedRoleMember.getTokenType();
     final int tokenMatchKey = persistedRoleMember.getTokenMatchKey();
     final String tokenMatchKeyName =
@@ -184,6 +184,34 @@ public class RoleMemberSessionBean
                   persistedRoleMember.getTokenMatchValue(),
                   role.getRoleNameFull());
     }
+    final Map<String, Object> details = storeDetailsA(roleMember, oldRoleMember,
+            persistedRoleMember, addedRoleMember,
+            tokenMatchKeyName, msg);
+    storeDetailsB(roleMember, oldRoleMember,
+            role, persistedRoleMember,
+            addedRoleMember, details);
+    final EventType eventType =
+        addedRoleMember
+            ? EventTypes.ROLE_ACCESS_USER_ADDITION
+            : EventTypes.ROLE_ACCESS_USER_CHANGE;
+    securityEventsLoggerSession.log(
+        eventType,
+        EventStatus.SUCCESS,
+        ModuleTypes.ROLES,
+        ServiceTypes.CORE,
+        authenticationToken.toString(),
+        null,
+        null,
+        null,
+        details);
+    return persistedRoleMember;
+  }
+
+
+private Map<String, Object> storeDetailsA(final RoleMember roleMember,
+        final RoleMember oldRoleMember, final RoleMember persistedRoleMember,
+        final boolean addedRoleMember, final String tokenMatchKeyName,
+        final String msg) {
     final Map<String, Object> details = new LinkedHashMap<>();
     details.put("msg", msg);
     details.put("id", persistedRoleMember.getId());
@@ -208,6 +236,13 @@ public class RoleMemberSessionBean
               + persistedRoleMember.getTokenMatchKey()
               + ")");
     }
+    return details;
+}
+
+private void storeDetailsB(final RoleMember roleMember,
+        final RoleMember oldRoleMember, final Role role,
+        final RoleMember persistedRoleMember, final boolean addedRoleMember,
+        final Map<String, Object> details) {
     if (addedRoleMember
         || oldRoleMember.getTokenMatchOperator()
             != persistedRoleMember.getTokenMatchOperator()) {
@@ -236,22 +271,7 @@ public class RoleMemberSessionBean
             persistedRoleMember.getDescription())) {
       details.put("description", persistedRoleMember.getDescription());
     }
-    final EventType eventType =
-        addedRoleMember
-            ? EventTypes.ROLE_ACCESS_USER_ADDITION
-            : EventTypes.ROLE_ACCESS_USER_CHANGE;
-    securityEventsLoggerSession.log(
-        eventType,
-        EventStatus.SUCCESS,
-        ModuleTypes.ROLES,
-        ServiceTypes.CORE,
-        authenticationToken.toString(),
-        null,
-        null,
-        null,
-        details);
-    return persistedRoleMember;
-  }
+}
 
   /**
    * Normalizes data in the role member, e.g. changing serial numbers to

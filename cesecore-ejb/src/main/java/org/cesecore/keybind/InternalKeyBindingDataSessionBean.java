@@ -27,6 +27,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import org.apache.log4j.Logger;
+import org.cesecore.CesecoreRuntimeException;
 import org.cesecore.config.CesecoreConfigurationHelper;
 import org.cesecore.internal.InternalResources;
 import org.cesecore.util.QueryResultWrapper;
@@ -200,7 +201,7 @@ public class InternalKeyBindingDataSessionBean
         }
       }
       if (allocatedId == null) {
-        throw new RuntimeException(
+        throw new CesecoreRuntimeException(
             "Failed to allocate a new internalKeyBindingId.");
       }
       internalKeyBindingId = allocatedId.intValue();
@@ -227,6 +228,48 @@ public class InternalKeyBindingDataSessionBean
           entityManager.find(
               InternalKeyBindingData.class, internalKeyBindingId);
     }
+    internalKeyBindingData = populateWithInitialData(internalKeyBindingId,
+            name, status, type, certificateId,
+            cryptoTokenId, keyPairAlias, dataMap, internalKeyBindingData);
+    internalKeyBindingData = createOrUpdateData(internalKeyBindingData);
+    // Update cache with provided token (it might be active and we like keeping
+    // things active)
+    InternalKeyBindingCache.INSTANCE.updateWith(
+        internalKeyBindingId,
+        internalKeyBindingData.getProtectString(0).hashCode(),
+        name,
+        internalKeyBinding);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("<mergeInternalKeyBinding " + internalKeyBinding.getName());
+    }
+    return internalKeyBindingId; // tokenId
+  }
+
+/**
+ * @param internalKeyBindingId ID
+ * @param name Name
+ * @param status Status
+ * @param type Type
+ * @param certificateId ID
+ * @param cryptoTokenId ID
+ * @param keyPairAlias Alias
+ * @param dataMap Data
+ * @param data Data
+ * @return Data
+ * @throws InternalKeyBindingNameInUseException fail
+ */
+private InternalKeyBindingData populateWithInitialData(
+        final int internalKeyBindingId,
+        final String name,
+        final InternalKeyBindingStatus status,
+        final String type,
+        final String certificateId,
+        final int cryptoTokenId,
+        final String keyPairAlias,
+        final LinkedHashMap<Object, Object> dataMap,
+        final InternalKeyBindingData data)
+                throws InternalKeyBindingNameInUseException {
+    InternalKeyBindingData internalKeyBindingData = data;
     if (internalKeyBindingData == null) {
       // The InternalKeyBinding does not exist in the database, before we add it
       // we want to check that the name is not in use
@@ -275,19 +318,8 @@ public class InternalKeyBindingDataSessionBean
       internalKeyBindingData.setDataMap(dataMap);
       internalKeyBindingData.setLastUpdate(System.currentTimeMillis());
     }
-    internalKeyBindingData = createOrUpdateData(internalKeyBindingData);
-    // Update cache with provided token (it might be active and we like keeping
-    // things active)
-    InternalKeyBindingCache.INSTANCE.updateWith(
-        internalKeyBindingId,
-        internalKeyBindingData.getProtectString(0).hashCode(),
-        name,
-        internalKeyBinding);
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("<mergeInternalKeyBinding " + internalKeyBinding.getName());
-    }
-    return internalKeyBindingId; // tokenId
-  }
+    return internalKeyBindingData;
+}
 
   @Override
   public boolean removeInternalKeyBinding(final int id) {
