@@ -68,9 +68,15 @@ public class AcmeConfiguration extends UpgradeableDataHashMap
   private static final String KEY_TERMS_OF_SERVICE_REQUIRE_NEW_APPROVAL =
       "termsOfServiceRequireNewApproval";
   /** Config. */
-  private static final String DNS_RESOLVER_DEFAULT = "8.8.8.8";
+  private static final String DNS_RESOLVER_DEFAULT = "8.8.8.8"; // NOPMD
   /** Config. */
   private static final int DNS_SERVER_PORT_DEFAULT = 53;
+
+  /** One hour. */
+  private final long oneHour = 60 * 60 * 1000L;
+
+  /** One day. */
+  private final long oneDay = 24 * oneHour;
 
   /** Config. */
   private static final int DEFAULT_END_ENTITY_PROFILE_ID =
@@ -107,7 +113,8 @@ public class AcmeConfiguration extends UpgradeableDataHashMap
   }
 
   @Override
-  public void upgrade() { }
+  public void upgrade() { // NOPMD: no-op
+  }
 
   /** @return the configuration ID as used in the request URL path */
   public String getConfigurationId() {
@@ -243,12 +250,6 @@ public class AcmeConfiguration extends UpgradeableDataHashMap
   public void setCaaIdentities(final List<String> theCaaIdentities) {
     this.caaIdentities = theCaaIdentities;
   }
-
-  /** One hour. */
-  private final long oneHour = 60 * 60 * 1000L;
-
-  /** One day. */
-  private final long oneDay = 24 * oneHour;
 
   /** @return how long a new order will be valid for in milliseconds */
   public long getOrderValidity() {
