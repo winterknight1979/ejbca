@@ -15,6 +15,7 @@ on:
     branches: [ "master", "main" ]
   schedule:
     - cron: '0 2 * * 6'
+  workflow_dispatch:
 
 jobs:
   codacy-security-scan:
